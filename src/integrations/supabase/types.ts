@@ -3278,7 +3278,22 @@ export type Database = {
           is_pinned?: boolean | null
           parcours_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "parcours_companies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parcours_companies_parcours_id_fkey"
+            columns: ["parcours_id"]
+            isOneToOne: false
+            referencedRelation: "parcours"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       parcours_modules: {
         Row: {
