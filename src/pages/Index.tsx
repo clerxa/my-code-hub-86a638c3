@@ -26,6 +26,13 @@ const Index = () => {
   }, [searchParams]);
 
   const checkExistingSession = async () => {
+    // If the URL hash contains type=recovery, redirect to reset-password
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      navigate("/reset-password" + hash, { replace: true });
+      return;
+    }
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
