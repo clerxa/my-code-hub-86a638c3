@@ -100,16 +100,11 @@ serve(async (req: Request) => {
       throw new Error("User ID is required");
     }
 
-    // Get the actual auth user to ensure we use the correct email
-    const { data: authUserData, error: authUserError } = await supabaseAdmin.auth.admin.getUserById(userId);
-    
-    if (authUserError || !authUserData?.user) {
-      throw new Error("User not found in auth system");
-    }
-
-    const authEmail = authUserData.user.email;
-    if (!authEmail) {
-      throw new Error("User has no email address");
+    // Try to get the auth user, but fall back to profile email if not found
+    let authEmail: string | null = null;
+    const { data: authUserData } = await supabaseAdmin.auth.admin.getUserById(userId);
+    if (authUserData?.user?.email) {
+      authEmail = authUserData.user.email;
     }
 
     // Get user profile for display name and company
@@ -121,6 +116,12 @@ serve(async (req: Request) => {
 
     if (profileError || !profile) {
       throw new Error("User profile not found");
+    }
+
+    // Use auth email if available, otherwise fall back to profile email
+    const finalEmail = authEmail || profile.email;
+    if (!finalEmail) {
+      throw new Error("No email found for this user");
     }
 
     // Get company name if exists
@@ -140,7 +141,7 @@ serve(async (req: Request) => {
     // Generate password recovery link using the auth email
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: "recovery",
-      email: authEmail.toLowerCase(),
+      email: finalEmail.toLowerCase(),
       options: {
         redirectTo: `${origin}/reset-password`,
       },
@@ -158,7 +159,7 @@ serve(async (req: Request) => {
     const resend = new Resend(resendApiKey);
     const displayName = profile.first_name || "Bonjour";
 
-    const recipientEmail = authEmail.toLowerCase();
+    const recipientEmail = finalEmail.toLowerCase();
     const sendResult = await sendResendEmailWithFallback(resend, {
       to: [recipientEmail],
       subject: "Réinitialisez votre mot de passe FinCare",
