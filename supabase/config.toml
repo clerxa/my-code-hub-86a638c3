@@ -56,3 +56,21 @@ verify_jwt = false
 
 [functions.public-password-reset]
 verify_jwt = false
+
+[functions.send-colleague-invitation]
+verify_jwt = false
+
+[functions.send-contact-message]
+verify_jwt = false
+
+[functions.send-employee-partnership-email]
+verify_jwt = false
+
+[functions.send-invitations]
+verify_jwt = false
+
+[functions.send-password-reset]
+verify_jwt = false
+
+[functions.track-invitation]
+verify_jwt = false
