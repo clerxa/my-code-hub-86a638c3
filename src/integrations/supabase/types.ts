@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
@@ -2056,13 +2056,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "forum_comment_likes_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "secure_forum_comments"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "forum_comment_likes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -2146,24 +2139,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "forum_comments_parent_comment_id_fkey"
-            columns: ["parent_comment_id"]
-            isOneToOne: false
-            referencedRelation: "secure_forum_comments"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "forum_comments_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "forum_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "secure_forum_posts"
             referencedColumns: ["id"]
           },
         ]
@@ -2199,15 +2178,7 @@ export type Database = {
           target_id?: string
           target_type?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "forum_moderation_logs_reason_id_fkey"
-            columns: ["reason_id"]
-            isOneToOne: false
-            referencedRelation: "forum_moderation_reasons"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       forum_moderation_reasons: {
         Row: {
@@ -2261,13 +2232,6 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "forum_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_post_likes_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "secure_forum_posts"
             referencedColumns: ["id"]
           },
           {
@@ -2343,29 +2307,7 @@ export type Database = {
           updated_at?: string
           views_count?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "forum_posts_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_posts_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "forum_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_posts_deletion_reason_id_fkey"
-            columns: ["deletion_reason_id"]
-            isOneToOne: false
-            referencedRelation: "forum_moderation_reasons"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       forum_settings: {
         Row: {
@@ -2506,22 +2448,7 @@ export type Database = {
           user_id?: string | null
           user_name?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "hubspot_appointments_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "hubspot_appointments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       lmnp_simulations: {
         Row: {
@@ -2713,22 +2640,7 @@ export type Database = {
           success?: boolean
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "module_validations_module_id_fkey"
-            columns: ["module_id"]
-            isOneToOne: false
-            referencedRelation: "modules"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "module_validations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       modules: {
         Row: {
@@ -2902,22 +2814,7 @@ export type Database = {
           triggered_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "notification_logs_notification_id_fkey"
-            columns: ["notification_id"]
-            isOneToOne: false
-            referencedRelation: "notifications"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notification_logs_rule_id_fkey"
-            columns: ["rule_id"]
-            isOneToOne: false
-            referencedRelation: "notification_rules"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       notification_rules: {
         Row: {
@@ -3097,15 +2994,7 @@ export type Database = {
           session_id?: string
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "onboarding_responses_screen_id_fkey"
-            columns: ["screen_id"]
-            isOneToOne: false
-            referencedRelation: "onboarding_screens"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       onboarding_scenes: {
         Row: {
@@ -3381,22 +3270,7 @@ export type Database = {
           is_pinned?: boolean | null
           parcours_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "parcours_companies_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "parcours_companies_parcours_id_fkey"
-            columns: ["parcours_id"]
-            isOneToOne: false
-            referencedRelation: "parcours"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       parcours_modules: {
         Row: {
@@ -3423,22 +3297,7 @@ export type Database = {
           order_num?: number
           parcours_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "parcours_modules_module_id_fkey"
-            columns: ["module_id"]
-            isOneToOne: false
-            referencedRelation: "modules"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "parcours_modules_parcours_id_fkey"
-            columns: ["parcours_id"]
-            isOneToOne: false
-            referencedRelation: "parcours"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       partnership_contact_requests: {
         Row: {
@@ -3531,15 +3390,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "partnership_requests_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       per_simulations: {
         Row: {
@@ -3851,15 +3702,7 @@ export type Database = {
           theme_preference?: string
           total_points?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       recommendation_rules: {
         Row: {
@@ -3964,15 +3807,7 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "referral_requests_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       registrations: {
         Row: {
@@ -3999,15 +3834,7 @@ export type Database = {
           id?: string
           last_name?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "registrations_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       risk_answers: {
         Row: {
@@ -4034,15 +3861,7 @@ export type Database = {
           question_id?: string
           score_value?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "risk_answers_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "risk_questions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       risk_profile: {
         Row: {
@@ -4207,15 +4026,7 @@ export type Database = {
           taxes_prelevees?: number | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "sell_to_cover_lot_id_fkey"
-            columns: ["lot_id"]
-            isOneToOne: false
-            referencedRelation: "espp_lots"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       settings: {
         Row: {
@@ -4341,15 +4152,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "simulations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       simulations_impots: {
         Row: {
@@ -4556,15 +4359,7 @@ export type Database = {
           updated_at?: string
           visibility_status?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "simulators_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "simulator_categories"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       tax_declaration_requests: {
         Row: {
@@ -4669,22 +4464,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "tax_declaration_requests_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tax_declaration_requests_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       themes: {
         Row: {
@@ -4987,15 +4767,7 @@ export type Database = {
           valeur_rsu_aga?: number | null
           valeur_stock_options?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_financial_profiles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_fiscal_profile: {
         Row: {
@@ -5049,15 +4821,7 @@ export type Database = {
           notification_id?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_notifications_notification_id_fkey"
-            columns: ["notification_id"]
-            isOneToOne: false
-            referencedRelation: "notifications"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_offer_views: {
         Row: {
@@ -5102,22 +4866,7 @@ export type Database = {
           source?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_parcours_parcours_id_fkey"
-            columns: ["parcours_id"]
-            isOneToOne: false
-            referencedRelation: "parcours"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_parcours_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_real_estate_properties: {
         Row: {
@@ -5183,22 +4932,7 @@ export type Database = {
           score_value?: number
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_risk_responses_answer_id_fkey"
-            columns: ["answer_id"]
-            isOneToOne: false
-            referencedRelation: "risk_answers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_risk_responses_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "risk_questions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -5273,15 +5007,7 @@ export type Database = {
           taux_change?: number
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ventes_espp_lot_id_fkey"
-            columns: ["lot_id"]
-            isOneToOne: false
-            referencedRelation: "espp_lots"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       video_progress: {
         Row: {
@@ -5320,15 +5046,7 @@ export type Database = {
           user_id?: string
           watch_time_seconds?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "video_progress_module_id_fkey"
-            columns: ["module_id"]
-            isOneToOne: false
-            referencedRelation: "modules"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       villains: {
         Row: {
@@ -5421,15 +5139,7 @@ export type Database = {
           registration_status?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "webinar_external_registrations_module_id_fkey"
-            columns: ["module_id"]
-            isOneToOne: false
-            referencedRelation: "modules"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       webinar_registrations: {
         Row: {
@@ -5471,296 +5181,14 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "webinar_registrations_module_id_fkey"
-            columns: ["module_id"]
-            isOneToOne: false
-            referencedRelation: "modules"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "webinar_registrations_user_id_profiles_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
-      secure_forum_comments: {
-        Row: {
-          author_id: string | null
-          content: string | null
-          created_at: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          deletion_reason_id: string | null
-          display_avatar_url: string | null
-          display_pseudo: string | null
-          id: string | null
-          is_anonymous: boolean | null
-          is_best_answer: boolean | null
-          is_deleted: boolean | null
-          parent_comment_id: string | null
-          post_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          author_id?: never
-          content?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          deletion_reason_id?: string | null
-          display_avatar_url?: never
-          display_pseudo?: never
-          id?: string | null
-          is_anonymous?: boolean | null
-          is_best_answer?: boolean | null
-          is_deleted?: boolean | null
-          parent_comment_id?: string | null
-          post_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          author_id?: never
-          content?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          deletion_reason_id?: string | null
-          display_avatar_url?: never
-          display_pseudo?: never
-          id?: string | null
-          is_anonymous?: boolean | null
-          is_best_answer?: boolean | null
-          is_deleted?: boolean | null
-          parent_comment_id?: string | null
-          post_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "forum_comments_deletion_reason_id_fkey"
-            columns: ["deletion_reason_id"]
-            isOneToOne: false
-            referencedRelation: "forum_moderation_reasons"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_comments_parent_comment_id_fkey"
-            columns: ["parent_comment_id"]
-            isOneToOne: false
-            referencedRelation: "forum_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_comments_parent_comment_id_fkey"
-            columns: ["parent_comment_id"]
-            isOneToOne: false
-            referencedRelation: "secure_forum_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "forum_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "secure_forum_posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      secure_forum_posts: {
-        Row: {
-          author_id: string | null
-          category_id: string | null
-          content: string | null
-          created_at: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          deletion_reason_id: string | null
-          display_avatar_url: string | null
-          display_pseudo: string | null
-          has_best_answer: boolean | null
-          id: string | null
-          is_anonymous: boolean | null
-          is_closed: boolean | null
-          is_deleted: boolean | null
-          is_pinned: boolean | null
-          tags: string[] | null
-          title: string | null
-          updated_at: string | null
-          views_count: number | null
-        }
-        Insert: {
-          author_id?: never
-          category_id?: string | null
-          content?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          deletion_reason_id?: string | null
-          display_avatar_url?: never
-          display_pseudo?: never
-          has_best_answer?: boolean | null
-          id?: string | null
-          is_anonymous?: boolean | null
-          is_closed?: boolean | null
-          is_deleted?: boolean | null
-          is_pinned?: boolean | null
-          tags?: string[] | null
-          title?: string | null
-          updated_at?: string | null
-          views_count?: number | null
-        }
-        Update: {
-          author_id?: never
-          category_id?: string | null
-          content?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          deletion_reason_id?: string | null
-          display_avatar_url?: never
-          display_pseudo?: never
-          has_best_answer?: boolean | null
-          id?: string | null
-          is_anonymous?: boolean | null
-          is_closed?: boolean | null
-          is_deleted?: boolean | null
-          is_pinned?: boolean | null
-          tags?: string[] | null
-          title?: string | null
-          updated_at?: string | null
-          views_count?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "forum_posts_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "forum_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_posts_deletion_reason_id_fkey"
-            columns: ["deletion_reason_id"]
-            isOneToOne: false
-            referencedRelation: "forum_moderation_reasons"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
-      get_company_employee_stats: {
-        Args: {
-          p_company_id: string
-          p_end_date?: string
-          p_start_date?: string
-        }
-        Returns: Json
-      }
-      get_company_engagement_trends: {
-        Args: { p_company_id: string; p_period?: string }
-        Returns: Json
-      }
-      get_company_extended_stats: {
-        Args: {
-          p_company_id: string
-          p_end_date?: string
-          p_start_date?: string
-        }
-        Returns: Json
-      }
-      get_company_financial_stats: {
-        Args: { company_uuid: string }
-        Returns: Json
-      }
-      get_company_module_chart_data: {
-        Args: { p_company_id: string }
-        Returns: Json
-      }
-      get_company_module_details: {
-        Args: { p_company_id: string }
-        Returns: {
-          completed_count: number
-          module_id: number
-          module_title: string
-          module_type: string
-        }[]
-      }
-      get_company_parcours_stats: {
-        Args: { p_company_id: string }
-        Returns: {
-          completed_count: number
-          in_progress_count: number
-          not_started_count: number
-          parcours_id: string
-          parcours_title: string
-          total_modules: number
-        }[]
-      }
-      get_company_registration_trends: {
-        Args: { p_company_id: string }
-        Returns: {
-          month_key: string
-          month_label: string
-          registrations: number
-        }[]
-      }
-      get_company_simulation_stats: {
-        Args: {
-          p_company_id: string
-          p_end_date?: string
-          p_start_date?: string
-        }
-        Returns: {
-          simulation_count: number
-          simulator_type: string
-          unique_users: number
-        }[]
-      }
       get_current_user_company_id: { Args: never; Returns: string }
-      get_filtered_forum_posts: {
-        Args: {
-          p_category_id?: string
-          p_limit?: number
-          p_since_days?: number
-          p_sort_by?: string
-        }
-        Returns: {
-          author_id: string
-          category_id: string
-          content: string
-          created_at: string
-          deleted_at: string
-          deleted_by: string
-          deletion_reason_id: string
-          display_avatar_url: string
-          display_pseudo: string
-          has_best_answer: boolean
-          id: string
-          is_anonymous: boolean
-          is_closed: boolean
-          is_deleted: boolean
-          is_pinned: boolean
-          tags: string[]
-          title: string
-          updated_at: string
-          views_count: number
-        }[]
-      }
       get_user_level: {
         Args: { max_points: number; user_points: number }
         Returns: string
