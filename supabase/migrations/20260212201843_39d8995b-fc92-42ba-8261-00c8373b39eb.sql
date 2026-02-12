@@ -1,0 +1,1 @@
+ALTER TABLE public.settings ADD CONSTRAINT settings_key_unique UNIQUE (key);
