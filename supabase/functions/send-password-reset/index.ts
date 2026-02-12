@@ -100,13 +100,6 @@ serve(async (req: Request) => {
       throw new Error("User ID is required");
     }
 
-    // Try to get the auth user, but fall back to profile email if not found
-    let authEmail: string | null = null;
-    const { data: authUserData } = await supabaseAdmin.auth.admin.getUserById(userId);
-    if (authUserData?.user?.email) {
-      authEmail = authUserData.user.email;
-    }
-
     // Get user profile for display name and company
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
@@ -118,10 +111,35 @@ serve(async (req: Request) => {
       throw new Error("User profile not found");
     }
 
-    // Use auth email if available, otherwise fall back to profile email
-    const finalEmail = authEmail || profile.email;
-    if (!finalEmail) {
+    if (!profile.email) {
       throw new Error("No email found for this user");
+    }
+
+    // Check if user exists in auth.users, create if not
+    let finalEmail = profile.email;
+    const { data: authUserData } = await supabaseAdmin.auth.admin.getUserById(userId);
+    
+    if (authUserData?.user?.email) {
+      finalEmail = authUserData.user.email;
+    } else {
+      // User exists in profiles but not in auth — create the auth user
+      console.log(`Creating auth user for profile ${userId} (${profile.email})`);
+      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        id: userId,
+        email: profile.email.toLowerCase(),
+        email_confirm: true,
+        user_metadata: {
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          company_id: profile.company_id,
+        },
+      });
+
+      if (createError) {
+        throw new Error(`Failed to create auth user: ${createError.message}`);
+      }
+      console.log(`Auth user created successfully for ${profile.email}`);
+      finalEmail = newUser.user.email!;
     }
 
     // Get company name if exists
