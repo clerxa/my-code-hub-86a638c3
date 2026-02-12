@@ -1,0 +1,58 @@
+project_id = "mftrggltywyfsvlckhad"
+
+[functions.calculate-optimisation-fiscale]
+verify_jwt = false
+
+[functions.calculate-interets-composes]
+verify_jwt = false
+
+[functions.calculate-impots]
+verify_jwt = false
+
+[functions.auto-signup]
+verify_jwt = false
+
+[functions.send-partnership-email]
+verify_jwt = false
+
+[functions.delete-users]
+verify_jwt = false
+
+[functions.sync-livestorm-registrations]
+verify_jwt = false
+
+[functions.send-webinar-invitations]
+verify_jwt = false
+
+[functions.get-company-webinars]
+verify_jwt = false
+
+[functions.calculate-per]
+verify_jwt = false
+
+[functions.calculate-lmnp]
+verify_jwt = false
+
+[functions.calculate-capacite-emprunt]
+verify_jwt = false
+
+[functions.calculate-pret-immobilier]
+verify_jwt = false
+
+[functions.calculate-epargne-precaution]
+verify_jwt = false
+
+[functions.calculate-espp]
+verify_jwt = false
+
+[functions.calculate-pvi]
+verify_jwt = false
+
+[functions.hubspot-webhook]
+verify_jwt = false
+
+[functions.invite-beta-users]
+verify_jwt = false
+
+[functions.public-password-reset]
+verify_jwt = false
