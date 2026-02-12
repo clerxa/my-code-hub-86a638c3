@@ -103,6 +103,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
+        // Redirect to reset-password page on recovery event
+        if (event === 'PASSWORD_RECOVERY') {
+          window.location.href = '/reset-password';
+          return;
+        }
+
         // Reset daily login ref on sign out
         if (event === 'SIGNED_OUT') {
           dailyLoginAwardedRef.current = false;
