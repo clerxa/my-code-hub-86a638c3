@@ -186,7 +186,7 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
         setModuleChartData((moduleChartRes.data as unknown as ModuleChartData[]) || []);
       }
       if (!simStatsRes.error && simStatsRes.data) {
-        setSimulationStats(simStatsRes.data as SimulationStats[]);
+        setSimulationStats(simStatsRes.data as unknown as SimulationStats[]);
       }
 
       // Fetch secondary data in parallel
@@ -284,12 +284,13 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
         return;
       }
 
-      if (!data || data.length === 0) {
+      const rawData = data as unknown as { month_key: string; month_label: string; registrations: number }[];
+      if (!rawData || rawData.length === 0) {
         setRegistrationTrends([]);
         return;
       }
 
-      const trends = (data as { month_key: string; month_label: string; registrations: number }[])
+      const trends = rawData
         .map(item => ({
           month: item.month_label,
           registrations: Number(item.registrations)

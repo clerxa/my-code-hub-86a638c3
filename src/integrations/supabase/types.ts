@@ -2448,7 +2448,15 @@ export type Database = {
           user_id?: string | null
           user_name?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "hubspot_appointments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lmnp_simulations: {
         Row: {
@@ -3297,7 +3305,22 @@ export type Database = {
           order_num?: number
           parcours_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "parcours_modules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parcours_modules_parcours_id_fkey"
+            columns: ["parcours_id"]
+            isOneToOne: false
+            referencedRelation: "parcours"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partnership_contact_requests: {
         Row: {
@@ -3702,7 +3725,15 @@ export type Database = {
           theme_preference?: string
           total_points?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recommendation_rules: {
         Row: {
@@ -4767,7 +4798,15 @@ export type Database = {
           valeur_rsu_aga?: number | null
           valeur_stock_options?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_financial_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_fiscal_profile: {
         Row: {
@@ -4821,7 +4860,15 @@ export type Database = {
           notification_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_offer_views: {
         Row: {
@@ -5188,7 +5235,74 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_company_employee_stats: {
+        Args: {
+          p_company_id: string
+          p_end_date?: string
+          p_start_date?: string
+        }
+        Returns: Json
+      }
+      get_company_extended_stats: {
+        Args: {
+          p_company_id: string
+          p_end_date?: string
+          p_start_date?: string
+        }
+        Returns: Json
+      }
+      get_company_module_chart_data: {
+        Args: { p_company_id: string }
+        Returns: Json
+      }
+      get_company_registration_trends: {
+        Args: { p_company_id: string }
+        Returns: Json
+      }
+      get_company_simulation_stats: {
+        Args: {
+          p_company_id: string
+          p_end_date?: string
+          p_start_date?: string
+        }
+        Returns: Json
+      }
       get_current_user_company_id: { Args: never; Returns: string }
+      get_filtered_forum_posts: {
+        Args: {
+          p_category_id?: string
+          p_limit?: number
+          p_since_days?: number
+          p_sort_by?: string
+        }
+        Returns: {
+          author_id: string
+          category_id: string
+          content: string
+          created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          deletion_reason_id: string | null
+          display_avatar_url: string | null
+          display_pseudo: string | null
+          has_best_answer: boolean | null
+          id: string
+          is_anonymous: boolean | null
+          is_closed: boolean | null
+          is_deleted: boolean | null
+          is_pinned: boolean | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          views_count: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "forum_posts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_user_level: {
         Args: { max_points: number; user_points: number }
         Returns: string
