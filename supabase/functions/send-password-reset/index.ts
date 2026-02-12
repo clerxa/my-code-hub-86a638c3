@@ -100,7 +100,19 @@ serve(async (req: Request) => {
       throw new Error("User ID is required");
     }
 
-    // Get user profile
+    // Get the actual auth user to ensure we use the correct email
+    const { data: authUserData, error: authUserError } = await supabaseAdmin.auth.admin.getUserById(userId);
+    
+    if (authUserError || !authUserData?.user) {
+      throw new Error("User not found in auth system");
+    }
+
+    const authEmail = authUserData.user.email;
+    if (!authEmail) {
+      throw new Error("User has no email address");
+    }
+
+    // Get user profile for display name and company
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
       .select("id, email, first_name, last_name, company_id")
@@ -108,7 +120,7 @@ serve(async (req: Request) => {
       .maybeSingle();
 
     if (profileError || !profile) {
-      throw new Error("User not found");
+      throw new Error("User profile not found");
     }
 
     // Get company name if exists
@@ -123,13 +135,12 @@ serve(async (req: Request) => {
     }
 
     // Always use the published URL for password reset links (not preview URLs)
-    // Preview URLs are only accessible to project collaborators
     const origin = "https://myfincare.lovable.app";
 
-    // Generate password recovery link
+    // Generate password recovery link using the auth email
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: "recovery",
-      email: profile.email.toLowerCase(),
+      email: authEmail.toLowerCase(),
       options: {
         redirectTo: `${origin}/reset-password`,
       },
@@ -147,8 +158,9 @@ serve(async (req: Request) => {
     const resend = new Resend(resendApiKey);
     const displayName = profile.first_name || "Bonjour";
 
+    const recipientEmail = authEmail.toLowerCase();
     const sendResult = await sendResendEmailWithFallback(resend, {
-      to: [profile.email.toLowerCase()],
+      to: [recipientEmail],
       subject: "Réinitialisez votre mot de passe FinCare",
       html: `
         <!DOCTYPE html>
@@ -206,12 +218,12 @@ serve(async (req: Request) => {
       throw new Error("Failed to send email");
     }
 
-    console.log(`Password reset email sent to ${profile.email} (from: ${sendResult.usedFrom})`);
+    console.log(`Password reset email sent to ${recipientEmail} (from: ${sendResult.usedFrom})`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        email: profile.email,
+        email: recipientEmail,
       }),
       {
         status: 200,
