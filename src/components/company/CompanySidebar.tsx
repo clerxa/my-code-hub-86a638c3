@@ -137,7 +137,7 @@ export const CompanySidebar = ({
 
   if (loading) {
     return (
-      <aside className={cn("sticky top-20 h-fit bg-card border rounded-lg", collapsed ? "w-14" : "w-56")}>
+      <aside className={cn("sticky top-20 h-fit bg-card border rounded-lg shadow-card", collapsed ? "w-14" : "w-56")}>
         <div className="p-4 animate-pulse">
           <div className="h-8 bg-muted rounded mb-2" />
           <div className="space-y-2">
@@ -153,7 +153,7 @@ export const CompanySidebar = ({
   return (
     <aside 
       className={cn(
-        "sticky top-20 h-fit bg-card border rounded-lg transition-all duration-300",
+        "sticky top-20 h-fit bg-card border rounded-lg shadow-card transition-all duration-300",
         collapsed ? "w-14" : "w-56"
       )}
     >
