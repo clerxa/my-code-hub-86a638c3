@@ -1,0 +1,2 @@
+ALTER TABLE parcours_modules DROP CONSTRAINT parcours_modules_parcours_id_fkey;
+ALTER TABLE parcours_modules ADD CONSTRAINT parcours_modules_parcours_id_fkey FOREIGN KEY (parcours_id) REFERENCES parcours(id) ON DELETE CASCADE;
