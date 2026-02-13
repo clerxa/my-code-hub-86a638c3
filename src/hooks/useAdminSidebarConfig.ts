@@ -95,7 +95,7 @@ const defaultAdminItems: AdminMenuItem[] = [
   { id: "sidebar-config", label: "Menus latéraux", url: "/admin/sidebar-config", icon: "Layout", order: 7, visible: false, categoryId: "settings" },
   { id: "admin-sidebar-config", label: "Menu admin", url: "/admin/admin-sidebar-config", icon: "Layout", order: 8, visible: false, categoryId: "settings" },
   { id: "footer", label: "Footer", url: "/admin/footer", icon: "FileText", order: 9, visible: false, categoryId: "settings" },
-  { id: "design-system", label: "Design System", url: "/admin/design-system", icon: "Paintbrush", order: 10, visible: false, categoryId: "settings" },
+  
   { 
     id: "communication", 
     label: "Communication", 

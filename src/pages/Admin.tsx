@@ -25,7 +25,7 @@ import { RiskProfileTab } from "@/components/admin/RiskProfileTab";
 import { LayoutCustomizationTab } from "@/components/admin/LayoutCustomizationTab";
 import { EmployeePartnershipEditor } from "@/components/admin/EmployeePartnershipEditor";
 import { PointsAndValidationTab } from "@/components/admin/PointsAndValidationTab";
-import { DesignSystemTab } from "@/components/admin/DesignSystemTab";
+
 import { DesignNavigationTab } from "@/components/admin/DesignNavigationTab";
 
 import { DocumentationTab } from "@/components/admin/DocumentationTab";
@@ -117,7 +117,7 @@ const Admin = () => {
     storage: "Storage",
     layout: "Layout",
     "landing-employee-partnership": "Employee Partnership",
-    "design-system": "Design System",
+    
     "design-navigation": "Design & Navigation",
     "business-development": "Business Development",
     footer: "Footer",
@@ -400,7 +400,7 @@ const Admin = () => {
                 <Route path="recommendations" element={<RecommendationsTab />} />
                 <Route path="non-partner-welcome" element={<NonPartnerWelcomeTab />} />
                 <Route path="footer" element={<FooterTab />} />
-                <Route path="design-system" element={<DesignSystemTab />} />
+                
                 <Route path="global-settings" element={<GlobalSettingsTab />} />
                 <Route path="beta-lab" element={<BetaLabTab />} />
                 

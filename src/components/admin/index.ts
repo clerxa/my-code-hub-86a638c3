@@ -60,7 +60,7 @@ export { ReferralBlockTab } from './ReferralBlockTab';
 export { SimulatorCTAsTab } from './SimulatorCTAsTab';
 export { RecommendationsTab } from './RecommendationsTab';
 export { NonPartnerWelcomeTab } from './NonPartnerWelcomeTab';
-export { DesignSystemTab } from './DesignSystemTab';
+
 export { SimulatorsTab } from './SimulatorsTab';
 export { FooterTab } from './FooterTab';
 export { UserFinancialProfilesTab } from './UserFinancialProfilesTab';

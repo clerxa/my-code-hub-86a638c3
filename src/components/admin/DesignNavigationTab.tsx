@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  Layout, PanelLeft, PanelTop, Palette, FileText, 
+  Layout, PanelLeft, PanelTop, FileText, 
   Settings2, Menu, ChevronRight, Image
 } from "lucide-react";
 import { LayoutCustomizationTab } from "./LayoutCustomizationTab";
@@ -10,7 +10,6 @@ import { SidebarConfigurationTab } from "./SidebarConfigurationTab";
 import { AdminSidebarConfigurationTab } from "./AdminSidebarConfigurationTab";
 import { HeaderConfigurationTab } from "./HeaderConfigurationTab";
 import { FooterTab } from "./FooterTab";
-import { DesignSystemTab } from "./DesignSystemTab";
 import { BannerTab } from "./BannerTab";
 
 interface SectionCardProps {
@@ -80,12 +79,6 @@ const sections = [
     title: "Footer",
     description: "Modifiez les textes légaux, liens et informations du pied de page",
   },
-  {
-    id: "design-system",
-    icon: Palette,
-    title: "Design System",
-    description: "Personnalisez les couleurs, tokens et thème visuel de l'application",
-  },
 ];
 
 export function DesignNavigationTab() {
@@ -105,8 +98,6 @@ export function DesignNavigationTab() {
         return <AdminSidebarConfigurationTab />;
       case "footer":
         return <FooterTab />;
-      case "design-system":
-        return <DesignSystemTab />;
       default:
         return null;
     }
