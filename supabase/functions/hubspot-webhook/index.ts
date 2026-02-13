@@ -5,18 +5,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Verify HubSpot webhook signature (v2)
+// Verify HubSpot webhook signature (v2) - optional for workflow-based webhooks
 async function verifyHubSpotSignature(req: Request, body: string): Promise<boolean> {
   const appSecret = Deno.env.get('HUBSPOT_APP_SECRET')
-  if (!appSecret) {
-    console.warn('HUBSPOT_APP_SECRET not configured, skipping signature verification')
-    return true // Allow if not configured (backwards compatible)
+  
+  const signature = req.headers.get('x-hubspot-signature') || req.headers.get('x-hubspot-signature-v3')
+  
+  // If no signature header is present, this is likely a HubSpot Workflow webhook
+  // Workflows don't send signatures, so we allow them through
+  if (!signature) {
+    console.log('No HubSpot signature header - treating as Workflow webhook (allowed)')
+    return true
   }
 
-  const signature = req.headers.get('x-hubspot-signature') || req.headers.get('x-hubspot-signature-v3')
-  if (!signature) {
-    console.error('Missing HubSpot signature header')
-    return false
+  // If signature is present but no secret configured, warn but allow
+  if (!appSecret) {
+    console.warn('HUBSPOT_APP_SECRET not configured, skipping signature verification')
+    return true
   }
 
   // HubSpot v2 signature: SHA-256 hash of appSecret + requestBody
@@ -102,10 +107,10 @@ Deno.serve(async (req) => {
         console.log('Found referrer for user:', referrerPath, '->', referrerLabel)
       }
 
-      // Upsert the appointment record (avoid duplicates for same meeting + time slot)
+      // Insert the appointment record
       const { data: insertedAppointment, error: insertError } = await supabase
         .from('hubspot_appointments')
-        .upsert({
+        .insert({
           hubspot_meeting_id: meetingData.meetingId,
           hubspot_contact_id: meetingData.contactId,
           user_id: profile?.id || null,
@@ -121,9 +126,6 @@ Deno.serve(async (req) => {
           raw_payload: event,
           referrer_path: referrerPath,
           referrer_label: referrerLabel,
-        }, {
-          onConflict: 'idx_hubspot_appointments_unique_slot',
-          ignoreDuplicates: false
         })
         .select('id')
         .single()
