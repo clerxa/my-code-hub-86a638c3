@@ -75,7 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Generate onboarding link with tracking token
     // Users will complete onboarding first, then be redirected to signup
-    const baseUrl = Deno.env.get("SITE_URL") || "https://fincare.app";
+    const baseUrl = Deno.env.get("SITE_URL") || "https://myfincare.fr";
     const trackingParams = `invitation=${invitation.invitation_token}&company=${invitation.company_id}`;
     const registrationLink = `${baseUrl}/onboarding?${trackingParams}`;
     const inviterName = `${inviter?.first_name || ""} ${inviter?.last_name || ""}`.trim() || "Un collègue";
