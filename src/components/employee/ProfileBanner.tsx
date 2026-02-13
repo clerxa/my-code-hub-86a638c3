@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Handshake, Upload, User, Mail, Shield } from "lucide-react";
-import guardianBear from "@/assets/guardian-bear-mini.png";
+
 
 interface ProfileBannerProps {
   profile: {
@@ -146,10 +146,6 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({
           </div>
         </div>
 
-        {/* Guardian Bear Mascot */}
-        <div className="hidden lg:flex items-end self-end -mb-2 -mr-2 opacity-80 hover:opacity-100 transition-opacity duration-300">
-          <img src={guardianBear} alt="FinCare Guardian" className="h-28 w-28 object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.4)]" />
-        </div>
       </div>
     </div>
   );
