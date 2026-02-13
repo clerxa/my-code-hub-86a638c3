@@ -53,6 +53,10 @@ export default {
   				foreground: 'hsl(var(--card-foreground))'
   			}
   		},
+  		boxShadow: {
+  			'card': '0 2px 8px 0 rgb(0 0 0 / 0.07), 0 8px 24px -4px rgb(0 0 0 / 0.1)',
+  			'card-hover': '0 8px 30px -4px rgb(0 0 0 / 0.15), 0 12px 40px -8px rgb(0 0 0 / 0.12)',
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
