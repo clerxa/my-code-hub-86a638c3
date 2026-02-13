@@ -10,8 +10,8 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
       "rounded-lg bg-card text-card-foreground",
       "relative overflow-hidden",
       "border border-[hsl(var(--card-border))]",
-      "shadow-[var(--shadow-card)]",
-      "group hover:shadow-[var(--shadow-hover)] transition-all duration-300",
+      "shadow-card",
+      "group hover:shadow-card-hover transition-all duration-300",
       className
     )}
     {...props} 
