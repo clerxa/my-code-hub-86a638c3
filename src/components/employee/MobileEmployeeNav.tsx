@@ -97,7 +97,8 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
         navigate("/forum");
         break;
       case "offers":
-        onSectionChange("offers");
+        navigate("/employee");
+        setTimeout(() => onSectionChange("offers"), 100);
         break;
       case "contacts":
         onSectionChange("contacts");
