@@ -33,7 +33,7 @@ export default function PublicOnboarding() {
       localStorage.setItem(INVITATION_TOKEN_KEY, invitationToken);
       
       // Track the click immediately when arriving via invitation link
-      const supabaseUrl = "https://gbotqqeirtbmmyxqwtzl.supabase.co";
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://mftrggltywyfsvlckhad.supabase.co";
       fetch(`${supabaseUrl}/functions/v1/track-invitation?token=${invitationToken}&action=click`)
         .catch(err => console.error("Error tracking invitation click:", err));
     }
