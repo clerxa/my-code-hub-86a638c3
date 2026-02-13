@@ -19,7 +19,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       onClick={toggleTheme}
       className={cn(
         "relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-500 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        "bg-gradient-to-r from-primary via-secondary to-accent",
+        "bg-[image:var(--gradient-legend)]",
         isDark 
           ? "shadow-[0_0_15px_hsl(var(--secondary)/0.4)]" 
           : "shadow-[0_0_15px_hsl(var(--primary)/0.3)]",
@@ -29,7 +29,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
     >
       {/* Glow effect behind the toggle */}
       <span
-        className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20 transition-opacity duration-500"
+        className="absolute inset-0 rounded-full bg-[image:var(--gradient-legend)] opacity-20 transition-opacity duration-500"
       />
       
       {/* Track icons */}
