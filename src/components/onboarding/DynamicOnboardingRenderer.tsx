@@ -355,6 +355,16 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
       internalUrl = `/signup?${params.toString()}`;
     }
     
+    // For invitation flows, use hard navigation to avoid auth state conflicts
+    // (the current user session would cause /signup to redirect back)
+    if (invitationToken && user) {
+      // Sign out first, then redirect to signup
+      supabase.auth.signOut().then(() => {
+        window.location.href = internalUrl;
+      });
+      return;
+    }
+    
     navigate(internalUrl);
   };
 
