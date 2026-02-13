@@ -338,7 +338,7 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
   };
 
   // Helper function to navigate to the final destination
-  const navigateToDestination = () => {
+  const navigateToDestination = async () => {
     let internalUrl = currentScreen?.metadata?.redirectInternalUrl || '/login';
     
     // If there are invitation params stored, append them to the signup URL
@@ -359,9 +359,18 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
     // (the current user session would cause /signup to redirect back)
     if (invitationToken && user) {
       // Sign out first, then redirect to signup
-      supabase.auth.signOut().then(() => {
-        window.location.href = internalUrl;
-      });
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.error('Error signing out before invitation redirect:', e);
+      }
+      window.location.href = internalUrl;
+      return;
+    }
+    
+    // For invitation flows without a user session, also use hard navigation
+    if (invitationToken) {
+      window.location.href = internalUrl;
       return;
     }
     
