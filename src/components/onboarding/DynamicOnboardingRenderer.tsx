@@ -63,11 +63,13 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
     return newSessionId;
   });
 
-  // Check if user has already completed onboarding (skip in preview mode)
+  // Check if user has already completed onboarding (skip in preview mode and invitation links)
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       // Skip check in preview mode
       if (isPreviewMode) return;
+      // Skip check if this is an invitation link (public onboarding for a new user)
+      if (searchParams.get('invitation')) return;
       if (!user) return;
       
       try {
@@ -90,7 +92,7 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
     if (flowId === 'employee-onboarding') {
       checkOnboardingStatus();
     }
-  }, [user, flowId, navigate, isPreviewMode]);
+  }, [user, flowId, navigate, isPreviewMode, searchParams]);
 
   useEffect(() => {
     fetchScreens();
