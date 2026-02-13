@@ -128,7 +128,7 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({
           </div>
 
           {/* Risk profile */}
-          <div className="flex flex-col gap-3 pt-4 border-t border-white/10">
+          <div className="flex flex-col gap-3 pt-4">
             <div className="w-full">
               {riskProfile && (
                 <Button variant="outline" size="sm" onClick={onOpenRiskProfile}
