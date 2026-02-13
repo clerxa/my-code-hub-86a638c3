@@ -256,10 +256,10 @@ export function StatsDashboard({
       label: "Mon classement dans l'entreprise",
       value: userRank ? `${userRank.rank}/${userRank.total}` : "-",
       icon: Trophy,
-      color: "text-orange-500 dark:text-orange-400",
-      bgColor: "bg-orange-500/20",
-      gradientFrom: "from-orange-500/10",
-      gradientTo: "to-orange-500/5",
+      color: "text-secondary dark:text-secondary",
+      bgColor: "bg-secondary/20",
+      gradientFrom: "from-secondary/10",
+      gradientTo: "to-secondary/5",
       onClick: onNavigateToLeaderboard,
     }] : []),
     {
@@ -267,10 +267,10 @@ export function StatsDashboard({
       label: "Modules terminés",
       value: completedModules,
       icon: BookOpen,
-      color: "text-blue-500 dark:text-blue-400",
-      bgColor: "bg-blue-500/20",
-      gradientFrom: "from-blue-500/10",
-      gradientTo: "to-blue-500/5",
+      color: "text-primary dark:text-primary",
+      bgColor: "bg-primary/20",
+      gradientFrom: "from-primary/10",
+      gradientTo: "to-primary/5",
       onClick: () => setModulesDialogOpen(true),
       zeroLabel: "Découvrir les modules",
       zeroAction: () => navigate("/parcours"),
@@ -293,10 +293,10 @@ export function StatsDashboard({
       label: "Simulations réalisées",
       value: simulationsCount,
       icon: Calculator,
-      color: "text-cyan-500 dark:text-cyan-400",
-      bgColor: "bg-cyan-500/20",
-      gradientFrom: "from-cyan-500/10",
-      gradientTo: "to-cyan-500/5",
+      color: "text-primary dark:text-primary",
+      bgColor: "bg-primary/20",
+      gradientFrom: "from-primary/10",
+      gradientTo: "to-primary/5",
       onClick: onNavigateToSimulations,
       zeroLabel: "Mes simulations",
       zeroAction: () => navigate("/employee/simulations"),
@@ -306,10 +306,10 @@ export function StatsDashboard({
       label: "Points obtenus",
       value: totalPoints.toLocaleString("fr-FR"),
       icon: TrendingUp,
-      color: "text-amber-500 dark:text-amber-400",
-      bgColor: "bg-amber-500/20",
-      gradientFrom: "from-amber-500/10",
-      gradientTo: "to-amber-500/5",
+      color: "text-secondary dark:text-secondary",
+      bgColor: "bg-secondary/20",
+      gradientFrom: "from-secondary/10",
+      gradientTo: "to-secondary/5",
       onClick: () => setPointsDialogOpen(true),
     }] : []),
     {
@@ -378,7 +378,7 @@ export function StatsDashboard({
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-blue-500" />
+              <BookOpen className="h-5 w-5 text-primary" />
               Modules terminés
             </DialogTitle>
             <DialogDescription>
@@ -415,7 +415,7 @@ export function StatsDashboard({
                         </div>
                         <div className="flex flex-col items-end gap-1">
                           <Badge variant="secondary">{getModuleTypeLabel(module.type)}</Badge>
-                          <span className="text-sm font-medium text-amber-500 dark:text-amber-400">
+                          <span className="text-sm font-medium text-secondary">
                             +{module.points} pts
                           </span>
                         </div>
@@ -489,17 +489,17 @@ export function StatsDashboard({
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-amber-500" />
+              <TrendingUp className="h-5 w-5 text-secondary" />
               Points obtenus
             </DialogTitle>
             <DialogDescription>
               Détail de tous les points que vous avez gagnés
             </DialogDescription>
           </DialogHeader>
-          <div className="mb-4 p-4 bg-amber-500/10 rounded-lg">
+          <div className="mb-4 p-4 bg-secondary/10 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Total des points</span>
-              <span className="text-2xl font-bold text-amber-500 dark:text-amber-400">
+              <span className="text-2xl font-bold text-secondary">
                 {totalPoints.toLocaleString("fr-FR")} pts
               </span>
             </div>
@@ -521,7 +521,7 @@ export function StatsDashboard({
                     className="flex items-center justify-between p-3 rounded-lg border border-border/50"
                   >
                     <div className="flex items-center gap-3">
-                      <Award className="h-4 w-4 text-amber-500" />
+                      <Award className="h-4 w-4 text-secondary" />
                       <div>
                         <p className="font-medium text-sm">{module.title}</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -531,7 +531,7 @@ export function StatsDashboard({
                         </div>
                       </div>
                     </div>
-                    <span className="font-semibold text-amber-500">
+                    <span className="font-semibold text-secondary">
                       +{module.points} pts
                     </span>
                   </div>

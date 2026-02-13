@@ -31,9 +31,9 @@ export const Recommendations = ({ recommendations }: RecommendationsProps) => {
       case "high":
         return "border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/30";
       case "medium":
-        return "border-orange-200 bg-orange-50/50 dark:border-orange-900/50 dark:bg-orange-950/30";
+        return "border-secondary/20 bg-secondary/5 dark:border-secondary/20 dark:bg-secondary/5";
       default:
-        return "border-blue-200 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/30";
+        return "border-primary/20 bg-primary/5 dark:border-primary/20 dark:bg-primary/5";
     }
   };
 
