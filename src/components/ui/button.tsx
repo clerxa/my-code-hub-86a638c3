@@ -14,7 +14,7 @@ const buttonVariants = cva(
         legend: "btn-legend-gradient hover:scale-[1.02]",
         origin: "btn-origin-gradient hover:scale-[1.02]",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border-2 border-primary bg-transparent text-primary hover:bg-primary/10 hover:border-primary/80",
+        outline: "border border-border bg-transparent text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/50",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-lg",
         ghost: "hover:bg-accent/10 hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
