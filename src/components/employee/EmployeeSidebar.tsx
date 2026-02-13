@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Lock, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useSidebarActiveItem } from "@/hooks/useSidebarActiveItem";
 import { useState, useEffect } from "react";
 import {
   Tooltip,
@@ -145,24 +146,27 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
     });
   };
 
+  const { isItemActive } = useSidebarActiveItem(activeSection, "employee", companyId);
+
   const renderMenuItem = (item: { id: string; label: string; icon: string; dataCoach?: string }) => {
     const Icon = getIconComponent(item.icon);
     const isLocked = lockedItems.includes(item.id) && !hasPartnership;
     const badge = getBadge(item.id);
+    const isActive = isItemActive(item.id);
 
     // Compute dynamic styles for active state using company primary color
-    const activeStyle = activeSection === item.id && primaryColor ? {
+    const activeStyle = isActive && primaryColor ? {
       backgroundColor: `color-mix(in srgb, ${primaryColor} 15%, transparent)`,
       color: primaryColor
     } : undefined;
 
     const buttonContent = (
       <Button
-        variant={activeSection === item.id ? "secondary" : "ghost"}
+        variant={isActive ? "secondary" : "ghost"}
         className={cn(
           "w-full justify-start gap-3 transition-colors relative",
-          activeSection === item.id && !primaryColor && "bg-primary/10 text-primary font-medium",
-          activeSection === item.id && primaryColor && "font-medium",
+          isActive && !primaryColor && "bg-primary/10 text-primary font-medium",
+          isActive && primaryColor && "font-medium",
           collapsed && "justify-center px-2",
           isLocked && "text-muted-foreground"
         )}

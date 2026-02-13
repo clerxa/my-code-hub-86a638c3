@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Building2, Lock, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useSidebarActiveItem } from "@/hooks/useSidebarActiveItem";
 import {
   Sheet,
   SheetContent,
@@ -138,16 +139,19 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
   const filteredCategories = categories.map(c => ({ ...c, items: filterItems(c.items) })).filter(c => c.items.length > 0);
   
   const allItems = [...filteredUncategorized, ...filteredCategories.flatMap(c => c.items)];
-  const activeItem = allItems.find(item => item.id === activeSection);
+  const { isItemActive } = useSidebarActiveItem(activeSection, "employee", companyId);
+
+  const activeItem = allItems.find(item => isItemActive(item.id));
   const ActiveIcon = activeItem ? getIconComponent(activeItem.icon) : Menu;
 
   const renderMenuItem = (item: { id: string; label: string; icon: string }) => {
     const Icon = getIconComponent(item.icon);
     const isLocked = lockedItems.includes(item.id) && !hasPartnership;
     const badge = getBadge(item.id);
+    const isActive = isItemActive(item.id);
 
     // Compute dynamic styles for active state using company primary color
-    const activeStyle = activeSection === item.id && primaryColor ? {
+    const activeStyle = isActive && primaryColor ? {
       backgroundColor: `color-mix(in srgb, ${primaryColor} 15%, transparent)`,
       color: primaryColor
     } : undefined;
@@ -155,11 +159,11 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
     return (
       <Button
         key={item.id}
-        variant={activeSection === item.id ? "secondary" : "ghost"}
+        variant={isActive ? "secondary" : "ghost"}
         className={cn(
           "w-full justify-start gap-3",
-          activeSection === item.id && !primaryColor && "bg-primary/10 text-primary font-medium",
-          activeSection === item.id && primaryColor && "font-medium",
+          isActive && !primaryColor && "bg-primary/10 text-primary font-medium",
+          isActive && primaryColor && "font-medium",
           isLocked && "text-muted-foreground"
         )}
         style={activeStyle}
