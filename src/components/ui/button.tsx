@@ -9,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg",
+        default: "bg-[image:var(--btn-gradient)] text-white font-semibold hover:bg-[image:var(--btn-gradient-hover)] hover:shadow-glow hover:scale-[1.01] active:scale-[0.99]",
         hero: "btn-hero-gradient hover:scale-[1.02]",
         legend: "btn-legend-gradient hover:scale-[1.02]",
         origin: "btn-origin-gradient hover:scale-[1.02]",
