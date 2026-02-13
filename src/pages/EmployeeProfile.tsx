@@ -663,14 +663,14 @@ export default function EmployeeProfile() {
 
           {/* Tabs Navigation */}
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="w-full grid grid-cols-7 h-auto p-1 bg-muted/50">
+            <TabsList className="w-full grid grid-cols-7 h-auto p-1 bg-card border border-[hsl(var(--card-border))] shadow-[var(--shadow-card)]">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <TabsTrigger 
                     key={tab.id} 
                     value={tab.id}
-                    className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-2 md:py-3 text-xs md:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                    className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-2 md:py-3 text-xs md:text-sm data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-sm"
                   >
                     <Icon className="h-4 w-4" />
                     <span className="hidden sm:inline">{tab.label}</span>
