@@ -93,13 +93,8 @@ const Signup = () => {
       setInvitationToken(token);
       console.log("Tracking invitation click for token:", token);
       try {
-        await supabase.functions.invoke("track-invitation", {
-          body: null,
-          headers: {},
-        }).then(() => {
-          // Use fetch directly to pass query params
-          fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-invitation?token=${token}&action=click`);
-        });
+        const supabaseUrl = "https://gbotqqeirtbmmyxqwtzl.supabase.co";
+        await fetch(`${supabaseUrl}/functions/v1/track-invitation?token=${token}&action=click`);
       } catch (error) {
         console.error("Error tracking invitation click:", error);
       }
