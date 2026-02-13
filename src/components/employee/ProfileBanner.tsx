@@ -44,10 +44,9 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({
   const isPartner = company?.partnership_type && company.partnership_type.toLowerCase() !== "aucun";
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-transparent"
+    <div className="relative overflow-hidden rounded-xl"
       style={{
         background: "linear-gradient(135deg, hsl(220 20% 14% / 0.85) 0%, hsl(250 30% 18% / 0.9) 50%, hsl(220 25% 12% / 0.85) 100%)",
-        borderImage: "linear-gradient(135deg, hsl(271 81% 56%), hsl(217 91% 60%)) 1",
         backdropFilter: "blur(20px)",
       }}
     >
