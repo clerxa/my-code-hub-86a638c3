@@ -300,8 +300,11 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
   };
 
   const handleComplete = async () => {
-    // Mark onboarding as completed for employee-onboarding flow (only if user is logged in and NOT in preview mode)
-    if (flowId === 'employee-onboarding' && user && !isPreviewMode) {
+    // Check if this is an invitation flow (public onboarding for a new user who happens to be viewing while logged in)
+    const isInvitationFlow = !!searchParams.get('invitation') || !!localStorage.getItem(INVITATION_TOKEN_KEY);
+
+    // Mark onboarding as completed for employee-onboarding flow (only if user is logged in, NOT in preview mode, and NOT an invitation flow)
+    if (flowId === 'employee-onboarding' && user && !isPreviewMode && !isInvitationFlow) {
       try {
         await supabase
           .from('profiles')
@@ -315,21 +318,21 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
     // Check for external URL first
     const externalUrl = currentScreen?.metadata?.redirectExternalUrl;
     if (externalUrl) {
-      // Only trigger CSAT if user is logged in
-      if (user) {
+      // Only trigger CSAT if user is logged in and not invitation flow
+      if (user && !isInvitationFlow) {
         triggerCSAT();
       }
       window.open(externalUrl, '_blank');
       return;
     }
     
-    // If user is NOT logged in (public onboarding), navigate directly without CSAT
-    if (!user) {
+    // If user is NOT logged in OR this is an invitation flow, navigate directly without CSAT
+    if (!user || isInvitationFlow) {
       navigateToDestination();
       return;
     }
     
-    // User is logged in - trigger CSAT before navigating
+    // User is logged in (normal flow) - trigger CSAT before navigating
     setShowCSATBeforeNavigate(true);
     triggerCSAT();
   };
