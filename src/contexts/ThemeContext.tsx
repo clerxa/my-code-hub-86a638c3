@@ -138,43 +138,11 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   }, [currentTheme]);
 
   /**
-   * 🔹 Applique uniquement les couleurs de marque (primaire/secondaire) au DOM
-   * 🔸 Les autres tokens (background, card, etc.) sont gérés par le dark mode CSS
-   */
-  const applyThemeToDOM = useCallback((theme: Theme) => {
-    const root = document.documentElement;
-    
-    // Liste des tokens de couleur de marque à appliquer (primaire, secondaire, accent)
-    const brandTokens = [
-      'primary', 'primary-foreground',
-      'secondary', 'secondary-foreground', 
-      'accent', 'accent-foreground',
-      'ring'
-    ];
-    
-    // Appliquer uniquement les couleurs de marque, pas les fonds/cartes
-    brandTokens.forEach((key) => {
-      if (theme.design_tokens[key]) {
-        root.style.setProperty(`--${key}`, theme.design_tokens[key]);
-      }
-    });
-  }, []);
-
-  /**
    * 🔹 Charge le thème au montage ou quand l'utilisateur change
    */
   useEffect(() => {
     loadPerlibTheme();
   }, [loadPerlibTheme, user]);
-
-  /**
-   * 🔹 Applique les couleurs du thème au DOM
-   */
-  useEffect(() => {
-    if (currentTheme) {
-      applyThemeToDOM(currentTheme);
-    }
-  }, [currentTheme, applyThemeToDOM]);
 
   const value: ThemeContextValue = {
     currentTheme,
