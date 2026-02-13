@@ -26,6 +26,7 @@ import { useBlockLayoutConfig } from "@/hooks/useBlockLayoutConfig";
 import { RiskProfile } from "@/types/risk-profile";
 import { ProgressionBlock } from "@/components/ProgressionBlock";
 import { Recommendations } from "@/components/dashboard/Recommendations";
+import ProfileBanner from "@/components/employee/ProfileBanner";
 
 import type { ProfileWithCompanyId, Company } from "@/types/database";
 import { InvitationsTracker } from "@/components/employee/InvitationsTracker";
@@ -517,74 +518,17 @@ export default function Employee() {
     switch (blockId) {
       case "profile":
         return <DraggableSection key="profile" id="profile" isAdmin={isAdmin}>
-            <Card data-coach="welcome">
-              <CardContent className="pt-6">
-                <div className="flex flex-col md:flex-row gap-4 sm:gap-6 items-start">
-                  <div className="flex flex-col items-center w-full md:w-auto">
-                    <Input type="file" accept="image/*" onChange={handleAvatarUpload} disabled={uploading} className="hidden" id="avatar-upload" />
-                    <Label htmlFor="avatar-upload" className="cursor-pointer group relative">
-                      <Avatar className="h-24 w-24 sm:h-32 sm:w-32 transition-opacity group-hover:opacity-75">
-                        <AvatarImage src={profile?.avatar_url || ""} />
-                        <AvatarFallback className="text-xl sm:text-2xl">
-                          {(profile?.first_name?.[0] || profile?.last_name?.[0]) 
-                            ? <>{profile?.first_name?.[0]}{profile?.last_name?.[0]}</>
-                            : <User className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground" />}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 bg-black/40 transition-opacity">
-                        <Upload className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                      </div>
-                    </Label>
-                  </div>
-
-                  <div className="flex-1 space-y-3 sm:space-y-4 min-w-0 w-full">
-                    <div className="min-w-0">
-                      <h1 className="text-2xl sm:text-3xl hero-gradient break-words">
-                        {profile?.first_name} {profile?.last_name}
-                      </h1>
-                      {profile?.job_title && <p className="text-base sm:text-lg text-foreground font-medium truncate">{profile.job_title}</p>}
-                      {company && <div className="space-y-2 mt-2">
-                          {(company.partnership_type && company.partnership_type.toLowerCase() !== 'aucun') ? <div className="flex flex-col gap-2">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Badge variant="default" className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 w-fit text-xs sm:text-sm cursor-help">
-                                    <Handshake className="h-3 w-3 mr-1 flex-shrink-0" />
-                                    <span className="truncate">{company.name}, partenaire officiel de MyFinCare</span>
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom" className="max-w-xs text-center">
-                                  <p>Votre entreprise a mis en place un partenariat officiel avec FinCare, vous permettant d'accéder à des fonctionnalités avancées et un accompagnement personnalisé.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div> : <div className="space-y-2">
-                              <p className="text-xs sm:text-sm text-muted-foreground">
-                                {company.name} n'est pas encore partenaire officiel de FinCare
-                              </p>
-                              <Button variant="outline" size="sm" className="ml-0 text-xs sm:text-sm" onClick={() => navigate("/proposer-partenariat")}>
-                                <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
-                                <span className="hidden sm:inline">Proposer un partenariat à mon entreprise</span>
-                                <span className="sm:hidden">Proposer un partenariat</span>
-                              </Button>
-                            </div>}
-                        </div>}
-                    </div>
-
-                    <div className="flex flex-col gap-3 pt-4 border-t">
-                      {/* Risk Profile Badge */}
-                      <div className="w-full">
-                        {riskProfile && <Button variant="outline" size="sm" onClick={() => setRiskProfileDialogOpen(true)} className="w-full gap-2 flex-wrap justify-center sm:justify-start h-auto py-2">
-                            <Shield className="h-4 w-4 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm">Profil de risque : <strong>{riskProfile.profile_type}</strong></span>
-                            <Badge variant="secondary" className="ml-1 text-xs">
-                              {riskProfile.total_weighted_score.toFixed(0)}/100
-                            </Badge>
-                          </Button>}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div data-coach="welcome">
+              <ProfileBanner
+                profile={profile}
+                company={company}
+                riskProfile={riskProfile}
+                uploading={uploading}
+                onAvatarUpload={handleAvatarUpload}
+                onNavigatePartnership={() => navigate("/proposer-partenariat")}
+                onOpenRiskProfile={() => setRiskProfileDialogOpen(true)}
+              />
+            </div>
           </DraggableSection>;
       case "progression":
         // Masquer si points/ranking désactivé
