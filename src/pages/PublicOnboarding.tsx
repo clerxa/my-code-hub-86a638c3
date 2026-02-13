@@ -31,6 +31,11 @@ export default function PublicOnboarding() {
     
     if (invitationToken) {
       localStorage.setItem(INVITATION_TOKEN_KEY, invitationToken);
+      
+      // Track the click immediately when arriving via invitation link
+      const supabaseUrl = "https://gbotqqeirtbmmyxqwtzl.supabase.co";
+      fetch(`${supabaseUrl}/functions/v1/track-invitation?token=${invitationToken}&action=click`)
+        .catch(err => console.error("Error tracking invitation click:", err));
     }
     if (companyId) {
       localStorage.setItem(INVITATION_COMPANY_KEY, companyId);

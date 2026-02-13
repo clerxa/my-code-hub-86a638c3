@@ -18,6 +18,9 @@ interface ColleagueInvitation {
   status: string;
   created_at: string;
   email_sent_at: string | null;
+  email_opened_at: string | null;
+  link_clicked_at: string | null;
+  registered_at: string | null;
 }
 
 interface PartnershipRequest {
@@ -40,7 +43,9 @@ interface InvitationsTrackerProps {
 
 const statusConfig: Record<string, { label: string; icon: React.ElementType; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "En attente", icon: Clock, variant: "secondary" },
-  sent: { label: "Envoyé", icon: Mail, variant: "default" },
+  sent: { label: "Envoyé", icon: Mail, variant: "secondary" },
+  opened: { label: "Email ouvert", icon: Mail, variant: "outline" },
+  clicked: { label: "Lien cliqué", icon: CheckCircle, variant: "default" },
   accepted: { label: "Accepté", icon: CheckCircle, variant: "default" },
   registered: { label: "Inscrit", icon: CheckCircle, variant: "default" },
   declined: { label: "Refusé", icon: XCircle, variant: "destructive" },
@@ -224,7 +229,7 @@ export const InvitationsTracker = ({ userId, companyId, companyName, blockConfig
                     </p>
                   </div>
                   <div className="flex-shrink-0">
-                    {renderStatus(inv.email_sent_at ? "sent" : inv.status)}
+                    {renderStatus(inv.status)}
                   </div>
                 </div>
               ))}
@@ -271,7 +276,7 @@ export const InvitationsTracker = ({ userId, companyId, companyName, blockConfig
                         )}
                       </p>
                     </div>
-                    {renderStatus(inv.email_sent_at ? "sent" : inv.status)}
+                    {renderStatus(inv.status)}
                   </div>
                 ))}
               </>
