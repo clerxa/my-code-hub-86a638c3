@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Lightbulb, ArrowRight, Target, Calendar, BookOpen } from "lucide-react";
+import { Lightbulb, ArrowRight, Target, Calendar, BookOpen, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
 
 interface Recommendation {
   id: string;
@@ -25,6 +26,8 @@ const ICON_MAP = {
 
 export const Recommendations = ({ recommendations }: RecommendationsProps) => {
   const navigate = useNavigate();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -34,6 +37,17 @@ export const Recommendations = ({ recommendations }: RecommendationsProps) => {
         return "border-secondary/20 bg-secondary/5 dark:border-secondary/20 dark:bg-secondary/5";
       default:
         return "border-primary/20 bg-primary/5 dark:border-primary/20 dark:bg-primary/5";
+    }
+  };
+
+  const handlePlayVideo = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
     }
   };
 
@@ -58,6 +72,50 @@ export const Recommendations = ({ recommendations }: RecommendationsProps) => {
           </div>
         ) : (
           <div className="space-y-3 sm:space-y-4">
+            {/* Video CTA Card */}
+            <Card className="relative overflow-hidden group">
+              <div className="relative">
+                <video
+                  ref={videoRef}
+                  src="/video_index3.mp4"
+                  className="w-full h-40 sm:h-48 object-cover"
+                  muted
+                  loop
+                  playsInline
+                  onEnded={() => setIsPlaying(false)}
+                />
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/30 to-transparent" />
+                
+                {/* Play button */}
+                {!isPlaying && (
+                  <button
+                    onClick={handlePlayVideo}
+                    className="absolute inset-0 flex items-center justify-center"
+                    aria-label="Lire la vidéo"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <Play className="h-5 w-5 text-foreground ml-0.5" />
+                    </div>
+                  </button>
+                )}
+                {isPlaying && (
+                  <button
+                    onClick={handlePlayVideo}
+                    className="absolute inset-0"
+                    aria-label="Mettre en pause"
+                  />
+                )}
+
+                {/* Bottom text overlay */}
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <p className="text-sm font-semibold text-white">
+                    💡 Découvrez comment optimiser vos finances en 2 min
+                  </p>
+                </div>
+              </div>
+            </Card>
+
             {recommendations.slice(0, 3).map((rec) => {
               const Icon = ICON_MAP[rec.icon];
               return (
@@ -81,7 +139,7 @@ export const Recommendations = ({ recommendations }: RecommendationsProps) => {
                         
                         <Button
                           onClick={rec.cta_action}
-                          className="gap-2 mt-2 sm:mt-3 w-full sm:w-auto border-primary text-primary hover:bg-primary/10"
+                          className="gap-2 mt-2 sm:mt-3 w-full sm:w-auto"
                           size="sm"
                           variant="outline"
                         >
