@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useSidebarActiveItem } from "@/hooks/useSidebarActiveItem";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -79,10 +80,12 @@ export const CompanySidebar = ({
     });
   };
 
+  const { isItemActive } = useSidebarActiveItem(activeSection, "company", companyId);
+
   const renderMenuItem = (item: { id: string; label: string; icon: string; dataCoach?: string }) => {
     const Icon = getIconComponent(item.icon);
     const badge = getBadge(item.id);
-    const isActive = activeSection === item.id;
+    const isActive = isItemActive(item.id);
     const activeColor = primaryColor || 'hsl(var(--primary))';
 
     const buttonContent = (
