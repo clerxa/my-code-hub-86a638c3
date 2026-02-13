@@ -106,7 +106,7 @@ export function SimulatorCard({ name, description, icon, route, featureKey, dura
   return (
     <Card 
       className={cn(
-        "group h-full flex flex-col bg-card/50 backdrop-blur-sm border-border/50 transition-all duration-300",
+        "group h-full flex flex-col bg-card border-border/50 transition-all duration-300",
         isDisabled && "opacity-70 cursor-not-allowed",
         isLocked && "opacity-80 cursor-pointer hover:border-primary/30",
         !isDisabled && !isLocked && "hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5"
