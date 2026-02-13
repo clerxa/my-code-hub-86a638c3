@@ -231,7 +231,7 @@ All colors MUST be HSL.
 
   /* Superhero gradient for main titles - use this class on all h1 titles */
   .hero-gradient {
-    @apply bg-gradient-to-r from-blue-500 via-purple-500 to-amber-500 bg-clip-text text-transparent font-bold;
+    @apply bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--secondary))] to-[hsl(var(--accent))] bg-clip-text text-transparent font-bold;
   }
 
   /* Button gradients */

@@ -755,8 +755,8 @@ export default function EmployeeProfile() {
                           emoji: "⚡️",
                           title: "Sortez du brouillard",
                           desc: "Arrêtez de \"deviner\" où part votre argent. Une vision nette, c'est 90% de stress en moins et 100% de maîtrise en plus.",
-                          gradient: "from-amber-500/10 to-orange-500/10",
-                          border: "border-amber-500/20",
+                          gradient: "from-secondary/10 to-primary/10",
+                          border: "border-secondary/20",
                           delay: 0.2,
                         },
                         {

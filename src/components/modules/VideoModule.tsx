@@ -235,7 +235,7 @@ export const VideoModule = ({
               <Progress value={percentageWatched} className="h-3 mb-3" />
               {!isValidated && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="inline-block w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                  <span className="inline-block w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
                   <p>
                     Visionnez au moins <span className="font-semibold text-foreground">{requiredPercentage}%</span> de la vidéo pour valider le module et gagner <span className="font-semibold text-foreground">{points} points</span>
                   </p>
