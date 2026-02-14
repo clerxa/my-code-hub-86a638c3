@@ -128,7 +128,7 @@ export const InvitationsTracker = ({ userId, companyId, companyName, blockConfig
               <div>
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                  {blockConfig?.title || "Mes invitations et parrainages"}
+                  {blockConfig?.title || "Mes invitations"}
                 </CardTitle>
                 <CardDescription className="mt-1 sm:mt-2 text-xs sm:text-sm">
                   {blockConfig?.description || (hasActivePartnership 
@@ -180,7 +180,7 @@ export const InvitationsTracker = ({ userId, companyId, companyName, blockConfig
           <div>
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg flex-wrap">
               <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-              <span className="truncate">{blockConfig?.title || "Mes invitations et parrainages"}</span>
+              <span className="truncate">{blockConfig?.title || "Mes invitations"}</span>
               <Badge variant="secondary">{totalCount}</Badge>
             </CardTitle>
             <CardDescription className="mt-1 sm:mt-2 text-xs sm:text-sm">
