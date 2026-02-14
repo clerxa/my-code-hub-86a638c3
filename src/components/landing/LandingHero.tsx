@@ -27,6 +27,7 @@ export const LandingHero = ({
   const { ref: rightRef, isVisible: rightVisible } = useScrollAnimation({ threshold: 0.2 });
   
   return (
+    <>
     <section className="relative min-h-[90vh] flex items-center justify-center px-4 py-20 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-secondary/10" />
@@ -67,26 +68,6 @@ export const LandingHero = ({
                 {ctaSecondary}
               </Button>
             </div>
-            
-            {clientLogos.length > 0 && (
-              <div className="pt-8 space-y-4">
-                <p className="text-sm text-muted-foreground uppercase tracking-wide">
-                  Ils nous font confiance
-                </p>
-                <div className="relative overflow-hidden w-full">
-                  <div className="flex gap-12 items-center animate-marquee w-max">
-                    {[...clientLogos, ...clientLogos].map((logo, index) => (
-                      <img
-                        key={index}
-                        src={logo}
-                        alt={`Client ${(index % clientLogos.length) + 1}`}
-                        className="h-16 lg:h-20 object-contain flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity"
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
           
           {/* Right image */}
@@ -111,5 +92,34 @@ export const LandingHero = ({
         </div>
       </div>
     </section>
+
+    {/* Full-width logo marquee band */}
+    {clientLogos.length > 0 && (
+      <div className="w-full py-8 bg-card/50 backdrop-blur-sm border-y border-border/30">
+        <p className="text-center text-sm text-muted-foreground uppercase tracking-widest mb-6 font-medium">
+          Ils nous font confiance
+        </p>
+        <div className="relative overflow-hidden w-full">
+          {/* Fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+          <div className="flex gap-16 items-center animate-marquee w-max">
+            {[...clientLogos, ...clientLogos].map((logo, index) => (
+              <div
+                key={index}
+                className="flex-shrink-0 bg-white rounded-xl p-3 shadow-sm"
+              >
+                <img
+                  src={logo}
+                  alt={`Client ${(index % clientLogos.length) + 1}`}
+                  className="h-16 w-16 object-contain"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
