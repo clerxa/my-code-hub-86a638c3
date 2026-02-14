@@ -131,10 +131,7 @@ export const InvitationsTracker = ({ userId, companyId, companyName, blockConfig
                   {blockConfig?.title || "Mes invitations"}
                 </CardTitle>
                 <CardDescription className="mt-1 sm:mt-2 text-xs sm:text-sm">
-                  {blockConfig?.description || (hasActivePartnership 
-                    ? "Cette page vous permet de suivre toutes vos invitations envoyées à vos collègues. Invitez vos collègues à rejoindre FinCare et gagnez des points bonus !"
-                    : "Cette page vous permet de suivre toutes vos invitations envoyées à vos collègues ainsi que vos propositions de partenariat faites à votre entreprise. Invitez vos collègues à rejoindre FinCare et gagnez des points bonus !"
-                  )}
+                {blockConfig?.description || "Suivez vos invitations envoyées à vos collègues. Invitez-les à rejoindre MyFinCare et gagnez des points bonus !"}
                 </CardDescription>
               </div>
               <Button onClick={() => setInviteDialogOpen(true)} className="shrink-0 w-full sm:w-auto" size="sm">
@@ -184,10 +181,7 @@ export const InvitationsTracker = ({ userId, companyId, companyName, blockConfig
               <Badge variant="secondary">{totalCount}</Badge>
             </CardTitle>
             <CardDescription className="mt-1 sm:mt-2 text-xs sm:text-sm">
-              {blockConfig?.description || (hasActivePartnership 
-                ? "Cette page vous permet de suivre toutes vos invitations envoyées à vos collègues. Invitez vos collègues à rejoindre FinCare et gagnez des points bonus !"
-                : "Cette page vous permet de suivre toutes vos invitations envoyées à vos collègues ainsi que vos propositions de partenariat faites à votre entreprise. Invitez vos collègues à rejoindre FinCare et gagnez des points bonus !"
-              )}
+              {blockConfig?.description || "Suivez vos invitations envoyées à vos collègues. Invitez-les à rejoindre MyFinCare et gagnez des points bonus !"}
             </CardDescription>
           </div>
           <Button onClick={() => setInviteDialogOpen(true)} className="shrink-0 w-full sm:w-auto" size="sm">
@@ -206,13 +200,13 @@ export const InvitationsTracker = ({ userId, companyId, companyName, blockConfig
               </TabsTrigger>
               <TabsTrigger value="partnerships" className="gap-2">
                 <Handshake className="h-4 w-4" />
-                Partenariats ({partnerships.length})
+                {hasActivePartnership ? "Partenariats" : "Demandes de partenariat"} ({partnerships.length})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="invitations" className="space-y-3">
               <p className="text-xs text-muted-foreground mb-2 p-2 bg-muted/30 rounded">
-                📧 Collègues que vous avez invités à rejoindre la plateforme FinCare
+                📧 Collègues que vous avez invités à rejoindre la plateforme MyFinCare
               </p>
               {invitations.map((inv) => (
                 <div key={inv.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-3 rounded-lg bg-muted/50">
@@ -236,9 +230,18 @@ export const InvitationsTracker = ({ userId, companyId, companyName, blockConfig
             </TabsContent>
 
             <TabsContent value="partnerships" className="space-y-3">
-              <p className="text-xs text-muted-foreground mb-2 p-2 bg-muted/30 rounded">
-                🤝 Propositions de partenariat entreprise que vous avez soumises
-              </p>
+              {!hasActivePartnership ? (
+                <div className="p-3 bg-accent/10 border border-accent/20 rounded-lg mb-3">
+                  <p className="text-sm font-medium text-foreground mb-1">🤝 Proposez à votre entreprise de devenir partenaire</p>
+                  <p className="text-xs text-muted-foreground">
+                    En proposant à votre entreprise de rejoindre MyFinCare en tant que partenaire officiel, vous débloquez des avantages exclusifs pour vous et vos collègues : accès à des experts, contenus personnalisés, simulateurs avancés et bien plus.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground mb-2 p-2 bg-muted/30 rounded">
+                  🤝 Propositions de partenariat entreprise que vous avez soumises
+                </p>
+              )}
               {partnerships.map((part) => (
                 <div key={part.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                   <div className="flex-1">
@@ -260,7 +263,7 @@ export const InvitationsTracker = ({ userId, companyId, companyName, blockConfig
             {hasInvitations && (
               <>
                 <p className="text-xs text-muted-foreground mb-2 p-2 bg-muted/30 rounded">
-                  📧 Collègues que vous avez invités à rejoindre la plateforme FinCare
+                  📧 Collègues que vous avez invités à rejoindre la plateforme MyFinCare
                 </p>
                 {invitations.map((inv) => (
                   <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
@@ -283,9 +286,18 @@ export const InvitationsTracker = ({ userId, companyId, companyName, blockConfig
             )}
             {hasPartnerships && (
               <>
-                <p className="text-xs text-muted-foreground mb-2 p-2 bg-muted/30 rounded">
-                  🤝 Propositions de partenariat entreprise que vous avez soumises
-                </p>
+                {!hasActivePartnership ? (
+                  <div className="p-3 bg-accent/10 border border-accent/20 rounded-lg mb-3">
+                    <p className="text-sm font-medium text-foreground mb-1">🤝 Mes demandes de partenariat</p>
+                    <p className="text-xs text-muted-foreground">
+                      Vous avez proposé à votre entreprise de rejoindre MyFinCare en tant que partenaire officiel. Un partenariat permet de débloquer des avantages exclusifs : accès à des experts, contenus personnalisés, simulateurs avancés et bien plus.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground mb-2 p-2 bg-muted/30 rounded">
+                    🤝 Propositions de partenariat entreprise que vous avez soumises
+                  </p>
+                )}
                 {partnerships.map((part) => (
                   <div key={part.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                     <div className="flex-1">
