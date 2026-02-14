@@ -480,8 +480,6 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
                       outerRadius={100}
                       paddingAngle={4}
                       dataKey="value"
-                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                      labelLine={false}
                     >
                       {moduleChartFormatted.map((_, index) => (
                         <Cell 
@@ -496,10 +494,11 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
                       contentStyle={{ 
                         backgroundColor: "hsl(var(--popover))",
                         border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px"
+                        borderRadius: "8px",
+                        color: "hsl(var(--popover-foreground))"
                       }}
+                      formatter={(value: number, name: string) => [`${value} complétés`, name]}
                     />
-                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
