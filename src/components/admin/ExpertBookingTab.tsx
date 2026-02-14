@@ -59,6 +59,8 @@ interface LandingSettings {
   testimonial_author: string | null;
   testimonial_role: string | null;
   footer_text: string;
+  gallery_title: string;
+  gallery_subtitle: string;
   gallery_images: GalleryImage[];
 }
 
@@ -117,6 +119,8 @@ export function ExpertBookingTab() {
     testimonial_author: null,
     testimonial_role: null,
     footer_text: "Nos experts sont disponibles du lundi au vendredi, de 9h à 18h.",
+    gallery_title: "Ils nous font confiance",
+    gallery_subtitle: "Des certifications et reconnaissances qui garantissent notre expertise",
     gallery_images: []
   });
 
@@ -260,6 +264,8 @@ export function ExpertBookingTab() {
           testimonial_author: landingData.testimonial_author,
           testimonial_role: landingData.testimonial_role,
           footer_text: landingData.footer_text || "",
+          gallery_title: landingData.gallery_title || "Ils nous font confiance",
+          gallery_subtitle: landingData.gallery_subtitle || "",
           gallery_images: galleryImages
         });
       }
@@ -338,6 +344,8 @@ export function ExpertBookingTab() {
         testimonial_author: landingSettings.testimonial_author,
         testimonial_role: landingSettings.testimonial_role,
         footer_text: landingSettings.footer_text,
+        gallery_title: landingSettings.gallery_title,
+        gallery_subtitle: landingSettings.gallery_subtitle,
         gallery_images: landingSettings.gallery_images as unknown as Json,
         updated_at: new Date().toISOString()
       };
@@ -896,6 +904,26 @@ export function ExpertBookingTab() {
           {/* Gallery Section */}
           <div className="space-y-4">
             <h4 className="font-medium">Galerie d'images</h4>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="galleryTitle">Titre de la section</Label>
+                <Input
+                  id="galleryTitle"
+                  value={landingSettings.gallery_title}
+                  onChange={(e) => setLandingSettings(prev => ({ ...prev, gallery_title: e.target.value }))}
+                  placeholder="Ils nous font confiance"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gallerySubtitle">Sous-titre</Label>
+                <Input
+                  id="gallerySubtitle"
+                  value={landingSettings.gallery_subtitle}
+                  onChange={(e) => setLandingSettings(prev => ({ ...prev, gallery_subtitle: e.target.value }))}
+                  placeholder="Des certifications et reconnaissances..."
+                />
+              </div>
+            </div>
             <ImageGalleryUploader
               images={landingSettings.gallery_images}
               onChange={(images) => setLandingSettings(prev => ({ ...prev, gallery_images: images }))}
