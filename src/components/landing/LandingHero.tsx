@@ -103,17 +103,21 @@ export const LandingHero = ({
           {/* Fade edges */}
           <div className="absolute left-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-r from-background to-transparent pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-          <div className="flex gap-16 items-center animate-marquee w-max">
-            {[...clientLogos, ...clientLogos].map((logo, index) => (
-              <div
-                key={index}
-                className="flex-shrink-0 bg-white rounded-xl p-3 shadow-sm"
-              >
-                <img
-                  src={logo}
-                  alt={`Client ${(index % clientLogos.length) + 1}`}
-                  className="h-16 w-16 object-contain"
-                />
+          <div className="flex items-center w-max">
+            {[0, 1].map((copy) => (
+              <div key={copy} className="flex gap-16 items-center animate-marquee px-8">
+                {clientLogos.map((logo, index) => (
+                  <div
+                    key={`${copy}-${index}`}
+                    className="flex-shrink-0 bg-white rounded-xl p-3 shadow-sm"
+                  >
+                    <img
+                      src={logo}
+                      alt={`Client ${index + 1}`}
+                      className="h-16 w-16 object-contain"
+                    />
+                  </div>
+                ))}
               </div>
             ))}
           </div>
