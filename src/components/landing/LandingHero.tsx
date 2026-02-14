@@ -73,11 +73,14 @@ export const LandingHero = ({
                 <p className="text-sm text-muted-foreground uppercase tracking-wide">
                   Ils nous font confiance
                 </p>
-                <div className="flex flex-wrap gap-6 items-center opacity-60">
+                <div className="flex flex-wrap gap-6 items-center">
                   {clientLogos.map((logo, index) => (
-                    <div key={index} className="text-lg font-semibold">
-                      {logo}
-                    </div>
+                    <img
+                      key={index}
+                      src={logo}
+                      alt={`Client ${index + 1}`}
+                      className="h-10 object-contain opacity-70 hover:opacity-100 transition-opacity"
+                    />
                   ))}
                 </div>
               </div>
