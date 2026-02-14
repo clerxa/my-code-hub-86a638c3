@@ -311,7 +311,7 @@ export const CompanyLeaderboard = ({
         {/* Points rules section */}
         {pointsRules.length > 0 && (
           <Collapsible open={rulesOpen} onOpenChange={setRulesOpen} className="mt-6">
-            <CollapsibleTrigger className="flex items-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2 border-t pt-4">
+            <CollapsibleTrigger className="flex items-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2 pt-4">
               <Info className="h-4 w-4" />
               <span className="font-medium">Comment gagner des points ?</span>
               <span className={cn("ml-auto transition-transform text-xs", rulesOpen && "rotate-180")}>▼</span>
