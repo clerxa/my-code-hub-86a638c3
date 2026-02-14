@@ -76,7 +76,7 @@ export const InvitationsTracker = ({ userId, companyId, companyName, blockConfig
       // Fetch partnership requests
       const { data: partData } = await supabase
         .from("partnership_requests")
-        .select("*, company:companies(name)")
+        .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
