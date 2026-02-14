@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Target, TrendingUp, Shield, Star, CheckCircle, ArrowRight, Quote, Clock, Users, Award, Zap, Heart, Lightbulb, Gift, Trophy, ThumbsUp, MessageCircle, Calendar, Briefcase, Rocket, Smile, Eye } from "lucide-react";
+import { Target, TrendingUp, Shield, Star, CheckCircle, ArrowRight, Quote, Clock, Users, Award, Zap, Heart, Lightbulb, Gift, Trophy, ThumbsUp, MessageCircle, Calendar, Briefcase, Rocket, Smile, Eye, Euro, Home, Calculator, Compass, BookOpen, Landmark, PiggyBank, Scale, FileText, HandCoins, Building, Wallet } from "lucide-react";
 
 interface Benefit {
   icon: string;
@@ -36,26 +36,10 @@ interface ExpertBookingLandingPreviewProps {
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Target,
-  TrendingUp,
-  Shield,
-  Star,
-  CheckCircle,
-  Clock,
-  Users,
-  Award,
-  Zap,
-  Heart,
-  Lightbulb,
-  Gift,
-  Trophy,
-  ThumbsUp,
-  MessageCircle,
-  Calendar,
-  Briefcase,
-  Rocket,
-  Smile,
-  Eye
+  Target, TrendingUp, Shield, Star, CheckCircle, Clock, Users, Award, Zap,
+  Heart, Lightbulb, Gift, Trophy, ThumbsUp, MessageCircle, Calendar,
+  Briefcase, Rocket, Smile, Eye, Euro, Home, Calculator, Compass,
+  BookOpen, Landmark, PiggyBank, Scale, FileText, HandCoins, Building, Wallet
 };
 
 export function ExpertBookingLandingPreview({ settings }: ExpertBookingLandingPreviewProps) {

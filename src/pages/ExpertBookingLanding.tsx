@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Target, TrendingUp, Shield, Star, CheckCircle, ArrowRight, Quote, Clock, Users, Award, Zap, Heart, Lightbulb, Gift, Trophy, ThumbsUp, MessageCircle, Calendar, Briefcase, Rocket, Smile, Eye, ArrowLeft } from "lucide-react";
+import { Loader2, Target, TrendingUp, Shield, Star, CheckCircle, ArrowRight, Quote, Clock, Users, Award, Zap, Heart, Lightbulb, Gift, Trophy, ThumbsUp, MessageCircle, Calendar, Briefcase, Rocket, Smile, Eye, ArrowLeft, Euro, Home, Calculator, Compass, BookOpen, Landmark, PiggyBank, Scale, FileText, HandCoins, Building, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
 import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
@@ -39,26 +39,10 @@ interface LandingSettings {
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Target,
-  TrendingUp,
-  Shield,
-  Star,
-  CheckCircle,
-  Clock,
-  Users,
-  Award,
-  Zap,
-  Heart,
-  Lightbulb,
-  Gift,
-  Trophy,
-  ThumbsUp,
-  MessageCircle,
-  Calendar,
-  Briefcase,
-  Rocket,
-  Smile,
-  Eye
+  Target, TrendingUp, Shield, Star, CheckCircle, Clock, Users, Award, Zap,
+  Heart, Lightbulb, Gift, Trophy, ThumbsUp, MessageCircle, Calendar,
+  Briefcase, Rocket, Smile, Eye, Euro, Home, Calculator, Compass,
+  BookOpen, Landmark, PiggyBank, Scale, FileText, HandCoins, Building, Wallet
 };
 
 export default function ExpertBookingLanding() {
