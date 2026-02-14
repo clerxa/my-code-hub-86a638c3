@@ -5,12 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { 
-  ExternalLink, Save, RefreshCw, Trash2,
+  Save,
   BookOpen, Palette, Users, BarChart, Video, Calculator,
   Sparkles, TrendingUp, Shield, Target, Zap, Award,
   Globe, Heart, Lightbulb, MessageCircle, PieChart, Rocket,
@@ -42,35 +39,8 @@ interface PartnershipContent {
   };
 }
 
-interface PartnershipRequest {
-  id: string;
-  user_id: string;
-  company_id: string;
-  sender_first_name: string | null;
-  sender_last_name: string | null;
-  sender_email: string | null;
-  contact_first_name: string | null;
-  contact_last_name: string | null;
-  contact_email: string;
-  message: string | null;
-  status: string;
-  created_at: string;
-  profiles?: { first_name: string; last_name: string; email: string };
-  companies?: { name: string };
-}
 
-interface PartnershipContactRequest {
-  id: string;
-  first_name: string;
-  last_name: string;
-  company: string;
-  email: string;
-  phone: string | null;
-  company_size: string;
-  message: string | null;
-  status: string;
-  created_at: string;
-}
+
 
 const iconOptions = [
   { value: "BookOpen", label: "Livre" },
@@ -112,8 +82,6 @@ export function PartnershipTab() {
     partnership_requests_email: "",
     contact_requests_email: "",
   });
-  const [requests, setRequests] = useState<PartnershipRequest[]>([]);
-  const [contactRequests, setContactRequests] = useState<PartnershipContactRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -168,47 +136,6 @@ export function PartnershipTab() {
         setEmailConfig(emailConfigData.metadata as any);
       }
 
-      // Fetch requests
-      const { data: requestsData, error: requestsError } = await supabase
-        .from("partnership_requests")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (requestsError) throw requestsError;
-      
-      // Fetch profiles and companies separately
-      const enrichedRequests = await Promise.all(
-        (requestsData || []).map(async (request) => {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("first_name, last_name, email")
-            .eq("id", request.user_id)
-            .single();
-          
-          const { data: company } = await supabase
-            .from("companies")
-            .select("name")
-            .eq("id", request.company_id)
-            .single();
-          
-          return {
-            ...request,
-            profiles: profile || undefined,
-            companies: company || undefined,
-          };
-        })
-      );
-      
-      setRequests(enrichedRequests as any);
-
-      // Fetch contact requests
-      const { data: contactRequestsData, error: contactRequestsError } = await supabase
-        .from("partnership_contact_requests")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (contactRequestsError) throw contactRequestsError;
-      setContactRequests(contactRequestsData || []);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Erreur lors du chargement");
@@ -290,33 +217,6 @@ export function PartnershipTab() {
     setContent({ ...content, benefits: newBenefits });
   };
 
-  const handleUpdateRequestStatus = async (requestId: string, newStatus: string) => {
-    try {
-      const { error } = await supabase
-        .from("partnership_requests")
-        .update({ status: newStatus })
-        .eq("id", requestId);
-
-      if (error) throw error;
-      toast.success("Statut mis à jour");
-      fetchData();
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error("Erreur lors de la mise à jour");
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: any; label: string }> = {
-      pending: { variant: "secondary", label: "En attente" },
-      contacted: { variant: "default", label: "Contacté" },
-      in_progress: { variant: "default", label: "En cours" },
-      completed: { variant: "default", label: "Complété" },
-      rejected: { variant: "destructive", label: "Refusé" },
-    };
-    const config = variants[status] || variants.pending;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
 
   if (loading) {
     return <div>Chargement...</div>;
@@ -324,12 +224,10 @@ export function PartnershipTab() {
 
   return (
     <Tabs defaultValue="landing" className="w-full">
-      <TabsList className="grid w-full grid-cols-5">
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="landing">Landing Page</TabsTrigger>
         <TabsTrigger value="email-config">Config email</TabsTrigger>
         <TabsTrigger value="email">Template email</TabsTrigger>
-        <TabsTrigger value="requests">Demandes employés</TabsTrigger>
-        <TabsTrigger value="contacts">Demandes contact</TabsTrigger>
       </TabsList>
 
       <TabsContent value="landing" className="space-y-6">
@@ -459,197 +357,7 @@ export function PartnershipTab() {
         </Card>
       </TabsContent>
 
-      <TabsContent value="requests">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Demandes de partenariat</CardTitle>
-                <CardDescription>
-                  Historique de toutes les demandes envoyées par les utilisateurs
-                </CardDescription>
-              </div>
-              <Button variant="outline" size="sm" onClick={fetchData}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Actualiser
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Utilisateur</TableHead>
-                  <TableHead>Entreprise</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {requests.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell>
-                      {new Date(request.created_at).toLocaleDateString("fr-FR")}
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">
-                          {request.profiles?.first_name} {request.profiles?.last_name}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {request.profiles?.email}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>{request.companies?.name}</TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">
-                          {request.contact_first_name} {request.contact_last_name}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {request.contact_email}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(request.status)}</TableCell>
-                    <TableCell>
-                      <Select
-                        value={request.status}
-                        onValueChange={(value) =>
-                          handleUpdateRequestStatus(request.id, value)
-                        }
-                      >
-                        <SelectTrigger className="w-[140px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">En attente</SelectItem>
-                          <SelectItem value="contacted">Contacté</SelectItem>
-                          <SelectItem value="in_progress">En cours</SelectItem>
-                          <SelectItem value="completed">Complété</SelectItem>
-                          <SelectItem value="rejected">Refusé</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {requests.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
-                      Aucune demande de partenariat pour le moment
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="contacts">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Demandes de contact depuis la page partenariat</CardTitle>
-                <CardDescription>
-                  Demandes envoyées via le formulaire public
-                </CardDescription>
-              </div>
-              <Button variant="outline" size="sm" onClick={fetchData}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Actualiser
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Entreprise</TableHead>
-                  <TableHead>Taille</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {contactRequests.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell>
-                      {new Date(request.created_at).toLocaleDateString("fr-FR")}
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">
-                          {request.first_name} {request.last_name}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {request.email}
-                        </p>
-                        {request.phone && (
-                          <p className="text-sm text-muted-foreground">
-                            {request.phone}
-                          </p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{request.company}</TableCell>
-                    <TableCell>{request.company_size}</TableCell>
-                    <TableCell>{getStatusBadge(request.status)}</TableCell>
-                    <TableCell>
-                      <Select
-                        value={request.status}
-                        onValueChange={(value) =>
-                          handleUpdateContactRequestStatus(request.id, value)
-                        }
-                      >
-                        <SelectTrigger className="w-[140px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">En attente</SelectItem>
-                          <SelectItem value="contacted">Contacté</SelectItem>
-                          <SelectItem value="in_progress">En cours</SelectItem>
-                          <SelectItem value="completed">Complété</SelectItem>
-                          <SelectItem value="rejected">Refusé</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {contactRequests.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
-                      Aucune demande de contact pour le moment
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </TabsContent>
     </Tabs>
   );
 
-  async function handleUpdateContactRequestStatus(requestId: string, newStatus: string) {
-    try {
-      const { error } = await supabase
-        .from("partnership_contact_requests")
-        .update({ status: newStatus })
-        .eq("id", requestId);
-
-      if (error) throw error;
-      toast.success("Statut mis à jour");
-      fetchData();
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error("Erreur lors de la mise à jour");
-    }
-  }
 }
