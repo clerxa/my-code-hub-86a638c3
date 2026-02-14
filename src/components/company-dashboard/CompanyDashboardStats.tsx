@@ -497,6 +497,8 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
                         borderRadius: "8px",
                         color: "hsl(var(--popover-foreground))"
                       }}
+                      labelStyle={{ color: "hsl(var(--popover-foreground))" }}
+                      itemStyle={{ color: "hsl(var(--popover-foreground))" }}
                       formatter={(value: number, name: string) => [`${value} complétés`, name]}
                     />
                   </PieChart>
@@ -543,8 +545,11 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
                       contentStyle={{ 
                         backgroundColor: "hsl(var(--popover))",
                         border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px"
+                        borderRadius: "8px",
+                        color: "hsl(var(--popover-foreground))"
                       }}
+                      labelStyle={{ color: "hsl(var(--popover-foreground))" }}
+                      itemStyle={{ color: "hsl(var(--popover-foreground))" }}
                     />
                     <Bar 
                       dataKey="simulations" 
@@ -613,8 +618,11 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
                       contentStyle={{ 
                         backgroundColor: "hsl(var(--popover))",
                         border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px"
+                        borderRadius: "8px",
+                        color: "hsl(var(--popover-foreground))"
                       }}
+                      labelStyle={{ color: "hsl(var(--popover-foreground))" }}
+                      itemStyle={{ color: "hsl(var(--popover-foreground))" }}
                     />
                     <Legend />
                   </PieChart>
@@ -665,8 +673,11 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
                       contentStyle={{ 
                         backgroundColor: "hsl(var(--popover))",
                         border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px"
+                        borderRadius: "8px",
+                        color: "hsl(var(--popover-foreground))"
                       }}
+                      labelStyle={{ color: "hsl(var(--popover-foreground))" }}
+                      itemStyle={{ color: "hsl(var(--popover-foreground))" }}
                     />
                     <Area 
                       type="monotone" 
