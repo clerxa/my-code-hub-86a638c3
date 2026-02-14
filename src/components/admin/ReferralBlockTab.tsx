@@ -211,13 +211,27 @@ export const ReferralBlockTab = () => {
       // Fetch partnership requests (employee referrals)
       const { data: partData, error: partError } = await supabase
         .from("partnership_requests")
-        .select("*, company:companies(name)")
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (partError) {
         console.error("Error fetching partnerships:", partError);
       } else {
-        setPartnerships((partData || []) as any);
+        // Enrich with company names
+        const enriched = await Promise.all(
+          (partData || []).map(async (req: any) => {
+            if (req.company_id) {
+              const { data: companyData } = await supabase
+                .from("companies")
+                .select("name")
+                .eq("id", req.company_id)
+                .single();
+              return { ...req, company: companyData };
+            }
+            return { ...req, company: null };
+          })
+        );
+        setPartnerships(enriched as any);
       }
 
       // Fetch B2B contact requests (landing page form)
