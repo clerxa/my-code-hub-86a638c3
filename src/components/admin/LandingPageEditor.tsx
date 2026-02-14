@@ -22,16 +22,141 @@ export const LandingPageEditor = () => {
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   
-  const [hero, setHero] = useState<any>(null);
-  const [problems, setProblems] = useState<any[]>([]);
-  const [solution, setSolution] = useState<any>(null);
-  const [socialProof, setSocialProof] = useState<any>(null);
-  const [demo, setDemo] = useState<any>(null);
-  const [benefits, setBenefits] = useState<any>(null);
-  const [comparison, setComparison] = useState<any>(null);
-  const [faq, setFaq] = useState<any[]>([]);
-  const [ctaFinal, setCtaFinal] = useState<any>(null);
-  const [contactForm, setContactForm] = useState<any>(null);
+  const defaultHero = {
+    title: "Le bien-être financier de vos collaborateurs, notre priorité",
+    subtitle: "MyFinCare accompagne vos salariés avec des parcours d'éducation financière personnalisés, des simulateurs et un accès à des experts certifiés.",
+    ctaPrimary: "Demander une démo",
+    ctaSecondary: "Découvrir nos solutions",
+    image: "",
+    clientLogos: [],
+  };
+
+  const defaultProblems = [
+    {
+      title: "Stress financier généralisé",
+      description: "72% des salariés sont stressés par leurs finances personnelles, impactant directement leur productivité et leur engagement au travail.",
+      icon: "TrendingDown",
+    },
+    {
+      title: "Manque d'accompagnement",
+      description: "La majorité des entreprises n'offrent aucun programme d'éducation financière, laissant leurs collaborateurs livrés à eux-mêmes.",
+      icon: "UserX",
+    },
+    {
+      title: "Avantages sociaux sous-utilisés",
+      description: "Épargne salariale, PEE, PERCO, RSU… Vos collaborateurs ne comprennent pas leurs avantages et passent à côté d'opportunités.",
+      icon: "PieChart",
+    },
+  ];
+
+  const defaultSolution = {
+    title: "MyFinCare : la solution complète",
+    description: "Une plateforme tout-en-un pour transformer le bien-être financier de vos équipes",
+    pillars: [
+      { title: "Parcours pédagogiques", description: "Des modules interactifs adaptés au niveau de chaque collaborateur", icon: "GraduationCap" },
+      { title: "Simulateurs avancés", description: "Épargne, impôts, capacité d'emprunt… Des outils concrets pour mieux décider", icon: "Calculator" },
+      { title: "Experts certifiés", description: "Un accès direct à des conseillers financiers pour un accompagnement personnalisé", icon: "Shield" },
+      { title: "Tableau de bord RH", description: "Suivez l'engagement et mesurez l'impact du programme en temps réel", icon: "BarChart" },
+    ],
+  };
+
+  const defaultSocialProof = {
+    title: "Ils font confiance à MyFinCare",
+    companies: [],
+    testimonials: [
+      {
+        name: "Sophie M.",
+        role: "DRH",
+        company: "TechCorp",
+        content: "Depuis le déploiement de MyFinCare, nous avons constaté une réduction significative du stress financier chez nos collaborateurs et une amélioration de l'engagement.",
+        avatar: "",
+      },
+    ],
+    stats: [
+      { value: "500+", label: "entreprises partenaires" },
+      { value: "92%", label: "de satisfaction collaborateurs" },
+      { value: "3x", label: "meilleure compréhension des avantages" },
+    ],
+  };
+
+  const defaultDemo = {
+    title: "Comment ça marche ?",
+    description: "Un déploiement simple en 3 étapes",
+    screenshots: [],
+    layout: "2-columns" as const,
+  };
+
+  const defaultBenefits = {
+    title: "Pourquoi choisir MyFinCare ?",
+    items: [
+      { title: "Réduction du turnover", description: "Les entreprises proposant un programme financier réduisent leur turnover de 25%", icon: "TrendingUp" },
+      { title: "Marque employeur renforcée", description: "Positionnez-vous comme un employeur innovant et soucieux du bien-être global", icon: "Award" },
+      { title: "ROI mesurable", description: "Suivez l'impact en temps réel grâce à notre tableau de bord analytique", icon: "BarChart" },
+      { title: "Déploiement clé en main", description: "Notre équipe vous accompagne de A à Z, zéro charge technique pour vos équipes", icon: "Zap" },
+    ],
+  };
+
+  const defaultComparison = {
+    title: "Avec ou sans MyFinCare",
+    enabled: true,
+    rows: [
+      { without: "Salariés stressés par leurs finances", with: "Collaborateurs sereins et accompagnés", highlight: true },
+      { without: "Avantages sociaux mal compris et sous-utilisés", with: "Avantages pleinement exploités grâce à la pédagogie", highlight: false },
+      { without: "Aucune visibilité sur le bien-être financier", with: "Données et KPIs en temps réel pour les RH", highlight: false },
+    ],
+  };
+
+  const defaultFaq = [
+    { question: "Combien de temps prend le déploiement ?", answer: "Le déploiement est réalisé en 2 à 3 semaines. Notre équipe s'occupe de tout : personnalisation, intégration et formation." },
+    { question: "Le programme est-il adapté à toutes les tailles d'entreprise ?", answer: "Oui, MyFinCare s'adapte aux PME comme aux grands groupes avec des offres personnalisées selon vos besoins." },
+    { question: "Quel est le coût pour l'entreprise ?", answer: "Nous proposons plusieurs formules adaptées à votre taille et vos besoins. Contactez-nous pour un devis personnalisé." },
+    { question: "Les données des salariés sont-elles protégées ?", answer: "Absolument. Toutes les données sont chiffrées et hébergées en France. Nous sommes conformes au RGPD." },
+    { question: "Peut-on personnaliser le contenu pour notre entreprise ?", answer: "Oui, la plateforme est entièrement personnalisable : logo, couleurs, modules activés, ressources documentaires spécifiques." },
+  ];
+
+  const defaultCtaFinal = {
+    title: "Prêt à transformer le bien-être financier de vos équipes ?",
+    subtitle: "Rejoignez les 500+ entreprises qui font confiance à MyFinCare",
+    cta: "Demander une démo gratuite",
+  };
+
+  const defaultContactForm = {
+    title: "Demandez une démo",
+    description: "Remplissez ce formulaire et notre équipe vous contactera sous 24h",
+    firstName_label: "Prénom",
+    firstName_placeholder: "Votre prénom",
+    firstName_required: true,
+    lastName_label: "Nom",
+    lastName_placeholder: "Votre nom",
+    lastName_required: true,
+    company_label: "Entreprise",
+    company_placeholder: "Nom de votre entreprise",
+    company_required: true,
+    email_label: "Email professionnel",
+    email_placeholder: "votre.email@entreprise.com",
+    phone_label: "Téléphone",
+    phone_placeholder: "+33 6 12 34 56 78",
+    phone_required: false,
+    companySize_label: "Taille de l'entreprise",
+    companySize_placeholder: "Sélectionnez la taille",
+    companySize_required: true,
+    message_label: "Message (optionnel)",
+    message_placeholder: "Parlez-nous de vos besoins...",
+    message_required: false,
+    submit_button: "Envoyer ma demande",
+    success_message: "Merci ! Nous reviendrons vers vous sous 24h.",
+  };
+
+  const [hero, setHero] = useState<any>(defaultHero);
+  const [problems, setProblems] = useState<any[]>(defaultProblems);
+  const [solution, setSolution] = useState<any>(defaultSolution);
+  const [socialProof, setSocialProof] = useState<any>(defaultSocialProof);
+  const [demo, setDemo] = useState<any>(defaultDemo);
+  const [benefits, setBenefits] = useState<any>(defaultBenefits);
+  const [comparison, setComparison] = useState<any>(defaultComparison);
+  const [faq, setFaq] = useState<any[]>(defaultFaq);
+  const [ctaFinal, setCtaFinal] = useState<any>(defaultCtaFinal);
+  const [contactForm, setContactForm] = useState<any>(defaultContactForm);
 
   useEffect(() => {
     fetchContent();
@@ -57,10 +182,17 @@ export const LandingPageEditor = () => {
 
       if (error) throw error;
 
-      data?.forEach((item) => {
+      if (!data || data.length === 0) {
+        // No data in DB, save defaults
+        await saveContent();
+        toast.success("Contenu par défaut initialisé. Personnalisez-le selon vos besoins !");
+        setLoading(false);
+        return;
+      }
+
+      data.forEach((item) => {
         let value;
         try {
-          // Si c'est une string, essayer de parser
           if (typeof item.value === 'string') {
             value = JSON.parse(item.value);
           } else {
@@ -68,65 +200,39 @@ export const LandingPageEditor = () => {
           }
         } catch (e) {
           console.error(`Error parsing ${item.key}:`, e);
-          // Si le parsing échoue, utiliser la valeur brute si c'est un objet, sinon null
           value = typeof item.value === 'object' ? item.value : null;
         }
         
         switch (item.key) {
           case "landing_hero":
-            setHero(value);
+            if (value) setHero(value);
             break;
           case "landing_problems":
-            setProblems(value);
+            if (value) setProblems(value);
             break;
           case "landing_solution":
-            setSolution(value);
+            if (value) setSolution(value);
             break;
           case "landing_social_proof":
-            setSocialProof(value);
+            if (value) setSocialProof(value);
             break;
           case "landing_demo":
-            setDemo(value);
+            if (value) setDemo(value);
             break;
           case "landing_benefits":
-            setBenefits(value);
+            if (value) setBenefits(value);
             break;
           case "landing_comparison":
-            setComparison(value);
+            if (value) setComparison(value);
             break;
           case "landing_faq":
-            setFaq(value);
+            if (value) setFaq(value);
             break;
           case "landing_cta_final":
-            setCtaFinal(value);
+            if (value) setCtaFinal(value);
             break;
           case "partnership_page_content":
-            setContactForm(value?.form_fields || {
-              title: "Demandez une démo",
-              description: "Remplissez ce formulaire et notre équipe vous contactera",
-              firstName_label: "Prénom",
-              firstName_placeholder: "Votre prénom",
-              firstName_required: true,
-              lastName_label: "Nom",
-              lastName_placeholder: "Votre nom",
-              lastName_required: true,
-              company_label: "Entreprise",
-              company_placeholder: "Nom de votre entreprise",
-              company_required: true,
-              email_label: "Email",
-              email_placeholder: "votre.email@entreprise.com",
-              phone_label: "Téléphone",
-              phone_placeholder: "+33 6 12 34 56 78",
-              phone_required: false,
-              companySize_label: "Taille de l'entreprise",
-              companySize_placeholder: "Sélectionnez la taille",
-              companySize_required: true,
-              message_label: "Message",
-              message_placeholder: "Parlez-nous de vos besoins...",
-              message_required: false,
-              submit_button: "Envoyer ma demande",
-              success_message: "Merci ! Nous reviendrons vers vous rapidement."
-            });
+            if (value?.form_fields) setContactForm(value.form_fields);
             break;
         }
       });
