@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Trophy, Medal, Award, Crown, TrendingUp } from "lucide-react";
+import { Trophy, Medal, Award, Crown, TrendingUp, Info, Star, BookOpen, Video, HelpCircle, Calculator, Calendar, Users, MessageSquare, ThumbsUp, LogIn, Heart, Handshake, UserCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface LeaderboardEntry {
   id: string;
@@ -30,18 +31,37 @@ export const CompanyLeaderboard = ({
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [userRank, setUserRank] = useState<LeaderboardEntry | null>(null);
+  const [pointsRules, setPointsRules] = useState<{ category: string; points: number; description: string }[]>([]);
+  const [rulesOpen, setRulesOpen] = useState(false);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       setLoading(true);
       
-      // Fetch top entries
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, avatar_url, total_points')
-        .eq('company_id', companyId)
-        .order('total_points', { ascending: false })
-        .limit(limit);
+      // Fetch top entries and points rules in parallel
+      const [leaderboardResult, rulesResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id, first_name, last_name, avatar_url, total_points')
+          .eq('company_id', companyId)
+          .order('total_points', { ascending: false })
+          .limit(limit),
+        supabase
+          .from('points_configuration')
+          .select('category, points, description')
+          .eq('is_active', true)
+          .order('points', { ascending: false })
+      ]);
+
+      if (rulesResult.data) {
+        setPointsRules(rulesResult.data.map(r => ({
+          category: r.category,
+          points: r.points,
+          description: r.description || r.category
+        })));
+      }
+
+      const { data, error } = leaderboardResult;
 
       if (error) {
         console.error('Error fetching leaderboard:', error);
@@ -62,7 +82,6 @@ export const CompanyLeaderboard = ({
         if (currentUserEntry) {
           setUserRank(currentUserEntry);
         } else {
-          // Fetch user's actual rank
           const { data: allUsers } = await supabase
             .from('profiles')
             .select('id, first_name, last_name, avatar_url, total_points')
@@ -88,6 +107,47 @@ export const CompanyLeaderboard = ({
       fetchLeaderboard();
     }
   }, [companyId, currentUserId, limit]);
+
+  const getCategoryIcon = (category: string) => {
+    const iconClass = "h-4 w-4";
+    switch (category) {
+      case 'financial_profile_completion': return <UserCheck className={iconClass} />;
+      case 'partnership_request': return <Handshake className={iconClass} />;
+      case 'appointment_booking': return <Calendar className={iconClass} />;
+      case 'colleague_invitation': return <Users className={iconClass} />;
+      case 'quiz_completion': return <HelpCircle className={iconClass} />;
+      case 'simulator_completion': return <Calculator className={iconClass} />;
+      case 'guide_completion': return <BookOpen className={iconClass} />;
+      case 'video_completion': return <Video className={iconClass} />;
+      case 'webinar_registration': return <Star className={iconClass} />;
+      case 'forum_create_post': return <MessageSquare className={iconClass} />;
+      case 'forum_create_comment': return <MessageSquare className={iconClass} />;
+      case 'daily_login': return <LogIn className={iconClass} />;
+      case 'forum_receive_like': return <Heart className={iconClass} />;
+      case 'forum_give_like': return <ThumbsUp className={iconClass} />;
+      default: return <Star className={iconClass} />;
+    }
+  };
+
+  const getCategoryLabel = (category: string) => {
+    const labels: Record<string, string> = {
+      'financial_profile_completion': 'Profil financier complété',
+      'partnership_request': 'Demande de partenariat',
+      'appointment_booking': 'Prise de rendez-vous',
+      'colleague_invitation': 'Invitation d\'un collègue',
+      'quiz_completion': 'Quiz terminé',
+      'simulator_completion': 'Simulateur utilisé',
+      'guide_completion': 'Guide lu',
+      'video_completion': 'Vidéo visionnée',
+      'webinar_registration': 'Inscription webinaire',
+      'forum_create_post': 'Post sur le forum',
+      'forum_create_comment': 'Commentaire sur le forum',
+      'daily_login': 'Connexion quotidienne',
+      'forum_receive_like': 'Like reçu',
+      'forum_give_like': 'Like donné',
+    };
+    return labels[category] || category;
+  };
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -246,6 +306,33 @@ export const CompanyLeaderboard = ({
               </div>
             </div>
           </>
+        )}
+
+        {/* Points rules section */}
+        {pointsRules.length > 0 && (
+          <Collapsible open={rulesOpen} onOpenChange={setRulesOpen} className="mt-6">
+            <CollapsibleTrigger className="flex items-center gap-2 w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2 border-t pt-4">
+              <Info className="h-4 w-4" />
+              <span className="font-medium">Comment gagner des points ?</span>
+              <span className={cn("ml-auto transition-transform text-xs", rulesOpen && "rotate-180")}>▼</span>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-3">
+              <div className="grid gap-2">
+                {pointsRules.map((rule) => (
+                  <div
+                    key={rule.category}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/50 text-sm"
+                  >
+                    <span className="text-muted-foreground">{getCategoryIcon(rule.category)}</span>
+                    <span className="flex-1">{getCategoryLabel(rule.category)}</span>
+                    <Badge variant="outline" className="font-semibold tabular-nums">
+                      +{rule.points} pts
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         )}
       </CardContent>
     </Card>
