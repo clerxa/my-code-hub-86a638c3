@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { Handshake, Upload, User, Mail, Shield } from "lucide-react";
+import { Handshake, Upload, User, Mail, Shield, UserCog } from "lucide-react";
 
 
 interface ProfileBannerProps {
@@ -26,6 +26,7 @@ interface ProfileBannerProps {
     profile_type: string;
     total_weighted_score: number;
   } | null;
+  userRole?: string | null;
   uploading: boolean;
   onAvatarUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onNavigatePartnership: () => void;
@@ -36,12 +37,14 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({
   profile,
   company,
   riskProfile,
+  userRole,
   uploading,
   onAvatarUpload,
   onNavigatePartnership,
   onOpenRiskProfile,
 }) => {
   const isPartner = company?.partnership_type && company.partnership_type.toLowerCase() !== "aucun";
+  const isAdminOrContact = userRole === "admin" || userRole === "contact_entreprise";
 
   return (
     <div className="relative overflow-hidden rounded-xl"
@@ -95,6 +98,22 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({
             </h1>
             {profile?.job_title && (
               <p className="text-base sm:text-lg text-white/70 font-medium truncate mt-1">{profile.job_title}</p>
+            )}
+
+            {isAdminOrContact && (
+              <Badge className="mt-2 gap-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 px-3 py-1 text-xs sm:text-sm font-medium">
+                {userRole === "admin" ? (
+                  <>
+                    <Shield className="h-3.5 w-3.5 flex-shrink-0" />
+                    Administrateur
+                  </>
+                ) : (
+                  <>
+                    <UserCog className="h-3.5 w-3.5 flex-shrink-0" />
+                    Contact référent MyFinCare
+                  </>
+                )}
+              </Badge>
             )}
 
             {company && (
