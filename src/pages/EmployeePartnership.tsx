@@ -279,6 +279,8 @@ Merci pour votre attention,
           subtitle={hero.subtitle}
           ctaPrimary={hero.ctaPrimary}
           ctaSecondary={hero.ctaSecondary}
+          image={hero.image}
+          clientLogos={hero.clientLogos}
           onCtaPrimary={scrollToForm}
           onCtaSecondary={scrollToForm}
         />
