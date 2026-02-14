@@ -602,8 +602,6 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
                       outerRadius={100}
                       paddingAngle={4}
                       dataKey="value"
-                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                      labelLine={false}
                     >
                       {parcoursStats.map((_, index) => (
                         <Cell 
@@ -623,8 +621,8 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
                       }}
                       labelStyle={{ color: "hsl(var(--popover-foreground))" }}
                       itemStyle={{ color: "hsl(var(--popover-foreground))" }}
+                      formatter={(value: number, name: string) => [`${value} utilisateurs`, name]}
                     />
-                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
