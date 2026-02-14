@@ -35,6 +35,8 @@ interface LandingSettings {
   testimonial_author: string | null;
   testimonial_role: string | null;
   footer_text: string;
+  gallery_title: string;
+  gallery_subtitle: string;
   gallery_images: GalleryImage[];
 }
 
@@ -109,6 +111,8 @@ export default function ExpertBookingLanding() {
           testimonial_author: data.testimonial_author,
           testimonial_role: data.testimonial_role,
           footer_text: data.footer_text || "",
+          gallery_title: data.gallery_title || "Ils nous font confiance",
+          gallery_subtitle: data.gallery_subtitle || "",
           gallery_images: galleryImages
         });
       }
@@ -281,6 +285,12 @@ export default function ExpertBookingLanding() {
       {settings?.gallery_images && settings.gallery_images.length > 0 && (
         <section className="py-16 bg-muted/50 dark:bg-muted/40 rounded-xl mx-4">
           <div className="container max-w-6xl mx-auto px-4">
+            {settings.gallery_title && (
+              <h2 className="text-3xl font-bold text-center mb-4">{settings.gallery_title}</h2>
+            )}
+            {settings.gallery_subtitle && (
+              <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">{settings.gallery_subtitle}</p>
+            )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {settings.gallery_images.map((image) => (
                 <div key={image.id} className="space-y-3">

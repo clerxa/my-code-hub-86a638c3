@@ -28,6 +28,8 @@ interface LandingSettings {
   testimonial_author: string | null;
   testimonial_role: string | null;
   footer_text: string;
+  gallery_title?: string;
+  gallery_subtitle?: string;
   gallery_images?: GalleryImage[];
 }
 
@@ -176,6 +178,12 @@ export function ExpertBookingLandingPreview({ settings }: ExpertBookingLandingPr
       {/* Gallery Section */}
       {settings.gallery_images && settings.gallery_images.length > 0 && (
         <section className="py-6 px-6">
+          {settings.gallery_title && (
+            <h2 className="text-lg font-bold text-center mb-2">{settings.gallery_title}</h2>
+          )}
+          {settings.gallery_subtitle && (
+            <p className="text-xs text-center text-muted-foreground mb-4">{settings.gallery_subtitle}</p>
+          )}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {settings.gallery_images.map((image) => (
               <div key={image.id} className="space-y-2">
