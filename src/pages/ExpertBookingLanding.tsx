@@ -27,6 +27,7 @@ interface LandingSettings {
   hero_subtitle: string;
   hero_image_url: string | null;
   benefits: Benefit[];
+  expertises: Benefit[];
   cta_text: string;
   cta_secondary_text: string;
   testimonial_enabled: boolean;
@@ -105,6 +106,9 @@ export default function ExpertBookingLanding() {
         const benefits = Array.isArray(data.benefits) 
           ? (data.benefits as unknown as Benefit[]) 
           : [];
+        const expertises = Array.isArray(data.expertises)
+          ? (data.expertises as unknown as Benefit[])
+          : [];
         const galleryImages = Array.isArray(data.gallery_images)
           ? (data.gallery_images as unknown as GalleryImage[])
           : [];
@@ -113,6 +117,7 @@ export default function ExpertBookingLanding() {
           hero_subtitle: data.hero_subtitle || "Un accompagnement personnalisé pour optimiser vos finances",
           hero_image_url: data.hero_image_url,
           benefits,
+          expertises,
           cta_text: data.cta_text || "Réserver mon créneau",
           cta_secondary_text: data.cta_secondary_text || "Gratuit et sans engagement",
           testimonial_enabled: data.testimonial_enabled || false,
@@ -224,6 +229,34 @@ export default function ExpertBookingLanding() {
                       <p className="text-muted-foreground">{benefit.description}</p>
                     </CardContent>
                   </Card>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Expertises Section */}
+      {settings?.expertises && settings.expertises.length > 0 && (
+        <section className="py-16 md:py-24 bg-muted/30">
+          <div className="container max-w-6xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center mb-4">
+              Nos expertises
+            </h2>
+            <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+              Des domaines de compétence variés pour répondre à tous vos besoins financiers
+            </p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {settings.expertises.map((expertise, index) => {
+                const IconComponent = iconMap[expertise.icon] || CheckCircle;
+                return (
+                  <div key={index} className="group flex flex-col items-center text-center p-6 rounded-xl bg-background border border-border/50 shadow-sm hover:shadow-md hover:border-primary/30 transition-all">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                      <IconComponent className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="font-semibold mb-2">{expertise.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{expertise.description}</p>
+                  </div>
                 );
               })}
             </div>

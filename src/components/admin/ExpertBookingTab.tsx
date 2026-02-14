@@ -51,6 +51,7 @@ interface LandingSettings {
   hero_subtitle: string;
   hero_image_url: string | null;
   benefits: Benefit[];
+  expertises: Benefit[];
   cta_text: string;
   cta_secondary_text: string;
   testimonial_enabled: boolean;
@@ -108,6 +109,7 @@ export function ExpertBookingTab() {
       { icon: "TrendingUp", title: "Stratégies optimisées", description: "Des recommandations adaptées à vos objectifs" },
       { icon: "Shield", title: "Accompagnement sécurisé", description: "Un suivi confidentiel et professionnel" }
     ],
+    expertises: [],
     cta_text: "Réserver mon créneau",
     cta_secondary_text: "Gratuit et sans engagement",
     testimonial_enabled: false,
@@ -238,6 +240,9 @@ export function ExpertBookingTab() {
         const benefits = Array.isArray(landingData.benefits) 
           ? (landingData.benefits as unknown as Benefit[]) 
           : [];
+        const expertises = Array.isArray(landingData.expertises)
+          ? (landingData.expertises as unknown as Benefit[])
+          : [];
         const galleryImages = Array.isArray(landingData.gallery_images)
           ? (landingData.gallery_images as unknown as GalleryImage[])
           : [];
@@ -247,6 +252,7 @@ export function ExpertBookingTab() {
           hero_subtitle: landingData.hero_subtitle || "",
           hero_image_url: landingData.hero_image_url,
           benefits,
+          expertises,
           cta_text: landingData.cta_text || "",
           cta_secondary_text: landingData.cta_secondary_text || "",
           testimonial_enabled: landingData.testimonial_enabled || false,
@@ -324,6 +330,7 @@ export function ExpertBookingTab() {
         hero_subtitle: landingSettings.hero_subtitle,
         hero_image_url: landingSettings.hero_image_url,
         benefits: landingSettings.benefits as unknown as Json,
+        expertises: landingSettings.expertises as unknown as Json,
         cta_text: landingSettings.cta_text,
         cta_secondary_text: landingSettings.cta_secondary_text,
         testimonial_enabled: landingSettings.testimonial_enabled,
@@ -448,6 +455,27 @@ export function ExpertBookingTab() {
     setLandingSettings(prev => ({
       ...prev,
       benefits: prev.benefits.map((b, i) => i === index ? { ...b, [field]: value } : b)
+    }));
+  };
+
+  const addExpertise = () => {
+    setLandingSettings(prev => ({
+      ...prev,
+      expertises: [...prev.expertises, { icon: "Briefcase", title: "", description: "" }]
+    }));
+  };
+
+  const removeExpertise = (index: number) => {
+    setLandingSettings(prev => ({
+      ...prev,
+      expertises: prev.expertises.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateExpertise = (index: number, field: keyof Benefit, value: string) => {
+    setLandingSettings(prev => ({
+      ...prev,
+      expertises: prev.expertises.map((b, i) => i === index ? { ...b, [field]: value } : b)
     }));
   };
 
@@ -812,6 +840,52 @@ export function ExpertBookingTab() {
                 </div>
                 <div className="flex items-end">
                   <Button variant="ghost" size="icon" onClick={() => removeBenefit(index)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Expertises Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium">Nos expertises</h4>
+                <p className="text-xs text-muted-foreground">Affiché entre les avantages et la galerie d'images</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={addExpertise}>
+                <Plus className="h-4 w-4 mr-1" />
+                Ajouter
+              </Button>
+            </div>
+            {landingSettings.expertises.map((expertise, index) => (
+              <div key={index} className="grid gap-4 md:grid-cols-4 p-4 border rounded-lg border-dashed border-primary/30">
+                <div className="space-y-2">
+                  <Label>Icône</Label>
+                  <IconSelector
+                    value={expertise.icon}
+                    onChange={(value) => updateExpertise(index, "icon", value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Titre</Label>
+                  <Input
+                    value={expertise.title}
+                    onChange={(e) => updateExpertise(index, "title", e.target.value)}
+                    placeholder="Titre de l'expertise"
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-1">
+                  <Label>Description</Label>
+                  <Input
+                    value={expertise.description}
+                    onChange={(e) => updateExpertise(index, "description", e.target.value)}
+                    placeholder="Description..."
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button variant="ghost" size="icon" onClick={() => removeExpertise(index)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
