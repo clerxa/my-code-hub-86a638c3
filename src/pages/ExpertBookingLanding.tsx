@@ -167,7 +167,7 @@ export default function ExpertBookingLanding() {
               {settings?.gallery_images && settings.gallery_images.length > 0 && (
                 <div className="flex flex-wrap gap-3">
                   {settings.gallery_images.map((image) => (
-                    <div key={image.id} className="w-12 h-12 rounded-lg overflow-hidden shadow-sm border border-border/50">
+                    <div key={image.id} className="w-24 h-24 rounded-lg overflow-hidden shadow-sm border border-border/50">
                       <img
                         src={image.url}
                         alt={image.alt || "Réassurance"}
