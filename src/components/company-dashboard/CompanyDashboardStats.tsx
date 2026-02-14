@@ -38,27 +38,24 @@ interface CompanyDashboardStatsProps {
 
 interface EmployeeStats {
   total_employees: number;
-  registered_employees: number;
-  modules_completed_count: number;
-  average_modules_per_employee: number;
+  active_employees: number;
+  avg_points: number;
 }
 
 interface ExtendedStats {
-  active_users_count: number;
-  total_registered: number;
-  appointments_count: number;
-  appointments_completed: number;
+  total_modules_completed: number;
+  total_simulations: number;
+  total_appointments: number;
 }
 
 interface ModuleChartData {
-  type: string;
-  count: number;
+  module_name: string;
+  completion_count: number;
 }
 
 interface SimulationStats {
   simulator_type: string;
-  simulation_count: number;
-  unique_users: number;
+  usage_count: number;
 }
 
 interface ParcoursStats {
@@ -306,25 +303,27 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
 
   // Prepare chart data
   const moduleChartFormatted = moduleChartData
-    .filter(d => d.count > 0)
+    .filter(d => d.completion_count > 0)
     .map(d => ({
-      name: MODULE_TYPE_LABELS[d.type] || d.type,
-      value: d.count
+      name: d.module_name,
+      value: d.completion_count
     }));
 
   const simulationChartData = simulationStats
-    .filter(s => s.simulation_count > 0)
+    .filter(s => s.usage_count > 0)
     .map(s => ({
       name: SIMULATOR_LABELS[s.simulator_type] || s.simulator_type,
-      simulations: s.simulation_count,
-      utilisateurs: s.unique_users
+      simulations: s.usage_count,
+      utilisateurs: 0
     }));
 
-  const connectionRate = employeeStats?.registered_employees 
-    ? Math.round((( extendedStats?.active_users_count || 0) / employeeStats.registered_employees) * 100) 
+  const registeredCount = employeeStats?.active_employees || 0;
+  const totalCount = employeeStats?.total_employees || 0;
+  const connectionRate = totalCount > 0
+    ? Math.round((registeredCount / totalCount) * 100) 
     : 0;
 
-  const totalSimulations = simulationStats.reduce((acc, s) => acc + s.simulation_count, 0);
+  const totalSimulations = simulationStats.reduce((acc, s) => acc + s.usage_count, 0);
 
   if (loading) {
     return (
@@ -371,12 +370,12 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
           <StatCard
             icon={<Users className="h-5 w-5" />}
             title="Nombre d'utilisateurs"
-            value={employeeStats?.registered_employees || 0}
-            subtitle={`sur ${employeeStats?.total_employees || 0} employés potentiels`}
-            badgeText={employeeStats?.total_employees ? `${Math.round(((employeeStats.registered_employees || 0) / employeeStats.total_employees) * 100)}%` : undefined}
+            value={totalCount}
+            subtitle={`${registeredCount} se sont connectés`}
+            badgeText={totalCount ? `${connectionRate}%` : undefined}
             colorClass="from-violet-500/20 to-violet-500/5"
             iconColorClass="text-violet-600 bg-violet-500/10"
-            tooltip="Nombre de personnes ayant créé un compte sur la plateforme pour cette entreprise."
+            tooltip="Nombre total de profils enregistrés pour cette entreprise."
           />
 
           {/* Taux de connexion */}
@@ -384,18 +383,18 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
             icon={<Activity className="h-5 w-5" />}
             title="Taux de connexion"
             value={`${connectionRate}%`}
-            subtitle={`${extendedStats?.active_users_count || 0} utilisateurs se sont connectés`}
+            subtitle={`${registeredCount} utilisateurs se sont connectés`}
             colorClass="from-primary/20 to-primary/5"
             iconColorClass="text-primary bg-primary/10"
-            tooltip="Pourcentage d'utilisateurs inscrits qui se sont connectés au moins une fois."
+            tooltip="Pourcentage d'utilisateurs qui se sont connectés au moins une fois."
           />
 
           {/* Modules complétés */}
           <StatCard
             icon={<BookOpen className="h-5 w-5" />}
             title="Modules complétés"
-            value={employeeStats?.modules_completed_count || 0}
-            subtitle={`Moy. ${employeeStats?.average_modules_per_employee || 0} par utilisateur`}
+            value={extendedStats?.total_modules_completed || 0}
+            subtitle={`Moy. ${totalCount > 0 ? (((extendedStats?.total_modules_completed || 0) / totalCount).toFixed(1)) : 0} par utilisateur`}
             colorClass="from-secondary/20 to-secondary/5"
             iconColorClass="text-secondary bg-secondary/10"
           />
@@ -404,8 +403,8 @@ export function CompanyDashboardStats({ companyId }: CompanyDashboardStatsProps)
           <StatCard
             icon={<Calendar className="h-5 w-5" />}
             title="Rendez-vous pris"
-            value={extendedStats?.appointments_count || 0}
-            subtitle={`${extendedStats?.appointments_completed || 0} réalisés`}
+            value={extendedStats?.total_appointments || 0}
+            subtitle={`0 réalisés`}
             colorClass="from-accent/20 to-accent/5"
             iconColorClass="text-accent bg-accent/10"
             tooltip="Nombre total de rendez-vous pris avec un conseiller."
