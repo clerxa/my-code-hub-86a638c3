@@ -103,24 +103,35 @@ export const LandingHero = ({
           {/* Fade edges */}
           <div className="absolute left-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-r from-background to-transparent pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-          <div className="flex items-center w-max">
-            {[0, 1].map((copy) => (
-              <div key={copy} className="flex gap-16 items-center animate-marquee px-8">
-                {clientLogos.map((logo, index) => (
-                  <div
-                    key={`${copy}-${index}`}
-                    className="flex-shrink-0 bg-white rounded-xl p-3 shadow-sm"
-                  >
-                    <img
-                      src={logo}
-                      alt={`Client ${index + 1}`}
-                      className="h-16 w-16 object-contain"
-                    />
+          {(() => {
+            // Repeat logos enough to fill at least ~2000px, then duplicate for seamless loop
+            const logoWidth = 64 + 24 + 64; // img + padding + gap ~152px per logo
+            const minCount = Math.max(Math.ceil(2000 / logoWidth), 8);
+            const repeatedLogos: string[] = [];
+            for (let i = 0; i < minCount; i++) {
+              repeatedLogos.push(clientLogos[i % clientLogos.length]);
+            }
+            return (
+              <div className="flex items-center w-max">
+                {[0, 1].map((copy) => (
+                  <div key={copy} className="flex gap-12 items-center animate-marquee px-6">
+                    {repeatedLogos.map((logo, index) => (
+                      <div
+                        key={`${copy}-${index}`}
+                        className="flex-shrink-0 bg-white rounded-xl p-3 shadow-sm"
+                      >
+                        <img
+                          src={logo}
+                          alt={`Client ${(index % clientLogos.length) + 1}`}
+                          className="h-16 w-16 object-contain"
+                        />
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </div>
       </div>
     )}
