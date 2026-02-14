@@ -1623,6 +1623,7 @@ export type Database = {
           created_at: string
           cta_secondary_text: string | null
           cta_text: string | null
+          expertises: Json | null
           footer_text: string | null
           gallery_images: Json | null
           hero_image_url: string | null
@@ -1640,6 +1641,7 @@ export type Database = {
           created_at?: string
           cta_secondary_text?: string | null
           cta_text?: string | null
+          expertises?: Json | null
           footer_text?: string | null
           gallery_images?: Json | null
           hero_image_url?: string | null
@@ -1657,6 +1659,7 @@ export type Database = {
           created_at?: string
           cta_secondary_text?: string | null
           cta_text?: string | null
+          expertises?: Json | null
           footer_text?: string | null
           gallery_images?: Json | null
           hero_image_url?: string | null

@@ -20,6 +20,7 @@ interface LandingSettings {
   hero_subtitle: string;
   hero_image_url: string | null;
   benefits: Benefit[];
+  expertises?: Benefit[];
   cta_text: string;
   cta_secondary_text: string;
   testimonial_enabled: boolean;
@@ -129,6 +130,32 @@ export function ExpertBookingLandingPreview({ settings }: ExpertBookingLandingPr
                     <p className="text-xs text-muted-foreground">{benefit.description || "Description"}</p>
                   </CardContent>
                 </Card>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Expertises Section */}
+      {settings.expertises && settings.expertises.length > 0 && (
+        <section className="py-6 px-6 bg-muted/30">
+          <h2 className="text-lg font-bold text-center mb-2">
+            Nos expertises
+          </h2>
+          <p className="text-xs text-center text-muted-foreground mb-4">
+            Des domaines de compétence variés pour répondre à tous vos besoins
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {settings.expertises.map((expertise, index) => {
+              const IconComponent = iconMap[expertise.icon] || CheckCircle;
+              return (
+                <div key={index} className="flex flex-col items-center text-center p-3 rounded-lg bg-background border border-border/50">
+                  <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center mb-2">
+                    <IconComponent className="h-4 w-4 text-primary" />
+                  </div>
+                  <h3 className="text-xs font-semibold">{expertise.title || "Titre"}</h3>
+                  <p className="text-[10px] text-muted-foreground">{expertise.description || "Description"}</p>
+                </div>
               );
             })}
           </div>
