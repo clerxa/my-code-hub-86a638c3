@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Target, TrendingUp, Shield, Star, CheckCircle, ArrowRight, Quote, Clock, Users, Award, Zap, Heart, Lightbulb, Gift, Trophy, ThumbsUp, MessageCircle, Calendar, Briefcase, Rocket, Smile, Eye } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Benefit {
   icon: string;
@@ -58,6 +60,25 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export function ExpertBookingLandingPreview({ settings }: ExpertBookingLandingPreviewProps) {
+  const [clientLogos, setClientLogos] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchLogos = async () => {
+      try {
+        const { data } = await supabase
+          .from("settings")
+          .select("value")
+          .eq("key", "landing_hero")
+          .single();
+        if (data?.value) {
+          const parsed = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
+          if (Array.isArray(parsed?.clientLogos)) setClientLogos(parsed.clientLogos);
+        }
+      } catch (e) { /* ignore */ }
+    };
+    fetchLogos();
+  }, []);
+
   return (
     <div className="bg-gradient-to-b from-background to-muted/30 rounded-lg overflow-hidden border">
       {/* Hero Section */}
@@ -72,6 +93,15 @@ export function ExpertBookingLandingPreview({ settings }: ExpertBookingLandingPr
               <p className="text-base text-muted-foreground">
                 {settings.hero_subtitle || "Sous-titre descriptif"}
               </p>
+              {clientLogos.length > 0 && (
+                <div className="flex flex-wrap items-center gap-3">
+                  {clientLogos.map((logo, index) => (
+                    <div key={index} className="flex-shrink-0 bg-white rounded-lg p-1.5 shadow-sm">
+                      <img src={logo} alt={`Client ${index + 1}`} className="h-8 w-8 object-contain" />
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button size="default" className="text-sm">
                   {settings.cta_text || "Bouton CTA"}
