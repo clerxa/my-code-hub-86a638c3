@@ -99,16 +99,19 @@ export const HeroEditor = ({ data, onChange }: HeroEditorProps) => {
         </div>
         
         {data?.clientLogos?.map((logo: string, index: number) => (
-          <div key={index} className="flex gap-2">
-            <Input
-              value={logo}
-              onChange={(e) => handleLogoChange(index, e.target.value)}
-              placeholder="Nom du logo"
-            />
+          <div key={index} className="flex gap-2 items-end">
+            <div className="flex-1">
+              <ImageUpload
+                label={`Logo ${index + 1}`}
+                value={logo}
+                onChange={(url) => handleLogoChange(index, url)}
+              />
+            </div>
             <Button
               type="button"
               variant="destructive"
               size="icon"
+              className="mb-1"
               onClick={() => handleLogoRemove(index)}
             >
               <X className="h-4 w-4" />
