@@ -72,6 +72,19 @@ export function ExpertBookingLandingPreview({ settings }: ExpertBookingLandingPr
               <p className="text-base text-muted-foreground">
                 {settings.hero_subtitle || "Sous-titre descriptif"}
               </p>
+              {settings.gallery_images && settings.gallery_images.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {settings.gallery_images.map((image) => (
+                    <div key={image.id} className="w-8 h-8 rounded-md overflow-hidden shadow-sm border border-border/50">
+                      <img
+                        src={image.url}
+                        alt={image.alt || "Réassurance"}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button size="default" className="text-sm">
                   {settings.cta_text || "Bouton CTA"}
