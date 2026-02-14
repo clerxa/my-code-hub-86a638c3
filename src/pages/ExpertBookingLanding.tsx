@@ -65,7 +65,6 @@ export default function ExpertBookingLanding() {
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<LandingSettings | null>(null);
   const [companyId, setCompanyId] = useState<string | null>(null);
-  const [clientLogos, setClientLogos] = useState<string[]>([]);
   const { user } = useAuth();
   const { embedCode, fallbackUrl, isLoading: bookingLoading } = useExpertBookingUrl(companyId);
   
@@ -78,26 +77,7 @@ export default function ExpertBookingLanding() {
   useEffect(() => {
     fetchSettings();
     fetchCompanyId();
-    fetchClientLogos();
   }, [user]);
-
-  const fetchClientLogos = async () => {
-    try {
-      const { data } = await supabase
-        .from("settings")
-        .select("value")
-        .eq("key", "landing_hero")
-        .single();
-      if (data?.value) {
-        const parsed = typeof data.value === "string" ? JSON.parse(data.value) : data.value;
-        if (Array.isArray(parsed?.clientLogos) && parsed.clientLogos.length > 0) {
-          setClientLogos(parsed.clientLogos);
-        }
-      }
-    } catch (e) {
-      console.error("Error fetching client logos:", e);
-    }
-  };
 
   const fetchCompanyId = async () => {
     if (!user) return;
@@ -181,25 +161,9 @@ export default function ExpertBookingLanding() {
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight hero-gradient">
                 {settings?.hero_title}
               </h1>
-               <p className="text-xl text-muted-foreground">
+              <p className="text-xl text-muted-foreground">
                 {settings?.hero_subtitle}
               </p>
-              {clientLogos.length > 0 && (
-                <div className="flex flex-wrap items-center gap-4">
-                  {clientLogos.map((logo, index) => (
-                    <div
-                      key={index}
-                      className="flex-shrink-0 bg-white rounded-xl p-2 shadow-sm"
-                    >
-                      <img
-                        src={logo}
-                        alt={`Client ${index + 1}`}
-                        className="h-10 w-10 object-contain"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
               <div className="flex flex-col sm:flex-row gap-4">
                 <HubSpotMeetingWidget 
                   embedCode={embedCode || undefined} 
