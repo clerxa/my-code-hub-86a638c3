@@ -90,6 +90,7 @@ export default function Employee() {
   const { embedCode: expertBookingEmbed, fallbackUrl: expertBookingFallback } = useExpertBookingUrl(profile?.company_id || null);
   
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
   useEffect(() => {
     const checkAdmin = async () => {
       if (!user) return;
@@ -97,6 +98,7 @@ export default function Employee() {
         data
       } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
       setIsAdmin(data?.role === "admin");
+      setUserRole(data?.role || null);
     };
     checkAdmin();
   }, [user]);
@@ -523,6 +525,7 @@ export default function Employee() {
                 profile={profile}
                 company={company}
                 riskProfile={riskProfile}
+                userRole={userRole}
                 uploading={uploading}
                 onAvatarUpload={handleAvatarUpload}
                 onNavigatePartnership={() => navigate("/proposer-partenariat")}
