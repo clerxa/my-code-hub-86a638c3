@@ -115,7 +115,6 @@ const defaultAdminItems: AdminMenuItem[] = [
   { id: "partnership", label: "Partnership", url: "/admin/partnership", icon: "Handshake", order: 14, visible: false, categoryId: "settings" },
   { id: "employee-partnership", label: "Employee Partnership", url: "/admin/landing-employee-partnership", icon: "UserPlus", order: 13, visible: false, categoryId: "settings" },
   { id: "business-development", label: "Business Development", url: "/admin/business-development", icon: "Briefcase", order: 14, visible: true, categoryId: "settings" },
-  { id: "invitation-approval", label: "Validation Invitations", url: "/admin/invitation-approval", icon: "ShieldCheck", order: 15, visible: true, categoryId: "settings" },
 
   { id: "onboarding-cms", label: "Onboarding CMS", url: "/admin/onboarding-cms", icon: "BookOpen", order: 16, visible: true, categoryId: "settings" },
   { id: "simulator-ctas", label: "CTAs Simulateurs", url: "/admin/simulator-ctas", icon: "MousePointerClick", order: 17, visible: true, categoryId: "settings" },

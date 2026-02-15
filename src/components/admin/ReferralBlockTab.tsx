@@ -49,6 +49,8 @@ interface ColleagueInvitation {
   email_opened_at: string | null;
   link_clicked_at: string | null;
   registered_at: string | null;
+  is_external: boolean | null;
+  external_company_name: string | null;
   inviter: { first_name: string | null; last_name: string | null; email: string } | null;
   company: { name: string } | null;
 }
@@ -138,12 +140,14 @@ const defaultEmailTemplate: EmailTemplate = {
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "En attente", variant: "secondary" },
+  pending_admin_approval: { label: "⏳ Validation requise", variant: "outline" },
   sent: { label: "Envoyé", variant: "outline" },
   opened: { label: "Reçu", variant: "default" },
   clicked: { label: "Cliqué", variant: "default" },
   registered: { label: "Inscrit", variant: "default" },
   accepted: { label: "Accepté", variant: "default" },
   declined: { label: "Refusé", variant: "destructive" },
+  rejected: { label: "Refusé", variant: "destructive" },
   completed: { label: "Terminé", variant: "default" },
 };
 
@@ -265,6 +269,50 @@ export const ReferralBlockTab = () => {
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error("Erreur lors de la mise à jour");
+    }
+  };
+
+  const approveExternalInvitation = async (inv: ColleagueInvitation) => {
+    try {
+      // Update status to pending first
+      const { error: updateError } = await supabase
+        .from("colleague_invitations")
+        .update({ status: "pending", updated_at: new Date().toISOString() })
+        .eq("id", inv.id);
+
+      if (updateError) throw updateError;
+
+      // Trigger email send
+      const { error: emailError } = await supabase.functions.invoke("send-colleague-invitation", {
+        body: { invitationId: inv.id },
+      });
+
+      if (emailError) {
+        console.error("Email send error:", emailError);
+        toast.warning("Invitation approuvée mais l'email n'a pas pu être envoyé");
+      } else {
+        toast.success("Invitation approuvée et email envoyé !");
+      }
+      fetchTrackingData();
+    } catch (error) {
+      console.error("Error approving invitation:", error);
+      toast.error("Erreur lors de l'approbation");
+    }
+  };
+
+  const rejectExternalInvitation = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("colleague_invitations")
+        .update({ status: "rejected", updated_at: new Date().toISOString() })
+        .eq("id", id);
+
+      if (error) throw error;
+      toast.success("Invitation refusée");
+      fetchTrackingData();
+    } catch (error) {
+      console.error("Error rejecting invitation:", error);
+      toast.error("Erreur lors du refus");
     }
   };
 
@@ -409,12 +457,14 @@ export const ReferralBlockTab = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="pending_admin_approval">⏳ Validation requise</SelectItem>
                   <SelectItem value="pending">En attente</SelectItem>
                   <SelectItem value="sent">Envoyé</SelectItem>
                   <SelectItem value="opened">Reçu</SelectItem>
                   <SelectItem value="clicked">Cliqué</SelectItem>
                   <SelectItem value="registered">Inscrit</SelectItem>
                   <SelectItem value="declined">Refusé</SelectItem>
+                  <SelectItem value="rejected">Refusé (externe)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -430,6 +480,11 @@ export const ReferralBlockTab = () => {
               <CardTitle className="flex items-center gap-2">
                 <UserPlus className="h-5 w-5" />
                 Invitations de collègues ({filteredInvitations.length})
+                {invitations.filter(i => i.status === "pending_admin_approval").length > 0 && (
+                  <Badge variant="destructive" className="text-xs">
+                    {invitations.filter(i => i.status === "pending_admin_approval").length} à valider
+                  </Badge>
+                )}
               </CardTitle>
               <CardDescription>
                 Collègues invités à rejoindre la plateforme FinCare
@@ -450,6 +505,7 @@ export const ReferralBlockTab = () => {
                       <TableHead>Email</TableHead>
                       <TableHead>Invité par</TableHead>
                       <TableHead>Entreprise</TableHead>
+                      <TableHead>Ext.</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Envoyé</TableHead>
                       <TableHead>Reçu</TableHead>
@@ -461,7 +517,7 @@ export const ReferralBlockTab = () => {
                   </TableHeader>
                   <TableBody>
                     {filteredInvitations.map((inv) => (
-                      <TableRow key={inv.id}>
+                      <TableRow key={inv.id} className={inv.status === "pending_admin_approval" ? "bg-amber-500/5" : ""}>
                         <TableCell className="font-medium">
                           {inv.colleague_first_name} {inv.colleague_last_name}
                         </TableCell>
@@ -470,6 +526,16 @@ export const ReferralBlockTab = () => {
                           {inv.inviter ? `${inv.inviter.first_name || ""} ${inv.inviter.last_name || ""}`.trim() || inv.inviter.email : "-"}
                         </TableCell>
                         <TableCell>{inv.company?.name || "-"}</TableCell>
+                        <TableCell>
+                          {inv.is_external ? (
+                            <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300">
+                              <Building2 className="h-3 w-3" />
+                              {inv.external_company_name || "Externe"}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           {format(new Date(inv.created_at), "d MMM yyyy", { locale: fr })}
                         </TableCell>
@@ -513,22 +579,35 @@ export const ReferralBlockTab = () => {
                           {renderStatus(inv.status)}
                         </TableCell>
                         <TableCell>
-                          <Select
-                            value={inv.status}
-                            onValueChange={(value) => updateInvitationStatus(inv.id, value)}
-                          >
-                            <SelectTrigger className="w-[130px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pending">En attente</SelectItem>
-                              <SelectItem value="sent">Envoyé</SelectItem>
-                              <SelectItem value="opened">Reçu</SelectItem>
-                              <SelectItem value="clicked">Cliqué</SelectItem>
-                              <SelectItem value="registered">Inscrit</SelectItem>
-                              <SelectItem value="declined">Refusé</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          {inv.status === "pending_admin_approval" ? (
+                            <div className="flex items-center gap-1">
+                              <Button size="sm" variant="default" onClick={() => approveExternalInvitation(inv)} className="h-7 px-2 text-xs gap-1">
+                                <CheckCircle className="h-3 w-3" />
+                                Approuver
+                              </Button>
+                              <Button size="sm" variant="destructive" onClick={() => rejectExternalInvitation(inv.id)} className="h-7 px-2 text-xs gap-1">
+                                <XCircle className="h-3 w-3" />
+                                Refuser
+                              </Button>
+                            </div>
+                          ) : (
+                            <Select
+                              value={inv.status}
+                              onValueChange={(value) => updateInvitationStatus(inv.id, value)}
+                            >
+                              <SelectTrigger className="w-[130px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">En attente</SelectItem>
+                                <SelectItem value="sent">Envoyé</SelectItem>
+                                <SelectItem value="opened">Reçu</SelectItem>
+                                <SelectItem value="clicked">Cliqué</SelectItem>
+                                <SelectItem value="registered">Inscrit</SelectItem>
+                                <SelectItem value="declined">Refusé</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
