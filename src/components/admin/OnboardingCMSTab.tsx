@@ -14,6 +14,7 @@ import {
   GitBranch,
   GraduationCap,
   Monitor,
+  Sparkles,
 } from "lucide-react";
 import {
   OnboardingScreen,
@@ -25,6 +26,7 @@ import { OnboardingSimulator } from "./onboarding-cms/OnboardingSimulator";
 import { OnboardingPreview } from "./onboarding-cms/OnboardingPreview";
 import { WorkflowVisualizer } from "./onboarding-cms/WorkflowVisualizer";
 import { ParcoursAssignmentTab } from "./onboarding-cms/ParcoursAssignmentTab";
+import { OnboardingGuideEditor } from "./onboarding-cms/OnboardingGuideEditor";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,7 +49,7 @@ export function OnboardingCMSTab() {
   const [hasChanges, setHasChanges] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [simulatorKey, setSimulatorKey] = useState(0);
-  const [viewMode, setViewMode] = useState<'workflow' | 'preview' | 'parcours'>('workflow');
+  const [viewMode, setViewMode] = useState<'workflow' | 'preview' | 'parcours' | 'guide'>('workflow');
 
   useEffect(() => {
     fetchScreens();
@@ -358,8 +360,8 @@ export function OnboardingCMSTab() {
       </div>
 
       {/* View Mode Tabs */}
-      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'workflow' | 'preview' | 'parcours')}>
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'workflow' | 'preview' | 'parcours' | 'guide')}>
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
           <TabsTrigger value="workflow" className="gap-2">
             <GitBranch className="h-4 w-4" />
             <span className="hidden sm:inline">Workflow visuel</span>
@@ -374,6 +376,11 @@ export function OnboardingCMSTab() {
             <GraduationCap className="h-4 w-4" />
             <span className="hidden sm:inline">Attribution parcours</span>
             <span className="sm:hidden">Parcours</span>
+          </TabsTrigger>
+          <TabsTrigger value="guide" className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            <span className="hidden sm:inline">Guide d'accueil</span>
+            <span className="sm:hidden">Guide</span>
           </TabsTrigger>
         </TabsList>
         {/* List View supprimée (ne reflétait pas la logique souhaitée) */}
@@ -462,6 +469,11 @@ export function OnboardingCMSTab() {
             screens={screens}
             onUpdateScreen={handleScreenUpdate}
           />
+        </TabsContent>
+
+        {/* Guide d'accueil */}
+        <TabsContent value="guide" className="mt-4">
+          <OnboardingGuideEditor />
         </TabsContent>
 
       </Tabs>
