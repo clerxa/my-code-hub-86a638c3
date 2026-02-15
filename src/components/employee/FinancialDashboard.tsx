@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { setBookingReferrer } from "@/hooks/useBookingReferrer";
 import { useState } from "react";
+import { calculateTMI, calculateImpotAnnuel } from "@/utils/taxCalculations";
+import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
 import type { FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
 import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
 import { useAuth } from "@/components/AuthProvider";
@@ -154,42 +156,17 @@ export function FinancialDashboard({
     { label: "Revenus locatifs", value: revenusLocatifsMensuel },
   ].filter(d => d.value > 0);
 
-  // === TMI ===
-  const calculateTMI = (revenuImposable: number, partsFiscales: number): number => {
-    if (!revenuImposable || !partsFiscales || partsFiscales === 0) return 0;
-    const quotientFamilial = revenuImposable / partsFiscales;
-    if (quotientFamilial <= 11294) return 0;
-    if (quotientFamilial <= 28797) return 11;
-    if (quotientFamilial <= 82341) return 30;
-    if (quotientFamilial <= 177106) return 41;
-    return 45;
+  const { tax_brackets } = useFiscalRules();
+  const calculateTMILocal = (revenuImposable: number, partsFiscales: number): number => {
+    return calculateTMI(revenuImposable, partsFiscales, tax_brackets);
+  };
+  const calculateImpotAnnuelLocal = (revenuImposable: number, partsFiscales: number): number => {
+    return calculateImpotAnnuel(revenuImposable, partsFiscales, tax_brackets);
   };
   // Revenu fiscal : on utilise le revenu imposable annuel renseigné par l'utilisateur
   const revenuFiscalFoyer = formData.revenu_fiscal_annuel || 0;
-  const tmiEstimee = calculateTMI(revenuFiscalFoyer, formData.parts_fiscales || 1);
-
-  // === PAS (Prélèvement à la source) ===
-  const calculateImpotAnnuel = (revenuImposable: number, partsFiscales: number): number => {
-    if (!revenuImposable || !partsFiscales || partsFiscales === 0) return 0;
-    const quotient = revenuImposable / partsFiscales;
-    const tranches = [
-      { seuil: 11294, taux: 0 },
-      { seuil: 28797, taux: 0.11 },
-      { seuil: 82341, taux: 0.30 },
-      { seuil: 177106, taux: 0.41 },
-      { seuil: Infinity, taux: 0.45 },
-    ];
-    let impot = 0;
-    let prev = 0;
-    for (const t of tranches) {
-      if (quotient <= prev) break;
-      const taxable = Math.min(quotient, t.seuil) - prev;
-      if (taxable > 0) impot += taxable * t.taux;
-      prev = t.seuil;
-    }
-    return Math.round(impot * partsFiscales);
-  };
-  const impotAnnuelEstime = calculateImpotAnnuel(revenuFiscalFoyer, formData.parts_fiscales || 1);
+  const tmiEstimee = calculateTMILocal(revenuFiscalFoyer, formData.parts_fiscales || 1);
+  const impotAnnuelEstime = calculateImpotAnnuelLocal(revenuFiscalFoyer, formData.parts_fiscales || 1);
   const pasMensuel = Math.round(impotAnnuelEstime / 12);
 
   // === CHARGES ===

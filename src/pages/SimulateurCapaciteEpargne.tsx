@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
 import { cn } from "@/lib/utils";
+import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
+import { calculateImpotAnnuel } from "@/utils/taxCalculations";
 
 // ─── Types ──────────────────────────────────────────────
 interface FieldConfig {
@@ -69,6 +71,7 @@ type FormValues = Record<string, number>;
 const SimulateurCapaciteEpargne = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { tax_brackets } = useFiscalRules();
   const { getPrefillData, hasProfile } = useFinancialProfilePrefill();
   const { validateSimulation } = useSimulationTracking();
 
@@ -118,22 +121,7 @@ const SimulateurCapaciteEpargne = () => {
     const salaireMensuel = newValues.salaire || 0;
     if (salaireMensuel > 0) {
       const revenuImposableAnnuel = p.revenu_fiscal_annuel > 0 ? p.revenu_fiscal_annuel : salaireMensuel * 12;
-      // Barème simplifié IR 2025 – 1 part
-      let impotAnnuel = 0;
-      const tranches = [
-        { seuil: 11294, taux: 0 },
-        { seuil: 28797, taux: 0.11 },
-        { seuil: 82341, taux: 0.30 },
-        { seuil: 177106, taux: 0.41 },
-        { seuil: Infinity, taux: 0.45 },
-      ];
-      let prev = 0;
-      for (const t of tranches) {
-        const tranche = Math.min(revenuImposableAnnuel, t.seuil) - prev;
-        if (tranche > 0) impotAnnuel += tranche * t.taux;
-        prev = t.seuil;
-        if (revenuImposableAnnuel <= t.seuil) break;
-      }
+      const impotAnnuel = calculateImpotAnnuel(revenuImposableAnnuel, 1, tax_brackets);
       newValues.impots = Math.round(impotAnnuel / 12);
     }
 

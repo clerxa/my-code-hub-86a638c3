@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { calculateTMI } from "@/utils/taxCalculations";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -55,7 +56,8 @@ const initialFormData: TaxDeclarationFormData = {
 };
 
 // Calcul de la TMI selon les barèmes français 2025 (revenus 2024)
-const calculateTMI = (revenuImposable: number, situationMaritale: string, nbEnfants: number): string => {
+// Note: utilise les global_settings via le composant qui appelle cette fonction
+const calculateTMIFromBrackets = (revenuImposable: number, situationMaritale: string, nbEnfants: number, brackets?: import('@/types/global-settings').TaxBracket[]): string => {
   if (!revenuImposable || revenuImposable === 0) return '';
   
   // Calcul des parts fiscales
@@ -67,14 +69,8 @@ const calculateTMI = (revenuImposable: number, situationMaritale: string, nbEnfa
   if (nbEnfants >= 2) parts += 0.5;
   if (nbEnfants >= 3) parts += nbEnfants - 2;
   
-  const quotientFamilial = revenuImposable / parts;
-  
-  // Barèmes 2025 (revenus 2024)
-  if (quotientFamilial <= 11294) return '0';
-  if (quotientFamilial <= 28797) return '11';
-  if (quotientFamilial <= 82341) return '30';
-  if (quotientFamilial <= 177106) return '41';
-  return '45';
+  const tmi = calculateTMI(revenuImposable, parts, brackets);
+  return String(tmi);
 };
 
 // Mapping de situation familiale du profil vers le format du formulaire
@@ -243,7 +239,7 @@ export function TaxDeclarationWizard() {
 
         // Auto-calculate TMI if we have income
         if (prefillData.revenu_imposable_precedent && prefillData.revenu_imposable_precedent > 0) {
-          const calculatedTMI = calculateTMI(
+          const calculatedTMI = calculateTMIFromBrackets(
             prefillData.revenu_imposable_precedent,
             prefillData.situation_maritale || '',
             prefillData.nombre_enfants || 0

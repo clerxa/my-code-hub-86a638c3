@@ -5,6 +5,7 @@
  */
 import { jsPDF } from "jspdf";
 import type { FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
+import { calculateTMI as calcTMI, calculateImpotAnnuel as calcImpotAnnuel } from '@/utils/taxCalculations';
 
 interface ReportData {
   formData: FinancialProfileInput;
@@ -310,33 +311,8 @@ class Pdf {
   }
 }
 
-// ─── TMI & tax helpers ───
-function calcTMI(rev: number, parts: number): number {
-  if (!rev || !parts) return 0;
-  const q = rev / parts;
-  if (q <= 11294) return 0;
-  if (q <= 28797) return 11;
-  if (q <= 82341) return 30;
-  if (q <= 177106) return 41;
-  return 45;
-}
 
-function calcImpotAnnuel(rev: number, parts: number): number {
-  if (!rev || !parts) return 0;
-  const q = rev / parts;
-  const tranches = [
-    { s: 11294, t: 0 }, { s: 28797, t: 0.11 }, { s: 82341, t: 0.30 },
-    { s: 177106, t: 0.41 }, { s: Infinity, t: 0.45 },
-  ];
-  let imp = 0, prev = 0;
-  for (const tr of tranches) {
-    if (q <= prev) break;
-    const taxable = Math.min(q, tr.s) - prev;
-    if (taxable > 0) imp += taxable * tr.t;
-    prev = tr.s;
-  }
-  return Math.round(imp * parts);
-}
+
 
 // ─── Main Generator ───
 export function generateFinancialReportPdf(data: ReportData) {

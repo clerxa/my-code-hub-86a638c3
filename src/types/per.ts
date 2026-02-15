@@ -41,6 +41,7 @@ export interface BaremeFiscal {
   taux: number;
 }
 
+/** @deprecated Utiliser useFiscalRules().tax_brackets depuis GlobalSettingsContext */
 export const BAREME_2025: BaremeFiscal[] = [
   { seuil: 0, taux: 0 },
   { seuil: 11294, taux: 0.11 },
