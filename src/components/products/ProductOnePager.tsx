@@ -219,9 +219,15 @@ export function ProductOnePager({ product, className }: ProductOnePagerProps) {
       {product.fiscal_comparison_enabled && product.fiscal_before_value && product.fiscal_after_value && (
         <section className="py-10 sm:py-14 px-4 sm:px-6 lg:px-8 bg-muted/30">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-xl sm:text-2xl font-semibold text-center mb-8">
+            <h2 className="text-xl sm:text-2xl font-semibold text-center mb-3">
               Le Match Fiscal
             </h2>
+            
+            {product.fiscal_explanation && (
+              <p className="text-sm text-muted-foreground text-center mb-8 max-w-xl mx-auto">
+                {product.fiscal_explanation}
+              </p>
+            )}
             
             <div className="grid sm:grid-cols-3 gap-4 sm:gap-6 items-center">
               {/* Avant */}
