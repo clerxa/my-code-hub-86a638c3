@@ -1844,6 +1844,7 @@ export type Database = {
           cta_text: string | null
           cta_url: string | null
           description: string | null
+          disclaimer_specific: string | null
           display_order: number | null
           expert_tip_content: string | null
           expert_tip_icon: string | null
@@ -1863,6 +1864,7 @@ export type Database = {
           icon: string | null
           id: string
           is_active: boolean | null
+          liquidity_type: string | null
           max_amount: string | null
           max_amount_label: string | null
           name: string
@@ -1886,6 +1888,7 @@ export type Database = {
           cta_text?: string | null
           cta_url?: string | null
           description?: string | null
+          disclaimer_specific?: string | null
           display_order?: number | null
           expert_tip_content?: string | null
           expert_tip_icon?: string | null
@@ -1905,6 +1908,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean | null
+          liquidity_type?: string | null
           max_amount?: string | null
           max_amount_label?: string | null
           name: string
@@ -1928,6 +1932,7 @@ export type Database = {
           cta_text?: string | null
           cta_url?: string | null
           description?: string | null
+          disclaimer_specific?: string | null
           display_order?: number | null
           expert_tip_content?: string | null
           expert_tip_icon?: string | null
@@ -1947,6 +1952,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean | null
+          liquidity_type?: string | null
           max_amount?: string | null
           max_amount_label?: string | null
           name?: string
