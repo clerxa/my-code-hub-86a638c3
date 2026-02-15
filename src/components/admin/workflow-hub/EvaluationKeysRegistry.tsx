@@ -18,7 +18,8 @@ export type DataSource =
   | 'module_validations'
   | 'appointments'
   | 'onboarding_responses'
-  | 'global_settings';
+  | 'global_settings'
+  | 'diagnostic_results';
 
 export type ValueType = 'number' | 'string' | 'boolean' | 'date' | 'percentage' | 'currency';
 
@@ -263,6 +264,10 @@ export const PROGRESS_KEYS: EvaluationKey[] = [
   { key: 'has_risk_profile', label: 'Profil de risque complété', type: 'boolean', source: 'risk_profile', category: 'Progression' },
   { key: 'has_appointments', label: 'A des rendez-vous', type: 'boolean', source: 'appointments', category: 'Progression' },
   { key: 'financial_profile_completion', label: 'Complétion du profil financier', type: 'percentage', unit: '%', source: 'user_financial_profiles', category: 'Progression', isCalculated: true },
+  { key: 'diagnostic_not_started', label: 'Diagnostic non réalisé', type: 'boolean', source: 'diagnostic_results', category: 'Diagnostic', description: 'L\'utilisateur n\'a jamais commencé le diagnostic' },
+  { key: 'diagnostic_in_progress', label: 'Diagnostic en cours', type: 'boolean', source: 'diagnostic_results', category: 'Diagnostic', description: 'L\'utilisateur a commencé mais pas terminé le diagnostic' },
+  { key: 'diagnostic_completed', label: 'Diagnostic terminé', type: 'boolean', source: 'diagnostic_results', category: 'Diagnostic', description: 'L\'utilisateur a terminé le diagnostic' },
+  { key: 'diagnostic_score_percent', label: 'Score du diagnostic (%)', type: 'percentage', unit: '%', source: 'diagnostic_results', category: 'Diagnostic', description: 'Score obtenu au diagnostic financier' },
 ];
 
 // ============================================

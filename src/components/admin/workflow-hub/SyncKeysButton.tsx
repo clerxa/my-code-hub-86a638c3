@@ -49,6 +49,7 @@ const SOURCE_TABLES: Record<DataSource, string> = {
   appointments: 'appointments',
   onboarding_responses: 'onboarding_responses',
   global_settings: 'global_settings',
+  diagnostic_results: 'diagnostic_results',
 };
 
 // Mapping pour deviner le type à partir du nom de colonne
@@ -143,6 +144,7 @@ function getCategoryFromSource(source: DataSource): string {
     appointments: 'Rendez-vous',
     onboarding_responses: 'Onboarding',
     global_settings: 'Paramètres',
+    diagnostic_results: 'Diagnostic',
   };
   return categoryMap[source] || 'Autre';
 }

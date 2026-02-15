@@ -59,6 +59,7 @@ const SOURCE_LABELS: Record<DataSource, string> = {
   appointments: "Rendez-vous",
   onboarding_responses: "Réponses onboarding",
   global_settings: "Paramètres globaux",
+  diagnostic_results: "Diagnostic financier",
 };
 
 const TYPE_COLORS: Record<string, string> = {
