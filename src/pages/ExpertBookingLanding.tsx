@@ -8,6 +8,7 @@ import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
 import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
 import { useAuth } from "@/components/AuthProvider";
 import { useBookingReferrer, getStoredUtmCampaignFull } from "@/hooks/useBookingReferrer";
+import { useEventTracking } from "@/hooks/useEventTracking";
 
 interface Benefit {
   icon: string;
@@ -57,6 +58,12 @@ export default function ExpertBookingLanding() {
   
   // Track referrer when user arrives on this page
   useBookingReferrer();
+  
+  // Track page view for intention scoring
+  const { trackPageView } = useEventTracking();
+  useEffect(() => {
+    trackPageView("expert_booking_page");
+  }, [trackPageView]);
   
   // Get UTM campaign from the referrer
   const utmCampaign = getStoredUtmCampaignFull();

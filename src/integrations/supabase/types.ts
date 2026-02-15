@@ -2738,6 +2738,48 @@ export type Database = {
           },
         ]
       }
+      intention_score_config: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          max_points: number | null
+          points_per_unit: number
+          signal_category: string
+          signal_key: string
+          signal_label: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          max_points?: number | null
+          points_per_unit?: number
+          signal_category: string
+          signal_key: string
+          signal_label: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          max_points?: number | null
+          points_per_unit?: number
+          signal_category?: string
+          signal_key?: string
+          signal_label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lmnp_simulations: {
         Row: {
           amort_immo: number | null
@@ -4932,6 +4974,36 @@ export type Database = {
           labels?: Json
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_name: string
+          event_type: string
+          id: string
+          page_path: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_name: string
+          event_type: string
+          id?: string
+          page_path?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_name?: string
+          event_type?: string
+          id?: string
+          page_path?: string | null
+          user_id?: string
         }
         Relationships: []
       }
