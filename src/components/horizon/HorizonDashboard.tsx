@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useHorizonBudget } from "@/hooks/useHorizonBudget";
 import { useHorizonProjects } from "@/hooks/useHorizonProjects";
+import { useUserFinancialProfile } from "@/hooks/useUserFinancialProfile";
 import { HorizonHeader } from "./HorizonHeader";
 import { BudgetOverview } from "./BudgetOverview";
 import { StrategyDashboard } from "./StrategyDashboard";
@@ -12,31 +13,19 @@ import { HorizonLanding } from "./HorizonLanding";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { supabase } from "@/integrations/supabase/client";
 
 export function HorizonDashboard() {
   const { user } = useAuth();
   const { budget, loading: budgetLoading, saveBudget } = useHorizonBudget(user?.id);
   const { projects, loading: projectsLoading, addProject, updateProject, deleteProject } = useHorizonProjects(user?.id);
+  const { completeness, isComplete, isLoading: profileLoading } = useUserFinancialProfile();
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [started, setStarted] = useState(false);
-  const [profileComplete, setProfileComplete] = useState<boolean | null>(null);
 
-  // Check if financial profile is complete
-  useEffect(() => {
-    if (!user?.id) return;
-    supabase
-      .from("user_financial_profiles")
-      .select("is_complete")
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        setProfileComplete(data?.is_complete === true);
-      });
-  }, [user?.id]);
+  const profileComplete = isComplete || completeness === 100;
 
-  const loading = budgetLoading || projectsLoading || profileComplete === null;
+  const loading = budgetLoading || projectsLoading || profileLoading;
 
   // Calculate allocated amounts
   const allocatedCapital = projects
@@ -61,7 +50,7 @@ export function HorizonDashboard() {
 
   // Show landing page if user hasn't started yet (and has no budget = first time)
   if (!started && !budget) {
-    return <HorizonLanding onStart={() => setStarted(true)} profileComplete={!!profileComplete} />;
+    return <HorizonLanding onStart={() => setStarted(true)} profileComplete={profileComplete} />;
   }
 
   return (
