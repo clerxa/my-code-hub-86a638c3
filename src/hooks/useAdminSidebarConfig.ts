@@ -135,6 +135,19 @@ const defaultAdminItems: AdminMenuItem[] = [
   { id: "offers", label: "Offres du moment", url: "/admin/offers", icon: "Gift", order: 31, visible: true, categoryId: "settings" },
   { id: "diagnostic-cms", label: "Diagnostic CMS", url: "/admin/diagnostic-cms", icon: "Target", order: 32, visible: true, categoryId: "content" },
   { id: "analytics", label: "Analytics & Engagement", url: "/admin/analytics", icon: "BarChart3", order: 33, visible: true, categoryId: "general" },
+  { 
+    id: "scoring", 
+    label: "Scoring d'intention", 
+    url: "#", 
+    icon: "Target", 
+    order: 34, 
+    visible: true, 
+    categoryId: "general",
+    subItems: [
+      { id: "scoring-dashboard", label: "Dashboard Scoring", url: "/admin/scoring", icon: "BarChart3" },
+      { id: "scoring-config", label: "Configuration poids", url: "/admin/scoring-config", icon: "Settings" },
+    ]
+  },
   // Community
   { id: "community", label: "Gestion du Forum", url: "/admin/community", icon: "MessageSquare", order: 0, visible: true, categoryId: "community" },
 ];
