@@ -13,9 +13,10 @@ import { HorizonLanding } from "./HorizonLanding";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Info, BarChart3, Sparkles } from "lucide-react";
+import { Info, BarChart3, Sparkles, FileDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 export function HorizonDashboard() {
   const { user } = useAuth();
@@ -27,6 +28,29 @@ export function HorizonDashboard() {
   const [started, setStarted] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [generatingDashboard, setGeneratingDashboard] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    try {
+      setGeneratingPdf(true);
+      const { generateHorizonReportPdf } = await import("@/utils/generateHorizonReportPdf");
+      generateHorizonReportPdf({
+        projects,
+        budget: budget!,
+        allocatedCapital,
+        allocatedMonthly,
+        userName: user?.user_metadata?.first_name
+          ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ""}`
+          : user?.email || "",
+      });
+      toast.success("Rapport PDF téléchargé !");
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      toast.error("Erreur lors de la génération du rapport");
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
 
   const profileComplete = isComplete || completeness === 100;
 
@@ -146,6 +170,7 @@ export function HorizonDashboard() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
+                className="space-y-4"
               >
                 <StrategyDashboard
                   projects={projects}
@@ -153,6 +178,17 @@ export function HorizonDashboard() {
                   allocatedCapital={allocatedCapital}
                   allocatedMonthly={allocatedMonthly}
                 />
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    className="gap-2"
+                    disabled={generatingPdf}
+                    onClick={handleDownloadPdf}
+                  >
+                    <FileDown className="h-4 w-4" />
+                    {generatingPdf ? "Génération..." : "Télécharger le rapport PDF"}
+                  </Button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
