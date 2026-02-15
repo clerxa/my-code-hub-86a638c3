@@ -154,6 +154,7 @@ export const UnifiedSimulationsTable = ({ userId }: UnifiedSimulationsTableProps
       lmnp: "bg-amber-500/10 text-amber-500 border-amber-500/20",
       interets_composes: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
       pvi: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+      gestion_pilotee: "bg-teal-500/10 text-teal-500 border-teal-500/20",
     };
     return colors[type] || "bg-muted text-muted-foreground";
   };

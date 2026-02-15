@@ -46,6 +46,7 @@ import SimulateurLMNP from "./pages/SimulateurLMNP";
 import SimulateurPretImmobilier from "./pages/SimulateurPretImmobilier";
 import SimulateurCapaciteEmprunt from "./pages/SimulateurCapaciteEmprunt";
 import SimulateurPVI from "./pages/SimulateurPVI";
+import SimulateurGestionPilotee from "./pages/SimulateurGestionPilotee";
 import Employee from "./pages/Employee";
 import EmployeeProfile from "./pages/EmployeeProfile";
 import EmployeeSimulations from "./pages/EmployeeSimulations";
@@ -369,6 +370,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <SimulateurPVI />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/simulateur-gestion-pilotee"
+              element={
+                <ProtectedRoute>
+                  <SimulateurGestionPilotee />
                 </ProtectedRoute>
               }
             />

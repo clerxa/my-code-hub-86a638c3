@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type SimulatorType = 'per' | 'espp' | 'impots' | 'optimisation_fiscale' | 'epargne_precaution' | 'lmnp' | 'capacite_emprunt' | 'pret_immobilier' | 'interets_composes';
+export type SimulatorType = 'per' | 'espp' | 'impots' | 'optimisation_fiscale' | 'epargne_precaution' | 'lmnp' | 'capacite_emprunt' | 'pret_immobilier' | 'interets_composes' | 'gestion_pilotee';
 export type ActionType = 'internal_link' | 'external_link' | 'html_script' | 'modal' | 'expert_booking';
 export type ConditionOperator = '>' | '<' | '>=' | '<=' | '=' | '!=' | 'between';
 
