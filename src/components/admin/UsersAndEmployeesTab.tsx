@@ -11,10 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Search, Mail, Download, Upload, ChevronLeft, ChevronRight, ArrowUpDown, Eye, Save, X, Settings, Plus, Trash2, RotateCcw, UserX, Building2, RefreshCcw, UserPlus, KeyRound } from "lucide-react";
+import { Search, Mail, Download, Upload, ChevronLeft, ChevronRight, ArrowUpDown, Eye, Save, X, Settings, Plus, Trash2, RotateCcw, UserX, Building2, RefreshCcw, UserPlus, KeyRound, LayoutDashboard } from "lucide-react";
 import { CompanyTransferDialog } from "./CompanyTransferDialog";
 import { UserResetDialog } from "./UserResetDialog";
 import { BetaInviteDialog } from "./BetaInviteDialog";
+import { UserSynthesisTable } from "./UserSynthesisTable";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,6 +92,7 @@ export function UsersAndEmployeesTab({ profiles, companies, onRefresh }: UsersAn
   const [bulkResetDialogOpen, setBulkResetDialogOpen] = useState(false);
   const [betaInviteDialogOpen, setBetaInviteDialogOpen] = useState(false);
   const [sendingPasswordReset, setSendingPasswordReset] = useState<string | null>(null);
+  const [synthesisUserId, setSynthesisUserId] = useState<string | null>(null);
   // Login counts from daily_logins table
   const [loginCounts, setLoginCounts] = useState<LoginCounts>({});
   // Last login dates from daily_logins table (fallback for null last_login)
@@ -1104,6 +1106,14 @@ export function UsersAndEmployeesTab({ profiles, companies, onRefresh }: UsersAn
                                     <Button
                                       variant="ghost"
                                       size="sm"
+                                      onClick={() => setSynthesisUserId(profile.id)}
+                                      title="Voir la synthèse complète"
+                                    >
+                                      <LayoutDashboard className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
                                       onClick={() => {
                                         setUserToTransfer(profile);
                                         setTransferDialogOpen(true);
@@ -1579,6 +1589,16 @@ export function UsersAndEmployeesTab({ profiles, companies, onRefresh }: UsersAn
         companies={companies}
         onSuccess={onRefresh}
       />
+
+      {/* User Synthesis Dialog */}
+      <Dialog open={!!synthesisUserId} onOpenChange={(open) => { if (!open) setSynthesisUserId(null); }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Synthèse utilisateur</DialogTitle>
+          </DialogHeader>
+          {synthesisUserId && <UserSynthesisTable userId={synthesisUserId} />}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
