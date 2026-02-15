@@ -121,13 +121,13 @@ export function HorizonLanding({ onStart, profileComplete }: HorizonLandingProps
       >
         {profileComplete ? (
           <Button size="lg" onClick={onStart} className="gap-2 px-8">
-            Commencer ma planification
+            Accéder à HORIZON
             <ArrowRight className="h-4 w-4" />
           </Button>
         ) : (
           <div className="space-y-3">
             <Button size="lg" disabled className="gap-2 px-8 opacity-60">
-              Commencer ma planification
+              Accéder à HORIZON
               <ArrowRight className="h-4 w-4" />
             </Button>
             <p className="text-sm text-amber-600 dark:text-amber-400 flex items-center justify-center gap-1.5">
