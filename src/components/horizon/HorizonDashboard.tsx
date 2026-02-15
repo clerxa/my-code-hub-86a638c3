@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useHorizonBudget } from "@/hooks/useHorizonBudget";
 import { useHorizonProjects } from "@/hooks/useHorizonProjects";
@@ -11,8 +11,11 @@ import { ProjectsList } from "./ProjectsList";
 import { ProjectFormDialog } from "./ProjectFormDialog";
 import { HorizonLanding } from "./HorizonLanding";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Info, BarChart3, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function HorizonDashboard() {
   const { user } = useAuth();
@@ -22,6 +25,8 @@ export function HorizonDashboard() {
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [started, setStarted] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
+  const [generatingDashboard, setGeneratingDashboard] = useState(false);
 
   const profileComplete = isComplete || completeness === 100;
 
@@ -86,12 +91,71 @@ export function HorizonDashboard() {
             onUpdateProject={updateProject}
           />
 
-          <StrategyDashboard
-            projects={projects}
-            budget={budget}
-            allocatedCapital={allocatedCapital}
-            allocatedMonthly={allocatedMonthly}
-          />
+          <AnimatePresence mode="wait">
+            {!showDashboard ? (
+              <motion.div
+                key="generate-btn"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                <Card className="border-dashed border-2 border-primary/20">
+                  <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
+                    <div className="p-4 rounded-full bg-primary/10">
+                      <BarChart3 className="h-10 w-10 text-primary" />
+                    </div>
+                    <div className="text-center space-y-1">
+                      <h3 className="text-lg font-semibold">Ma Stratégie Financière</h3>
+                      <p className="text-sm text-muted-foreground max-w-md">
+                        Visualisez la répartition de vos projets, vos projections de capital et votre stratégie globale.
+                      </p>
+                    </div>
+                    <Button
+                      size="lg"
+                      className="gap-2 mt-2"
+                      disabled={generatingDashboard || projects.filter(p => p.status === 'active').length === 0}
+                      onClick={() => {
+                        setGeneratingDashboard(true);
+                        setTimeout(() => {
+                          setShowDashboard(true);
+                          setGeneratingDashboard(false);
+                        }, 1200);
+                      }}
+                    >
+                      {generatingDashboard ? (
+                        <>
+                          <Sparkles className="h-4 w-4 animate-spin" />
+                          Génération en cours...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          Générer mon dashboard
+                        </>
+                      )}
+                    </Button>
+                    {projects.filter(p => p.status === 'active').length === 0 && (
+                      <p className="text-xs text-muted-foreground">Ajoutez au moins un projet pour générer votre dashboard</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="dashboard"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <StrategyDashboard
+                  projects={projects}
+                  budget={budget}
+                  allocatedCapital={allocatedCapital}
+                  allocatedMonthly={allocatedMonthly}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       )}
 
