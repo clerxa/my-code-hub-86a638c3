@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { RotateCcw, Clock } from "lucide-react";
+import { RotateCcw, Clock, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { DiagnosticConfig } from "@/data/diagnostic-config";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ const LEVEL_STYLES = {
 } as const;
 
 export function DiagnosticResults({ config, sectionScores, scorePercent, totalScore, totalMax, elapsed, onRestart }: Props) {
+  const navigate = useNavigate();
   const result = useMemo(() => {
     return config.results.find((r) => scorePercent >= r.min && scorePercent <= r.max) || config.results[0];
   }, [config.results, scorePercent]);
@@ -65,6 +67,21 @@ export function DiagnosticResults({ config, sectionScores, scorePercent, totalSc
             </p>
           </div>
           <p className="text-muted-foreground text-sm max-w-md mx-auto">{result.description}</p>
+          {result.ctaText && result.ctaUrl && (
+            <Button
+              className="mt-2 gap-2"
+              onClick={() => {
+                if (result.ctaUrl!.startsWith("http")) {
+                  window.open(result.ctaUrl!, "_blank");
+                } else {
+                  navigate(result.ctaUrl!);
+                }
+              }}
+            >
+              {result.ctaText}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          )}
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3.5 w-3.5" />
             <span>Complété en {formatTime(elapsed)}</span>
