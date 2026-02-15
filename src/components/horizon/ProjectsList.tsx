@@ -74,7 +74,7 @@ function computeRequiredMonthly(project: HorizonProject): number {
 export function ProjectsList({ projects, budget, availableCapital, availableMonthly, onAddProject, onEditProject, onDeleteProject, onUpdateProject }: ProjectsListProps) {
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [adjustingId, setAdjustingId] = useState<string | null>(null);
-  const [successId, setSuccessId] = useState<string | null>(null);
+  const [adjustedIds, setAdjustedIds] = useState<Set<string>>(new Set());
   const activeProjects = projects.filter(p => p.status === 'active');
 
   return (
@@ -204,13 +204,13 @@ export function ProjectsList({ projects, budget, availableCapital, availableMont
                         variant="outline"
                         size="sm"
                         className="flex-1 gap-2 text-xs border-primary/30 text-primary hover:bg-primary/10"
-                        disabled={adjustingId === project.id || successId === project.id}
+                        disabled={adjustingId === project.id || adjustedIds.has(project.id)}
                         onClick={async (e) => {
                           const required = computeRequiredMonthly(project);
                           setAdjustingId(project.id);
                           await onUpdateProject(project.id, { monthly_allocation: required });
                           setAdjustingId(null);
-                          setSuccessId(project.id);
+                          setAdjustedIds(prev => new Set(prev).add(project.id));
                           
                           // Fire confetti from button position
                           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -222,8 +222,6 @@ export function ProjectsList({ projects, budget, availableCapital, availableMont
                             origin: { x, y },
                             colors: ['#3B82F6', '#F59E0B', '#8B5CF6', '#10B981'],
                           });
-
-                          setTimeout(() => setSuccessId(null), 2500);
                         }}
                       >
                         <AnimatePresence mode="wait">
@@ -232,7 +230,7 @@ export function ProjectsList({ projects, budget, availableCapital, availableMont
                               <Sparkles className="h-3.5 w-3.5 animate-spin" />
                               Ajustement…
                             </motion.span>
-                          ) : successId === project.id ? (
+                          ) : adjustedIds.has(project.id) ? (
                             <motion.span key="success" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2 text-emerald-500">
                               <Check className="h-3.5 w-3.5" />
                               Versements ajustés ✨
