@@ -574,9 +574,11 @@ export type Database = {
           created_at: string
           email_opened_at: string | null
           email_sent_at: string | null
+          external_company_name: string | null
           id: string
           invitation_token: string | null
           inviter_id: string
+          is_external: boolean | null
           link_clicked_at: string | null
           message: string | null
           registered_at: string | null
@@ -593,9 +595,11 @@ export type Database = {
           created_at?: string
           email_opened_at?: string | null
           email_sent_at?: string | null
+          external_company_name?: string | null
           id?: string
           invitation_token?: string | null
           inviter_id: string
+          is_external?: boolean | null
           link_clicked_at?: string | null
           message?: string | null
           registered_at?: string | null
@@ -612,9 +616,11 @@ export type Database = {
           created_at?: string
           email_opened_at?: string | null
           email_sent_at?: string | null
+          external_company_name?: string | null
           id?: string
           invitation_token?: string | null
           inviter_id?: string
+          is_external?: boolean | null
           link_clicked_at?: string | null
           message?: string | null
           registered_at?: string | null
