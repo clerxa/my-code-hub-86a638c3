@@ -436,6 +436,25 @@ export function DiagnosticCMSTab() {
                   <Label className="text-xs">Description / Recommandation</Label>
                   <Textarea value={result.description} onChange={e => updateResult(rIdx, { description: e.target.value })} rows={2} />
                 </div>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Texte du bouton CTA</Label>
+                    <Input
+                      value={result.ctaText || ""}
+                      onChange={e => updateResult(rIdx, { ctaText: e.target.value })}
+                      placeholder="Ex : Prendre rendez-vous"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Lien du CTA (URL, page app ou lien rdv)</Label>
+                    <Input
+                      value={result.ctaUrl || ""}
+                      onChange={e => updateResult(rIdx, { ctaUrl: e.target.value })}
+                      placeholder="Ex : /employee/rdv ou https://..."
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}

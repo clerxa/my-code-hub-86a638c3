@@ -31,6 +31,8 @@ export interface DiagnosticResultThreshold {
   title: string;
   description: string;
   emoji: string;
+  ctaText?: string;
+  ctaUrl?: string;
 }
 
 export interface DiagnosticConfig {
@@ -365,6 +367,8 @@ export const diagnosticConfig: DiagnosticConfig = {
       emoji: "🔴",
       description:
         "Votre situation financière présente des risques importants. Nous vous recommandons de consulter un expert pour sécuriser vos bases : budget, épargne de précaution et endettement.",
+      ctaText: "Consulter un expert",
+      ctaUrl: "/employee/rdv",
     },
     {
       min: 26,
