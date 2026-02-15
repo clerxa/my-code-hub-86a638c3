@@ -125,6 +125,7 @@ export function useUserSynthesis(userId: string | null) {
           esppRes,
           horizonBudgetRes,
           horizonProjectsRes,
+          genericSimsRes,
         ] = await Promise.all([
           supabase
             .from("profiles")
@@ -198,6 +199,12 @@ export function useUserSynthesis(userId: string | null) {
             .from("horizon_projects")
             .select("name, target_amount, apport, monthly_allocation, status")
             .eq("user_id", userId),
+          // Generic simulations table (PVI, gestion pilotée, intérêts composés, capacité épargne)
+          supabase
+            .from("simulations")
+            .select("*")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false }),
         ]);
 
         const profileRow = profileRes.data;
@@ -403,6 +410,90 @@ export function useUserSynthesis(userId: string | null) {
               "FMV début": (esppSim as any).fmv_debut,
               "FMV fin": (esppSim as any).fmv_fin,
             },
+          });
+        }
+
+        // Generic simulations from the `simulations` table
+        const genericSims = genericSimsRes.data || [];
+        const genericTypes: Record<string, { label: string; keyExtractor: (d: any) => Record<string, any> }> = {
+          pvi: {
+            label: "Plus-value immobilière",
+            keyExtractor: (d) => ({
+              "Prix acquisition": d.prix_acquisition,
+              "Prix cession": d.prix_cession,
+              "Plus-value nette": d.plus_value_nette ?? d.plus_value_imposable,
+              "Impôt PV": d.impot_plus_value ?? d.impot_ir,
+              "Durée détention": d.duree_detention ? `${d.duree_detention} ans` : null,
+            }),
+          },
+          gestion_pilotee: {
+            label: "Gestion pilotée",
+            keyExtractor: (d) => ({
+              "Capital initial": d.capital_initial ?? d.montant_initial,
+              "Versement mensuel": d.versement_mensuel,
+              "Horizon": d.horizon ? `${d.horizon} ans` : null,
+              "Profil": d.profil_risque ?? d.profil,
+              "Capital estimé": d.capital_estime ?? d.capital_final,
+            }),
+          },
+          interets_composes: {
+            label: "Intérêts composés",
+            keyExtractor: (d) => ({
+              "Capital initial": d.capital_initial ?? d.montant_initial,
+              "Versement mensuel": d.versement_mensuel,
+              "Taux rendement": d.taux_rendement ? `${d.taux_rendement}%` : null,
+              "Durée": d.duree ? `${d.duree} ans` : null,
+              "Capital final": d.capital_final ?? d.montant_final,
+            }),
+          },
+          capacite_epargne: {
+            label: "Capacité d'épargne",
+            keyExtractor: (d) => ({
+              "Revenus": d.revenus ?? d.revenu_total,
+              "Charges": d.charges ?? d.charges_totales,
+              "Épargne possible": d.epargne ?? d.capacite_epargne,
+              "Taux épargne": d.taux_epargne ? `${d.taux_epargne}%` : null,
+            }),
+          },
+        };
+
+        // Group generic simulations by type, pick most recent per type
+        const seenGenericTypes = new Set<string>();
+        for (const sim of genericSims) {
+          const simType = (sim as any).type as string;
+          if (seenGenericTypes.has(simType)) continue;
+          seenGenericTypes.add(simType);
+
+          const config = genericTypes[simType];
+          if (!config) {
+            // Unknown type — still show it with raw data
+            const simData = typeof (sim as any).data === 'string' ? JSON.parse((sim as any).data) : ((sim as any).data || {});
+            const keyValues: Record<string, any> = {};
+            const importantKeys = Object.keys(simData).slice(0, 5);
+            for (const k of importantKeys) {
+              keyValues[k] = simData[k];
+            }
+            simulations.push({
+              type: simType,
+              label: simType.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+              id: sim.id,
+              nom_simulation: (sim as any).name || simType,
+              created_at: sim.created_at,
+              coherence_score: 0,
+              key_values: keyValues,
+            });
+            continue;
+          }
+
+          const simData = typeof (sim as any).data === 'string' ? JSON.parse((sim as any).data) : ((sim as any).data || {});
+          simulations.push({
+            type: simType,
+            label: config.label,
+            id: sim.id,
+            nom_simulation: (sim as any).name || simType,
+            created_at: sim.created_at,
+            coherence_score: 0,
+            key_values: config.keyExtractor(simData),
           });
         }
 
