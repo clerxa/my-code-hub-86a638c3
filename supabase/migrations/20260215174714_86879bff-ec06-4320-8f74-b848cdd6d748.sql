@@ -1,0 +1,1 @@
+ALTER TABLE public.sidebar_configurations ADD CONSTRAINT sidebar_configurations_sidebar_type_key UNIQUE (sidebar_type);
