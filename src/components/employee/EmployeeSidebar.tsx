@@ -4,19 +4,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSidebarActiveItem } from "@/hooks/useSidebarActiveItem";
 import { useState, useEffect } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { useSidebarConfig, getIconComponent } from "@/hooks/useSidebarConfig";
@@ -33,7 +22,15 @@ interface EmployeeSidebarProps {
   primaryColor?: string;
 }
 
-export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, hasPartnership, webinarCount = 0, enablePointsRanking = false, primaryColor }: EmployeeSidebarProps) => {
+export const EmployeeSidebar = ({
+  activeSection,
+  onSectionChange,
+  companyId,
+  hasPartnership,
+  webinarCount = 0,
+  enablePointsRanking = false,
+  primaryColor,
+}: EmployeeSidebarProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
@@ -44,14 +41,18 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
 
   useEffect(() => {
     if (user) {
-      supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle()
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle()
         .then(({ data }) => setIsAdmin(data?.role === "admin"));
     }
   }, [user]);
 
   // Items that should be hidden when points/ranking is disabled
   const rankingItems = ["leaderboard", "progression"];
-  
+
   // Items to hide (help/visite guidée removed)
   const hiddenItems = ["help"];
 
@@ -68,34 +69,34 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
       .eq("user_id", user!.id)
       .eq("status", "scheduled")
       .gte("event_start_time", new Date().toISOString());
-    
+
     setAppointmentCount(count || 0);
   };
 
   // Note: "simulations" removed - users now have 10 free simulations before being limited
   // "company" and "forum" (Communauté) are locked for non-partner users
   const lockedItems = ["progression", "company", "forum"];
-  
+
   // State for locked dialogs
   const [showCompanyLockedDialog, setShowCompanyLockedDialog] = useState(false);
   const [showCommunityLockedDialog, setShowCommunityLockedDialog] = useState(false);
   const [showHorizonComingSoon, setShowHorizonComingSoon] = useState(false);
-  
+
   const handleItemClick = (itemId: string) => {
     const isLocked = lockedItems.includes(itemId) && !hasPartnership;
-    
+
     // Special handling for company - show dialog instead of redirecting
     if (itemId === "company" && isLocked) {
       setShowCompanyLockedDialog(true);
       return;
     }
-    
+
     // Special handling for community (forum) - show dialog instead of redirecting
     if (itemId === "forum" && isLocked) {
       setShowCommunityLockedDialog(true);
       return;
     }
-    
+
     if (isLocked) {
       navigate("/proposer-partenariat");
       return;
@@ -153,7 +154,7 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
 
   // Filter items
   const filterItems = (items: { id: string; label: string; icon: string; dataCoach?: string }[]) => {
-    return items.filter(item => {
+    return items.filter((item) => {
       // Hide help item
       if (hiddenItems.includes(item.id)) return false;
       // Hide ranking items if disabled
@@ -171,10 +172,13 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
     const isActive = isItemActive(item.id);
 
     // Compute dynamic styles for active state using company primary color
-    const activeStyle = isActive && primaryColor ? {
-      backgroundColor: `color-mix(in srgb, ${primaryColor} 15%, transparent)`,
-      color: primaryColor
-    } : undefined;
+    const activeStyle =
+      isActive && primaryColor
+        ? {
+            backgroundColor: `color-mix(in srgb, ${primaryColor} 15%, transparent)`,
+            color: primaryColor,
+          }
+        : undefined;
 
     const buttonContent = (
       <Button
@@ -184,7 +188,7 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
           isActive && !primaryColor && "bg-primary/10 text-primary font-medium",
           isActive && primaryColor && "font-medium",
           collapsed && "justify-center px-2",
-          isLocked && "text-muted-foreground"
+          isLocked && "text-muted-foreground",
         )}
         style={activeStyle}
         onClick={() => handleItemClick(item.id)}
@@ -202,20 +206,18 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
           )}
         </div>
         {!collapsed && <span className="truncate">{item.label}</span>}
-        {isLocked && collapsed && (
-          <Lock className="h-3 w-3 absolute bottom-1 right-1 text-muted-foreground" />
-        )}
+        {isLocked && collapsed && <Lock className="h-3 w-3 absolute bottom-1 right-1 text-muted-foreground" />}
       </Button>
     );
 
     if (isLocked) {
       return (
         <Tooltip key={item.id}>
-          <TooltipTrigger asChild>
-            {buttonContent}
-          </TooltipTrigger>
+          <TooltipTrigger asChild>{buttonContent}</TooltipTrigger>
           <TooltipContent side="right" className="max-w-[250px]">
-            <p>Pour activer cette fonctionnalité, rapprochez-vous de votre entreprise pour créer un partenariat officiel</p>
+            <p>
+              Pour activer cette fonctionnalité, rapprochez-vous de votre entreprise pour créer un partenariat officiel
+            </p>
           </TooltipContent>
         </Tooltip>
       );
@@ -224,9 +226,7 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
     if (collapsed) {
       return (
         <Tooltip key={item.id}>
-          <TooltipTrigger asChild>
-            {buttonContent}
-          </TooltipTrigger>
+          <TooltipTrigger asChild>{buttonContent}</TooltipTrigger>
           <TooltipContent side="right">
             <p>{item.label}</p>
           </TooltipContent>
@@ -243,7 +243,7 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
         <div className="p-4 animate-pulse">
           <div className="h-8 bg-muted rounded mb-2" />
           <div className="space-y-2">
-            {[1, 2, 3, 4, 5].map(i => (
+            {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="h-10 bg-muted rounded" />
             ))}
           </div>
@@ -253,19 +253,14 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
   }
 
   return (
-    <aside 
+    <aside
       className={cn(
         "sticky top-20 h-fit bg-card border rounded-lg shadow-card transition-all duration-300",
-        collapsed ? "w-14" : "w-56"
+        collapsed ? "w-14" : "w-56",
       )}
     >
       <div className="p-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-end mb-2"
-          onClick={() => setCollapsed(!collapsed)}
-        >
+        <Button variant="ghost" size="sm" className="w-full justify-end mb-2" onClick={() => setCollapsed(!collapsed)}>
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
 
@@ -273,12 +268,12 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
           <TooltipProvider delayDuration={300}>
             {/* Render uncategorized items first */}
             {filterItems(uncategorized).map(renderMenuItem)}
-            
+
             {/* Render categorized items */}
             {categories.map(({ category, items }) => {
               const filteredItems = filterItems(items);
               if (filteredItems.length === 0) return null;
-              
+
               return (
                 <div key={category.id} className="pt-3">
                   {!collapsed && (
@@ -287,9 +282,7 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
                     </p>
                   )}
                   {collapsed && <div className="border-t my-2" />}
-                  <div className="space-y-1">
-                    {filteredItems.map(renderMenuItem)}
-                  </div>
+                  <div className="space-y-1">{filteredItems.map(renderMenuItem)}</div>
                 </div>
               );
             })}
@@ -318,12 +311,12 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
             </div>
             <DialogTitle className="text-center">Espace Entreprise réservé aux partenaires</DialogTitle>
             <DialogDescription className="text-center">
-              Pour bénéficier de parcours de formation spécifiques à votre entreprise, 
-              il faut que votre entreprise soit partenaire officiel de FinCare.
+              Pour bénéficier de parcours de formation spécifiques à votre entreprise, il faut que votre entreprise soit
+              partenaire officiel de FinCare.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 mt-4">
-            <Button 
+            <Button
               className="w-full gap-2"
               onClick={() => {
                 setShowCompanyLockedDialog(false);
@@ -333,11 +326,7 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
               <Building2 className="h-4 w-4" />
               Proposer un partenariat à mon entreprise
             </Button>
-            <Button 
-              variant="outline" 
-              className="w-full"
-              onClick={() => setShowCompanyLockedDialog(false)}
-            >
+            <Button variant="outline" className="w-full" onClick={() => setShowCompanyLockedDialog(false)}>
               Fermer
             </Button>
           </div>
@@ -353,12 +342,12 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
             </div>
             <DialogTitle className="text-center">Communauté réservée aux partenaires</DialogTitle>
             <DialogDescription className="text-center">
-              Pour accéder à la communauté et échanger avec d'autres collaborateurs, 
-              il faut que votre entreprise soit partenaire officiel de FinCare.
+              Pour accéder à la communauté et échanger avec d'autres collaborateurs, il faut que votre entreprise soit
+              partenaire officiel de FinCare.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 mt-4">
-            <Button 
+            <Button
               className="w-full gap-2"
               onClick={() => {
                 setShowCommunityLockedDialog(false);
@@ -368,11 +357,7 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
               <Building2 className="h-4 w-4" />
               Proposer un partenariat à mon entreprise
             </Button>
-            <Button 
-              variant="outline" 
-              className="w-full"
-              onClick={() => setShowCommunityLockedDialog(false)}
-            >
+            <Button variant="outline" className="w-full" onClick={() => setShowCommunityLockedDialog(false)}>
               Fermer
             </Button>
           </div>
@@ -386,14 +371,14 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
             <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <Compass className="h-6 w-6 text-primary" />
             </div>
-            <DialogTitle className="text-center">Horizon Patrimonial</DialogTitle>
+            <DialogTitle className="text-center">HORIZON</DialogTitle>
             <DialogDescription className="text-center space-y-2">
               <p>
-                <strong>Horizon Patrimonial</strong> est votre futur outil de planification financière personnalisée.
+                <strong>HORIZON</strong> est votre futur outil de planification financière personnalisée.
               </p>
               <p>
-                Il vous permettra de définir vos projets de vie (immobilier, retraite, études des enfants…), 
-                de simuler vos placements et de visualiser votre stratégie d'épargne globale en un coup d'œil.
+                Il vous permettra de définir vos projets de vie (immobilier, retraite, études des enfants…), de simuler
+                vos placements et de visualiser votre stratégie d'épargne globale en un coup d'œil.
               </p>
               <p className="text-primary font-medium">
                 🚧 Cette fonctionnalité est en cours de développement et sera bientôt disponible.
@@ -401,11 +386,7 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 mt-4">
-            <Button 
-              variant="outline" 
-              className="w-full"
-              onClick={() => setShowHorizonComingSoon(false)}
-            >
+            <Button variant="outline" className="w-full" onClick={() => setShowHorizonComingSoon(false)}>
               J'ai compris
             </Button>
           </div>
