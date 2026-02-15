@@ -96,6 +96,24 @@ const DEFAULT_FISCAL_RULES: FiscalRules = {
   cdhr_taux_minimum: 20,
   cdhr_seuil_celibataire: 250000,
   cdhr_seuil_couple: 500000,
+  // RSU Qualifiés
+  rsu_q_abattement_taux: 50,
+  rsu_q_abattement_seuil: 300000,
+  rsu_q_duree_acquisition_min: 1,
+  rsu_q_duree_conservation_min: 0,
+  rsu_q_duree_detention_totale_min: 2,
+  rsu_q_contribution_patronale: 30,
+  rsu_q_csg_crds_rate: 9.7,
+  rsu_q_csg_deductible: 6.8,
+  rsu_q_contribution_salariale_excedent: 10,
+  // RSU Non Qualifiés
+  rsu_nq_charges_sociales_salarie: 22,
+  rsu_nq_charges_sociales_employeur: 45,
+  // RSU PV cession
+  rsu_pv_cession_pfu_ir: 12.8,
+  rsu_pv_cession_ps: 17.2,
+  rsu_pv_abattement_2ans: 50,
+  rsu_pv_abattement_8ans: 65,
 };
 
 const DEFAULT_LEAD_QUALIFICATION: LeadQualification = {
