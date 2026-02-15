@@ -67,6 +67,7 @@ import { CompanySearchApiTab } from "@/components/admin/CompanySearchApiTab";
 import { TaxHelpAdminTab } from "@/components/admin/TaxHelpAdminTab";
 import { OffersManagementTab } from "@/components/admin/offers";
 import { DiagnosticCMSTab } from "@/components/admin/DiagnosticCMSTab";
+import { AnalyticsDashboardTab } from "@/components/admin/AnalyticsDashboardTab";
 
 import type { UserProfile, Company, Parcours } from "@/types/database";
 import {
@@ -146,6 +147,7 @@ const Admin = () => {
     "company-search-api": "Test API Entreprises",
     "offers": "Gestion des Offres",
     "diagnostic-cms": "Diagnostic CMS",
+    "analytics": "Analytics & Engagement",
   };
 
   const getBreadcrumbs = () => {
@@ -432,6 +434,9 @@ const Admin = () => {
                 
                 {/* Diagnostic CMS */}
                 <Route path="diagnostic-cms" element={<DiagnosticCMSTab />} />
+                
+                {/* Analytics Dashboard */}
+                <Route path="analytics" element={<AnalyticsDashboardTab />} />
                 
               </Routes>
             </div>

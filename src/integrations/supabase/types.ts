@@ -5257,6 +5257,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_onboarding_guide: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_step: number | null
+          dismissed: boolean | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number | null
+          dismissed?: boolean | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number | null
+          dismissed?: boolean | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_onboarding_guide_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_parcours: {
         Row: {
           assigned_at: string

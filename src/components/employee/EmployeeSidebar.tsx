@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Lock, ChevronLeft, ChevronRight, Building2, Compass } from "lucide-react";
+import { Lock, ChevronLeft, ChevronRight, Building2, Compass, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSidebarActiveItem } from "@/hooks/useSidebarActiveItem";
@@ -20,6 +20,7 @@ interface EmployeeSidebarProps {
   webinarCount?: number;
   enablePointsRanking?: boolean;
   primaryColor?: string;
+  onShowGuide?: () => void;
 }
 
 export const EmployeeSidebar = ({
@@ -30,6 +31,7 @@ export const EmployeeSidebar = ({
   webinarCount = 0,
   enablePointsRanking = false,
   primaryColor,
+  onShowGuide,
 }: EmployeeSidebarProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -283,6 +285,28 @@ export const EmployeeSidebar = ({
               );
             })}
           </TooltipProvider>
+
+          {/* Revoir le guide button */}
+          <div className="pt-3 border-t mt-3">
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn("w-full justify-start gap-3 text-muted-foreground hover:text-primary", collapsed && "justify-center px-2")}
+                    onClick={onShowGuide}
+                  >
+                    <HelpCircle className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span className="truncate text-xs">Revoir le guide</span>}
+                  </Button>
+                </TooltipTrigger>
+                {collapsed && (
+                  <TooltipContent side="right"><p>Revoir le guide</p></TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </nav>
 
         {/* Simulation quota banner for non-partner users */}
