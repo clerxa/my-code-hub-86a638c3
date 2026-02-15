@@ -707,8 +707,7 @@ export function ProjectFormDialog({
 
                 {/* Disclaimer */}
                 <p className="text-[10px] text-muted-foreground italic leading-tight">
-                  Simulation non contractuelle. L'adéquation d'un produit à votre situation réelle nécessite
-                  l'analyse d'un expert certifié.
+                  Outil pédagogique uniquement. Les projections sont indicatives et ne constituent pas un conseil en investissement.
                 </p>
               </div>
             )}
