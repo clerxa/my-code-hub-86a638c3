@@ -17,7 +17,7 @@ export default function Diagnostic() {
           .eq("is_active", true)
           .order("created_at", { ascending: false })
           .limit(1)
-          .maybeSingle();
+          .single();
 
         if (error) throw error;
         setConfig(data ? (data.config as unknown as DiagnosticConfig) : defaultConfig);
