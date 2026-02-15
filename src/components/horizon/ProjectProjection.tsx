@@ -100,7 +100,10 @@ export function ProjectProjection({ project }: ProjectProjectionProps) {
         </ResponsiveContainer>
       </div>
       <p className="text-xs text-muted-foreground text-center">
-        Rendement estimé : {project.annual_return_rate}% / an · Durée : {Math.round((project.duration_months || 120) / 12)} ans
+        Rendement estimé : {project.annual_return_rate}% / an · Horizon : {Math.round((project.duration_months || 120) / 12)} ans
+      </p>
+      <p className="text-[10px] text-muted-foreground text-center italic mt-1">
+        Simulation non contractuelle.
       </p>
     </div>
   );
