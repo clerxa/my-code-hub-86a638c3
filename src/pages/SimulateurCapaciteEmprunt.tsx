@@ -112,13 +112,14 @@ const SimulateurCapaciteEmprunt = () => {
   useEffect(() => {
     if (!isProfileLoading && hasProfile && !profileApplied && !isFromHistory) {
       const data = getPrefillData();
-      // Les montants du profil sont stockés en annuel → on les mensualise
+      // Les revenus du profil sont stockés en annuel → on les mensualise
       if (data.revenuMensuelNet > 0) setSalaires(Math.round(data.revenuMensuelNet / 12));
       if (data.revenusLocatifs > 0) setRevenusLocatifs(Math.round(data.revenusLocatifs / 12));
       if (data.autresRevenus > 0) setAutresRevenus(Math.round(data.autresRevenus / 12));
-      if (data.creditConsommation > 0) setCreditConso(Math.round(data.creditConsommation / 12));
-      if (data.creditAuto > 0) setCreditAuto(Math.round(data.creditAuto / 12));
-      if (data.creditImmobilier > 0) setCreditImmo(Math.round(data.creditImmobilier / 12));
+      // Les crédits en cours sont déjà en mensuel dans le profil
+      if (data.creditConsommation > 0) setCreditConso(data.creditConsommation);
+      if (data.creditAuto > 0) setCreditAuto(data.creditAuto);
+      if (data.creditImmobilier > 0) setCreditImmo(data.creditImmobilier);
       if (data.apportDisponible > 0) setApportPersonnel(data.apportDisponible);
       if (data.dureeEmpruntSouhaitee > 0) setDureeAnnees(data.dureeEmpruntSouhaitee);
       setProfileApplied(true);
