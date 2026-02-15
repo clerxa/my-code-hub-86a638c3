@@ -28,6 +28,7 @@ import { NotificationManager } from "@/components/notifications/NotificationMana
 import { useFaviconAnimation } from "@/hooks/useFaviconAnimation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PartnershipRoute from "@/components/PartnershipRoute";
+import { CheckPlanAccess } from "@/components/CheckPlanAccess";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -295,7 +296,9 @@ const App = () => (
               path="/simulateur-impots"
               element={
                 <ProtectedRoute>
-                  <SimulateurImpots />
+                  <CheckPlanAccess featureKey="simulateur_impots">
+                    <SimulateurImpots />
+                  </CheckPlanAccess>
                 </ProtectedRoute>
               }
             />
@@ -303,7 +306,9 @@ const App = () => (
               path="/simulateur-espp"
               element={
                 <ProtectedRoute>
-                  <SimulateurESPP />
+                  <CheckPlanAccess featureKey="simulateur_espp">
+                    <SimulateurESPP />
+                  </CheckPlanAccess>
                 </ProtectedRoute>
               }
             />
@@ -311,7 +316,9 @@ const App = () => (
               path="/optimisation-fiscale"
               element={
                 <ProtectedRoute>
-                  <OptimisationFiscale />
+                  <CheckPlanAccess featureKey="optimisation_fiscale">
+                    <OptimisationFiscale />
+                  </CheckPlanAccess>
                 </ProtectedRoute>
               }
             />
@@ -319,7 +326,9 @@ const App = () => (
               path="/simulateur-per"
               element={
                 <ProtectedRoute>
-                  <SimulateurPER />
+                  <CheckPlanAccess featureKey="simulateur_per">
+                    <SimulateurPER />
+                  </CheckPlanAccess>
                 </ProtectedRoute>
               }
             />
@@ -329,7 +338,9 @@ const App = () => (
               path="/simulateur-epargne-precaution"
               element={
                 <ProtectedRoute>
-                  <SimulateurEpargnePrecaution />
+                  <CheckPlanAccess featureKey="simulateur_epargne_precaution">
+                    <SimulateurEpargnePrecaution />
+                  </CheckPlanAccess>
                 </ProtectedRoute>
               }
             />
@@ -337,7 +348,9 @@ const App = () => (
               path="/simulateur-interets-composes"
               element={
                 <ProtectedRoute>
-                  <SimulateurInteretsComposes />
+                  <CheckPlanAccess featureKey="simulateur_interets_composes">
+                    <SimulateurInteretsComposes />
+                  </CheckPlanAccess>
                 </ProtectedRoute>
               }
             />
@@ -345,7 +358,9 @@ const App = () => (
               path="/simulateur-lmnp"
               element={
                 <ProtectedRoute>
-                  <SimulateurLMNP />
+                  <CheckPlanAccess featureKey="simulateur_lmnp">
+                    <SimulateurLMNP />
+                  </CheckPlanAccess>
                 </ProtectedRoute>
               }
             />
@@ -353,7 +368,9 @@ const App = () => (
               path="/simulateur-pret-immobilier"
               element={
                 <ProtectedRoute>
-                  <SimulateurPretImmobilier />
+                  <CheckPlanAccess featureKey="simulateur_pret_immobilier">
+                    <SimulateurPretImmobilier />
+                  </CheckPlanAccess>
                 </ProtectedRoute>
               }
             />
@@ -361,7 +378,9 @@ const App = () => (
               path="/simulateur-capacite-emprunt"
               element={
                 <ProtectedRoute>
-                  <SimulateurCapaciteEmprunt />
+                  <CheckPlanAccess featureKey="simulateur_capacite_emprunt">
+                    <SimulateurCapaciteEmprunt />
+                  </CheckPlanAccess>
                 </ProtectedRoute>
               }
             />
@@ -369,7 +388,9 @@ const App = () => (
               path="/simulateur-pvi"
               element={
                 <ProtectedRoute>
-                  <SimulateurPVI />
+                  <CheckPlanAccess featureKey="simulateur_pvi">
+                    <SimulateurPVI />
+                  </CheckPlanAccess>
                 </ProtectedRoute>
               }
             />
@@ -377,7 +398,9 @@ const App = () => (
               path="/simulateur-gestion-pilotee"
               element={
                 <ProtectedRoute>
-                  <SimulateurGestionPilotee />
+                  <CheckPlanAccess featureKey="simulateur_gestion_pilotee">
+                    <SimulateurGestionPilotee />
+                  </CheckPlanAccess>
                 </ProtectedRoute>
               }
             />
