@@ -89,8 +89,17 @@ const SimulateurCapaciteEpargne = () => {
     const p = data.profile;
     const newValues: FormValues = {};
 
-    if (p.revenu_mensuel_net > 0) newValues.salaire = p.revenu_mensuel_net;
+    // Salaire net mensuel : on prend revenu_mensuel_net, sinon on menusalise le revenu annuel brut (approx net = brut * 0.78 / 12)
+    if (p.revenu_mensuel_net > 0) {
+      newValues.salaire = Math.round(p.revenu_mensuel_net / 12);
+    } else if (p.revenu_annuel_brut > 0) {
+      newValues.salaire = Math.round((p.revenu_annuel_brut * 0.78) / 12);
+    }
     if (p.autres_revenus_mensuels > 0) newValues.autresRevenus = p.autres_revenus_mensuels;
+    // Revenus locatifs mensualisés
+    if (p.revenus_locatifs > 0) newValues.autresRevenus = (newValues.autresRevenus || 0) + Math.round(p.revenus_locatifs / 12);
+
+    // Besoins
     if (p.loyer_actuel > 0 || p.credits_immobilier > 0)
       newValues.loyer = (p.loyer_actuel || 0) + (p.credits_immobilier || 0);
     if (p.charges_energie > 0) newValues.factures = p.charges_energie;
@@ -102,7 +111,33 @@ const SimulateurCapaciteEpargne = () => {
     if (p.credits_consommation > 0 || p.credits_auto > 0)
       newValues.credits = (p.credits_consommation || 0) + (p.credits_auto || 0);
     if (p.charges_frais_scolarite > 0) newValues.scolarite = p.charges_frais_scolarite;
-    if (p.pensions_alimentaires > 0) newValues.impots = p.pensions_alimentaires;
+
+    // Estimation impôts mensualisés à partir du salaire net
+    const salaireMensuel = newValues.salaire || 0;
+    if (salaireMensuel > 0) {
+      const revenuImposableAnnuel = p.revenu_fiscal_annuel > 0 ? p.revenu_fiscal_annuel : salaireMensuel * 12;
+      // Barème simplifié IR 2025
+      let impotAnnuel = 0;
+      const tranches = [
+        { seuil: 11294, taux: 0 },
+        { seuil: 28797, taux: 0.11 },
+        { seuil: 82341, taux: 0.30 },
+        { seuil: 177106, taux: 0.41 },
+        { seuil: Infinity, taux: 0.45 },
+      ];
+      let reste = revenuImposableAnnuel / (p.parts_fiscales || 1);
+      let prev = 0;
+      for (const t of tranches) {
+        const tranche = Math.min(reste, t.seuil) - prev;
+        if (tranche > 0) impotAnnuel += tranche * t.taux;
+        prev = t.seuil;
+        if (reste <= t.seuil) break;
+      }
+      impotAnnuel *= (p.parts_fiscales || 1);
+      newValues.impots = Math.round(impotAnnuel / 12);
+    }
+
+    // Envies
     if (p.charges_abonnements > 0) newValues.abonnements = p.charges_abonnements;
     if (p.charges_autres > 0) newValues.shopping = p.charges_autres;
 
