@@ -19,10 +19,10 @@ export default function PublicOnboarding() {
 
   // Generate and store session ID on mount, and save invitation params
   useEffect(() => {
-    const existingSession = localStorage.getItem(ONBOARDING_SESSION_KEY);
+    const existingSession = sessionStorage.getItem(ONBOARDING_SESSION_KEY);
     if (!existingSession) {
       const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem(ONBOARDING_SESSION_KEY, sessionId);
+      sessionStorage.setItem(ONBOARDING_SESSION_KEY, sessionId);
     }
 
     // Store invitation params if present (for colleague invitation flow)
@@ -30,15 +30,15 @@ export default function PublicOnboarding() {
     const companyId = searchParams.get("company");
     
     if (invitationToken) {
-      localStorage.setItem(INVITATION_TOKEN_KEY, invitationToken);
+      sessionStorage.setItem(INVITATION_TOKEN_KEY, invitationToken);
       
       // Track the click immediately when arriving via invitation link
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://mftrggltywyfsvlckhad.supabase.co";
-      fetch(`${supabaseUrl}/functions/v1/track-invitation?token=${invitationToken}&action=click`)
+      const supabaseUrl = "https://gbotqqeirtbmmyxqwtzl.supabase.co";
+      fetch(`${supabaseUrl}/functions/v1/track-invitation?token=${encodeURIComponent(invitationToken)}&action=click`)
         .catch(err => console.error("Error tracking invitation click:", err));
     }
     if (companyId) {
-      localStorage.setItem(INVITATION_COMPANY_KEY, companyId);
+      sessionStorage.setItem(INVITATION_COMPANY_KEY, companyId);
     }
   }, [searchParams]);
 

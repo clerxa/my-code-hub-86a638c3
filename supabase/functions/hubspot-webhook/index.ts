@@ -12,16 +12,21 @@ async function verifyHubSpotSignature(req: Request, body: string): Promise<boole
   const signature = req.headers.get('x-hubspot-signature') || req.headers.get('x-hubspot-signature-v3')
   
   // If no signature header is present, this is likely a HubSpot Workflow webhook
-  // Workflows don't send signatures, so we allow them through
+  // For workflow webhooks without signatures, require the app secret to be configured
+  // as a basic validation that the endpoint is intentionally open
   if (!signature) {
-    console.log('No HubSpot signature header - treating as Workflow webhook (allowed)')
+    if (!appSecret) {
+      console.error('No signature and no HUBSPOT_APP_SECRET configured - rejecting request')
+      return false
+    }
+    console.log('No HubSpot signature header - treating as Workflow webhook (allowed, secret configured)')
     return true
   }
 
-  // If signature is present but no secret configured, warn but allow
+  // If signature is present but no secret configured, reject
   if (!appSecret) {
-    console.warn('HUBSPOT_APP_SECRET not configured, skipping signature verification')
-    return true
+    console.error('HUBSPOT_APP_SECRET not configured, cannot verify signature - rejecting')
+    return false
   }
 
   // HubSpot v2 signature: SHA-256 hash of appSecret + requestBody

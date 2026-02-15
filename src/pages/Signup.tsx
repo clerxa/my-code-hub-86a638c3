@@ -84,9 +84,9 @@ const Signup = () => {
     // First check URL params, then check localStorage (for users coming from onboarding)
     let token = searchParams.get("invitation");
     
-    // If no token in URL, check localStorage (set during public onboarding)
+    // If no token in URL, check sessionStorage (set during public onboarding)
     if (!token) {
-      token = localStorage.getItem(INVITATION_TOKEN_KEY);
+      token = sessionStorage.getItem(INVITATION_TOKEN_KEY);
     }
     
     if (token) {
@@ -127,8 +127,8 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      // Get onboarding session ID from localStorage
-      const onboardingSessionId = localStorage.getItem(ONBOARDING_SESSION_KEY);
+      // Get onboarding session ID from sessionStorage
+      const onboardingSessionId = sessionStorage.getItem(ONBOARDING_SESSION_KEY);
       
       // Call auto-signup edge function
       const response = await supabase.functions.invoke('auto-signup', {
@@ -190,10 +190,10 @@ const Signup = () => {
 
       toast.success("Compte créé avec succès !");
       
-      // Clear the onboarding session ID and invitation params from localStorage since they're now used
-      localStorage.removeItem(ONBOARDING_SESSION_KEY);
-      localStorage.removeItem(INVITATION_TOKEN_KEY);
-      localStorage.removeItem(INVITATION_COMPANY_KEY);
+      // Clear the onboarding session ID and invitation params from sessionStorage since they're now used
+      sessionStorage.removeItem(ONBOARDING_SESSION_KEY);
+      sessionStorage.removeItem(INVITATION_TOKEN_KEY);
+      sessionStorage.removeItem(INVITATION_COMPANY_KEY);
 
       // Check if company has partnership
       if (!responseData.company?.has_partnership) {

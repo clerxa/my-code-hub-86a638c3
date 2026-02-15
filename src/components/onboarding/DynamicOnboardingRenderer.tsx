@@ -54,12 +54,12 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
     contentName: `Onboarding ${flowId}`,
   });
   
-  // Use stored session ID from localStorage, or generate one
+  // Use stored session ID from sessionStorage, or generate one
   const [sessionId] = useState(() => {
-    const stored = localStorage.getItem(ONBOARDING_SESSION_KEY);
+    const stored = sessionStorage.getItem(ONBOARDING_SESSION_KEY);
     if (stored) return stored;
     const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    localStorage.setItem(ONBOARDING_SESSION_KEY, newSessionId);
+    sessionStorage.setItem(ONBOARDING_SESSION_KEY, newSessionId);
     return newSessionId;
   });
 
@@ -301,7 +301,7 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
 
   const handleComplete = async () => {
     // Check if this is an invitation flow (public onboarding for a new user who happens to be viewing while logged in)
-    const isInvitationFlow = !!searchParams.get('invitation') || !!localStorage.getItem(INVITATION_TOKEN_KEY);
+    const isInvitationFlow = !!searchParams.get('invitation') || !!sessionStorage.getItem(INVITATION_TOKEN_KEY);
 
     // Mark onboarding as completed for employee-onboarding flow (only if user is logged in, NOT in preview mode, and NOT an invitation flow)
     if (flowId === 'employee-onboarding' && user && !isPreviewMode && !isInvitationFlow) {
@@ -342,8 +342,8 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
     let internalUrl = currentScreen?.metadata?.redirectInternalUrl || '/login';
     
     // If there are invitation params stored, append them to the signup URL
-    const invitationToken = localStorage.getItem(INVITATION_TOKEN_KEY);
-    const companyId = localStorage.getItem(INVITATION_COMPANY_KEY);
+    const invitationToken = sessionStorage.getItem(INVITATION_TOKEN_KEY);
+    const companyId = sessionStorage.getItem(INVITATION_COMPANY_KEY);
     
     if (invitationToken) {
       const params = new URLSearchParams();

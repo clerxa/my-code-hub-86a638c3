@@ -136,7 +136,8 @@ serve(async (req: Request) => {
       });
 
       if (createError) {
-        throw new Error(`Failed to create auth user: ${createError.message}`);
+        console.error('Failed to create auth user:', createError.message);
+        throw new Error('Failed to create auth user');
       }
       console.log(`Auth user created successfully for ${profile.email}`);
       finalEmail = newUser.user.email!;
@@ -166,7 +167,8 @@ serve(async (req: Request) => {
     });
 
     if (linkError || !linkData?.properties?.action_link) {
-      throw new Error(`Failed to generate reset link: ${linkError?.message || "Unknown error"}`);
+      console.error('Failed to generate reset link:', linkError?.message);
+      throw new Error('Failed to generate reset link');
     }
 
     // Send email via Resend
@@ -251,10 +253,13 @@ serve(async (req: Request) => {
     );
   } catch (error: any) {
     console.error("Error in send-password-reset:", error);
+    // Map known safe errors, otherwise return generic message
+    const safeErrors = ['Missing authorization header', 'Unauthorized', 'Admin access required', 'User ID is required', 'User profile not found', 'No email found for this user', 'Failed to create auth user', 'Failed to generate reset link', 'RESEND_API_KEY not configured', 'Failed to send email'];
+    const clientMessage = safeErrors.includes(error.message) ? error.message : 'An internal error occurred';
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: clientMessage,
       }),
       {
         status: 400,

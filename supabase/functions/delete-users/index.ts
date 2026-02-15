@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
             results.push({ userId, success: true });
           } else {
             console.error(`Error deleting auth user ${userId}:`, authError);
-            results.push({ userId, success: false, error: authError.message });
+            results.push({ userId, success: false, error: 'Failed to delete user' });
           }
         } else {
           console.log(`Successfully deleted user ${userId}`);
@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
         }
       } catch (err) {
         console.error(`Exception deleting user ${userId}:`, err);
-        results.push({ userId, success: false, error: err instanceof Error ? err.message : 'Unknown error' });
+        results.push({ userId, success: false, error: 'Failed to process user deletion' });
       }
     }
 
@@ -202,7 +202,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Error:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'An internal error occurred' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }

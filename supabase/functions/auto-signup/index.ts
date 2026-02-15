@@ -16,17 +16,38 @@ const PERSONAL_DOMAINS = [
   'sfr.fr', 'bbox.fr'
 ];
 
+// Validate email format strictly
+function isValidEmail(email: string): boolean {
+  // RFC 5322 simplified: no multiple @, valid domain, reasonable length
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  if (!emailRegex.test(email)) return false;
+  if (email.length > 254) return false;
+  // Reject multiple @ symbols
+  if ((email.match(/@/g) || []).length !== 1) return false;
+  return true;
+}
+
 // Extract main domain from email (handle subdomains)
 function extractMainDomain(email: string): string {
   const emailLower = email.toLowerCase().trim();
+  
+  if (!isValidEmail(emailLower)) {
+    throw new Error('Invalid email format');
+  }
+  
   const domain = emailLower.split('@')[1];
   
-  if (!domain) throw new Error('Invalid email format');
+  // Validate domain length
+  if (domain.length > 255) throw new Error('Invalid email domain');
+  
+  // Validate domain has valid TLD (at least 2 chars)
+  const parts = domain.split('.');
+  if (parts.length < 2 || parts[parts.length - 1].length < 2) {
+    throw new Error('Invalid email domain');
+  }
   
   // Handle subdomains by keeping only the last two parts
-  const parts = domain.split('.');
   if (parts.length > 2) {
-    // Keep only last 2 parts (e.g., team.company.com -> company.com)
     return parts.slice(-2).join('.');
   }
   
@@ -321,7 +342,7 @@ serve(async (req) => {
       JSON.stringify({ 
         success: false,
         error: 'server_error',
-        message: error.message || 'Erreur serveur inattendue'
+        message: 'Erreur serveur inattendue'
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
