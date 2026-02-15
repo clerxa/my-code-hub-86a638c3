@@ -1832,6 +1832,44 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_product_partners: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          logo_url: string | null
+          name: string
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          logo_url?: string | null
+          name: string
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          logo_url?: string | null
+          name?: string
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_product_partners_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "financial_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_products: {
         Row: {
           availability: string | null
