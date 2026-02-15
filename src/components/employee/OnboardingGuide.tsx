@@ -3,54 +3,58 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
-import { Sparkles, BookOpen, Calculator, User, Calendar, Compass, ChevronRight, ChevronLeft, X, PartyPopper } from "lucide-react";
+import {
+  Sparkles, BookOpen, Calculator, User, Calendar, Compass, ChevronRight, ChevronLeft, X, PartyPopper,
+  Heart, Star, Trophy, Target, Zap, Shield, TrendingUp, PiggyBank, Wallet, HandCoins, Landmark,
+  Lightbulb, Gift, Award, Clock, Bell, Settings, Home, FileText, BarChart3,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
-const STEPS = [
-  {
-    id: "welcome",
-    title: "Bienvenue sur FinCare ! 🎉",
-    description: "Votre plateforme de bien-être financier personnalisée. Découvrons ensemble les fonctionnalités clés pour vous aider à prendre les meilleures décisions financières.",
-    icon: Sparkles,
-  },
-  {
-    id: "modules",
-    title: "Parcours de formation",
-    description: "Accédez à des modules éducatifs sur l'épargne, la fiscalité, l'investissement et bien plus. Complétez-les pour gagner des points et progresser !",
-    icon: BookOpen,
-  },
-  {
-    id: "simulators",
-    title: "Simulateurs financiers",
-    description: "Simulez votre capacité d'emprunt, votre épargne de précaution, optimisez votre fiscalité… Des outils puissants pour éclairer vos choix.",
-    icon: Calculator,
-  },
-  {
-    id: "profile",
-    title: "Votre profil financier",
-    description: "Complétez votre profil pour recevoir des recommandations personnalisées adaptées à votre situation. Plus votre profil est complet, plus les conseils sont pertinents.",
-    icon: User,
-  },
-  {
-    id: "expert",
-    title: "Rendez-vous expert",
-    description: "Prenez rendez-vous avec un conseiller financier certifié pour un accompagnement personnalisé et gratuit dans le cadre de votre entreprise.",
-    icon: Calendar,
-  },
-  {
-    id: "horizon",
-    title: "Horizon — Votre stratégie",
-    description: "Planifiez vos projets patrimoniaux, définissez vos objectifs et visualisez votre stratégie d'épargne globale avec notre outil de planification avancé.",
-    icon: Compass,
-  },
+const ICON_MAP: Record<string, React.ElementType> = {
+  Sparkles, BookOpen, Calculator, User, Calendar, Compass,
+  Heart, Star, Trophy, Target, Zap, Shield, TrendingUp, PiggyBank,
+  Wallet, HandCoins, Landmark, Lightbulb, Gift, Award, Clock, Bell,
+  Settings, Home, FileText, BarChart3,
+};
+
+// Fallback steps in case DB is empty
+const FALLBACK_STEPS = [
+  { id: "welcome", title: "Bienvenue sur FinCare ! 🎉", description: "Votre plateforme de bien-être financier personnalisée.", icon: "Sparkles" },
 ];
+
+interface GuideStep {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+}
 
 export function OnboardingGuide({ forceShow = false, onClose }: { forceShow?: boolean; onClose?: () => void }) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [autoChecked, setAutoChecked] = useState(false);
+  const [steps, setSteps] = useState<GuideStep[]>(FALLBACK_STEPS);
+
+  // Fetch guide steps from DB
+  useEffect(() => {
+    const fetchSteps = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("onboarding_guide_steps" as any)
+          .select("id, title, description, icon")
+          .eq("is_active", true)
+          .order("order_num");
+        if (!error && data && (data as any[]).length > 0) {
+          setSteps(data as unknown as GuideStep[]);
+        }
+      } catch (e) {
+        console.error("Failed to fetch guide steps:", e);
+      }
+    };
+    fetchSteps();
+  }, []);
 
   // Auto-show on first login
   useEffect(() => {
@@ -88,11 +92,11 @@ export function OnboardingGuide({ forceShow = false, onClose }: { forceShow?: bo
     if (user?.id) {
       await supabase
         .from("user_onboarding_guide" as any)
-        .update({ completed_at: new Date().toISOString(), dismissed: true, current_step: STEPS.length } as any)
+        .update({ completed_at: new Date().toISOString(), dismissed: true, current_step: steps.length } as any)
         .eq("user_id", user.id);
     }
     handleClose();
-  }, [user?.id, handleClose]);
+  }, [user?.id, handleClose, steps.length]);
 
   const handleDismiss = useCallback(async () => {
     if (user?.id) {
@@ -104,10 +108,12 @@ export function OnboardingGuide({ forceShow = false, onClose }: { forceShow?: bo
     handleClose();
   }, [user?.id, currentStep, handleClose]);
 
-  const step = STEPS[currentStep];
-  const StepIcon = step.icon;
-  const isLast = currentStep === STEPS.length - 1;
-  const progress = ((currentStep + 1) / STEPS.length) * 100;
+  const step = steps[currentStep];
+  if (!step) return null;
+
+  const StepIcon = ICON_MAP[step.icon] || Sparkles;
+  const isLast = currentStep === steps.length - 1;
+  const progress = ((currentStep + 1) / steps.length) * 100;
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleDismiss(); }}>
@@ -124,7 +130,7 @@ export function OnboardingGuide({ forceShow = false, onClose }: { forceShow?: bo
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs text-muted-foreground font-medium">
-              {currentStep + 1} / {STEPS.length}
+              {currentStep + 1} / {steps.length}
             </span>
             <Button variant="ghost" size="sm" onClick={handleDismiss} className="text-muted-foreground hover:text-foreground -mr-2">
               <X className="h-4 w-4" />
@@ -152,7 +158,7 @@ export function OnboardingGuide({ forceShow = false, onClose }: { forceShow?: bo
           </AnimatePresence>
 
           <div className="flex items-center justify-center gap-1.5 mt-6 mb-6">
-            {STEPS.map((_, i) => (
+            {steps.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setCurrentStep(i)}

@@ -3251,6 +3251,39 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_guide_steps: {
+        Row: {
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          is_active: boolean
+          order_num: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          order_num?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          order_num?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       onboarding_responses: {
         Row: {
           created_at: string
