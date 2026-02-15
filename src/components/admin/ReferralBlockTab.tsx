@@ -194,22 +194,35 @@ export const ReferralBlockTab = () => {
   const fetchTrackingData = async () => {
     setTrackingLoading(true);
     try {
-      // Fetch colleague invitations with inviter and company info
+      // Fetch colleague invitations (no FK on inviter_id, so we enrich manually)
       const { data: invData, error: invError } = await supabase
         .from("colleague_invitations")
-        .select("*, inviter:profiles!colleague_invitations_inviter_id_fkey(first_name, last_name, email), company:companies!colleague_invitations_company_id_fkey(name)")
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (invError) {
         console.error("Error fetching invitations:", invError);
-        // Try without joins
-        const { data: simpleInvData } = await supabase
-          .from("colleague_invitations")
-          .select("*")
-          .order("created_at", { ascending: false });
-        setInvitations((simpleInvData || []) as any);
+        setInvitations([]);
       } else {
-        setInvitations((invData || []) as any);
+        // Enrich with inviter profile and company name
+        const enriched = await Promise.all(
+          (invData || []).map(async (inv: any) => {
+            const [profileRes, companyRes] = await Promise.all([
+              inv.inviter_id
+                ? supabase.from("profiles").select("first_name, last_name, email").eq("id", inv.inviter_id).maybeSingle()
+                : Promise.resolve({ data: null }),
+              inv.company_id
+                ? supabase.from("companies").select("name").eq("id", inv.company_id).maybeSingle()
+                : Promise.resolve({ data: null }),
+            ]);
+            return {
+              ...inv,
+              inviter: profileRes.data || null,
+              company: companyRes.data || null,
+            };
+          })
+        );
+        setInvitations(enriched as any);
       }
 
       // Fetch partnership requests (employee referrals)
@@ -523,7 +536,12 @@ export const ReferralBlockTab = () => {
                         </TableCell>
                         <TableCell>{inv.colleague_email}</TableCell>
                         <TableCell>
-                          {inv.inviter ? `${inv.inviter.first_name || ""} ${inv.inviter.last_name || ""}`.trim() || inv.inviter.email : "-"}
+                          {inv.inviter ? (
+                            <div>
+                              <p className="font-medium text-sm">{`${inv.inviter.first_name || ""} ${inv.inviter.last_name || ""}`.trim() || "—"}</p>
+                              <p className="text-xs text-muted-foreground">{inv.inviter.email}</p>
+                            </div>
+                          ) : "-"}
                         </TableCell>
                         <TableCell>{inv.company?.name || "-"}</TableCell>
                         <TableCell>
