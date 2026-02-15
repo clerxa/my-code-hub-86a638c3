@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Wallet, PiggyBank, ArrowRight } from "lucide-react";
+import { Wallet, PiggyBank, ArrowRight, ExternalLink } from "lucide-react";
+import { useUserFinancialProfile } from "@/hooks/useUserFinancialProfile";
+import { useNavigate } from "react-router-dom";
 
 interface BudgetSetupProps {
   onSave: (data: { total_initial_capital: number; total_monthly_savings: number }) => Promise<void>;
@@ -13,6 +15,15 @@ export function BudgetSetup({ onSave }: BudgetSetupProps) {
   const [capital, setCapital] = useState("");
   const [monthly, setMonthly] = useState("");
   const [saving, setSaving] = useState(false);
+  const { profile } = useUserFinancialProfile();
+  const navigate = useNavigate();
+
+  // Pre-fill monthly savings from financial profile
+  useEffect(() => {
+    if (profile?.capacite_epargne_mensuelle && !monthly) {
+      setMonthly(String(profile.capacite_epargne_mensuelle));
+    }
+  }, [profile?.capacite_epargne_mensuelle]);
 
   const handleSubmit = async () => {
     setSaving(true);
@@ -22,6 +33,8 @@ export function BudgetSetup({ onSave }: BudgetSetupProps) {
     });
     setSaving(false);
   };
+
+  const isFromProfile = profile?.capacite_epargne_mensuelle && Number(monthly) === profile.capacite_epargne_mensuelle;
 
   return (
     <Card className="border-2 border-dashed border-primary/30">
@@ -71,6 +84,25 @@ export function BudgetSetup({ onSave }: BudgetSetupProps) {
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">€/m</span>
           </div>
+          {profile?.capacite_epargne_mensuelle ? (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span>
+                {isFromProfile
+                  ? "Pré-rempli depuis votre profil financier"
+                  : `Votre profil indique ${new Intl.NumberFormat("fr-FR").format(profile.capacite_epargne_mensuelle)} €/mois`}
+              </span>
+              <span>·</span>
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto p-0 text-xs text-primary"
+                onClick={() => navigate("/employee/profile", { state: { scrollTo: "capacite_epargne_mensuelle" } })}
+              >
+                Modifier dans mon profil
+                <ExternalLink className="h-3 w-3 ml-1" />
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         <Button
