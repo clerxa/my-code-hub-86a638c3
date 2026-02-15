@@ -447,12 +447,41 @@ export function DiagnosticCMSTab() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs">Lien du CTA (URL, page app ou lien rdv)</Label>
-                    <Input
-                      value={result.ctaUrl || ""}
-                      onChange={e => updateResult(rIdx, { ctaUrl: e.target.value })}
-                      placeholder="Ex : /employee/rdv ou https://..."
-                    />
+                    <Label className="text-xs">Lien de redirection du CTA</Label>
+                    <select
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      value={
+                        ["/employee/rdv", "/employee/diagnostic", "/employee/simulateurs", "/employee/modules", "/employee/profil-financier"].includes(result.ctaUrl || "")
+                          ? result.ctaUrl
+                          : result.ctaUrl
+                            ? "__custom__"
+                            : ""
+                      }
+                      onChange={e => {
+                        const v = e.target.value;
+                        if (v === "__custom__") {
+                          updateResult(rIdx, { ctaUrl: "" });
+                        } else {
+                          updateResult(rIdx, { ctaUrl: v });
+                        }
+                      }}
+                    >
+                      <option value="">— Aucun lien —</option>
+                      <option value="/employee/rdv">📅 Prise de rendez-vous</option>
+                      <option value="/employee/diagnostic">🩺 Diagnostic financier</option>
+                      <option value="/employee/simulateurs">🧮 Simulateurs</option>
+                      <option value="/employee/modules">📚 Modules de formation</option>
+                      <option value="/employee/profil-financier">👤 Profil financier</option>
+                      <option value="__custom__">🔗 URL personnalisée…</option>
+                    </select>
+                    {result.ctaUrl && !["/employee/rdv", "/employee/diagnostic", "/employee/simulateurs", "/employee/modules", "/employee/profil-financier", ""].includes(result.ctaUrl) && (
+                      <Input
+                        value={result.ctaUrl}
+                        onChange={e => updateResult(rIdx, { ctaUrl: e.target.value })}
+                        placeholder="https://... ou /chemin/personnalisé"
+                        className="mt-1"
+                      />
+                    )}
                   </div>
                 </div>
               </CardContent>
