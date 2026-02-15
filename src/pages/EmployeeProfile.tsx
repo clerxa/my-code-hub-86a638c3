@@ -123,7 +123,9 @@ export default function EmployeeProfile() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") || "dashboard";
+  const highlightField = searchParams.get("highlight");
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [highlightedField, setHighlightedField] = useState<string | null>(null);
   
   // Profile state
   const [loading, setLoading] = useState(true);
@@ -178,6 +180,23 @@ export default function EmployeeProfile() {
   useEffect(() => {
     fetchAllData();
   }, []);
+
+  // Scroll to and highlight a specific field when navigating from Horizon
+  useEffect(() => {
+    if (highlightField && !loading && !financialLoading) {
+      setHighlightedField(highlightField);
+      // Small delay to let the tab content render
+      const timer = setTimeout(() => {
+        const el = document.querySelector(`[data-field="${highlightField}"]`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 300);
+      // Remove highlight after animation
+      const clearTimer = setTimeout(() => setHighlightedField(null), 3500);
+      return () => { clearTimeout(timer); clearTimeout(clearTimer); };
+    }
+  }, [highlightField, loading, financialLoading]);
 
   useEffect(() => {
     if (!financialProfile) return;
@@ -1690,7 +1709,7 @@ export default function EmployeeProfile() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
+                  <div className={cn("space-y-2 p-3 rounded-lg transition-all duration-700", highlightedField === "capacite_epargne_mensuelle" && "ring-2 ring-primary bg-primary/10 animate-pulse")} data-field="capacite_epargne_mensuelle">
                     <Label>Capacité d'épargne mensuelle (€/mois){reqMark("capacite_epargne_mensuelle")}</Label>
                     <Input
                       type="number"
