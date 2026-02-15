@@ -103,6 +103,19 @@ export interface FiscalRules {
   pvi_abattement_ps_phase3_rate: number;
   pvi_abattement_ps_exoneration_annee: number;
   pvi_surtaxe_brackets: PVISurtaxeBracket[];
+  
+  // CEHR (Contribution Exceptionnelle sur les Hauts Revenus)
+  cehr_taux_1: number;
+  cehr_taux_2: number;
+  cehr_seuil_1_celibataire: number;
+  cehr_seuil_2_celibataire: number;
+  cehr_seuil_1_couple: number;
+  cehr_seuil_2_couple: number;
+  
+  // CDHR (Contribution Différentielle sur les Hauts Revenus)
+  cdhr_taux_minimum: number;
+  cdhr_seuil_celibataire: number;
+  cdhr_seuil_couple: number;
 }
 
 export interface LeadQualification {

@@ -85,6 +85,17 @@ const DEFAULT_FISCAL_RULES: FiscalRules = {
     { seuil: 200000, taux: 5 },
     { seuil: 250000, taux: 6 },
   ],
+  // CEHR
+  cehr_taux_1: 3,
+  cehr_taux_2: 4,
+  cehr_seuil_1_celibataire: 250000,
+  cehr_seuil_2_celibataire: 500000,
+  cehr_seuil_1_couple: 500000,
+  cehr_seuil_2_couple: 1000000,
+  // CDHR
+  cdhr_taux_minimum: 20,
+  cdhr_seuil_celibataire: 250000,
+  cdhr_seuil_couple: 500000,
 };
 
 const DEFAULT_LEAD_QUALIFICATION: LeadQualification = {
