@@ -7,15 +7,7 @@ import { Sparkles, BookOpen, Calculator, User, Calendar, Compass, ChevronRight, 
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface OnboardingStep {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ElementType;
-  highlight?: string; // CSS selector or data-coach attribute
-}
-
-const STEPS: OnboardingStep[] = [
+const STEPS = [
   {
     id: "welcome",
     title: "Bienvenue sur FinCare ! 🎉",
@@ -27,95 +19,68 @@ const STEPS: OnboardingStep[] = [
     title: "Parcours de formation",
     description: "Accédez à des modules éducatifs sur l'épargne, la fiscalité, l'investissement et bien plus. Complétez-les pour gagner des points et progresser !",
     icon: BookOpen,
-    highlight: "parcours",
   },
   {
     id: "simulators",
     title: "Simulateurs financiers",
     description: "Simulez votre capacité d'emprunt, votre épargne de précaution, optimisez votre fiscalité… Des outils puissants pour éclairer vos choix.",
     icon: Calculator,
-    highlight: "simulations",
   },
   {
     id: "profile",
     title: "Votre profil financier",
     description: "Complétez votre profil pour recevoir des recommandations personnalisées adaptées à votre situation. Plus votre profil est complet, plus les conseils sont pertinents.",
     icon: User,
-    highlight: "profile",
   },
   {
     id: "expert",
     title: "Rendez-vous expert",
     description: "Prenez rendez-vous avec un conseiller financier certifié pour un accompagnement personnalisé et gratuit dans le cadre de votre entreprise.",
     icon: Calendar,
-    highlight: "appointments",
   },
   {
     id: "horizon",
     title: "Horizon — Votre stratégie",
     description: "Planifiez vos projets patrimoniaux, définissez vos objectifs et visualisez votre stratégie d'épargne globale avec notre outil de planification avancé.",
     icon: Compass,
-    highlight: "horizon",
   },
 ];
 
-interface OnboardingGuideProps {
-  forceShow?: boolean;
-  onClose?: () => void;
-}
-
-export function OnboardingGuide({ forceShow = false, onClose }: OnboardingGuideProps) {
+/** Auto-show guide on first login */
+export function OnboardingGuideAutoShow() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [loaded, setLoaded] = useState(false);
-  const [prevForceShow, setPrevForceShow] = useState(false);
 
-  // Detect forceShow rising edge synchronously (no useEffect delay)
-  if (forceShow && !prevForceShow) {
-    setOpen(true);
-    setCurrentStep(0);
-  }
-  if (forceShow !== prevForceShow) {
-    setPrevForceShow(forceShow);
-  }
-
-  // Auto-show on first login
   useEffect(() => {
-    if (!user?.id || forceShow) {
-      setLoaded(true);
-      return;
-    }
-
-    const checkGuide = async () => {
+    if (!user?.id) return;
+    const check = async () => {
       const { data } = await supabase
         .from("user_onboarding_guide" as any)
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
-
       if (!data) {
         setOpen(true);
-        setCurrentStep(0);
         await supabase.from("user_onboarding_guide" as any).insert({ user_id: user.id, current_step: 0 });
       }
-      setLoaded(true);
     };
-
-    checkGuide();
+    check();
   }, [user?.id]);
 
-  const handleNext = useCallback(() => {
-    if (currentStep < STEPS.length - 1) {
-      setCurrentStep((s) => s + 1);
-    }
-  }, [currentStep]);
+  if (!open) return null;
 
-  const handlePrev = useCallback(() => {
-    if (currentStep > 0) {
-      setCurrentStep((s) => s - 1);
-    }
-  }, [currentStep]);
+  return <GuideDialog open={open} onClose={() => setOpen(false)} />;
+}
+
+/** Force-show guide (replay button) */
+export function OnboardingGuide({ forceShow = false, onClose }: { forceShow?: boolean; onClose?: () => void }) {
+  if (!forceShow) return <OnboardingGuideAutoShow />;
+  return <GuideDialog open={true} onClose={() => onClose?.()} />;
+}
+
+function GuideDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { user } = useAuth();
+  const [currentStep, setCurrentStep] = useState(0);
 
   const handleComplete = useCallback(async () => {
     if (user?.id) {
@@ -124,8 +89,7 @@ export function OnboardingGuide({ forceShow = false, onClose }: OnboardingGuideP
         .update({ completed_at: new Date().toISOString(), dismissed: true, current_step: STEPS.length } as any)
         .eq("user_id", user.id);
     }
-    setOpen(false);
-    onClose?.();
+    onClose();
   }, [user?.id, onClose]);
 
   const handleDismiss = useCallback(async () => {
@@ -135,11 +99,8 @@ export function OnboardingGuide({ forceShow = false, onClose }: OnboardingGuideP
         .update({ dismissed: true, current_step: currentStep } as any)
         .eq("user_id", user.id);
     }
-    setOpen(false);
-    onClose?.();
+    onClose();
   }, [user?.id, currentStep, onClose]);
-
-  if (!loaded && !forceShow) return null;
 
   const step = STEPS[currentStep];
   const StepIcon = step.icon;
@@ -149,7 +110,6 @@ export function OnboardingGuide({ forceShow = false, onClose }: OnboardingGuideP
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleDismiss(); }}>
       <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
-        {/* Progress bar */}
         <div className="h-1 bg-muted">
           <motion.div
             className="h-full bg-primary"
@@ -160,7 +120,6 @@ export function OnboardingGuide({ forceShow = false, onClose }: OnboardingGuideP
         </div>
 
         <div className="p-6">
-          {/* Step counter */}
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs text-muted-foreground font-medium">
               {currentStep + 1} / {STEPS.length}
@@ -190,7 +149,6 @@ export function OnboardingGuide({ forceShow = false, onClose }: OnboardingGuideP
             </motion.div>
           </AnimatePresence>
 
-          {/* Step indicators */}
           <div className="flex items-center justify-center gap-1.5 mt-6 mb-6">
             {STEPS.map((_, i) => (
               <button
@@ -204,10 +162,9 @@ export function OnboardingGuide({ forceShow = false, onClose }: OnboardingGuideP
             ))}
           </div>
 
-          {/* Navigation */}
           <div className="flex items-center gap-3">
             {currentStep > 0 && (
-              <Button variant="outline" onClick={handlePrev} className="gap-2">
+              <Button variant="outline" onClick={() => setCurrentStep(s => s - 1)} className="gap-2">
                 <ChevronLeft className="h-4 w-4" />
                 Précédent
               </Button>
@@ -219,7 +176,7 @@ export function OnboardingGuide({ forceShow = false, onClose }: OnboardingGuideP
                 C'est parti !
               </Button>
             ) : (
-              <Button onClick={handleNext} className="gap-2">
+              <Button onClick={() => setCurrentStep(s => s + 1)} className="gap-2">
                 Suivant
                 <ChevronRight className="h-4 w-4" />
               </Button>
