@@ -283,10 +283,11 @@ const SimulateurPretImmobilier = () => {
             label="Taux d'intérêt"
             value={tauxInteret}
             onChange={setTauxInteret}
-            type="percent"
+            type="slider"
             min={1}
             max={6}
             step={0.05}
+            suffix="%"
             icon={Percent}
             tooltip="Taux nominal annuel hors assurance"
             delay={1}
@@ -296,10 +297,11 @@ const SimulateurPretImmobilier = () => {
             label="Taux d'assurance (TAEA)"
             value={tauxAssurance}
             onChange={setTauxAssurance}
-            type="percent"
-            min={0.1}
+            type="slider"
+            min={0.05}
             max={0.8}
             step={0.01}
+            suffix="%"
             icon={Shield}
             tooltip="Taux Annuel Effectif de l'Assurance. Varie selon votre âge et état de santé."
             delay={2}
