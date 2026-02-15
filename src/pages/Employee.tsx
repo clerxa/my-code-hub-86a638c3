@@ -264,7 +264,7 @@ export default function Employee() {
     // Fetch diagnostic status from DB
     const { data: diagnosticResult } = await supabase
       .from("diagnostic_results")
-      .select("status")
+      .select("status, score_percent")
       .eq("user_id", targetUserId)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -314,6 +314,11 @@ export default function Employee() {
       simulations_count: simulations?.length || 0,
       modules_completed: modules?.length || 0,
       has_risk_profile: !!riskProfile,
+      // Diagnostic keys for unified conditions
+      diagnostic_not_started: !hasDiagnosticStarted,
+      diagnostic_in_progress: hasDiagnosticStarted && !hasDiagnosticCompleted,
+      diagnostic_completed: hasDiagnosticCompleted,
+      diagnostic_score_percent: diagnosticResult?.status === 'completed' ? (diagnosticResult as any)?.score_percent : null,
     };
 
     // Helper function to evaluate unified conditions
@@ -325,9 +330,18 @@ export default function Employee() {
       const logic = config.logic || 'AND';
       const results = config.conditions.map((cond: any) => {
         const actualValue = evaluationContext[cond.key];
-        const conditionValue = parseFloat(cond.value);
-
+        
         if (actualValue === undefined || actualValue === null) return false;
+
+        // Handle boolean comparisons
+        if (typeof actualValue === 'boolean') {
+          const boolValue = cond.value === true || cond.value === 'true';
+          if (cond.operator === '=') return actualValue === boolValue;
+          if (cond.operator === '!=') return actualValue !== boolValue;
+          return false;
+        }
+
+        const conditionValue = parseFloat(cond.value);
         
         switch (cond.operator) {
           case '>': return actualValue > conditionValue;
