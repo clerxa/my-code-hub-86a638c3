@@ -9,6 +9,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Responsi
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthProvider";
 import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SectionScore {
@@ -53,7 +54,7 @@ export function DiagnosticResults({ config, sectionScores, scorePercent, totalSc
   }, [user]);
 
   // Get expert booking URL respecting rank logic
-  const { bookingUrl } = useExpertBookingUrl(companyId);
+  const { embedCode, fallbackUrl, bookingUrl } = useExpertBookingUrl(companyId);
 
   const result = useMemo(() => {
     return config.results.find((r) => scorePercent >= r.min && scorePercent <= r.max) || config.results[0];
@@ -87,24 +88,36 @@ export function DiagnosticResults({ config, sectionScores, scorePercent, totalSc
             </p>
           </div>
           <p className="text-muted-foreground text-sm max-w-md mx-auto">{result.description}</p>
-          {result.ctaText && result.ctaUrl && (
-            <Button
-              className="mt-2 gap-2"
-              onClick={() => {
-                const isBookingRoute = result.ctaUrl === "/employee/rdv" || result.ctaUrl === "/expert-booking";
-                const targetUrl = isBookingRoute && bookingUrl ? bookingUrl : result.ctaUrl!;
-                
-                if (targetUrl.startsWith("http")) {
-                  window.open(targetUrl, "_blank");
-                } else {
-                  navigate(targetUrl);
-                }
-              }}
-            >
-              {result.ctaText}
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          )}
+          {result.ctaText && result.ctaUrl && (() => {
+            const isBookingRoute = result.ctaUrl === "/employee/rdv" || result.ctaUrl === "/expert-booking";
+            if (isBookingRoute && (embedCode || fallbackUrl)) {
+              return (
+                <div className="mt-2">
+                  <HubSpotMeetingWidget
+                    embedCode={embedCode || undefined}
+                    fallbackUrl={fallbackUrl || undefined}
+                    triggerText={result.ctaText}
+                    utmCampaign="diagnostic"
+                  />
+                </div>
+              );
+            }
+            return (
+              <Button
+                className="mt-2 gap-2"
+                onClick={() => {
+                  if (result.ctaUrl!.startsWith("http")) {
+                    window.open(result.ctaUrl!, "_blank");
+                  } else {
+                    navigate(result.ctaUrl!);
+                  }
+                }}
+              >
+                {result.ctaText}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            );
+          })()}
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3.5 w-3.5" />
             <span>Complété en {formatTime(elapsed)}</span>
