@@ -1,0 +1,2 @@
+INSERT INTO simulators (name, slug, description, icon, route, feature_key, category_id, order_num, is_active, duration_minutes, visibility_status)
+VALUES ('Capacité d''Épargne', 'capacite-epargne', 'Découvrez votre potentiel de liberté financière avec la règle 50/30/20', 'piggy-bank', '/simulateur-capacite-epargne', 'simulateur_capacite_epargne', '6b38250f-2313-418e-a5eb-5ebc6dc246e8', 2, true, 5, 'visible');
