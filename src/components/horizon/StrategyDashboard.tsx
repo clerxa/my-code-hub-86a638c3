@@ -135,14 +135,8 @@ export function StrategyDashboard({ projects, budget, allocatedCapital, allocate
           </div>
         </motion.div>
 
-        <AnimatePresence>
-          {expanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
+        {expanded && (
+            <div>
               <CardContent className="p-4 sm:p-6 space-y-6">
                 {/* KPI Row */}
                 <motion.div variants={itemVariants} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -386,9 +380,8 @@ export function StrategyDashboard({ projects, budget, allocatedCapital, allocate
                   </div>
                 </motion.div>
               </CardContent>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
       </Card>
     </motion.div>
   );
