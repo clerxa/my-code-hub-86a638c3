@@ -96,7 +96,7 @@ export function BudgetSetup({ onSave }: BudgetSetupProps) {
                 variant="link"
                 size="sm"
                 className="h-auto p-0 text-xs text-primary"
-                onClick={() => navigate("/employee/profile", { state: { scrollTo: "capacite_epargne_mensuelle" } })}
+                onClick={() => navigate("/employee/profile?tab=savings&highlight=capacite_epargne_mensuelle")}
               >
                 Modifier dans mon profil
                 <ExternalLink className="h-3 w-3 ml-1" />
