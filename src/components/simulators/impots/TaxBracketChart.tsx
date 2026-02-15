@@ -10,14 +10,16 @@ import {
   Tooltip,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
 
-// Barème 2025 de l'impôt sur le revenu
-const BAREME_2025 = [
-  { min: 0, max: 11294, taux: 0, label: "0%", color: "hsl(var(--muted))" },
-  { min: 11294, max: 28797, taux: 0.11, label: "11%", color: "hsl(210 100% 50%)" },
-  { min: 28797, max: 82341, taux: 0.30, label: "30%", color: "hsl(30 100% 50%)" },
-  { min: 82341, max: 177106, taux: 0.41, label: "41%", color: "hsl(0 80% 55%)" },
-  { min: 177106, max: Infinity, taux: 0.45, label: "45%", color: "hsl(0 90% 40%)" },
+// Couleurs par index de tranche
+const BRACKET_COLORS = [
+  "hsl(var(--muted))",
+  "hsl(210 100% 50%)",
+  "hsl(30 100% 50%)",
+  "hsl(0 80% 55%)",
+  "hsl(0 90% 40%)",
+  "hsl(280 80% 50%)",
 ];
 
 interface TaxBracketChartProps {
@@ -34,12 +36,28 @@ interface ChartDataItem {
 }
 
 export function TaxBracketChart({ revenuImposable, parts }: TaxBracketChartProps) {
+  const { tax_brackets, isLoading } = useFiscalRules();
+
+  // Construire le barème à partir des global_settings
+  const bareme = useMemo(() => {
+    if (!tax_brackets || tax_brackets.length === 0) return [];
+    const sorted = [...tax_brackets].sort((a, b) => a.seuil - b.seuil);
+    return sorted.map((bracket, index) => ({
+      min: bracket.seuil,
+      max: index < sorted.length - 1 ? sorted[index + 1].seuil : Infinity,
+      taux: bracket.taux / 100, // stored as percentage (e.g. 30 → 0.30)
+      label: `${bracket.taux}%`,
+      color: BRACKET_COLORS[index] || BRACKET_COLORS[BRACKET_COLORS.length - 1],
+    }));
+  }, [tax_brackets]);
+
   const chartData = useMemo(() => {
+    if (bareme.length === 0) return [];
     const quotientFamilial = revenuImposable / parts;
     const data: ChartDataItem[] = [];
     let revenuRestant = quotientFamilial;
 
-    for (const tranche of BAREME_2025) {
+    for (const tranche of bareme) {
       if (revenuRestant <= 0) break;
 
       const montantTranche = tranche.max === Infinity 
