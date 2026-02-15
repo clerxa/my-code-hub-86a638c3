@@ -38,8 +38,16 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
   const { user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [appointmentCount, setAppointmentCount] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { config, loading, getItemsByCategory } = useSidebarConfig("employee");
   const { hasNewOffers } = useOfferViewTracking();
+
+  useEffect(() => {
+    if (user) {
+      supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle()
+        .then(({ data }) => setIsAdmin(data?.role === "admin"));
+    }
+  }, [user]);
 
   // Items that should be hidden when points/ranking is disabled
   const rankingItems = ["leaderboard", "progression"];
@@ -101,7 +109,11 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
         navigate("/employee/simulations");
         break;
       case "horizon":
-        setShowHorizonComingSoon(true);
+        if (isAdmin) {
+          navigate("/employee/horizon");
+        } else {
+          setShowHorizonComingSoon(true);
+        }
         return;
       case "profile":
       case "profile-info":
