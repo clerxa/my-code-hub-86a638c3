@@ -246,7 +246,10 @@ export const useUserFinancialProfile = () => {
 
   const isFieldFilled = (fieldKey: string, p: UserFinancialProfile | null) => {
     const value = getFieldValue(fieldKey, p);
-    return value !== null && value !== undefined && value !== 0 && value !== '';
+    if (value === null || value === undefined || value === '') return false;
+    // For numeric fields, 0 is a valid answer (e.g. nb_enfants = 0)
+    if (typeof value === 'number') return true;
+    return true;
   };
 
   const calculateCompleteness = (p: UserFinancialProfile | null): number => {
