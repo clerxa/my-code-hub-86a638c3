@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { EmployeeSidebar } from "@/components/employee/EmployeeSidebar";
 import { MobileEmployeeNav } from "@/components/employee/MobileEmployeeNav";
+import { OnboardingGuide } from "@/components/employee/OnboardingGuide";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { hasActivePartnership } from "@/lib/partnership";
@@ -19,6 +20,7 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [hasPartnership, setHasPartnership] = useState(false);
   const [primaryColor, setPrimaryColor] = useState<string | undefined>(undefined);
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     const fetchCompanyInfo = async () => {
@@ -83,6 +85,7 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
               companyId={companyId}
               hasPartnership={hasPartnership}
               primaryColor={primaryColor}
+              onShowGuide={() => setShowGuide(true)}
             />
           </div>
           <div className="flex-1 min-w-0">
@@ -91,6 +94,11 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
         </div>
       </main>
       <Footer />
+      {/* Onboarding Guide */}
+      <OnboardingGuide />
+      {showGuide && (
+        <OnboardingGuide forceShow onClose={() => setShowGuide(false)} />
+      )}
     </div>
   );
 }

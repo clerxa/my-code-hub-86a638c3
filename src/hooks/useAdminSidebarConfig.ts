@@ -8,7 +8,7 @@ import {
   Target, Database, Sword, Calendar, Lightbulb, Calculator, Video,
   Plus, List, UserCheck, Circle, Settings, PartyPopper, Wallet,
   FlaskConical, MessageSquare, Crown, Image, HelpCircle, FileWarning,
-  Search, Receipt, Briefcase, Gift, Grid3x3,
+  Search, Receipt, Briefcase, Gift, Grid3x3, BarChart3,
   type LucideIcon
 } from "lucide-react";
 
@@ -134,6 +134,7 @@ const defaultAdminItems: AdminMenuItem[] = [
   { id: "tax-help", label: "Aide Fiscale", url: "/admin/tax-help", icon: "Receipt", order: 30, visible: true, categoryId: "settings" },
   { id: "offers", label: "Offres du moment", url: "/admin/offers", icon: "Gift", order: 31, visible: true, categoryId: "settings" },
   { id: "diagnostic-cms", label: "Diagnostic CMS", url: "/admin/diagnostic-cms", icon: "Target", order: 32, visible: true, categoryId: "content" },
+  { id: "analytics", label: "Analytics & Engagement", url: "/admin/analytics", icon: "BarChart3", order: 33, visible: true, categoryId: "general" },
   // Community
   { id: "community", label: "Gestion du Forum", url: "/admin/community", icon: "MessageSquare", order: 0, visible: true, categoryId: "community" },
 ];
@@ -144,7 +145,7 @@ const iconMap: Record<string, LucideIcon> = {
   UserPlus, Palette, Paintbrush, FileText, Sparkles, 
   Target, Database, Sword, Calendar, Lightbulb, Calculator, Video,
   Plus, List, UserCheck, Circle, Settings, PartyPopper, Wallet, FlaskConical,
-  MessageSquare, Crown, FileWarning, Search, Receipt, Briefcase, Gift, Grid3x3,
+  MessageSquare, Crown, FileWarning, Search, Receipt, Briefcase, Gift, Grid3x3, BarChart3,
 };
 
 export const getAdminIconComponent = (iconName: string): LucideIcon => {
