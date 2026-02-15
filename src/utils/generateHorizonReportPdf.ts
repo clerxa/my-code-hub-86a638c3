@@ -291,7 +291,7 @@ class Pdf {
       const dateStr = new Date().toLocaleDateString("fr-FR", {
         day: "numeric", month: "long", year: "numeric",
       });
-      this.d.text(`Document confidentiel  -  Genere le ${dateStr}  -  Simulation non contractuelle`, MX, PH - 11);
+      this.d.text(`Document confidentiel  -  Genere le ${dateStr}  -  Outil pedagogique uniquement`, MX, PH - 11);
       this.d.text(`Page ${i} / ${total}`, PW - MX, PH - 11, { align: "right" });
     }
   }
@@ -515,7 +515,7 @@ export function generateHorizonReportPdf(data: HorizonReportData) {
   p.d.setFontSize(7);
   p.d.setFont("helvetica", "normal");
   p.d.setTextColor(...C.textSoft);
-  const disclaimer = "Simulation non contractuelle. L'adequation d'un produit a votre situation reelle necessite l'analyse d'un expert certifie. Les projections sont indicatives et ne garantissent aucun resultat. Les rendements passes ne prejugent pas des rendements futurs.";
+  const disclaimer = "Outil pedagogique uniquement. Horizon est un simulateur a vocation educative et ne constitue ni un conseil en investissement, ni une recommandation personnalisee. Les projections sont purement indicatives et ne garantissent aucun resultat. Consultez un conseiller certifie avant toute decision financiere.";
   const discLines = p.d.splitTextToSize(disclaimer, CW - 20);
   p.d.text(discLines, MX + 10, p.y + 11);
 

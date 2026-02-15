@@ -89,7 +89,7 @@ export function HorizonDashboard() {
       <Alert variant="default" className="border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/30">
         <Info className="h-4 w-4 text-amber-600" />
         <AlertDescription className="text-amber-800 dark:text-amber-200 text-xs">
-          Simulation non contractuelle. L'adéquation d'un produit à votre situation réelle nécessite l'analyse d'un expert certifié. Les projections sont indicatives et ne garantissent aucun résultat.
+          Outil pédagogique uniquement. Horizon est un simulateur à vocation éducative et ne constitue ni un conseil en investissement, ni une recommandation personnalisée. Les projections sont purement indicatives et ne garantissent aucun résultat. Consultez un conseiller certifié avant toute décision financière.
         </AlertDescription>
       </Alert>
 

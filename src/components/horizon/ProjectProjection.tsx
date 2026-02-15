@@ -103,7 +103,7 @@ export function ProjectProjection({ project }: ProjectProjectionProps) {
         Rendement estimé : {project.annual_return_rate}% / an · Horizon : {Math.round((project.duration_months || 120) / 12)} ans
       </p>
       <p className="text-[10px] text-muted-foreground text-center italic mt-1">
-        Simulation non contractuelle.
+        Outil pédagogique · Projections indicatives
       </p>
     </div>
   );
