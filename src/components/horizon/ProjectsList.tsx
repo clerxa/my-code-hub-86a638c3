@@ -197,35 +197,33 @@ export function ProjectsList({ projects, budget, availableCapital, availableMont
                         <TrendingUp className="h-3.5 w-3.5" />
                         {isExpanded ? "Masquer" : "Projection"}
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-2 text-xs border-primary/30 text-primary hover:bg-primary/10"
+                        disabled={adjustingId === project.id}
+                        onClick={async () => {
+                          const required = computeRequiredMonthly(project);
+                          setAdjustingId(project.id);
+                          await onUpdateProject(project.id, { monthly_allocation: required });
+                          setAdjustingId(null);
+                        }}
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {adjustingId === project.id ? "Ajustement…" : "Ajuster mes versements pour atteindre mon objectif"}
+                      </Button>
                       {pct < 100 && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 gap-2 text-xs border-primary/30 text-primary hover:bg-primary/10"
-                            disabled={adjustingId === project.id}
-                            onClick={async () => {
-                              const required = computeRequiredMonthly(project);
-                              setAdjustingId(project.id);
-                              await onUpdateProject(project.id, { monthly_allocation: required });
-                              setAdjustingId(null);
-                            }}
-                          >
-                            <Sparkles className="h-3.5 w-3.5" />
-                            {adjustingId === project.id ? "Ajustement…" : "Ajuster pour atteindre mon objectif"}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 gap-2 text-xs"
-                            onClick={() => {
-                              window.open('#contact-expert', '_blank');
-                            }}
-                          >
-                            <MessageCircle className="h-3.5 w-3.5" />
-                            Vérifier avec un conseiller
-                          </Button>
-                        </>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-2 text-xs"
+                          onClick={() => {
+                            window.open('#contact-expert', '_blank');
+                          }}
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                          Vérifier avec un conseiller
+                        </Button>
                       )}
                     </div>
                   </div>
