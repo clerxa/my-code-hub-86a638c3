@@ -70,6 +70,7 @@ import RiskProfile from "./pages/RiskProfile";
 import ExpertBookingLanding from "./pages/ExpertBookingLanding";
 import NotFound from "./pages/NotFound";
 import TaxDeclarationHelp from "./pages/TaxDeclarationHelp";
+import Diagnostic from "./pages/Diagnostic";
 import { Navigate } from "react-router-dom";
 
 /**
@@ -212,6 +213,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <DynamicOnboarding />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/diagnostic"
+              element={
+                <ProtectedRoute>
+                  <Diagnostic />
                 </ProtectedRoute>
               }
             />
