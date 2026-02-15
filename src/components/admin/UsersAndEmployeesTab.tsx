@@ -11,11 +11,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Search, Mail, Download, Upload, ChevronLeft, ChevronRight, ArrowUpDown, Eye, Save, X, Settings, Plus, Trash2, RotateCcw, UserX, Building2, RefreshCcw, UserPlus, KeyRound, LayoutDashboard } from "lucide-react";
+import { Search, Mail, Download, Upload, ChevronLeft, ChevronRight, ArrowUpDown, Eye, Save, X, Settings, Plus, Trash2, RotateCcw, UserX, Building2, RefreshCcw, UserPlus, KeyRound, LayoutDashboard, Flame } from "lucide-react";
 import { CompanyTransferDialog } from "./CompanyTransferDialog";
 import { UserResetDialog } from "./UserResetDialog";
 import { BetaInviteDialog } from "./BetaInviteDialog";
 import { UserSynthesisTable } from "./UserSynthesisTable";
+import { IntentionScoreBadge } from "./IntentionScoreBadge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -245,12 +246,13 @@ export function UsersAndEmployeesTab({ profiles, companies, onRefresh }: UsersAn
     "total_points",
     "completed_modules",
     "login_count",
+    "intention_score",
     "last_login",
   ];
 
   // Load visible columns from localStorage or use defaults
   // Version key to force refresh when new columns are added
-  const COLUMNS_VERSION = 'v2';
+  const COLUMNS_VERSION = 'v3';
   const [visibleColumns, setVisibleColumns] = useState<Set<string>>(() => {
     const savedVersion = localStorage.getItem('admin_users_columns_version');
     const saved = localStorage.getItem('admin_users_visible_columns');
@@ -291,6 +293,7 @@ export function UsersAndEmployeesTab({ profiles, companies, onRefresh }: UsersAn
     { key: "created_at", label: "Date d'inscription" },
     { key: "last_login", label: "Dernière connexion" },
     { key: "receive_on_personal_email", label: "Opt-in email perso" },
+    { key: "intention_score", label: "Score intention RDV" },
   ];
 
   // Helper function to get effective last login (from profile or daily_logins)
@@ -848,6 +851,11 @@ export function UsersAndEmployeesTab({ profiles, companies, onRefresh }: UsersAn
                         {isColumnVisible("created_at") && (
                           <TableHead>Inscription</TableHead>
                         )}
+                        {isColumnVisible("intention_score") && (
+                          <TableHead className="text-center">
+                            <span className="flex items-center gap-1 justify-center"><Flame className="h-3 w-3" /> Score RDV</span>
+                          </TableHead>
+                        )}
                         {isColumnVisible("last_login") && (
                           <TableHead>Dernière connexion</TableHead>
                         )}
@@ -1054,6 +1062,11 @@ export function UsersAndEmployeesTab({ profiles, companies, onRefresh }: UsersAn
                                       locale: fr,
                                     })
                                   : "-"}
+                              </TableCell>
+                            )}
+                            {isColumnVisible("intention_score") && (
+                              <TableCell className="text-center">
+                                <IntentionScoreBadge userId={profile.id} compact />
                               </TableCell>
                             )}
                             {isColumnVisible("last_login") && (

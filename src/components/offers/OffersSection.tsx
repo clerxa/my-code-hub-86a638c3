@@ -3,15 +3,18 @@ import { Gift, Sparkles } from 'lucide-react';
 import { useActiveOffers, useOfferViewTracking } from '@/hooks/useOffers';
 import { OfferCard } from './OfferCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useEventTracking } from '@/hooks/useEventTracking';
 
 export function OffersSection() {
   const { offers, loading } = useActiveOffers();
   const { markAsViewed } = useOfferViewTracking();
+  const { trackPageView } = useEventTracking();
 
   // Mark as viewed when component mounts
   useEffect(() => {
     markAsViewed();
-  }, [markAsViewed]);
+    trackPageView("offers_page");
+  }, [markAsViewed, trackPageView]);
 
   if (loading) {
     return (
