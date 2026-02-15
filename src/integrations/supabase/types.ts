@@ -1892,6 +1892,7 @@ export type Database = {
           fiscal_before_label: string | null
           fiscal_before_value: string | null
           fiscal_comparison_enabled: boolean | null
+          fiscal_explanation: string | null
           fiscal_savings_label: string | null
           fiscal_savings_value: string | null
           gradient_end: string | null
@@ -1936,6 +1937,7 @@ export type Database = {
           fiscal_before_label?: string | null
           fiscal_before_value?: string | null
           fiscal_comparison_enabled?: boolean | null
+          fiscal_explanation?: string | null
           fiscal_savings_label?: string | null
           fiscal_savings_value?: string | null
           gradient_end?: string | null
@@ -1980,6 +1982,7 @@ export type Database = {
           fiscal_before_label?: string | null
           fiscal_before_value?: string | null
           fiscal_comparison_enabled?: boolean | null
+          fiscal_explanation?: string | null
           fiscal_savings_label?: string | null
           fiscal_savings_value?: string | null
           gradient_end?: string | null

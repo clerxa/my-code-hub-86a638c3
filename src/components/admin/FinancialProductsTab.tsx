@@ -48,6 +48,7 @@ const initialFormData: FormData = {
   target_return_label: 'Rendement cible',
   benefits: [],
   fiscal_comparison_enabled: true,
+  fiscal_explanation: '',
   fiscal_before_label: 'Sans ce produit',
   fiscal_before_value: '',
   fiscal_after_label: 'Avec ce produit',
@@ -197,6 +198,7 @@ export function FinancialProductsTab() {
       target_return_label: product.target_return_label,
       benefits: product.benefits || [],
       fiscal_comparison_enabled: product.fiscal_comparison_enabled,
+      fiscal_explanation: product.fiscal_explanation || '',
       fiscal_before_label: product.fiscal_before_label,
       fiscal_before_value: product.fiscal_before_value || '',
       fiscal_after_label: product.fiscal_after_label,
@@ -746,6 +748,15 @@ export function FinancialProductsTab() {
 
               {formData.fiscal_comparison_enabled && (
                 <>
+                  <div className="space-y-2">
+                    <Label>Phrase d'explication fiscale</Label>
+                    <Input
+                      value={formData.fiscal_explanation}
+                      onChange={(e) => setFormData(prev => ({ ...prev, fiscal_explanation: e.target.value }))}
+                      placeholder="Ex: Grâce au PER, vos versements sont déductibles de votre revenu imposable"
+                    />
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Label "Avant"</Label>

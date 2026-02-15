@@ -1,0 +1,1 @@
+ALTER TABLE public.financial_products ADD COLUMN fiscal_explanation text;

@@ -30,6 +30,7 @@ export interface FinancialProduct {
   
   // Fiscal Match Section
   fiscal_comparison_enabled: boolean;
+  fiscal_explanation?: string;
   fiscal_before_label: string;
   fiscal_before_value?: string;
   fiscal_after_label: string;
