@@ -95,10 +95,7 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
       </main>
       <Footer />
       {/* Onboarding Guide */}
-      <OnboardingGuide />
-      {showGuide && (
-        <OnboardingGuide forceShow onClose={() => setShowGuide(false)} />
-      )}
+      <OnboardingGuide forceShow={showGuide} onClose={() => setShowGuide(false)} />
     </div>
   );
 }
