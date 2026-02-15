@@ -41,6 +41,8 @@ const SUBCATEGORIES: Record<string, Record<string, string>> = {
     'pvi_abattement': 'PVI - Abattements',
     'pvi_surtaxe': 'PVI - Surtaxe',
     'pvi_': 'PVI - Taux de base',
+    'cehr_': 'CEHR - Contribution Exceptionnelle Hauts Revenus',
+    'cdhr_': 'CDHR - Contribution Différentielle Hauts Revenus',
     'default': 'Autres règles fiscales',
   },
   recommendation_thresholds: {
