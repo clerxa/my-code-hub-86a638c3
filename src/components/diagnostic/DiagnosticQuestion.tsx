@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { HelpCircle } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { DiagnosticQuestion as QuestionType } from "@/data/diagnostic-config";
+import finBearImg from "@/assets/FinBear.png";
 
 interface Props {
   question: QuestionType;
@@ -21,26 +20,21 @@ export function DiagnosticQuestion({ question, sectionTitle, selectedPoints, onA
       <CardContent className="pt-8 pb-8 px-6 space-y-6">
         {/* Question label */}
         <div className="space-y-3">
-          <div className="flex items-start justify-between gap-2">
-            <h2 className="text-lg font-semibold text-foreground leading-snug flex-1">
-              {question.label}
-            </h2>
-            {question.info && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    className="shrink-0 text-muted-foreground hover:text-primary transition-colors mt-0.5"
-                    aria-label="Pourquoi cette question ?"
-                  >
-                    <HelpCircle className="h-5 w-5" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="left" className="max-w-xs text-sm">
-                  {question.info}
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </div>
+          <h2 className="text-lg font-semibold text-foreground leading-snug">
+            {question.label}
+          </h2>
+          {question.info && (
+            <div className="flex items-start gap-3 rounded-lg bg-primary/5 border border-primary/15 p-3">
+              <img
+                src={finBearImg}
+                alt="FinBear"
+                className="h-10 w-10 rounded-full object-cover shrink-0 bg-background shadow-sm"
+              />
+              <p className="text-sm text-muted-foreground leading-relaxed pt-0.5">
+                {question.info}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Options */}
