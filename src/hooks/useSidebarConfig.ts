@@ -5,7 +5,7 @@ import {
   User, UserCircle, TrendingUp, GraduationCap, Calculator, Trophy, 
   Calendar, Video, Users, Building2, UserCheck, Settings, MessageSquareText,
   Circle, Lock, Home, FileText, Bell, Mail, Star, Heart, Bookmark, Wallet,
-  HelpCircle, Contact, Gift,
+  HelpCircle, Contact, Gift, Compass,
   type LucideIcon
 } from "lucide-react";
 
@@ -36,14 +36,15 @@ const defaultEmployeeItems: SidebarMenuItem[] = [
   { id: "progression", label: "La quête Fincare", icon: "TrendingUp", order: 2, visible: true, categoryId: "mon-espace" },
   { id: "parcours", label: "Mes parcours", icon: "GraduationCap", order: 3, visible: true, categoryId: "mon-espace" },
   { id: "simulations", label: "Mes simulations", icon: "Calculator", order: 4, visible: true, categoryId: "mon-espace" },
-  { id: "leaderboard", label: "Classement", icon: "Trophy", order: 5, visible: true, categoryId: "mon-espace" },
-  { id: "offers", label: "Offres du moment", icon: "Gift", order: 6, visible: true, categoryId: "mon-espace" },
-  { id: "appointments", label: "Mes rendez-vous", icon: "Calendar", order: 7, visible: true, categoryId: "mon-espace" },
-  { id: "webinars", label: "Mes webinaires", icon: "Video", order: 8, visible: true, categoryId: "mon-espace" },
-  { id: "invitations", label: "Mes invitations", icon: "Users", order: 9, visible: true, categoryId: "mon-espace" },
-  { id: "contacts", label: "Mes contacts", icon: "Contact", order: 10, visible: true, categoryId: "mon-espace" },
-  { id: "company", label: "Mon entreprise", icon: "Building2", order: 11, visible: true },
-  { id: "forum", label: "Communauté", icon: "MessageSquareText", order: 12, visible: true },
+  { id: "horizon", label: "Horizon Patrimonial", icon: "Compass", order: 5, visible: true, categoryId: "mon-espace" },
+  { id: "leaderboard", label: "Classement", icon: "Trophy", order: 6, visible: true, categoryId: "mon-espace" },
+  { id: "offers", label: "Offres du moment", icon: "Gift", order: 7, visible: true, categoryId: "mon-espace" },
+  { id: "appointments", label: "Mes rendez-vous", icon: "Calendar", order: 8, visible: true, categoryId: "mon-espace" },
+  { id: "webinars", label: "Mes webinaires", icon: "Video", order: 9, visible: true, categoryId: "mon-espace" },
+  { id: "invitations", label: "Mes invitations", icon: "Users", order: 10, visible: true, categoryId: "mon-espace" },
+  { id: "contacts", label: "Mes contacts", icon: "Contact", order: 11, visible: true, categoryId: "mon-espace" },
+  { id: "company", label: "Mon entreprise", icon: "Building2", order: 12, visible: true },
+  { id: "forum", label: "Communauté", icon: "MessageSquareText", order: 13, visible: true },
 ];
 
 const defaultCompanyItems: SidebarMenuItem[] = [
@@ -60,7 +61,7 @@ const iconMap: Record<string, LucideIcon> = {
   User, UserCircle, TrendingUp, GraduationCap, Calculator, Trophy,
   Calendar, Video, Users, Building2, UserCheck, Settings, MessageSquareText,
   Circle, Lock, Home, FileText, Bell, Mail, Star, Heart, Bookmark, Wallet,
-  HelpCircle, Contact, Gift,
+  HelpCircle, Contact, Gift, Compass,
 };
 
 export const getIconComponent = (iconName: string): LucideIcon => {

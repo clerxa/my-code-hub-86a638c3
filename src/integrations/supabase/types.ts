@@ -2482,6 +2482,138 @@ export type Database = {
         }
         Relationships: []
       }
+      horizon_budgets: {
+        Row: {
+          created_at: string
+          id: string
+          total_initial_capital: number
+          total_monthly_savings: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          total_initial_capital?: number
+          total_monthly_savings?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          total_initial_capital?: number
+          total_monthly_savings?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      horizon_project_categories: {
+        Row: {
+          color: string
+          created_at: string
+          display_order: number
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          display_order?: number
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          display_order?: number
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      horizon_projects: {
+        Row: {
+          annual_return_rate: number | null
+          apport: number
+          category_id: string | null
+          created_at: string
+          custom_category: string | null
+          duration_months: number | null
+          icon: string
+          id: string
+          monthly_allocation: number
+          name: string
+          notes: string | null
+          placement_product_id: string | null
+          status: string
+          target_amount: number
+          target_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          annual_return_rate?: number | null
+          apport?: number
+          category_id?: string | null
+          created_at?: string
+          custom_category?: string | null
+          duration_months?: number | null
+          icon?: string
+          id?: string
+          monthly_allocation?: number
+          name: string
+          notes?: string | null
+          placement_product_id?: string | null
+          status?: string
+          target_amount?: number
+          target_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          annual_return_rate?: number | null
+          apport?: number
+          category_id?: string | null
+          created_at?: string
+          custom_category?: string | null
+          duration_months?: number | null
+          icon?: string
+          id?: string
+          monthly_allocation?: number
+          name?: string
+          notes?: string | null
+          placement_product_id?: string | null
+          status?: string
+          target_amount?: number
+          target_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horizon_projects_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "horizon_project_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horizon_projects_placement_product_id_fkey"
+            columns: ["placement_product_id"]
+            isOneToOne: false
+            referencedRelation: "financial_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hubspot_appointments: {
         Row: {
           booking_source: string | null

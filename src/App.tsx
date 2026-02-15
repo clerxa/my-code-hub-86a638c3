@@ -71,6 +71,7 @@ import ExpertBookingLanding from "./pages/ExpertBookingLanding";
 import NotFound from "./pages/NotFound";
 import TaxDeclarationHelp from "./pages/TaxDeclarationHelp";
 import Diagnostic from "./pages/Diagnostic";
+import Horizon from "./pages/Horizon";
 import { Navigate } from "react-router-dom";
 
 /**
@@ -221,6 +222,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Diagnostic />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/horizon"
+              element={
+                <ProtectedRoute>
+                  <Horizon />
                 </ProtectedRoute>
               }
             />

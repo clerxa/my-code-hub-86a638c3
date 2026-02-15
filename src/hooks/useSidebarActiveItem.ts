@@ -11,6 +11,7 @@ const EMPLOYEE_ROUTE_MAP: Record<string, string[]> = {
   "financial-profile": ["/employee/profile"],
   "parcours": ["/parcours"],
   "simulations": ["/employee/simulations"],
+  "horizon": ["/employee/horizon"],
   "forum": ["/forum"],
   // "company" is dynamic (/company/:id), handled separately
 };
