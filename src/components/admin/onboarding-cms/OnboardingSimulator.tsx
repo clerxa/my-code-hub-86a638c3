@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OnboardingScreen, CalculationConfig } from "@/types/onboarding-cms";
+import { safeMathEval } from "@/lib/safe-math-eval";
 
 interface OnboardingSimulatorProps {
   screens: OnboardingScreen[];
@@ -136,9 +137,8 @@ export function OnboardingSimulator({ screens }: OnboardingSimulatorProps) {
             const value = responses[screenId] ?? 0;
             formula = formula.replace(match[0], String(value));
           }
-          // Safely evaluate the formula (only basic math operations)
-          // eslint-disable-next-line no-new-func
-          const result = Function('"use strict"; return (' + formula + ')')();
+          // Safely evaluate using allowlisted math-only parser (no code execution)
+          const result = safeMathEval(formula);
           return Math.round(result);
         } catch (e) {
           console.error('Formula evaluation error:', e);
