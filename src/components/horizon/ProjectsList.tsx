@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Trash2, Pencil, TrendingUp, AlertTriangle, MessageCircle, Sparkles } from "lucide-react";
+import { Plus, Trash2, Pencil, TrendingUp, AlertTriangle, MessageCircle, Sparkles, Check } from "lucide-react";
 import { getProjectIcon } from "./projectIcons";
 import { ProjectProjection } from "./ProjectProjection";
 import type { HorizonProject } from "@/hooks/useHorizonProjects";
@@ -19,6 +19,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import confetti from "canvas-confetti";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ProjectsListProps {
   projects: HorizonProject[];
@@ -72,6 +74,7 @@ function computeRequiredMonthly(project: HorizonProject): number {
 export function ProjectsList({ projects, budget, availableCapital, availableMonthly, onAddProject, onEditProject, onDeleteProject, onUpdateProject }: ProjectsListProps) {
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [adjustingId, setAdjustingId] = useState<string | null>(null);
+  const [successId, setSuccessId] = useState<string | null>(null);
   const activeProjects = projects.filter(p => p.status === 'active');
 
   return (
@@ -201,16 +204,46 @@ export function ProjectsList({ projects, budget, availableCapital, availableMont
                         variant="outline"
                         size="sm"
                         className="flex-1 gap-2 text-xs border-primary/30 text-primary hover:bg-primary/10"
-                        disabled={adjustingId === project.id}
-                        onClick={async () => {
+                        disabled={adjustingId === project.id || successId === project.id}
+                        onClick={async (e) => {
                           const required = computeRequiredMonthly(project);
                           setAdjustingId(project.id);
                           await onUpdateProject(project.id, { monthly_allocation: required });
                           setAdjustingId(null);
+                          setSuccessId(project.id);
+                          
+                          // Fire confetti from button position
+                          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                          const x = (rect.left + rect.width / 2) / window.innerWidth;
+                          const y = (rect.top + rect.height / 2) / window.innerHeight;
+                          confetti({
+                            particleCount: 80,
+                            spread: 70,
+                            origin: { x, y },
+                            colors: ['#3B82F6', '#F59E0B', '#8B5CF6', '#10B981'],
+                          });
+
+                          setTimeout(() => setSuccessId(null), 2500);
                         }}
                       >
-                        <Sparkles className="h-3.5 w-3.5" />
-                        {adjustingId === project.id ? "Ajustement…" : "Ajuster mes versements pour atteindre mon objectif"}
+                        <AnimatePresence mode="wait">
+                          {adjustingId === project.id ? (
+                            <motion.span key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                              <Sparkles className="h-3.5 w-3.5 animate-spin" />
+                              Ajustement…
+                            </motion.span>
+                          ) : successId === project.id ? (
+                            <motion.span key="success" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2 text-emerald-500">
+                              <Check className="h-3.5 w-3.5" />
+                              Versements ajustés ✨
+                            </motion.span>
+                          ) : (
+                            <motion.span key="default" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                              <Sparkles className="h-3.5 w-3.5" />
+                              Ajuster mes versements pour atteindre mon objectif
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
                       </Button>
                       {pct < 100 && (
                         <Button
