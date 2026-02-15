@@ -65,6 +65,26 @@ const DEFAULT_FISCAL_RULES: FiscalRules = {
   pinel_om_rate_9_years: 29,
   pinel_om_rate_12_years: 32,
   pinel_ceiling: 300000,
+  // PVI
+  pvi_taux_ir: 19,
+  pvi_taux_ps: 17.2,
+  pvi_forfait_frais_acquisition: 7.5,
+  pvi_forfait_travaux: 15,
+  pvi_abattement_ir_taux_annuel: 6,
+  pvi_abattement_ir_taux_22e: 4,
+  pvi_abattement_ir_debut_annee: 6,
+  pvi_abattement_ir_exoneration_annee: 22,
+  pvi_abattement_ps_phase1_rate: 1.65,
+  pvi_abattement_ps_phase2_rate: 1.60,
+  pvi_abattement_ps_phase3_rate: 9,
+  pvi_abattement_ps_exoneration_annee: 30,
+  pvi_surtaxe_brackets: [
+    { seuil: 50000, taux: 2 },
+    { seuil: 100000, taux: 3 },
+    { seuil: 150000, taux: 4 },
+    { seuil: 200000, taux: 5 },
+    { seuil: 250000, taux: 6 },
+  ],
 };
 
 const DEFAULT_LEAD_QUALIFICATION: LeadQualification = {
@@ -98,6 +118,19 @@ const DEFAULT_SIMULATION_DEFAULTS: SimulationDefaults = {
   epargne_seuil_charges_moyen: 0.5,
   epargne_seuil_charges_eleve: 0.6,
   epargne_objectif_mois: 12,
+  // Capacité d'épargne
+  brut_net_ratio: 78,
+  optimisation_reduction_rate: 10,
+  budget_rule_besoins: 50,
+  budget_rule_envies: 30,
+  budget_rule_epargne: 20,
+  // Seuils endettement
+  endettement_excellent: 30,
+  endettement_bon: 33,
+  endettement_limite: 35,
+  // Défauts PER
+  default_age_actuel: 35,
+  default_versement_per: 5000,
 };
 
 const DEFAULT_PRODUCT_CONSTANTS: ProductConstants = {

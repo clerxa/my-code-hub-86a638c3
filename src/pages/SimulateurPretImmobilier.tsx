@@ -15,6 +15,7 @@ import { SimulationValidationOverlay } from '@/components/simulators/SimulationV
 import { useSimulationTracking } from '@/hooks/useSimulationTracking';
 import { useCTARulesEngine } from '@/hooks/useCTARulesEngine';
 import { useSimulationLoader } from '@/hooks/useSimulationLoader';
+import { useSimulationDefaults } from '@/contexts/GlobalSettingsContext';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { format } from 'date-fns';
 
@@ -22,6 +23,7 @@ const SimulateurPretImmobilier = () => {
   const navigate = useNavigate();
   const { calculerSimulation } = usePretImmobilierCalculations();
   const { getPrefillData, hasProfile, isLoading: isProfileLoading } = useFinancialProfilePrefill();
+  const simulationDefaults = useSimulationDefaults();
   
   // Simulation tracking
   const {
@@ -132,8 +134,8 @@ const SimulateurPretImmobilier = () => {
 
   const getEndettementStatus = (taux: number | null) => {
     if (taux === null) return { status: 'Non calculé', variant: 'default' as const };
-    if (taux <= 30) return { status: 'Excellent', variant: 'success' as const };
-    if (taux <= 35) return { status: 'Limite haute', variant: 'warning' as const };
+    if (taux <= simulationDefaults.endettement_excellent) return { status: 'Excellent', variant: 'success' as const };
+    if (taux <= simulationDefaults.endettement_limite) return { status: 'Limite haute', variant: 'warning' as const };
     return { status: 'Trop élevé', variant: 'warning' as const };
   };
 

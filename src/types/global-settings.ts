@@ -20,6 +20,11 @@ export interface TaxBracket {
   taux: number;
 }
 
+export interface PVISurtaxeBracket {
+  seuil: number;
+  taux: number;
+}
+
 export interface FiscalRules {
   // Tax brackets
   tax_brackets: TaxBracket[];
@@ -83,6 +88,21 @@ export interface FiscalRules {
   pinel_om_rate_9_years: number;
   pinel_om_rate_12_years: number;
   pinel_ceiling: number;
+  
+  // PVI (Plus-Value Immobilière)
+  pvi_taux_ir: number;
+  pvi_taux_ps: number;
+  pvi_forfait_frais_acquisition: number;
+  pvi_forfait_travaux: number;
+  pvi_abattement_ir_taux_annuel: number;
+  pvi_abattement_ir_taux_22e: number;
+  pvi_abattement_ir_debut_annee: number;
+  pvi_abattement_ir_exoneration_annee: number;
+  pvi_abattement_ps_phase1_rate: number;
+  pvi_abattement_ps_phase2_rate: number;
+  pvi_abattement_ps_phase3_rate: number;
+  pvi_abattement_ps_exoneration_annee: number;
+  pvi_surtaxe_brackets: PVISurtaxeBracket[];
 }
 
 export interface LeadQualification {
@@ -117,6 +137,19 @@ export interface SimulationDefaults {
   epargne_seuil_charges_moyen: number;
   epargne_seuil_charges_eleve: number;
   epargne_objectif_mois: number;
+  // Capacité d'épargne
+  brut_net_ratio: number;
+  optimisation_reduction_rate: number;
+  budget_rule_besoins: number;
+  budget_rule_envies: number;
+  budget_rule_epargne: number;
+  // Seuils endettement
+  endettement_excellent: number;
+  endettement_bon: number;
+  endettement_limite: number;
+  // Défauts PER
+  default_age_actuel: number;
+  default_versement_per: number;
 }
 
 export interface ProductConstants {

@@ -50,5 +50,7 @@ export const BAREME_2025: BaremeFiscal[] = [
   { seuil: 177106, taux: 0.45 },
 ];
 
+/** @deprecated Utiliser useFiscalRules().per_ceiling_min depuis GlobalSettingsContext */
 export const PLAFOND_PER_MIN = 4114;
+/** @deprecated Utiliser useFiscalRules().per_ceiling_max depuis GlobalSettingsContext */
 export const PLAFOND_PER_MAX = 35194;

@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
 import { cn } from "@/lib/utils";
-import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
+import { useFiscalRules, useSimulationDefaults } from "@/contexts/GlobalSettingsContext";
 import { calculateImpotAnnuel } from "@/utils/taxCalculations";
 
 // ─── Types ──────────────────────────────────────────────
@@ -72,6 +72,7 @@ const SimulateurCapaciteEpargne = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { tax_brackets } = useFiscalRules();
+  const simulationDefaults = useSimulationDefaults();
   const { getPrefillData, hasProfile } = useFinancialProfilePrefill();
   const { validateSimulation } = useSimulationTracking();
 
@@ -94,11 +95,11 @@ const SimulateurCapaciteEpargne = () => {
     const p = data.profile;
     const newValues: FormValues = {};
 
-    // Salaire net mensuel : on prend revenu_mensuel_net, sinon on menusalise le revenu annuel brut (approx net = brut * 0.78 / 12)
+    // Salaire net mensuel : on prend revenu_mensuel_net, sinon on menusalise le revenu annuel brut
     if (p.revenu_mensuel_net > 0) {
       newValues.salaire = Math.round(p.revenu_mensuel_net / 12);
     } else if (p.revenu_annuel_brut > 0) {
-      newValues.salaire = Math.round((p.revenu_annuel_brut * 0.78) / 12);
+      newValues.salaire = Math.round((p.revenu_annuel_brut * (simulationDefaults.brut_net_ratio / 100)) / 12);
     }
     if (p.autres_revenus_mensuels > 0) newValues.autresRevenus = p.autres_revenus_mensuels;
     // Revenus locatifs mensualisés
@@ -143,7 +144,7 @@ const SimulateurCapaciteEpargne = () => {
     const besoins = sum(STEP_2_FIELDS.map(f => f.key));
     let envies = sum(STEP_3_FIELDS.map(f => f.key));
 
-    if (optimisation) envies = Math.round(envies * 0.9);
+    if (optimisation) envies = Math.round(envies * (1 - simulationDefaults.optimisation_reduction_rate / 100));
 
     const epargne = Math.max(0, revenus - besoins - envies);
     const projectionAnnuelle = epargne * 12;
@@ -460,12 +461,12 @@ const SimulateurCapaciteEpargne = () => {
 
               <Card>
                 <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">Jauge 50/30/20</h3>
+                  <h3 className="font-semibold mb-4">Jauge {simulationDefaults.budget_rule_besoins}/{simulationDefaults.budget_rule_envies}/{simulationDefaults.budget_rule_epargne}</h3>
                   <div className="space-y-5">
                     {[
-                      { label: "Besoins", actual: calculations.pctBesoins, ideal: 50, color: "bg-primary" },
-                      { label: "Envies", actual: calculations.pctEnvies, ideal: 30, color: "bg-amber-500" },
-                      { label: "Épargne", actual: calculations.pctEpargne, ideal: 20, color: "bg-emerald-500" },
+                      { label: "Besoins", actual: calculations.pctBesoins, ideal: simulationDefaults.budget_rule_besoins, color: "bg-primary" },
+                      { label: "Envies", actual: calculations.pctEnvies, ideal: simulationDefaults.budget_rule_envies, color: "bg-amber-500" },
+                      { label: "Épargne", actual: calculations.pctEpargne, ideal: simulationDefaults.budget_rule_epargne, color: "bg-emerald-500" },
                     ].map(g => (
                       <div key={g.label} className="space-y-1.5">
                         <div className="flex items-center justify-between text-sm">

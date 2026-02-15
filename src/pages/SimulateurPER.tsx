@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { UserCircle, Euro, Calendar, TrendingUp, PiggyBank, Wallet, List } from "lucide-react";
 import { usePERCalculations } from "@/hooks/usePERCalculations";
+import { useSimulationDefaults, useProductConstants } from "@/contexts/GlobalSettingsContext";
 import { useToast } from "@/hooks/use-toast";
 import { useCTARulesEngine } from "@/hooks/useCTARulesEngine";
 import { useQueryClient } from "@tanstack/react-query";
@@ -28,6 +29,8 @@ const SimulateurPER = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { calculerSimulationLocale, calculerPlafondPER, isLoading: isCalculating } = usePERCalculations();
+  const simulationDefaults = useSimulationDefaults();
+  const productConstants = useProductConstants();
   const { getPrefillData, hasProfile, isLoading: isProfileLoading } = useFinancialProfilePrefill();
 
   // ID de simulation depuis l'URL
@@ -44,10 +47,10 @@ const SimulateurPER = () => {
   const [revenusProfessionnels, setRevenusProfessionnels] = useState(50000);
   const [partsFiscales, setPartsFiscales] = useState(1);
   const [situationFamiliale, setSituationFamiliale] = useState<'celibataire' | 'couple'>('celibataire');
-  const [ageActuel, setAgeActuel] = useState(35);
-  const [ageRetraite, setAgeRetraite] = useState(64);
+  const [ageActuel, setAgeActuel] = useState(simulationDefaults.default_age_actuel);
+  const [ageRetraite, setAgeRetraite] = useState(productConstants.retirement_age_default);
   const [plafondReportable, setPlafondReportable] = useState(0);
-  const [versementsPER, setVersementsPER] = useState(5000);
+  const [versementsPER, setVersementsPER] = useState(simulationDefaults.default_versement_per);
   
   // Hook de sauvegarde unifié
   const {

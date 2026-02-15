@@ -38,6 +38,9 @@ const SUBCATEGORIES: Record<string, Record<string, string>> = {
     'esus_': 'PME & Investissements',
     'per_': 'PER',
     'qf_': 'Quotient familial',
+    'pvi_abattement': 'PVI - Abattements',
+    'pvi_surtaxe': 'PVI - Surtaxe',
+    'pvi_': 'PVI - Taux de base',
     'default': 'Autres règles fiscales',
   },
   recommendation_thresholds: {
@@ -61,6 +64,10 @@ const SUBCATEGORIES: Record<string, Record<string, string>> = {
     'epargne_coef': 'Épargne - Coefficients métier',
     'epargne_seuil': 'Épargne - Seuils scoring',
     'epargne_objectif': 'Épargne - Objectifs',
+    'brut_net': 'Capacité d\'épargne',
+    'optimisation_': 'Capacité d\'épargne',
+    'budget_rule': 'Règle budgétaire (50/30/20)',
+    'endettement_': 'Seuils endettement',
     'default': 'Autres paramètres',
   },
   lead_qualification: {
