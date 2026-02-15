@@ -13,6 +13,7 @@ import { usePVICalculations } from '@/hooks/usePVICalculations';
 import { SaveSimulationDialog } from '@/components/simulators/SaveSimulationDialog';
 import { useUnifiedSimulationSave } from '@/hooks/useUnifiedSimulationSave';
 import { SimulatorHeader } from '@/components/simulators/SimulatorHeader';
+import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer';
 import { format } from 'date-fns';
 import type { PVIFormInputs, PVICalculationResult } from '@/types/pvi';
 
@@ -166,6 +167,8 @@ const SimulateurPVI: React.FC = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <SimulatorDisclaimer />
       </div>
       
       <SaveSimulationDialog

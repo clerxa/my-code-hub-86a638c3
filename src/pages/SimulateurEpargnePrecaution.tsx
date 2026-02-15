@@ -15,6 +15,7 @@ import { SimulatorStepField } from "@/components/simulators/SimulatorStepField";
 import { SimulatorResultsSection, ResultCard } from "@/components/simulators/SimulatorResultsSection";
 import { SimulationValidationOverlay } from "@/components/simulators/SimulationValidationOverlay";
 import { SaveSimulationDialog } from "@/components/simulators/SaveSimulationDialog";
+import { SimulatorDisclaimer } from "@/components/simulators/SimulatorDisclaimer";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -818,6 +819,10 @@ const SimulateurEpargnePrecaution = () => {
         simulatorName="Épargne de précaution"
         simulatorId="epargne_precaution"
       />
+
+      <div className="container mx-auto px-4 max-w-4xl pb-8">
+        <SimulatorDisclaimer />
+      </div>
 
       <SaveSimulationDialog
         open={showSaveDialog}

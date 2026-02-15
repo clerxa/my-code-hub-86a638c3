@@ -16,6 +16,7 @@ import { SimulatorWizard, SimulatorStep } from '@/components/simulators/Simulato
 import { SimulatorStepField } from '@/components/simulators/SimulatorStepField';
 import { SimulatorResultsSection, ResultCard } from '@/components/simulators/SimulatorResultsSection';
 import { SimulationValidationOverlay } from '@/components/simulators/SimulationValidationOverlay';
+import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer';
 import { useSimulationTracking } from '@/hooks/useSimulationTracking';
 import { useCTARulesEngine } from '@/hooks/useCTARulesEngine';
 import { useSimulationLoader } from '@/hooks/useSimulationLoader';
@@ -598,6 +599,10 @@ const SimulateurCapaciteEmprunt = () => {
           resultsContent={resultsContent}
           backPath="/employee/simulations"
         />
+      </div>
+
+      <div className="container mx-auto px-4 max-w-4xl pb-8">
+        <SimulatorDisclaimer />
       </div>
 
       <SaveSimulationDialog

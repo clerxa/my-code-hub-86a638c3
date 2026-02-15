@@ -16,6 +16,7 @@ import { SimulatorStepField } from "@/components/simulators/SimulatorStepField";
 import { SimulatorResultsSection, ResultCard } from "@/components/simulators/SimulatorResultsSection";
 import { SimulationValidationOverlay } from "@/components/simulators/SimulationValidationOverlay";
 import { SaveSimulationDialog } from "@/components/simulators/SaveSimulationDialog";
+import { SimulatorDisclaimer } from "@/components/simulators/SimulatorDisclaimer";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUnifiedSimulationSave } from "@/hooks/useUnifiedSimulationSave";
@@ -848,12 +849,9 @@ const SimulateurGestionPilotee = () => {
       </div>
 
       {/* Disclaimer */}
-      <Alert variant="default" className="mt-6 border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/30">
-        <Info className="h-4 w-4 text-amber-600" />
-        <AlertDescription className="text-amber-800 dark:text-amber-200 text-xs">
-          Outil pédagogique uniquement. Ce simulateur est à vocation éducative et ne constitue ni un conseil en investissement, ni une recommandation personnalisée. Les projections sont purement indicatives et ne garantissent aucun résultat. Les performances passées ne préjugent pas des performances futures. Consultez un conseiller certifié avant toute décision financière.
-        </AlertDescription>
-      </Alert>
+      <div className="mt-6">
+        <SimulatorDisclaimer />
+      </div>
     </SimulatorResultsSection>
   );
 

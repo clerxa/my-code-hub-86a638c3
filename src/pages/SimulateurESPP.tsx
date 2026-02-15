@@ -13,6 +13,7 @@ import { PlanESPPStep } from "@/components/espp/PlanESPPStep";
 import { ResultatsStep } from "@/components/espp/ResultatsStep";
 import { VentesStep } from "@/components/espp/VentesStep";
 import { useESPPCalculations } from "@/hooks/useESPPCalculations";
+import { SimulatorDisclaimer } from "@/components/simulators/SimulatorDisclaimer";
 
 type Step = 'profil' | 'plans' | 'ventes' | 'resultats';
 
@@ -478,6 +479,7 @@ const SimulateurESPP = () => {
             onFinish={handleFinish}
           />
         )}
+        <SimulatorDisclaimer />
       </div>
     </div>
   );
