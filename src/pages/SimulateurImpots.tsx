@@ -21,10 +21,7 @@ import { format } from "date-fns";
 import { TaxInputForm, TaxResultsSection, TaxBracketChart } from "@/components/simulators/impots";
 
 import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
-import { calculateImpotDetaille } from "@/utils/taxCalculations";
-
-// Plafonnement quotient familial 2025 : 1759€ par demi-part supplémentaire
-const PLAFOND_DEMI_PART = 1759;
+import { calculateImpotDetaille, calculatePartsFiscales, getPlafondDemiPart } from "@/utils/taxCalculations";
 
 interface TaxResult {
   parts: number;
@@ -41,7 +38,8 @@ interface TaxResult {
 const SimulateurImpots = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { tax_brackets } = useFiscalRules();
+  const fiscalRules = useFiscalRules();
+  const { tax_brackets } = fiscalRules;
   const { getPrefillData, hasProfile, isLoading: profileLoading } = useFinancialProfilePrefill();
   const [isProfilePrefilled, setIsProfilePrefilled] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -131,35 +129,7 @@ const SimulateurImpots = () => {
   }, [profileLoading, hasProfile, isFromHistory]);
 
   const calculerParts = (statut: string, enfants: number): number => {
-    let parts = 0;
-    
-    switch (statut) {
-      case "marie":
-      case "pacs":
-        parts = 2;
-        break;
-      case "celibataire":
-      case "divorce":
-      case "separe":
-      case "union-libre":
-        parts = 1;
-        break;
-      case "veuf":
-        parts = 1;
-        break;
-      default:
-        parts = 1;
-    }
-
-    if (enfants === 1) {
-      parts += 0.5;
-    } else if (enfants === 2) {
-      parts += 1;
-    } else if (enfants >= 3) {
-      parts += 1 + (enfants - 2) * 1;
-    }
-
-    return parts;
+    return calculatePartsFiscales(statut, enfants, fiscalRules);
   };
 
   const calculerImpot = (revenu: number, parts: number): { impot: number; tauxMarginal: number } => {
@@ -173,9 +143,9 @@ const SimulateurImpots = () => {
     const { impot: impotCelibataire } = calculerImpot(revenu, 1);
     const { impot: impotActuel } = calculerImpot(revenu, partsActuelles);
     
-    // Appliquer le plafonnement du QF
-    const demiPartsSupp = (partsActuelles - 1) * 2; // Nombre de demi-parts supplémentaires
-    const plafondTotal = demiPartsSupp * PLAFOND_DEMI_PART;
+    const plafondDemiPart = getPlafondDemiPart(fiscalRules);
+    const demiPartsSupp = (partsActuelles - 1) * 2;
+    const plafondTotal = demiPartsSupp * plafondDemiPart;
     const economieTheorique = impotCelibataire - impotActuel;
     
     return Math.min(economieTheorique, plafondTotal);

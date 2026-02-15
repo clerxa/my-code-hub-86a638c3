@@ -37,6 +37,7 @@ const SUBCATEGORIES: Record<string, Record<string, string>> = {
     'pme_': 'PME & Investissements',
     'esus_': 'PME & Investissements',
     'per_': 'PER',
+    'qf_': 'Quotient familial',
     'default': 'Autres règles fiscales',
   },
   recommendation_thresholds: {
