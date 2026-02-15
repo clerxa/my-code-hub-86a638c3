@@ -255,6 +255,18 @@ export const PVIDataSchema = z.object({
   net_vendeur: z.number(),
 });
 
+export const GestionPiloteeDataSchema = z.object({
+  capital_initial: z.number(),
+  versement_mensuel: z.number(),
+  duree_annees: z.number(),
+  profile: z.string(),
+  product: z.string(),
+  capital_median: z.number().optional(),
+  capital_optimiste: z.number().optional(),
+  capital_pessimiste: z.number().optional(),
+  total_investi: z.number().optional(),
+});
+
 // ============================================
 // Types de simulation supportés
 // ============================================
@@ -270,6 +282,7 @@ export const SimulationType = z.enum([
   'epargne_precaution',
   'interets_composes',
   'pvi',
+  'gestion_pilotee',
 ]);
 
 export type SimulationType = z.infer<typeof SimulationType>;
@@ -289,6 +302,7 @@ export const SimulationDataSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('epargne_precaution'), data: EpargnePrecautionDataSchema }),
   z.object({ type: z.literal('interets_composes'), data: InteretsComposesDataSchema }),
   z.object({ type: z.literal('pvi'), data: PVIDataSchema }),
+  z.object({ type: z.literal('gestion_pilotee'), data: GestionPiloteeDataSchema }),
 ]);
 
 // ============================================
@@ -332,6 +346,7 @@ export const SIMULATION_TYPE_LABELS: Record<SimulationType, string> = {
   epargne_precaution: 'Épargne',
   interets_composes: 'Intérêts',
   pvi: 'Plus-Value Immo',
+  gestion_pilotee: 'Gestion Pilotée',
 };
 
 export const SIMULATION_TYPE_URLS: Record<SimulationType, { edit: string; view: string }> = {
@@ -345,4 +360,5 @@ export const SIMULATION_TYPE_URLS: Record<SimulationType, { edit: string; view: 
   epargne_precaution: { edit: '/simulateur-epargne-precaution', view: '/simulateur-epargne-precaution' },
   interets_composes: { edit: '/simulateur-interets-composes', view: '/simulateur-interets-composes' },
   pvi: { edit: '/simulateur-pvi', view: '/simulateur-pvi' },
+  gestion_pilotee: { edit: '/simulateur-gestion-pilotee', view: '/simulateur-gestion-pilotee' },
 };
