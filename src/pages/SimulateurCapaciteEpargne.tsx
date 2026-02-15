@@ -15,13 +15,14 @@ import { useSimulationTracking } from "@/hooks/useSimulationTracking";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   ChevronRight, ChevronLeft, Wallet, Home, Car, Zap, Shield,
   Wifi, CreditCard, GraduationCap, Receipt,
   ShoppingBag, Gamepad2, Tv, Gem, PiggyBank, TrendingUp,
-  Lightbulb, ArrowRight, PartyPopper, CheckCircle2, Copy,
+  Lightbulb, ArrowRight, PartyPopper, CheckCircle2, Copy, Info,
 } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
 import { cn } from "@/lib/utils";
 
 // ─── Types ──────────────────────────────────────────────
@@ -78,6 +79,7 @@ const SimulateurCapaciteEpargne = () => {
   const [optimisation, setOptimisation] = useState(false);
   const [values, setValues] = useState<FormValues>({});
   const [prefilled, setPrefilled] = useState(false);
+  const [prefilledKeys, setPrefilledKeys] = useState<Set<string>>(new Set());
   const [savingToProfile, setSavingToProfile] = useState(false);
 
   // Prefill from financial profile
@@ -112,11 +114,11 @@ const SimulateurCapaciteEpargne = () => {
       newValues.credits = (p.credits_consommation || 0) + (p.credits_auto || 0);
     if (p.charges_frais_scolarite > 0) newValues.scolarite = p.charges_frais_scolarite;
 
-    // Estimation impôts mensualisés à partir du salaire net
+    // Estimation impôts mensualisés (1 part fiscale uniquement)
     const salaireMensuel = newValues.salaire || 0;
     if (salaireMensuel > 0) {
       const revenuImposableAnnuel = p.revenu_fiscal_annuel > 0 ? p.revenu_fiscal_annuel : salaireMensuel * 12;
-      // Barème simplifié IR 2025
+      // Barème simplifié IR 2025 – 1 part
       let impotAnnuel = 0;
       const tranches = [
         { seuil: 11294, taux: 0 },
@@ -125,15 +127,13 @@ const SimulateurCapaciteEpargne = () => {
         { seuil: 177106, taux: 0.41 },
         { seuil: Infinity, taux: 0.45 },
       ];
-      let reste = revenuImposableAnnuel / (p.parts_fiscales || 1);
       let prev = 0;
       for (const t of tranches) {
-        const tranche = Math.min(reste, t.seuil) - prev;
+        const tranche = Math.min(revenuImposableAnnuel, t.seuil) - prev;
         if (tranche > 0) impotAnnuel += tranche * t.taux;
         prev = t.seuil;
-        if (reste <= t.seuil) break;
+        if (revenuImposableAnnuel <= t.seuil) break;
       }
-      impotAnnuel *= (p.parts_fiscales || 1);
       newValues.impots = Math.round(impotAnnuel / 12);
     }
 
@@ -141,6 +141,8 @@ const SimulateurCapaciteEpargne = () => {
     if (p.charges_abonnements > 0) newValues.abonnements = p.charges_abonnements;
     if (p.charges_autres > 0) newValues.shopping = p.charges_autres;
 
+    // Track which keys were prefilled
+    setPrefilledKeys(new Set(Object.keys(newValues)));
     setValues(newValues);
     setPrefilled(true);
   }, [getPrefillData, prefilled]);
@@ -322,14 +324,27 @@ const SimulateurCapaciteEpargne = () => {
                       <h2 className="text-lg font-bold">{stepTitles[step]}</h2>
                       <p className="text-sm text-muted-foreground mt-1">{stepSubtitles[step]}</p>
                     </div>
+                    <TooltipProvider>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {stepFields[step].map(field => {
                         const Icon = field.icon;
+                        const isPrefilled = prefilledKeys.has(field.key);
+                        const isImpots = field.key === "impots";
                         return (
                           <div key={field.key} className="space-y-1.5">
                             <Label className="text-sm font-medium flex items-center gap-2">
                               <Icon className="h-4 w-4 text-muted-foreground" />
                               {field.label}
+                              {isImpots && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="max-w-[250px] text-xs">
+                                    Estimé automatiquement sur la base d'une part fiscale. Le montant peut être modifié manuellement.
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
                             </Label>
                             <div className="relative">
                               <Input
@@ -342,10 +357,16 @@ const SimulateurCapaciteEpargne = () => {
                               />
                               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
                             </div>
+                            {isPrefilled && (
+                              <p className="text-[11px] text-primary/70 flex items-center gap-1">
+                                <CheckCircle2 className="h-3 w-3" /> Récupéré du profil financier
+                              </p>
+                            )}
                           </div>
                         );
                       })}
                     </div>
+                    </TooltipProvider>
 
                     <div className="flex items-center justify-between mt-6 pt-4 border-t">
                       {step > 0 ? (
@@ -419,7 +440,7 @@ const SimulateurCapaciteEpargne = () => {
                             <Cell key={i} fill={entry.fill} />
                           ))}
                         </Pie>
-                        <Tooltip
+                        <RechartsTooltip
                           formatter={(value: number) => `${fmt(value)} €`}
                           contentStyle={{
                             borderRadius: "8px",
