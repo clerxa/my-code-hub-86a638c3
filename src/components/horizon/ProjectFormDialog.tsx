@@ -33,6 +33,9 @@ interface Product {
   target_return: string | null;
   horizon_min_years: number | null;
   horizon_max_years: number | null;
+  risk_level: number | null;
+  liquidity_type: string | null;
+  disclaimer_specific: string | null;
 }
 
 interface RateTier {
@@ -98,7 +101,7 @@ export function ProjectFormDialog({
     const fetchData = async () => {
       const [{ data: cats }, { data: prods }, { data: tiers }, { data: links }] = await Promise.all([
         supabase.from("horizon_project_categories").select("id, name, icon, color").eq("is_active", true).order("display_order"),
-        supabase.from("financial_products").select("id, name, target_return, horizon_min_years, horizon_max_years").eq("is_active", true).order("display_order"),
+        supabase.from("financial_products").select("id, name, target_return, horizon_min_years, horizon_max_years, risk_level, liquidity_type, disclaimer_specific").eq("is_active", true).order("display_order"),
         supabase.from("product_rate_tiers").select("*").order("horizon_min_years"),
         supabase.from("product_category_links").select("product_id, category_id"),
       ]);
@@ -148,6 +151,19 @@ export function ProjectFormDialog({
       const minY = p.horizon_min_years ?? 1;
       const maxY = p.horizon_max_years ?? 40;
       return horizonYears >= minY && horizonYears <= maxY;
+    });
+  }, [allProducts, categoryId, horizonYears, productCategoryLinks]);
+
+  // Products locked by horizon (for hint message)
+  const lockedByHorizon = useMemo(() => {
+    if (!categoryId) return [];
+    const linkedIds = productCategoryLinks.filter(l => l.category_id === categoryId).map(l => l.product_id);
+    const hasLinks = productCategoryLinks.some(l => l.category_id === categoryId);
+
+    return allProducts.filter(p => {
+      if (hasLinks && !linkedIds.includes(p.id)) return false;
+      const minY = p.horizon_min_years ?? 1;
+      return horizonYears < minY;
     });
   }, [allProducts, categoryId, horizonYears, productCategoryLinks]);
 
@@ -549,9 +565,18 @@ export function ProjectFormDialog({
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-foreground">{p.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {tier?.label || p.target_return || `${rate}% / an`}
-                            </p>
+                            <div className="flex flex-wrap gap-2 mt-0.5">
+                              {p.risk_level != null && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                  Risque {p.risk_level}/7
+                                </span>
+                              )}
+                              {p.liquidity_type && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                  Liquidité : {p.liquidity_type}
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <div className="text-right flex-shrink-0">
                             <p className="text-lg font-bold text-primary">{rate}%</p>
@@ -563,11 +588,29 @@ export function ProjectFormDialog({
                   </div>
                 )}
 
+                {/* Locked products hint */}
+                {lockedByHorizon.length > 0 && (
+                  <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-lg p-3 text-xs text-amber-700 dark:text-amber-400 flex items-start gap-2">
+                    <AlertTriangle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                    <span>
+                      Augmentez votre horizon pour débloquer des placements plus performants ({lockedByHorizon.map(p => p.name).join(", ")}).
+                    </span>
+                  </div>
+                )}
+
                 {productId !== "none" && (
-                  <div className="bg-muted/40 rounded-lg p-3 text-xs text-muted-foreground">
-                    <Info className="h-3.5 w-3.5 inline mr-1" />
-                    Taux estimé pour un horizon de {horizonLabel(horizonYears)} :{" "}
-                    <strong className="text-foreground">{computedRate}% / an</strong>
+                  <div className="bg-muted/40 rounded-lg p-3 text-xs text-muted-foreground space-y-1">
+                    <p>
+                      <Info className="h-3.5 w-3.5 inline mr-1" />
+                      Taux estimé pour un horizon de {horizonLabel(horizonYears)} :{" "}
+                      <strong className="text-foreground">{computedRate}% / an</strong>
+                    </p>
+                    {(() => {
+                      const selected = allProducts.find(p => p.id === productId);
+                      return selected?.disclaimer_specific ? (
+                        <p className="italic text-[10px] leading-tight mt-1">{selected.disclaimer_specific}</p>
+                      ) : null;
+                    })()}
                   </div>
                 )}
               </div>
