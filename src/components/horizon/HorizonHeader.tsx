@@ -8,7 +8,7 @@ export function HorizonHeader() {
           <Compass className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Horizon empowered by MyFinCare</h1>
+          <h1 className="text-2xl font-bold text-foreground">Horizon empowered by FinCare</h1>
           <p className="text-sm text-muted-foreground">
             Votre simulateur de pilotage patrimonial — planifiez et suivez vos projets financiers
           </p>
