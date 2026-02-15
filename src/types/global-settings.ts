@@ -61,6 +61,16 @@ export interface FiscalRules {
   girardin_rate_t3: number;
   girardin_rate_t4: number;
   
+  // Quotient familial
+  qf_base_celibataire: number;
+  qf_base_couple: number;
+  qf_base_veuf_avec_enfants: number;
+  qf_enfant_1: number;
+  qf_enfant_2: number;
+  qf_enfant_suivant: number;
+  qf_bonus_parent_isole: number;
+  qf_plafond_demi_part: number;
+  
   // LMNP
   micro_bic_abatement: number;
   micro_bic_threshold: number;

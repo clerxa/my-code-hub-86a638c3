@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { calculateTMI } from "@/utils/taxCalculations";
+import { calculateTMI, calculatePartsFiscales } from "@/utils/taxCalculations";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -55,21 +55,12 @@ const initialFormData: TaxDeclarationFormData = {
   commentaires: '',
 };
 
-// Calcul de la TMI selon les barèmes français 2025 (revenus 2024)
-// Note: utilise les global_settings via le composant qui appelle cette fonction
-const calculateTMIFromBrackets = (revenuImposable: number, situationMaritale: string, nbEnfants: number, brackets?: import('@/types/global-settings').TaxBracket[]): string => {
+// Calcul de la TMI selon les barèmes français — utilise les fonctions centralisées
+const calculateTMIFromBrackets = (revenuImposable: number, situationMaritale: string, nbEnfants: number): string => {
   if (!revenuImposable || revenuImposable === 0) return '';
   
-  // Calcul des parts fiscales
-  const isCouple = ['marie', 'pacse'].includes(situationMaritale);
-  let parts = isCouple ? 2 : 1;
-  
-  // Enfants : 0.5 pour les 2 premiers, 1 pour les suivants
-  if (nbEnfants >= 1) parts += 0.5;
-  if (nbEnfants >= 2) parts += 0.5;
-  if (nbEnfants >= 3) parts += nbEnfants - 2;
-  
-  const tmi = calculateTMI(revenuImposable, parts, brackets);
+  const parts = calculatePartsFiscales(situationMaritale, nbEnfants);
+  const tmi = calculateTMI(revenuImposable, parts);
   return String(tmi);
 };
 

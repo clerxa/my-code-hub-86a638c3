@@ -3,6 +3,7 @@ import { OptimisationFiscaleSimulation, PlafondInfo, PlafondDetail } from "@/typ
 import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { calculatePartsFiscales } from "@/utils/taxCalculations";
 
 interface CalculationResult {
   parts_fiscales: number;
@@ -36,25 +37,7 @@ export const useOptimisationFiscaleCalculations = () => {
   // ===== FONCTIONS LOCALES (pour preview instantanée) =====
   
   const calculerPartsFiscalesLocale = (situationFamiliale: string, nbEnfants: number): number => {
-    let parts = 0;
-    
-    if (situationFamiliale === 'celibataire' || situationFamiliale === 'divorce') {
-      parts = 1;
-    } else if (situationFamiliale === 'marie' || situationFamiliale === 'pacse') {
-      parts = 2;
-    } else if (situationFamiliale === 'veuf') {
-      parts = 1;
-    }
-    
-    if (nbEnfants === 1) {
-      parts += 0.5;
-    } else if (nbEnfants === 2) {
-      parts += 1;
-    } else if (nbEnfants >= 3) {
-      parts += 1 + (nbEnfants - 2);
-    }
-    
-    return parts;
+    return calculatePartsFiscales(situationFamiliale, nbEnfants, fiscalRules);
   };
 
   const calculerTMILocale = (revenuImposable: number, situationFamiliale: string, nbEnfants: number): number => {

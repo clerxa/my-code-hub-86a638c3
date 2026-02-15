@@ -2,10 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
-import { calculateImpotDetaille } from "@/utils/taxCalculations";
-
-// Plafonnement quotient familial 2025 : 1759€ par demi-part supplémentaire
-const PLAFOND_DEMI_PART = 1759;
+import { calculateImpotDetaille, calculatePartsFiscales, getPlafondDemiPart } from "@/utils/taxCalculations";
 
 interface CalculInputs {
   revenu_imposable: number;
@@ -36,39 +33,11 @@ interface CalculationResult {
 
 export const useImpotsCalculations = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { tax_brackets } = useFiscalRules();
+  const fiscalRules = useFiscalRules();
+  const { tax_brackets } = fiscalRules;
 
-  // Calcul local pour preview instantanée
   const calculerPartsLocale = (statut: string, enfants: number): number => {
-    let parts = 0;
-    
-    switch (statut) {
-      case "marie":
-      case "pacs":
-        parts = 2;
-        break;
-      case "celibataire":
-      case "divorce":
-      case "separe":
-      case "union-libre":
-        parts = 1;
-        break;
-      case "veuf":
-        parts = enfants > 0 ? 1.5 : 1;
-        break;
-      default:
-        parts = 1;
-    }
-
-    if (enfants === 1) {
-      parts += 0.5;
-    } else if (enfants === 2) {
-      parts += 1;
-    } else if (enfants >= 3) {
-      parts += 1 + (enfants - 2) * 1;
-    }
-
-    return parts;
+    return calculatePartsFiscales(statut, enfants, fiscalRules);
   };
 
   const calculerImpotLocale = (revenu: number, parts: number): { impot: number; tauxMarginal: number } => {
@@ -81,13 +50,14 @@ export const useImpotsCalculations = () => {
     const { impot: impotCelibataire } = calculerImpotLocale(revenu, 1);
     const { impot: impotActuel } = calculerImpotLocale(revenu, partsActuelles);
     
-    // Appliquer le plafonnement du QF
+    const plafondDemiPart = getPlafondDemiPart(fiscalRules);
     const demiPartsSupp = (partsActuelles - 1) * 2;
-    const plafondTotal = demiPartsSupp * PLAFOND_DEMI_PART;
+    const plafondTotal = demiPartsSupp * plafondDemiPart;
     const economieTheorique = impotCelibataire - impotActuel;
     
     return Math.min(economieTheorique, plafondTotal);
   };
+
 
   const calculerLocale = (inputs: CalculInputs) => {
     const { revenu_imposable, statut_marital, nombre_enfants, reductions_impot, credits_impot } = inputs;

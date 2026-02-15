@@ -31,7 +31,7 @@ import { FinancialProfileWizard } from "@/components/employee/FinancialProfileWi
 import { ObjectivesTab } from "@/components/employee/ObjectivesTab";
 import { InviteColleagueDialog } from "@/components/employee/InviteColleagueDialog";
 import { ForumAnonymousSettings } from "@/components/employee/ForumAnonymousSettings";
-import { calculateTMI } from "@/utils/taxCalculations";
+import { calculateTMI, calculatePartsFiscales } from "@/utils/taxCalculations";
 import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
 
 const iconMap: Record<string, LucideIcon> = {
@@ -123,7 +123,8 @@ const FIELD_TO_TAB: Record<string, string> = {
 
 export default function EmployeeProfile() {
   const navigate = useNavigate();
-  const { tax_brackets } = useFiscalRules();
+  const fiscalRules = useFiscalRules();
+  const { tax_brackets } = fiscalRules;
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") || "dashboard";
   const highlightField = searchParams.get("highlight");
@@ -343,25 +344,9 @@ export default function EmployeeProfile() {
     return personnes;
   };
 
-  // Calcul des parts fiscales selon les règles françaises
-  const calculatePartsFiscales = (situation: string | null, nbEnfants: number): number => {
-    let parts = 1; // Célibataire, divorcé, veuf
-    if (situation === "marie" || situation === "pacse") {
-      parts = 2; // Couple marié ou pacsé
-    }
-    // Enfants à charge :
-    // - 1er enfant : +0.5 part
-    // - 2ème enfant : +0.5 part  
-    // - 3ème enfant et suivants : +1 part chacun
-    if (nbEnfants >= 1) parts += 0.5;
-    if (nbEnfants >= 2) parts += 0.5;
-    if (nbEnfants >= 3) parts += (nbEnfants - 2); // +1 par enfant supplémentaire
-    
-    // Cas spécial : parent isolé avec enfants (demi-part supplémentaire)
-    if ((situation === "celibataire" || situation === "divorce" || situation === "veuf") && nbEnfants > 0) {
-      parts += 0.5;
-    }
-    return parts;
+  // Calcul des parts fiscales selon les règles configurables
+  const calculatePartsFiscalesLocal = (situation: string | null, nbEnfants: number): number => {
+    return calculatePartsFiscales(situation || 'celibataire', nbEnfants, fiscalRules);
   };
 
   // Calcul de la TMI via global_settings
@@ -383,7 +368,7 @@ export default function EmployeeProfile() {
       formData.situation_familiale || null,
       formData.nb_enfants || 0
     );
-    const newPartsFiscales = calculatePartsFiscales(
+    const newPartsFiscales = calculatePartsFiscalesLocal(
       formData.situation_familiale || null,
       formData.nb_enfants || 0
     );
