@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Trash2, Pencil, TrendingUp, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, Pencil, TrendingUp, AlertTriangle, MessageCircle } from "lucide-react";
 import { getProjectIcon } from "./projectIcons";
 import { ProjectProjection } from "./ProjectProjection";
 import type { HorizonProject } from "@/hooks/useHorizonProjects";
@@ -32,7 +32,7 @@ interface ProjectsListProps {
 
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
 
-function computeFeasibility(project: HorizonProject): { projected: number; pct: number; months: number } {
+function computeFeasibility(project: HorizonProject): { projected: number; pct: number; months: number; gap: number } {
   const rate = Number(project.annual_return_rate || 0) / 100;
   const monthlyRate = rate / 12;
   const months = project.duration_months || 120;
@@ -41,7 +41,6 @@ function computeFeasibility(project: HorizonProject): { projected: number; pct: 
 
   let projected: number;
   if (monthlyRate > 0) {
-    // Future Value with compound interest
     projected = apport * Math.pow(1 + monthlyRate, months) +
       monthly * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
   } else {
@@ -50,7 +49,8 @@ function computeFeasibility(project: HorizonProject): { projected: number; pct: 
 
   const target = Number(project.target_amount) || 1;
   const pct = Math.min(100, Math.round((projected / target) * 100));
-  return { projected, pct, months };
+  const gap = Math.max(0, target - projected);
+  return { projected, pct, months, gap };
 }
 
 export function ProjectsList({ projects, budget, availableCapital, availableMonthly, onAddProject, onEditProject, onDeleteProject }: ProjectsListProps) {
@@ -78,11 +78,11 @@ export function ProjectsList({ projects, budget, availableCapital, availableMont
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Project cards */}
             {activeProjects.map((project) => {
-              const { projected, pct, months } = computeFeasibility(project);
+              const { projected, pct, months, gap } = computeFeasibility(project);
               const Icon = getProjectIcon(project.icon);
               const isExpanded = expandedProject === project.id;
+              const horizonYears = Math.round(months / 12);
 
               return (
                 <div key={project.id} className="border rounded-lg overflow-hidden">
@@ -98,8 +98,9 @@ export function ProjectsList({ projects, budget, availableCapital, availableMont
                         <div className="min-w-0">
                           <h4 className="font-semibold text-foreground truncate">{project.name}</h4>
                           <p className="text-xs text-muted-foreground">
-                            {project.category_name || project.custom_category || 'Projet personnel'}
+                            {project.category_name || 'Projet personnel'}
                             {project.product_name && ` · ${project.product_name}`}
+                            {' · '}{horizonYears} an{horizonYears > 1 ? 's' : ''}
                           </p>
                         </div>
                       </div>
@@ -145,34 +146,55 @@ export function ProjectsList({ projects, budget, availableCapital, availableMont
                       </div>
                     </div>
 
-                    {/* Feasibility */}
+                    {/* Feasibility + Gap */}
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Faisabilité</span>
+                        <span className="text-muted-foreground">Faisabilité à {horizonYears} an{horizonYears > 1 ? 's' : ''}</span>
                         <Badge variant={pct >= 100 ? "default" : pct >= 80 ? "secondary" : "destructive"} className="text-xs">
-                          {pct >= 100 ? "✅" : pct >= 80 ? "🟠" : "🔴"} {pct}% atteint
+                          {pct >= 100 ? "✅" : pct >= 80 ? "🟠" : "🔴"} {pct}%
                         </Badge>
                       </div>
                       <Progress value={pct} className="h-2" />
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Projeté : {fmt(projected)}</span>
+                        {gap > 0 && (
+                          <span className="text-amber-600 dark:text-amber-400 font-medium">Gap : {fmt(gap)}</span>
+                        )}
+                      </div>
                       {pct < 100 && (
-                        <p className="text-xs text-amber-600 dark:text-amber-400 flex items-start gap-1">
+                        <p className="text-xs text-amber-600 dark:text-amber-400 flex items-start gap-1 mt-1">
                           <AlertTriangle className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                          Avec votre budget actuel, vous atteindrez {pct}% de votre objectif sur {Math.round(months / 12)} ans. 
-                          Envisagez d'augmenter votre épargne mensuelle ou de rallonger la durée.
+                          Avec votre budget actuel, vous atteindrez {pct}% de votre objectif. Augmentez l'épargne ou l'horizon.
                         </p>
                       )}
                     </div>
 
-                    {/* Toggle projection */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full gap-2 text-xs"
-                      onClick={() => setExpandedProject(isExpanded ? null : project.id)}
-                    >
-                      <TrendingUp className="h-3.5 w-3.5" />
-                      {isExpanded ? "Masquer la projection" : "Voir la projection"}
-                    </Button>
+                    {/* Actions */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1 gap-2 text-xs"
+                        onClick={() => setExpandedProject(isExpanded ? null : project.id)}
+                      >
+                        <TrendingUp className="h-3.5 w-3.5" />
+                        {isExpanded ? "Masquer" : "Projection"}
+                      </Button>
+                      {pct < 100 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-2 text-xs"
+                          onClick={() => {
+                            // Scroll to booking or open booking link
+                            window.open('#contact-expert', '_blank');
+                          }}
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                          Vérifier avec un conseiller
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   {isExpanded && (

@@ -1858,6 +1858,8 @@ export type Database = {
           gradient_end: string | null
           gradient_start: string | null
           hero_image_url: string | null
+          horizon_max_years: number | null
+          horizon_min_years: number | null
           icon: string | null
           id: string
           is_active: boolean | null
@@ -1898,6 +1900,8 @@ export type Database = {
           gradient_end?: string | null
           gradient_start?: string | null
           hero_image_url?: string | null
+          horizon_max_years?: number | null
+          horizon_min_years?: number | null
           icon?: string | null
           id?: string
           is_active?: boolean | null
@@ -1938,6 +1942,8 @@ export type Database = {
           gradient_end?: string | null
           gradient_start?: string | null
           hero_image_url?: string | null
+          horizon_max_years?: number | null
+          horizon_min_years?: number | null
           icon?: string | null
           id?: string
           is_active?: boolean | null
@@ -3854,6 +3860,80 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      product_category_links: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          product_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          product_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_category_links_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "horizon_project_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_category_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "financial_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_rate_tiers: {
+        Row: {
+          annual_rate: number
+          created_at: string
+          horizon_max_years: number
+          horizon_min_years: number
+          id: string
+          label: string | null
+          product_id: string
+        }
+        Insert: {
+          annual_rate?: number
+          created_at?: string
+          horizon_max_years?: number
+          horizon_min_years?: number
+          id?: string
+          label?: string | null
+          product_id: string
+        }
+        Update: {
+          annual_rate?: number
+          created_at?: string
+          horizon_max_years?: number
+          horizon_min_years?: number
+          id?: string
+          label?: string | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_rate_tiers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "financial_products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
