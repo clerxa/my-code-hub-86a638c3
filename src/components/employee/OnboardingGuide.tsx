@@ -70,16 +70,21 @@ export function OnboardingGuide({ forceShow = false, onClose }: OnboardingGuideP
   const [currentStep, setCurrentStep] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
+  // Handle forceShow changes (replay button)
   useEffect(() => {
-    if (!user?.id) return;
     if (forceShow) {
       setOpen(true);
       setCurrentStep(0);
+    }
+  }, [forceShow]);
+
+  // Auto-show on first login
+  useEffect(() => {
+    if (!user?.id || forceShow) {
       setLoaded(true);
       return;
     }
 
-    // Check if guide should show (first login)
     const checkGuide = async () => {
       const { data } = await supabase
         .from("user_onboarding_guide" as any)
@@ -88,12 +93,10 @@ export function OnboardingGuide({ forceShow = false, onClose }: OnboardingGuideP
         .maybeSingle();
 
       if (!data) {
-        // First time - show guide
         setOpen(true);
         setCurrentStep(0);
         await supabase.from("user_onboarding_guide" as any).insert({ user_id: user.id, current_step: 0 });
       }
-      // If data exists and completed/dismissed, don't show
       setLoaded(true);
     };
 
