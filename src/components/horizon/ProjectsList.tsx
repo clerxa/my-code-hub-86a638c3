@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Trash2, Pencil, TrendingUp, AlertTriangle, MessageCircle } from "lucide-react";
+import { Plus, Trash2, Pencil, TrendingUp, AlertTriangle, MessageCircle, Sparkles } from "lucide-react";
 import { getProjectIcon } from "./projectIcons";
 import { ProjectProjection } from "./ProjectProjection";
 import type { HorizonProject } from "@/hooks/useHorizonProjects";
@@ -28,6 +28,7 @@ interface ProjectsListProps {
   onAddProject: () => void;
   onEditProject: (id: string) => void;
   onDeleteProject: (id: string) => void;
+  onUpdateProject: (id: string, data: Partial<{ monthly_allocation: number }>) => Promise<void>;
 }
 
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
@@ -53,8 +54,24 @@ function computeFeasibility(project: HorizonProject): { projected: number; pct: 
   return { projected, pct, months, gap };
 }
 
-export function ProjectsList({ projects, budget, availableCapital, availableMonthly, onAddProject, onEditProject, onDeleteProject }: ProjectsListProps) {
+function computeRequiredMonthly(project: HorizonProject): number {
+  const rate = Number(project.annual_return_rate || 0) / 100;
+  const monthlyRate = rate / 12;
+  const months = project.duration_months || 120;
+  const apport = Number(project.apport);
+  const target = Number(project.target_amount);
+
+  if (monthlyRate > 0) {
+    const futureApport = apport * Math.pow(1 + monthlyRate, months);
+    const annuityFactor = (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate;
+    return Math.max(0, Math.ceil((target - futureApport) / annuityFactor));
+  }
+  return Math.max(0, Math.ceil((target - apport) / months));
+}
+
+export function ProjectsList({ projects, budget, availableCapital, availableMonthly, onAddProject, onEditProject, onDeleteProject, onUpdateProject }: ProjectsListProps) {
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
+  const [adjustingId, setAdjustingId] = useState<string | null>(null);
   const activeProjects = projects.filter(p => p.status === 'active');
 
   return (
@@ -170,7 +187,7 @@ export function ProjectsList({ projects, budget, availableCapital, availableMont
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -181,18 +198,34 @@ export function ProjectsList({ projects, budget, availableCapital, availableMont
                         {isExpanded ? "Masquer" : "Projection"}
                       </Button>
                       {pct < 100 && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 gap-2 text-xs"
-                          onClick={() => {
-                            // Scroll to booking or open booking link
-                            window.open('#contact-expert', '_blank');
-                          }}
-                        >
-                          <MessageCircle className="h-3.5 w-3.5" />
-                          Vérifier avec un conseiller
-                        </Button>
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 gap-2 text-xs border-primary/30 text-primary hover:bg-primary/10"
+                            disabled={adjustingId === project.id}
+                            onClick={async () => {
+                              const required = computeRequiredMonthly(project);
+                              setAdjustingId(project.id);
+                              await onUpdateProject(project.id, { monthly_allocation: required });
+                              setAdjustingId(null);
+                            }}
+                          >
+                            <Sparkles className="h-3.5 w-3.5" />
+                            {adjustingId === project.id ? "Ajustement…" : "Ajuster pour atteindre mon objectif"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 gap-2 text-xs"
+                            onClick={() => {
+                              window.open('#contact-expert', '_blank');
+                            }}
+                          >
+                            <MessageCircle className="h-3.5 w-3.5" />
+                            Vérifier avec un conseiller
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>
