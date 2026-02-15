@@ -14,8 +14,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { 
   Plus, Pencil, Trash2, Eye, Copy, Search, 
-  Wallet, ArrowUpDown, GripVertical, ExternalLink 
+  Wallet, ArrowUpDown, GripVertical, ExternalLink, Handshake 
 } from "lucide-react";
+import { ProductPartnersEditor } from "./ProductPartnersEditor";
 import { IconSelector, getIconByName } from "./IconSelector";
 import { ColorPicker } from "./ColorPicker";
 import { ImageUpload } from "./ImageUpload";
@@ -454,11 +455,12 @@ export function FinancialProductsTab() {
           </DialogHeader>
 
           <Tabs defaultValue="general" className="mt-4">
-            <TabsList className="grid grid-cols-5 w-full">
+            <TabsList className="grid grid-cols-6 w-full">
               <TabsTrigger value="general">Général</TabsTrigger>
               <TabsTrigger value="snapshot">Snapshot</TabsTrigger>
               <TabsTrigger value="benefits">Bénéfices</TabsTrigger>
               <TabsTrigger value="fiscal">Fiscal</TabsTrigger>
+              <TabsTrigger value="partners">Partenaires</TabsTrigger>
               <TabsTrigger value="cta">CTA & Visuel</TabsTrigger>
             </TabsList>
 
@@ -889,6 +891,11 @@ export function FinancialProductsTab() {
                   </div>
                 </div>
               </div>
+            </TabsContent>
+
+            {/* Partners Tab */}
+            <TabsContent value="partners" className="mt-4">
+              <ProductPartnersEditor productId={editingProduct?.id || null} />
             </TabsContent>
           </Tabs>
 

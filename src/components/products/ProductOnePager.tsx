@@ -1,10 +1,12 @@
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { FinancialProduct } from "@/types/financial-products";
 import { getIconByName } from "@/components/admin/IconSelector";
-import { Check, ArrowRight, Lightbulb, Clock, TrendingUp, Shield, Wallet } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Check, ArrowRight, Lightbulb, Clock, TrendingUp, Shield, Wallet, Handshake } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ProductOnePagerProps {
@@ -13,6 +15,19 @@ interface ProductOnePagerProps {
 }
 
 export function ProductOnePager({ product, className }: ProductOnePagerProps) {
+  const [partners, setPartners] = useState<{ id: string; name: string; logo_url: string | null }[]>([]);
+  
+  useEffect(() => {
+    if (product.id && product.id !== 'preview') {
+      supabase
+        .from("financial_product_partners")
+        .select("id, name, logo_url")
+        .eq("product_id", product.id)
+        .order("display_order", { ascending: true })
+        .then(({ data }) => setPartners(data || []));
+    }
+  }, [product.id]);
+
   const MainIcon = getIconByName(product.icon) || Wallet;
   const ExpertIcon = getIconByName(product.expert_tip_icon) || Lightbulb;
   const AvailabilityIcon = getIconByName(product.availability_icon) || Clock;
@@ -278,6 +293,45 @@ export function ProductOnePager({ product, className }: ProductOnePagerProps) {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        </section>
+      )}
+
+      {/* Partenaires */}
+      {partners.length > 0 && (
+        <section className="py-10 sm:py-14 px-4 sm:px-6 lg:px-8 bg-muted/30">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-center gap-2 mb-8">
+              <Handshake className="h-6 w-6 text-muted-foreground" />
+              <h2 className="text-xl sm:text-2xl font-semibold text-center">
+                Nos Partenaires
+              </h2>
+            </div>
+            <div className="flex flex-wrap justify-center items-center gap-8">
+              {partners.map((partner) => (
+                <div key={partner.id} className="flex flex-col items-center gap-2">
+                  {partner.logo_url ? (
+                    <div className="w-24 h-24 rounded-xl bg-background border flex items-center justify-center p-3 shadow-sm">
+                      <img
+                        src={partner.logo_url}
+                        alt={partner.name}
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="w-24 h-24 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: `hsl(${product.gradient_start} / 0.15)` }}
+                    >
+                      <Handshake className="h-8 w-8" style={{ color: `hsl(${product.gradient_start})` }} />
+                    </div>
+                  )}
+                  <p className="text-sm font-medium text-foreground text-center max-w-[120px]">
+                    {partner.name}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}
