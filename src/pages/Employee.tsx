@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { OnboardingGuide } from "@/components/employee/OnboardingGuide";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
@@ -73,6 +74,7 @@ export default function Employee() {
   const [upcomingWebinarCount, setUpcomingWebinarCount] = useState(0);
   const [simulationsCount, setSimulationsCount] = useState(0);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   // Expert booking hook will be called after we have company_id from profile
   const urlParams = new URLSearchParams(window.location.search);
   const viewingUserId = urlParams.get("userId");
@@ -850,6 +852,7 @@ export default function Employee() {
               webinarCount={upcomingWebinarCount}
               enablePointsRanking={company?.enable_points_ranking || false}
               primaryColor={company?.primary_color || undefined}
+              onShowGuide={() => setShowGuide(true)}
             />
           </div>
 
@@ -861,6 +864,9 @@ export default function Employee() {
       </main>
 
       <Footer />
+
+      {/* Onboarding Guide */}
+      <OnboardingGuide forceShow={showGuide} onClose={() => setShowGuide(false)} />
 
       {/* Partnership Request Dialog */}
       {company && userProfile && <PartnershipRequestDialog open={partnershipDialogOpen} onOpenChange={setPartnershipDialogOpen} companyId={company.id} companyName={company.name} userFirstName={userProfile.first_name} userLastName={userProfile.last_name} userEmail={userProfile.email} />}
