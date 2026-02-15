@@ -65,7 +65,7 @@ import { NotFoundConfigTab } from "@/components/admin/NotFoundConfigTab";
 import { CompanySearchApiTab } from "@/components/admin/CompanySearchApiTab";
 import { TaxHelpAdminTab } from "@/components/admin/TaxHelpAdminTab";
 import { OffersManagementTab } from "@/components/admin/offers";
-import { InvitationApprovalTab } from "@/components/admin/InvitationApprovalTab";
+
 import type { UserProfile, Company, Parcours } from "@/types/database";
 import {
   Breadcrumb,
@@ -425,7 +425,7 @@ const Admin = () => {
                 
                 {/* Gestion des Offres */}
                 <Route path="offers" element={<OffersManagementTab />} />
-                <Route path="invitation-approval" element={<InvitationApprovalTab />} />
+                
               </Routes>
             </div>
           </main>
