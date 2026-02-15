@@ -9,6 +9,8 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 
 type Phase = "intro" | "question" | "interstitial" | "results";
 
@@ -26,6 +28,7 @@ interface Props {
 
 export function DiagnosticRenderer({ config }: Props) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const allQuestions = useMemo(
     () => config.sections.flatMap((s) => s.questions),
     [config]
@@ -56,6 +59,7 @@ export function DiagnosticRenderer({ config }: Props) {
   const [direction, setDirection] = useState(1);
   const [startTime] = useState(Date.now());
   const [elapsed, setElapsed] = useState(0);
+  const [dbResultId, setDbResultId] = useState<string | null>(null);
 
   // Timer
   useEffect(() => {
@@ -75,6 +79,49 @@ export function DiagnosticRenderer({ config }: Props) {
       localStorage.setItem(CACHE_KEY, JSON.stringify(state));
     }
   }, [answers, currentIndex, phase, questionToSection]);
+
+  // Save completed status to DB when results phase is reached
+  useEffect(() => {
+    if (phase !== "results" || !user) return;
+    const saveCompleted = async () => {
+      const scores = config.sections.map((section) => {
+        const maxPts = section.questions.reduce((sum, q) => sum + Math.max(...q.options.map((o) => o.points)), 0);
+        const earned = section.questions.reduce((sum, q) => sum + (answers[q.id] ?? 0), 0);
+        return { id: section.id, title: section.title, score: maxPts > 0 ? Math.round((earned / maxPts) * 100) : 0, earned, maxPoints: maxPts };
+      });
+      const total = scores.reduce((s, sec) => s + sec.earned, 0);
+      const max = scores.reduce((s, sec) => s + sec.maxPoints, 0);
+      const pct = max > 0 ? Math.round((total / max) * 100) : 0;
+
+      if (dbResultId) {
+        await supabase.from("diagnostic_results").update({
+          status: "completed",
+          score_percent: pct,
+          total_score: total,
+          total_max: max,
+          section_scores: scores,
+          answers,
+          elapsed_seconds: elapsed,
+          completed_at: new Date().toISOString(),
+        }).eq("id", dbResultId);
+      } else {
+        // No in-progress record (e.g. restored from cache), insert completed directly
+        await supabase.from("diagnostic_results").insert({
+          user_id: user.id,
+          status: "completed",
+          score_percent: pct,
+          total_score: total,
+          total_max: max,
+          section_scores: scores,
+          answers,
+          elapsed_seconds: elapsed,
+          completed_at: new Date().toISOString(),
+        });
+      }
+    };
+    saveCompleted();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   const currentSectionIndex = questionToSection[currentIndex] || 0;
   const currentQuestion = allQuestions[currentIndex];
@@ -110,10 +157,19 @@ export function DiagnosticRenderer({ config }: Props) {
     setPhase("question");
   }, [currentIndex, config.config.allowBack]);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     setPhase("question");
     setAnswers({});
     setCurrentIndex(0);
+    // Save in_progress status to DB
+    if (user) {
+      const { data } = await supabase
+        .from("diagnostic_results")
+        .insert({ user_id: user.id, status: "in_progress" })
+        .select("id")
+        .single();
+      if (data) setDbResultId(data.id);
+    }
   };
 
   const handleRestart = () => {

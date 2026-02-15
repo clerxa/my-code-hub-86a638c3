@@ -261,17 +261,17 @@ export default function Employee() {
       .eq("user_id", targetUserId)
       .maybeSingle();
 
-    // Fetch diagnostic results from localStorage (client-side cache)
-    const diagnosticCacheRaw = localStorage.getItem("myfincare_diagnostic_state");
-    const diagnosticCache = diagnosticCacheRaw ? JSON.parse(diagnosticCacheRaw) : null;
-    const hasDiagnosticStarted = !!diagnosticCache;
-    const hasDiagnosticCompleted = (() => {
-      // If cache exists, check if all questions were answered
-      if (!diagnosticCache) return false;
-      // We check if the cache was cleared (meaning completed) - absence means completed or never started
-      // Actually completed = cache removed. So if cache exists = incomplete
-      return false; 
-    })();
+    // Fetch diagnostic status from DB
+    const { data: diagnosticResult } = await supabase
+      .from("diagnostic_results")
+      .select("status")
+      .eq("user_id", targetUserId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    const hasDiagnosticStarted = !!diagnosticResult;
+    const hasDiagnosticCompleted = diagnosticResult?.status === "completed";
 
     // Fetch financial profile
     const { data: financialProfile } = await supabase
@@ -380,6 +380,9 @@ export default function Employee() {
         case "diagnostic_incomplete":
           // Show if user started but didn't finish (cache exists = in progress)
           shouldShow = hasDiagnosticStarted && !hasDiagnosticCompleted;
+          break;
+        case "diagnostic_completed":
+          shouldShow = hasDiagnosticCompleted;
           break;
         case "financial_profile_incomplete":
           shouldShow = financialProfileCompleteness < 100;
