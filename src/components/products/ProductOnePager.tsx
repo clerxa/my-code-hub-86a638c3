@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { FinancialProduct } from "@/types/financial-products";
 import { getIconByName } from "@/components/admin/IconSelector";
 import { supabase } from "@/integrations/supabase/client";
+import { RichText } from "@/components/ui/rich-text";
 import { Check, ArrowRight, Lightbulb, Clock, TrendingUp, Shield, Wallet, Handshake } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -88,6 +89,17 @@ export function ProductOnePager({ product, className }: ProductOnePagerProps) {
           )}
         </div>
       </section>
+
+      {/* Description */}
+      {product.description && (
+        <section className="py-10 sm:py-14 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto">
+            <div className="prose prose-sm sm:prose-base max-w-none dark:prose-invert text-muted-foreground leading-relaxed text-center">
+              <RichText content={product.description} />
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Snapshot Bento Grid */}
       <section className="py-10 sm:py-14 px-4 sm:px-6 lg:px-8 bg-muted/30">
