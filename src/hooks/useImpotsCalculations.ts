@@ -1,15 +1,8 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-// Barème 2025 de l'impôt sur le revenu
-const BAREME_2025 = [
-  { min: 0, max: 11294, taux: 0 },
-  { min: 11294, max: 28797, taux: 0.11 },
-  { min: 28797, max: 82341, taux: 0.30 },
-  { min: 82341, max: 177106, taux: 0.41 },
-  { min: 177106, max: Infinity, taux: 0.45 },
-];
+import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
+import { calculateImpotDetaille } from "@/utils/taxCalculations";
 
 // Plafonnement quotient familial 2025 : 1759€ par demi-part supplémentaire
 const PLAFOND_DEMI_PART = 1759;
@@ -43,6 +36,7 @@ interface CalculationResult {
 
 export const useImpotsCalculations = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const { tax_brackets } = useFiscalRules();
 
   // Calcul local pour preview instantanée
   const calculerPartsLocale = (statut: string, enfants: number): number => {
@@ -60,7 +54,6 @@ export const useImpotsCalculations = () => {
         parts = 1;
         break;
       case "veuf":
-        // Les veufs avec enfants bénéficient d'une demi-part supplémentaire
         parts = enfants > 0 ? 1.5 : 1;
         break;
       default:
@@ -79,30 +72,7 @@ export const useImpotsCalculations = () => {
   };
 
   const calculerImpotLocale = (revenu: number, parts: number): { impot: number; tauxMarginal: number } => {
-    const quotientFamilial = revenu / parts;
-    let impotParPart = 0;
-    let tauxMarginal = 0;
-    let revenuRestant = quotientFamilial;
-
-    for (const tranche of BAREME_2025) {
-      if (revenuRestant <= 0) break;
-
-      const montantTranche = tranche.max === Infinity 
-        ? revenuRestant 
-        : Math.min(tranche.max - tranche.min, revenuRestant);
-      
-      if (montantTranche > 0) {
-        impotParPart += montantTranche * tranche.taux;
-        
-        if (revenuRestant > 0) {
-          tauxMarginal = tranche.taux * 100;
-        }
-      }
-
-      revenuRestant -= montantTranche;
-    }
-
-    return { impot: impotParPart * parts, tauxMarginal };
+    return calculateImpotDetaille(revenu, parts, tax_brackets);
   };
 
   const calculerEconomieQFLocale = (revenu: number, partsActuelles: number): number => {

@@ -20,14 +20,8 @@ import { useSimulationLoader } from "@/hooks/useSimulationLoader";
 import { format } from "date-fns";
 import { TaxInputForm, TaxResultsSection, TaxBracketChart } from "@/components/simulators/impots";
 
-// Barème 2025 de l'impôt sur le revenu
-const BAREME_2025 = [
-  { max: 11294, taux: 0 },
-  { max: 28797, taux: 0.11 },
-  { max: 82341, taux: 0.30 },
-  { max: 177106, taux: 0.41 },
-  { max: Infinity, taux: 0.45 },
-];
+import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
+import { calculateImpotDetaille } from "@/utils/taxCalculations";
 
 // Plafonnement quotient familial 2025 : 1759€ par demi-part supplémentaire
 const PLAFOND_DEMI_PART = 1759;
@@ -47,6 +41,7 @@ interface TaxResult {
 const SimulateurImpots = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { tax_brackets } = useFiscalRules();
   const { getPrefillData, hasProfile, isLoading: profileLoading } = useFinancialProfilePrefill();
   const [isProfilePrefilled, setIsProfilePrefilled] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -168,27 +163,7 @@ const SimulateurImpots = () => {
   };
 
   const calculerImpot = (revenu: number, parts: number): { impot: number; tauxMarginal: number } => {
-    const quotientFamilial = revenu / parts;
-    let impotParPart = 0;
-    let tauxMarginal = 0;
-    let revenuRestant = quotientFamilial;
-    let tranchePrecedente = 0;
-
-    for (const tranche of BAREME_2025) {
-      if (revenuRestant <= 0) break;
-
-      const plafond = tranche.max === Infinity ? revenuRestant : Math.min(tranche.max - tranchePrecedente, revenuRestant);
-      impotParPart += plafond * tranche.taux;
-      
-      if (revenuRestant > 0) {
-        tauxMarginal = tranche.taux * 100;
-      }
-
-      revenuRestant -= plafond;
-      tranchePrecedente = tranche.max;
-    }
-
-    return { impot: impotParPart * parts, tauxMarginal };
+    return calculateImpotDetaille(revenu, parts, tax_brackets);
   };
 
   // Calcul de l'économie grâce au quotient familial (vs célibataire)

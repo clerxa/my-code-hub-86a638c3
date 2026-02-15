@@ -31,6 +31,8 @@ import { FinancialProfileWizard } from "@/components/employee/FinancialProfileWi
 import { ObjectivesTab } from "@/components/employee/ObjectivesTab";
 import { InviteColleagueDialog } from "@/components/employee/InviteColleagueDialog";
 import { ForumAnonymousSettings } from "@/components/employee/ForumAnonymousSettings";
+import { calculateTMI } from "@/utils/taxCalculations";
+import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
 
 const iconMap: Record<string, LucideIcon> = {
   Calculator, Clock, Target, Shield, Wallet, Euro, Home, Briefcase, Users, Percent, PiggyBank
@@ -121,6 +123,7 @@ const FIELD_TO_TAB: Record<string, string> = {
 
 export default function EmployeeProfile() {
   const navigate = useNavigate();
+  const { tax_brackets } = useFiscalRules();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") || "dashboard";
   const highlightField = searchParams.get("highlight");
@@ -361,18 +364,9 @@ export default function EmployeeProfile() {
     return parts;
   };
 
-  // Calcul de la TMI selon les barèmes français 2024
-  const calculateTMI = (revenuImposable: number, partsFiscales: number): number => {
-    if (!revenuImposable || !partsFiscales || partsFiscales === 0) return 0;
-    
-    const quotientFamilial = revenuImposable / partsFiscales;
-    
-    // Barèmes 2024 (revenus 2023)
-    if (quotientFamilial <= 11294) return 0;
-    if (quotientFamilial <= 28797) return 11;
-    if (quotientFamilial <= 82341) return 30;
-    if (quotientFamilial <= 177106) return 41;
-    return 45;
+  // Calcul de la TMI via global_settings
+  const calculateTMILocal = (revenuImposable: number, partsFiscales: number): number => {
+    return calculateTMI(revenuImposable, partsFiscales, tax_brackets);
   };
 
   // Auto-update age when birth date changes
@@ -409,7 +403,7 @@ export default function EmployeeProfile() {
 
   // Auto-update TMI when revenue or parts fiscales change
   useEffect(() => {
-    const newTMI = calculateTMI(
+    const newTMI = calculateTMILocal(
       formData.revenu_fiscal_annuel || 0,
       formData.parts_fiscales || 1
     );
