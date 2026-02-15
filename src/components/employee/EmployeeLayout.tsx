@@ -50,6 +50,8 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
   const handleSectionChange = (section: string) => {
     if (section === "dashboard") {
       navigate("/employee");
+    } else if (section === "horizon") {
+      navigate("/employee/horizon");
     } else if (["profile-info", "progression", "leaderboard", "invitations", "contacts", "appointments", "webinars"].includes(section)) {
       navigate(`/employee?section=${section}`);
     }

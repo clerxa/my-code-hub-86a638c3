@@ -99,6 +99,9 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
       case "simulations":
         navigate("/employee/simulations");
         break;
+      case "horizon":
+        navigate("/employee/horizon");
+        break;
       case "profile":
       case "profile-info":
       case "financial-profile":
