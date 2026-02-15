@@ -8,7 +8,7 @@ import {
   Target, Database, Sword, Calendar, Lightbulb, Calculator, Video,
   Plus, List, UserCheck, Circle, Settings, PartyPopper, Wallet,
   FlaskConical, MessageSquare, Crown, Image, HelpCircle, FileWarning,
-  Search, Receipt, Briefcase, Gift,
+  Search, Receipt, Briefcase, Gift, Grid3x3,
   type LucideIcon
 } from "lucide-react";
 
@@ -81,6 +81,7 @@ const defaultAdminItems: AdminMenuItem[] = [
   { id: "parcours", label: "Parcours", url: "/admin/parcours", icon: "Route", order: 1, visible: true, categoryId: "content" },
   { id: "formations", label: "Formations", url: "/admin/formations", icon: "BookOpen", order: 2, visible: true, categoryId: "content" },
   { id: "financial-products", label: "Produits Financiers", url: "/admin/financial-products", icon: "Wallet", order: 3, visible: true, categoryId: "content" },
+  { id: "product-objective-matrix", label: "Matrice Objectifs × Produits", url: "/admin/product-objective-matrix", icon: "Grid3x3", order: 4, visible: true, categoryId: "content" },
   // Gamification
   { id: "features", label: "Features de partenariat", url: "/admin/features", icon: "Sparkles", order: 0, visible: true, categoryId: "gamification" },
   { id: "celebration", label: "Célébration Parcours", url: "/admin/celebration", icon: "PartyPopper", order: 1, visible: true, categoryId: "gamification" },
@@ -143,7 +144,7 @@ const iconMap: Record<string, LucideIcon> = {
   UserPlus, Palette, Paintbrush, FileText, Sparkles, 
   Target, Database, Sword, Calendar, Lightbulb, Calculator, Video,
   Plus, List, UserCheck, Circle, Settings, PartyPopper, Wallet, FlaskConical,
-  MessageSquare, Crown, FileWarning, Search, Receipt, Briefcase, Gift,
+  MessageSquare, Crown, FileWarning, Search, Receipt, Briefcase, Gift, Grid3x3,
 };
 
 export const getAdminIconComponent = (iconName: string): LucideIcon => {

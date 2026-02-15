@@ -59,6 +59,7 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 // Workflow Hub - Centre unifié de configuration des workflows
 import { WorkflowHubTab } from "@/components/admin/workflow-hub";
 import { FinancialProductsTab } from "@/components/admin/FinancialProductsTab";
+import { ProductObjectiveMatrixTab } from "@/components/admin/ProductObjectiveMatrixTab";
 import { CommunityManagementTab } from "@/components/admin/CommunityManagementTab";
 import { EmailConfigTab } from "@/components/admin/EmailConfigTab";
 import { NotFoundConfigTab } from "@/components/admin/NotFoundConfigTab";
@@ -371,6 +372,7 @@ const Admin = () => {
                 <Route path="parcours" element={<ParcoursTab parcours={parcours} companies={companies} modules={modules} onRefresh={fetchData} />} />
                 <Route path="formations" element={<FormationsTab onRefresh={fetchData} />} />
                 <Route path="financial-products" element={<FinancialProductsTab />} />
+                <Route path="product-objective-matrix" element={<ProductObjectiveMatrixTab />} />
                 
                 {/* Gamification */}
                 <Route path="features" element={<FeaturesTab onRefresh={fetchData} />} />
