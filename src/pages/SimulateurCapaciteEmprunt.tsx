@@ -20,6 +20,7 @@ import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer
 import { useSimulationTracking } from '@/hooks/useSimulationTracking';
 import { useCTARulesEngine } from '@/hooks/useCTARulesEngine';
 import { useSimulationLoader } from '@/hooks/useSimulationLoader';
+import { useSimulationDefaults } from '@/contexts/GlobalSettingsContext';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -28,6 +29,7 @@ const SimulateurCapaciteEmprunt = () => {
   const navigate = useNavigate();
   const { calculerSimulation } = useCapaciteEmpruntCalculations();
   const { getPrefillData, hasProfile, isLoading: isProfileLoading } = useFinancialProfilePrefill();
+  const simulationDefaults = useSimulationDefaults();
   
   // Simulation tracking
   const {
@@ -161,9 +163,9 @@ const SimulateurCapaciteEmprunt = () => {
   };
 
   const getEndettementStatus = (taux: number) => {
-    if (taux <= 30) return { color: 'text-emerald-600', status: 'Excellent', variant: 'success' as const };
-    if (taux <= 33) return { color: 'text-emerald-500', status: 'Bon', variant: 'success' as const };
-    if (taux <= 35) return { color: 'text-amber-500', status: 'Limite', variant: 'warning' as const };
+    if (taux <= simulationDefaults.endettement_excellent) return { color: 'text-emerald-600', status: 'Excellent', variant: 'success' as const };
+    if (taux <= simulationDefaults.endettement_bon) return { color: 'text-emerald-500', status: 'Bon', variant: 'success' as const };
+    if (taux <= simulationDefaults.endettement_limite) return { color: 'text-amber-500', status: 'Limite', variant: 'warning' as const };
     return { color: 'text-destructive', status: 'Trop élevé', variant: 'warning' as const };
   };
 
