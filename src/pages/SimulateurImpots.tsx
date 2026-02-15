@@ -15,6 +15,7 @@ import { SimulationValidationOverlay } from "@/components/simulators/SimulationV
 import { useSimulationTracking } from "@/hooks/useSimulationTracking";
 import { useUnifiedSimulationSave } from "@/hooks/useUnifiedSimulationSave";
 import { SaveSimulationDialog } from "@/components/simulators/SaveSimulationDialog";
+import { SimulatorDisclaimer } from "@/components/simulators/SimulatorDisclaimer";
 import { useSimulationLoader } from "@/hooks/useSimulationLoader";
 import { format } from "date-fns";
 import { TaxInputForm, TaxResultsSection, TaxBracketChart } from "@/components/simulators/impots";
@@ -498,6 +499,8 @@ const SimulateurImpots = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <SimulatorDisclaimer />
 
         <SaveSimulationDialog
           open={showSaveDialog}
