@@ -110,11 +110,7 @@ export const EmployeeSidebar = ({
         navigate("/employee/simulations");
         break;
       case "horizon":
-        if (isAdmin) {
-          navigate("/employee/horizon");
-        } else {
-          setShowHorizonComingSoon(true);
-        }
+        navigate("/employee/horizon");
         return;
       case "profile":
       case "profile-info":
