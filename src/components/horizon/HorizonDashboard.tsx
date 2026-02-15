@@ -71,6 +71,7 @@ export function HorizonDashboard() {
             onAddProject={() => setShowProjectForm(true)}
             onEditProject={(id) => { setEditingProject(id); setShowProjectForm(true); }}
             onDeleteProject={deleteProject}
+            onUpdateProject={updateProject}
           />
         </>
       )}
