@@ -46,13 +46,15 @@ const STEPS = [
   },
 ];
 
-/** Auto-show guide on first login */
-export function OnboardingGuideAutoShow() {
+export function OnboardingGuide({ forceShow = false, onClose }: { forceShow?: boolean; onClose?: () => void }) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [autoChecked, setAutoChecked] = useState(false);
 
+  // Auto-show on first login
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || autoChecked) return;
     const check = async () => {
       const { data } = await supabase
         .from("user_onboarding_guide" as any)
@@ -63,24 +65,24 @@ export function OnboardingGuideAutoShow() {
         setOpen(true);
         await supabase.from("user_onboarding_guide" as any).insert({ user_id: user.id, current_step: 0 });
       }
+      setAutoChecked(true);
     };
     check();
-  }, [user?.id]);
+  }, [user?.id, autoChecked]);
 
-  if (!open) return null;
+  // Force show from "Revoir le guide" button
+  useEffect(() => {
+    if (forceShow) {
+      setOpen(true);
+      setCurrentStep(0);
+    }
+  }, [forceShow]);
 
-  return <GuideDialog open={open} onClose={() => setOpen(false)} />;
-}
-
-/** Force-show guide (replay button) */
-export function OnboardingGuide({ forceShow = false, onClose }: { forceShow?: boolean; onClose?: () => void }) {
-  if (!forceShow) return <OnboardingGuideAutoShow />;
-  return <GuideDialog open={true} onClose={() => onClose?.()} />;
-}
-
-function GuideDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState(0);
+  const handleClose = useCallback(() => {
+    setOpen(false);
+    setCurrentStep(0);
+    onClose?.();
+  }, [onClose]);
 
   const handleComplete = useCallback(async () => {
     if (user?.id) {
@@ -89,8 +91,8 @@ function GuideDialog({ open, onClose }: { open: boolean; onClose: () => void }) 
         .update({ completed_at: new Date().toISOString(), dismissed: true, current_step: STEPS.length } as any)
         .eq("user_id", user.id);
     }
-    onClose();
-  }, [user?.id, onClose]);
+    handleClose();
+  }, [user?.id, handleClose]);
 
   const handleDismiss = useCallback(async () => {
     if (user?.id) {
@@ -99,8 +101,8 @@ function GuideDialog({ open, onClose }: { open: boolean; onClose: () => void }) 
         .update({ dismissed: true, current_step: currentStep } as any)
         .eq("user_id", user.id);
     }
-    onClose();
-  }, [user?.id, currentStep, onClose]);
+    handleClose();
+  }, [user?.id, currentStep, handleClose]);
 
   const step = STEPS[currentStep];
   const StepIcon = step.icon;
