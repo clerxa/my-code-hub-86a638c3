@@ -1321,6 +1321,59 @@ export type Database = {
         }
         Relationships: []
       }
+      diagnostic_results: {
+        Row: {
+          answers: Json | null
+          completed_at: string | null
+          created_at: string
+          elapsed_seconds: number | null
+          id: string
+          score_percent: number | null
+          section_scores: Json | null
+          status: string
+          total_max: number | null
+          total_score: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          elapsed_seconds?: number | null
+          id?: string
+          score_percent?: number | null
+          section_scores?: Json | null
+          status?: string
+          total_max?: number | null
+          total_score?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          elapsed_seconds?: number | null
+          id?: string
+          score_percent?: number | null
+          section_scores?: Json | null
+          status?: string
+          total_max?: number | null
+          total_score?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostic_results_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       epargne_precaution_simulations: {
         Row: {
           capacite_epargne_mensuelle: number
