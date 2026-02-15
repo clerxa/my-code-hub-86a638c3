@@ -43,12 +43,14 @@ interface InvitationsTrackerProps {
 
 const statusConfig: Record<string, { label: string; icon: React.ElementType; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "En attente", icon: Clock, variant: "secondary" },
+  pending_admin_approval: { label: "En validation", icon: Clock, variant: "outline" },
   sent: { label: "Envoyé", icon: Mail, variant: "secondary" },
   opened: { label: "Email ouvert", icon: Mail, variant: "outline" },
   clicked: { label: "Lien cliqué", icon: CheckCircle, variant: "default" },
   accepted: { label: "Accepté", icon: CheckCircle, variant: "default" },
   registered: { label: "Inscrit", icon: CheckCircle, variant: "default" },
   declined: { label: "Refusé", icon: XCircle, variant: "destructive" },
+  rejected: { label: "Refusé", icon: XCircle, variant: "destructive" },
   completed: { label: "Terminé", icon: CheckCircle, variant: "default" },
 };
 

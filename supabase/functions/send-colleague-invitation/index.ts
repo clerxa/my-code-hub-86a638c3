@@ -45,6 +45,15 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Invitation not found");
     }
 
+    // Block sending for invitations awaiting admin approval
+    if (invitation.status === "pending_admin_approval") {
+      console.log("Invitation is pending admin approval, skipping email send");
+      return new Response(JSON.stringify({ success: false, reason: "pending_admin_approval" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     console.log("Found invitation:", invitation);
 
     // Fetch inviter profile
