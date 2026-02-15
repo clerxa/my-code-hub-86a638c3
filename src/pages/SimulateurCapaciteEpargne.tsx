@@ -139,7 +139,7 @@ const SimulateurCapaciteEpargne = () => {
 
     // Envies
     if (p.charges_abonnements > 0) newValues.abonnements = p.charges_abonnements;
-    if (p.charges_autres > 0) newValues.shopping = p.charges_autres;
+    // shopping reste à 0 par défaut (pas de correspondance directe dans le profil)
 
     // Track which keys were prefilled
     setPrefilledKeys(new Set(Object.keys(newValues)));
