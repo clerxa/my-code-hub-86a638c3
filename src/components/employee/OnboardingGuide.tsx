@@ -69,14 +69,16 @@ export function OnboardingGuide({ forceShow = false, onClose }: OnboardingGuideP
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  const [prevForceShow, setPrevForceShow] = useState(false);
 
-  // Handle forceShow changes (replay button)
-  useEffect(() => {
-    if (forceShow) {
-      setOpen(true);
-      setCurrentStep(0);
-    }
-  }, [forceShow]);
+  // Detect forceShow rising edge synchronously (no useEffect delay)
+  if (forceShow && !prevForceShow) {
+    setOpen(true);
+    setCurrentStep(0);
+  }
+  if (forceShow !== prevForceShow) {
+    setPrevForceShow(forceShow);
+  }
 
   // Auto-show on first login
   useEffect(() => {
@@ -101,7 +103,7 @@ export function OnboardingGuide({ forceShow = false, onClose }: OnboardingGuideP
     };
 
     checkGuide();
-  }, [user?.id, forceShow]);
+  }, [user?.id]);
 
   const handleNext = useCallback(() => {
     if (currentStep < STEPS.length - 1) {
@@ -137,7 +139,7 @@ export function OnboardingGuide({ forceShow = false, onClose }: OnboardingGuideP
     onClose?.();
   }, [user?.id, currentStep, onClose]);
 
-  if (!loaded) return null;
+  if (!loaded && !forceShow) return null;
 
   const step = STEPS[currentStep];
   const StepIcon = step.icon;
