@@ -51,6 +51,8 @@ const CONDITION_TYPES = [
   { value: "module_progress", label: "Progression modules", description: "Basé sur le nombre de modules validés" },
   { value: "no_appointment", label: "Pas de rendez-vous", description: "L'utilisateur n'a pas pris de rendez-vous" },
   { value: "no_simulation", label: "Pas de simulation", description: "L'utilisateur n'a réalisé aucune simulation" },
+  { value: "no_diagnostic", label: "Diagnostic non réalisé", description: "L'utilisateur n'a jamais commencé le diagnostic financier" },
+  { value: "diagnostic_incomplete", label: "Diagnostic non terminé", description: "L'utilisateur a commencé mais pas terminé le diagnostic" },
   { value: "always", label: "Toujours afficher", description: "Affiche toujours cette recommandation" },
   { value: "custom", label: "Règle personnalisée (legacy)", description: "Combinaison de conditions personnalisées" },
 ];
@@ -535,7 +537,7 @@ export function RecommendationsTab() {
         )}
 
         {/* Simple conditions without config */}
-        {["no_risk_profile", "no_modules", "no_appointment", "no_simulation", "always"].includes(conditionType) && (
+        {["no_risk_profile", "no_modules", "no_appointment", "no_simulation", "no_diagnostic", "diagnostic_incomplete", "always"].includes(conditionType) && (
           <p className="text-sm text-muted-foreground italic">
             Cette condition ne nécessite pas de configuration supplémentaire.
           </p>
