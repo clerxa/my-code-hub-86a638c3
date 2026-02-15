@@ -164,6 +164,18 @@ export function DiagnosticRenderer({ config }: Props) {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Back link - always visible */}
+      {(phase === "intro" || phase === "results") && (
+        <div className="sticky top-0 z-20 bg-card/80 backdrop-blur-md border-b border-border px-4 py-3">
+          <div className="max-w-2xl mx-auto">
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={() => navigate("/employee")}>
+              <ArrowLeft className="h-4 w-4" />
+              Retour à l'espace employé
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Header bar */}
       {phase !== "intro" && phase !== "results" && (
         <div className="sticky top-0 z-20 bg-card/80 backdrop-blur-md border-b border-border px-4 py-3">
