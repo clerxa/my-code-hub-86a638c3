@@ -229,9 +229,9 @@ const App = () => (
             <Route
               path="/employee/horizon"
               element={
-                <ProtectedRoute>
+                <PartnershipRoute featureType="company">
                   <Horizon />
-                </ProtectedRoute>
+                </PartnershipRoute>
               }
             />
             <Route
