@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Lock, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
+import { Lock, ChevronLeft, ChevronRight, Building2, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSidebarActiveItem } from "@/hooks/useSidebarActiveItem";
@@ -71,6 +71,7 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
   // State for locked dialogs
   const [showCompanyLockedDialog, setShowCompanyLockedDialog] = useState(false);
   const [showCommunityLockedDialog, setShowCommunityLockedDialog] = useState(false);
+  const [showHorizonComingSoon, setShowHorizonComingSoon] = useState(false);
   
   const handleItemClick = (itemId: string) => {
     const isLocked = lockedItems.includes(itemId) && !hasPartnership;
@@ -100,8 +101,8 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
         navigate("/employee/simulations");
         break;
       case "horizon":
-        navigate("/employee/horizon");
-        break;
+        setShowHorizonComingSoon(true);
+        return;
       case "profile":
       case "profile-info":
       case "financial-profile":
@@ -361,6 +362,39 @@ export const EmployeeSidebar = ({ activeSection, onSectionChange, companyId, has
               onClick={() => setShowCommunityLockedDialog(false)}
             >
               Fermer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Horizon coming soon dialog */}
+      <Dialog open={showHorizonComingSoon} onOpenChange={setShowHorizonComingSoon}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Compass className="h-6 w-6 text-primary" />
+            </div>
+            <DialogTitle className="text-center">Horizon Patrimonial</DialogTitle>
+            <DialogDescription className="text-center space-y-2">
+              <p>
+                <strong>Horizon Patrimonial</strong> est votre futur outil de planification financière personnalisée.
+              </p>
+              <p>
+                Il vous permettra de définir vos projets de vie (immobilier, retraite, études des enfants…), 
+                de simuler vos placements et de visualiser votre stratégie d'épargne globale en un coup d'œil.
+              </p>
+              <p className="text-primary font-medium">
+                🚧 Cette fonctionnalité est en cours de développement et sera bientôt disponible.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => setShowHorizonComingSoon(false)}
+            >
+              J'ai compris
             </Button>
           </div>
         </DialogContent>

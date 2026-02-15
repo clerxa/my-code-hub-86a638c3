@@ -90,7 +90,7 @@ const normalizeMenuItems = (raw: RawMenuItem[], defaults: SidebarMenuItem[]): Si
 
   const defaultsById = new Map(defaults.map((d) => [d.id, d]));
 
-  return raw
+  const mapped = raw
     .map((item, index) => {
       const id = item.id;
       if (!id) return null;
@@ -111,6 +111,16 @@ const normalizeMenuItems = (raw: RawMenuItem[], defaults: SidebarMenuItem[]): Si
       } satisfies SidebarMenuItem;
     })
     .filter(Boolean) as SidebarMenuItem[];
+
+  // Merge missing default items that aren't in DB config
+  const mappedIds = new Set(mapped.map((m) => m.id));
+  for (const d of defaults) {
+    if (!mappedIds.has(d.id)) {
+      mapped.push(d);
+    }
+  }
+
+  return mapped;
 };
 
 const normalizeCategories = (raw: RawCategory[]): SidebarCategory[] => {
