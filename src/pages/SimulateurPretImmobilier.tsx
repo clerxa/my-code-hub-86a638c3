@@ -322,7 +322,7 @@ const SimulateurPretImmobilier = () => {
       }}
       ctas={ctas}
       onCTAClick={handleCTAClick}
-      onSave={openSaveDialog}
+      onSave={handleSave}
       onReset={() => {
         setShowResults(false);
         setCurrentStep(0);
