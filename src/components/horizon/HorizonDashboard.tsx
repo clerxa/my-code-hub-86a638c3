@@ -4,6 +4,7 @@ import { useHorizonBudget } from "@/hooks/useHorizonBudget";
 import { useHorizonProjects } from "@/hooks/useHorizonProjects";
 import { HorizonHeader } from "./HorizonHeader";
 import { BudgetOverview } from "./BudgetOverview";
+import { StrategyDashboard } from "./StrategyDashboard";
 import { BudgetSetup } from "./BudgetSetup";
 import { ProjectsList } from "./ProjectsList";
 import { ProjectFormDialog } from "./ProjectFormDialog";
@@ -72,6 +73,13 @@ export function HorizonDashboard() {
             onEditProject={(id) => { setEditingProject(id); setShowProjectForm(true); }}
             onDeleteProject={deleteProject}
             onUpdateProject={updateProject}
+          />
+
+          <StrategyDashboard
+            projects={projects}
+            budget={budget}
+            allocatedCapital={allocatedCapital}
+            allocatedMonthly={allocatedMonthly}
           />
         </>
       )}
