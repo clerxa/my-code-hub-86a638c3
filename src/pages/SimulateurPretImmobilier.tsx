@@ -59,7 +59,7 @@ const SimulateurPretImmobilier = () => {
   const [dureeAnnees, setDureeAnnees] = useState(20);
   const [tauxInteret, setTauxInteret] = useState(3.2);
   const [tauxAssurance, setTauxAssurance] = useState(0.34);
-  const [revenuAnnuel, setRevenuAnnuel] = useState<number>(60000);
+  const [revenuMensuelNet, setRevenuMensuelNet] = useState<number>(5000);
   const [profileApplied, setProfileApplied] = useState(false);
 
   // Fonction pour restaurer les données d'une simulation
@@ -69,7 +69,7 @@ const SimulateurPretImmobilier = () => {
     if (data.duree_annees) setDureeAnnees(data.duree_annees as number);
     if (data.taux_interet) setTauxInteret(data.taux_interet as number);
     if (data.taux_assurance) setTauxAssurance(data.taux_assurance as number);
-    if (data.revenu_mensuel) setRevenuAnnuel((data.revenu_mensuel as number) * 12);
+    if (data.revenu_mensuel) setRevenuMensuelNet(data.revenu_mensuel as number);
     setProfileApplied(true);
     setShowResults(true);
   }, []);
@@ -88,7 +88,7 @@ const SimulateurPretImmobilier = () => {
       const data = getPrefillData();
       if (data.apportDisponible > 0) setApportPersonnel(data.apportDisponible);
       if (data.dureeEmpruntSouhaitee > 0) setDureeAnnees(data.dureeEmpruntSouhaitee);
-      if (data.revenuFiscalAnnuel > 0) setRevenuAnnuel(data.revenuFiscalAnnuel);
+      if (data.revenuMensuelNet > 0) setRevenuMensuelNet(Math.round(data.revenuMensuelNet / 12));
       if (data.budgetAchatImmo && data.budgetAchatImmo > 0) setMontantProjet(data.budgetAchatImmo);
       setProfileApplied(true);
     }
@@ -96,16 +96,15 @@ const SimulateurPretImmobilier = () => {
   
   // Calculs
   const resultats = useMemo(() => {
-    const revenuMensuelCalcule = revenuAnnuel ? revenuAnnuel / 12 : undefined;
     return calculerSimulation({
       montantProjet,
       apportPersonnel,
       dureeAnnees,
       tauxInteret,
       tauxAssurance,
-      revenuMensuel: revenuMensuelCalcule,
+      revenuMensuel: revenuMensuelNet || undefined,
     });
-  }, [montantProjet, apportPersonnel, dureeAnnees, tauxInteret, tauxAssurance, revenuAnnuel, calculerSimulation]);
+  }, [montantProjet, apportPersonnel, dureeAnnees, tauxInteret, tauxAssurance, revenuMensuelNet, calculerSimulation]);
 
   // CTAs
   const { ctas } = useCTARulesEngine('pret_immobilier', {
@@ -150,7 +149,7 @@ const SimulateurPretImmobilier = () => {
         duree_annees: dureeAnnees,
         taux_interet: tauxInteret,
         taux_assurance: tauxAssurance,
-        revenu_annuel: revenuAnnuel,
+        revenu_mensuel_net: revenuMensuelNet,
       },
       resultsData: {
         montant_emprunte: resultats.montantEmprunte,
@@ -177,7 +176,7 @@ const SimulateurPretImmobilier = () => {
       duree_annees: dureeAnnees,
       taux_interet: tauxInteret,
       taux_assurance: tauxAssurance,
-      revenu_mensuel: revenuAnnuel ? revenuAnnuel / 12 : null,
+      revenu_mensuel: revenuMensuelNet,
       montant_emprunte: resultats.montantEmprunte,
       mensualite_totale: resultats.mensualiteTotale,
       cout_total_interets: resultats.coutTotalInterets,
@@ -247,9 +246,9 @@ const SimulateurPretImmobilier = () => {
           </div>
           
           <SimulatorStepField
-            label="Revenu annuel imposable du foyer"
-            value={revenuAnnuel}
-            onChange={setRevenuAnnuel}
+            label="Revenu net mensuel du foyer"
+            value={revenuMensuelNet}
+            onChange={setRevenuMensuelNet}
             type="currency"
             icon={Euro}
             tooltip="Permet de calculer votre taux d'endettement"
