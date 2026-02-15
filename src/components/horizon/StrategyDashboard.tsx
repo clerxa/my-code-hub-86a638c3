@@ -11,6 +11,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import type { HorizonProject } from "@/hooks/useHorizonProjects";
 import type { HorizonBudget } from "@/hooks/useHorizonBudget";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { setBookingReferrerWithUtm } from "@/hooks/useBookingReferrer";
 import confetti from "canvas-confetti";
 
 interface StrategyDashboardProps {
@@ -60,6 +62,7 @@ const itemVariants = {
 };
 
 export function StrategyDashboard({ projects, budget, allocatedCapital, allocatedMonthly }: StrategyDashboardProps) {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(true);
   const activeProjects = projects.filter(p => p.status === "active");
 
@@ -102,6 +105,9 @@ export function StrategyDashboard({ projects, budget, allocatedCapital, allocate
 
   const handleCTA = () => {
     confetti({ particleCount: 120, spread: 90, origin: { x: 0.5, y: 0.6 }, colors: ['#3B82F6', '#F59E0B', '#8B5CF6', '#10B981'] });
+    // Navigate to expert booking with UTM tracking
+    setBookingReferrerWithUtm('/employee/horizon', 'horizon_passer_action');
+    navigate('/expert-booking');
   };
 
   if (activeProjects.length === 0) return null;
@@ -363,10 +369,7 @@ export function StrategyDashboard({ projects, budget, allocatedCapital, allocate
                       <Button
                         size="lg"
                         className="gap-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white shadow-lg shadow-amber-500/25"
-                        onClick={() => {
-                          handleCTA();
-                          window.open('#contact-expert', '_blank');
-                        }}
+                        onClick={handleCTA}
                       >
                         <Rocket className="h-4 w-4" />
                         Passer à l'action
