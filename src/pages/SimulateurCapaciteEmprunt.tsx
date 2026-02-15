@@ -65,19 +65,19 @@ const SimulateurCapaciteEmprunt = () => {
   const [revenusCapital, setRevenusCapital] = useState(0);
   const [autresRevenus, setAutresRevenus] = useState(0);
   
-  // Step 2: Charges
+  // Step 2: Crédits en cours
   const [creditConso, setCreditConso] = useState(0);
   const [creditAuto, setCreditAuto] = useState(0);
   const [creditImmo, setCreditImmo] = useState(0);
-  const [pensionsVersees, setPensionsVersees] = useState(0);
-  const [loyerActuel, setLoyerActuel] = useState(1000);
-  const [nombreEnfants, setNombreEnfants] = useState(0);
+  const [autresCredits, setAutresCredits] = useState(0);
   
   // Step 3: Paramètres du prêt
   const [dureeAnnees, setDureeAnnees] = useState(25);
   const [tauxInteret, setTauxInteret] = useState(3.5);
+  const [tauxAssurance, setTauxAssurance] = useState(0.34);
   const [apportPersonnel, setApportPersonnel] = useState(30000);
-  const [fraisNotaire, setFraisNotaire] = useState(8);
+  const [typeBien, setTypeBien] = useState<'ancien' | 'neuf'>('ancien');
+  const fraisNotaire = typeBien === 'ancien' ? 8 : 3;
   
   const [profileApplied, setProfileApplied] = useState(false);
 
@@ -90,13 +90,12 @@ const SimulateurCapaciteEmprunt = () => {
     if (data.credit_conso) setCreditConso(data.credit_conso as number);
     if (data.credit_auto) setCreditAuto(data.credit_auto as number);
     if (data.credit_immo) setCreditImmo(data.credit_immo as number);
-    if (data.pensions_alimentaires) setPensionsVersees(data.pensions_alimentaires as number);
-    if (data.loyer_actuel) setLoyerActuel(data.loyer_actuel as number);
-    if (data.nombre_enfants) setNombreEnfants(data.nombre_enfants as number);
+    if (data.autres_credits) setAutresCredits(data.autres_credits as number);
     if (data.duree_annees) setDureeAnnees(data.duree_annees as number);
     if (data.taux_interet) setTauxInteret(data.taux_interet as number);
+    if (data.taux_assurance) setTauxAssurance(data.taux_assurance as number);
     if (data.apport_personnel) setApportPersonnel(data.apport_personnel as number);
-    if (data.frais_notaire) setFraisNotaire(data.frais_notaire as number);
+    if (data.type_bien) setTypeBien(data.type_bien as 'ancien' | 'neuf');
     setProfileApplied(true);
     setShowResults(true);
   }, []);
@@ -119,9 +118,6 @@ const SimulateurCapaciteEmprunt = () => {
       if (data.creditConsommation > 0) setCreditConso(data.creditConsommation);
       if (data.creditAuto > 0) setCreditAuto(data.creditAuto);
       if (data.creditImmobilier > 0) setCreditImmo(data.creditImmobilier);
-      if (data.pensionsAlimentaires > 0) setPensionsVersees(data.pensionsAlimentaires);
-      if (data.loyerActuel > 0) setLoyerActuel(data.loyerActuel);
-      if (data.nbEnfants > 0) setNombreEnfants(data.nbEnfants);
       if (data.apportDisponible > 0) setApportPersonnel(data.apportDisponible);
       if (data.dureeEmpruntSouhaitee > 0) setDureeAnnees(data.dureeEmpruntSouhaitee);
       setProfileApplied(true);
@@ -130,20 +126,20 @@ const SimulateurCapaciteEmprunt = () => {
   
   // Calculs
   const revenuMensuelNet = salaires + (revenusLocatifs * 0.7) + revenusCapital + autresRevenus;
-  const chargesFixes = creditConso + creditAuto + creditImmo + pensionsVersees;
+  const chargesFixes = creditConso + creditAuto + creditImmo + autresCredits;
   
   const resultats = useMemo(() => {
     return calculerSimulation({
       revenuMensuelNet,
       chargesFixes,
-      loyerActuel,
-      nombreEnfants,
+      loyerActuel: 0,
+      nombreEnfants: 0,
       dureeAnnees,
       tauxInteret,
       apportPersonnel,
       fraisNotaire,
     });
-  }, [revenuMensuelNet, chargesFixes, loyerActuel, nombreEnfants, dureeAnnees, tauxInteret, apportPersonnel, fraisNotaire, calculerSimulation]);
+  }, [revenuMensuelNet, chargesFixes, dureeAnnees, tauxInteret, apportPersonnel, fraisNotaire, calculerSimulation]);
 
   // CTAs
   const { ctas } = useCTARulesEngine('capacite_emprunt', {
@@ -181,10 +177,12 @@ const SimulateurCapaciteEmprunt = () => {
         credit_conso: creditConso,
         credit_auto: creditAuto,
         credit_immo: creditImmo,
-        loyer_actuel: loyerActuel,
+        autres_credits: autresCredits,
         duree_annees: dureeAnnees,
         taux_interet: tauxInteret,
+        taux_assurance: tauxAssurance,
         apport_personnel: apportPersonnel,
+        type_bien: typeBien,
       },
       resultsData: {
         capacite_emprunt: resultats.capaciteEmprunt,
@@ -211,14 +209,12 @@ const SimulateurCapaciteEmprunt = () => {
       credit_conso: creditConso,
       credit_auto: creditAuto,
       credit_immo: creditImmo,
-      pensions_alimentaires: pensionsVersees,
-      loyer_actuel: loyerActuel,
-      nombre_enfants: nombreEnfants,
+      autres_credits: autresCredits,
       revenu_mensuel_net: revenuMensuelNet,
       charges_fixes: chargesFixes,
       duree_annees: dureeAnnees,
       taux_interet: tauxInteret,
-      taux_assurance: 0.34,
+      taux_assurance: tauxAssurance,
       apport_personnel: apportPersonnel,
       frais_notaire: fraisNotaire,
       capacite_emprunt: resultats.capaciteEmprunt,
@@ -317,8 +313,8 @@ const SimulateurCapaciteEmprunt = () => {
     },
     {
       id: 'charges',
-      title: 'Vos charges',
-      subtitle: 'Renseignez vos charges mensuelles actuelles',
+      title: 'Vos crédits en cours',
+      subtitle: 'Renseignez vos remboursements mensuels actuels',
       icon: CreditCard,
       content: (
         <div className="space-y-6">
@@ -351,37 +347,18 @@ const SimulateurCapaciteEmprunt = () => {
           />
           
           <SimulatorStepField
-            label="Pensions versées"
-            value={pensionsVersees}
-            onChange={setPensionsVersees}
+            label="Autres crédits"
+            value={autresCredits}
+            onChange={setAutresCredits}
             type="currency"
-            tooltip="Pensions alimentaires que vous versez"
+            icon={CreditCard}
+            tooltip="Tout autre crédit en cours (LOA, prêt familial, etc.)"
             delay={3}
-          />
-          
-          <SimulatorStepField
-            label="Loyer actuel"
-            value={loyerActuel}
-            onChange={setLoyerActuel}
-            type="currency"
-            icon={Home}
-            tooltip="Sera libéré lors de l'achat"
-            delay={4}
-          />
-          
-          <SimulatorStepField
-            label="Nombre d'enfants"
-            value={nombreEnfants}
-            onChange={setNombreEnfants}
-            type="number"
-            min={0}
-            max={10}
-            delay={5}
           />
           
           <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
             <div className="flex justify-between items-center">
-              <span className="font-medium">Total charges fixes</span>
+              <span className="font-medium">Total crédits en cours</span>
               <span className="text-2xl font-bold text-destructive">{formatEuro(chargesFixes)}</span>
             </div>
           </div>
@@ -413,12 +390,27 @@ const SimulateurCapaciteEmprunt = () => {
             label="Taux d'intérêt"
             value={tauxInteret}
             onChange={setTauxInteret}
-            type="percent"
+            type="slider"
             min={1}
             max={6}
-            step={0.1}
+            step={0.05}
+            suffix="%"
             icon={Percent}
             delay={1}
+          />
+          
+          <SimulatorStepField
+            label="Taux d'assurance (TAEA)"
+            value={tauxAssurance}
+            onChange={setTauxAssurance}
+            type="slider"
+            min={0.05}
+            max={0.8}
+            step={0.01}
+            suffix="%"
+            icon={Percent}
+            tooltip="Taux Annuel Effectif de l'Assurance"
+            delay={2}
           />
           
           <SimulatorStepField
@@ -428,20 +420,41 @@ const SimulateurCapaciteEmprunt = () => {
             type="currency"
             icon={PiggyBank}
             tooltip="Montant que vous pouvez apporter"
-            delay={2}
-          />
-          
-          <SimulatorStepField
-            label="Frais de notaire"
-            value={fraisNotaire}
-            onChange={setFraisNotaire}
-            type="percent"
-            min={2}
-            max={12}
-            step={0.5}
-            tooltip="7-8% dans l'ancien, 2-3% dans le neuf"
             delay={3}
           />
+          
+          {/* Type de bien : Ancien ou Neuf */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Type de bien</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setTypeBien('ancien')}
+                className={`p-4 rounded-lg border-2 text-center transition-all ${
+                  typeBien === 'ancien'
+                    ? 'border-primary bg-primary/10 text-primary font-semibold'
+                    : 'border-border bg-card hover:border-primary/40'
+                }`}
+              >
+                <Building className="h-5 w-5 mx-auto mb-1" />
+                <div className="text-sm font-medium">Ancien</div>
+                <div className="text-xs text-muted-foreground">~8% de frais</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTypeBien('neuf')}
+                className={`p-4 rounded-lg border-2 text-center transition-all ${
+                  typeBien === 'neuf'
+                    ? 'border-primary bg-primary/10 text-primary font-semibold'
+                    : 'border-border bg-card hover:border-primary/40'
+                }`}
+              >
+                <Home className="h-5 w-5 mx-auto mb-1" />
+                <div className="text-sm font-medium">Neuf</div>
+                <div className="text-xs text-muted-foreground">~3% de frais</div>
+              </button>
+            </div>
+          </div>
         </div>
       ),
       isValid: () => dureeAnnees > 0 && tauxInteret > 0,
