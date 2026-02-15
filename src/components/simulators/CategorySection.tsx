@@ -53,6 +53,7 @@ export function CategorySection({ name, description, icon, simulators, simulatio
       '/simulateur-pvi': 'pvi',
       '/simulateur-lmnp': 'lmnp',
       '/optimisation-fiscale': 'optimisation_fiscale',
+      '/simulateur-capacite-epargne': 'capacite_epargne_sim',
     };
     return routeToType[route] || null;
   };

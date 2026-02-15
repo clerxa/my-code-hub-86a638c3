@@ -75,7 +75,7 @@ const INTERNAL_PAGES = [
   { value: '/simulateur-lmnp', label: 'Simulateur LMNP' },
   { value: '/simulateur-pret-immobilier', label: 'Simulateur Prêt Immobilier' },
   { value: '/simulateur-capacite-emprunt', label: 'Simulateur Capacité d\'Emprunt' },
-  { value: '/simulateur-capacite-emprunt', label: 'Simulateur Capacité d\'Emprunt' },
+  { value: '/simulateur-capacite-epargne', label: 'Simulateur Capacité d\'Épargne' },
   { value: '/forum', label: 'Forum' },
   { value: '/villains', label: 'Méchants Vaincus' },
   { value: '/plans', label: 'Plans & Tarifs' },
