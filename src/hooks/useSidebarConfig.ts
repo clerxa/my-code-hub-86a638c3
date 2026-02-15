@@ -36,7 +36,7 @@ const defaultEmployeeItems: SidebarMenuItem[] = [
   { id: "progression", label: "La quête Fincare", icon: "TrendingUp", order: 2, visible: true, categoryId: "mon-espace" },
   { id: "parcours", label: "Mes parcours", icon: "GraduationCap", order: 3, visible: true, categoryId: "mon-espace" },
   { id: "simulations", label: "Mes simulations", icon: "Calculator", order: 4, visible: true, categoryId: "mon-espace" },
-  { id: "horizon", label: "Horizon Patrimonial", icon: "Compass", order: 5, visible: true, categoryId: "mon-espace" },
+  { id: "horizon", label: "Horizon Patrimonial", icon: "Compass", order: 5, visible: true, categoryId: "programme-fincare" },
   { id: "leaderboard", label: "Classement", icon: "Trophy", order: 6, visible: true, categoryId: "mon-espace" },
   { id: "offers", label: "Offres du moment", icon: "Gift", order: 7, visible: true, categoryId: "mon-espace" },
   { id: "appointments", label: "Mes rendez-vous", icon: "Calendar", order: 8, visible: true, categoryId: "mon-espace" },
@@ -173,7 +173,10 @@ export const useSidebarConfig = (sidebarType: "employee" | "company") => {
           const finalCategories = normalizedCategories.length > 0 
             ? normalizedCategories 
             : sidebarType === "employee" 
-              ? [{ id: "mon-espace", name: "Mon espace", order: 0 }]
+              ? [
+                  { id: "mon-espace", name: "Mon espace", order: 0 },
+                  { id: "programme-fincare", name: "Le programme Fincare", order: 1 },
+                ]
               : [];
 
           setConfig({
@@ -183,7 +186,10 @@ export const useSidebarConfig = (sidebarType: "employee" | "company") => {
         } else {
           // Use defaults if no config found
           const defaultCategories = sidebarType === "employee" 
-            ? [{ id: "mon-espace", name: "Mon espace", order: 0 }]
+            ? [
+                { id: "mon-espace", name: "Mon espace", order: 0 },
+                { id: "programme-fincare", name: "Le programme Fincare", order: 1 },
+              ]
             : [];
           setConfig({
             menuItems: sidebarType === "employee" ? defaultEmployeeItems : defaultCompanyItems,
