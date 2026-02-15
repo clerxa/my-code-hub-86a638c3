@@ -116,6 +116,27 @@ export interface FiscalRules {
   cdhr_taux_minimum: number;
   cdhr_seuil_celibataire: number;
   cdhr_seuil_couple: number;
+  
+  // RSU Qualifiés (AGA)
+  rsu_q_abattement_taux: number;
+  rsu_q_abattement_seuil: number;
+  rsu_q_duree_acquisition_min: number;
+  rsu_q_duree_conservation_min: number;
+  rsu_q_duree_detention_totale_min: number;
+  rsu_q_contribution_patronale: number;
+  rsu_q_csg_crds_rate: number;
+  rsu_q_csg_deductible: number;
+  rsu_q_contribution_salariale_excedent: number;
+  
+  // RSU Non Qualifiés
+  rsu_nq_charges_sociales_salarie: number;
+  rsu_nq_charges_sociales_employeur: number;
+  
+  // RSU Plus-value de cession (commun)
+  rsu_pv_cession_pfu_ir: number;
+  rsu_pv_cession_ps: number;
+  rsu_pv_abattement_2ans: number;
+  rsu_pv_abattement_8ans: number;
 }
 
 export interface LeadQualification {

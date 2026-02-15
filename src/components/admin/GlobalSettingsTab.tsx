@@ -43,6 +43,9 @@ const SUBCATEGORIES: Record<string, Record<string, string>> = {
     'pvi_': 'PVI - Taux de base',
     'cehr_': 'CEHR - Contribution Exceptionnelle Hauts Revenus',
     'cdhr_': 'CDHR - Contribution Différentielle Hauts Revenus',
+    'rsu_q_': 'RSU Qualifiés (AGA)',
+    'rsu_nq_': 'RSU Non Qualifiés',
+    'rsu_pv_': 'RSU - Plus-value de cession',
     'default': 'Autres règles fiscales',
   },
   recommendation_thresholds: {
