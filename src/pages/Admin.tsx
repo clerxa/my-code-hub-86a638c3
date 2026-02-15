@@ -65,6 +65,7 @@ import { NotFoundConfigTab } from "@/components/admin/NotFoundConfigTab";
 import { CompanySearchApiTab } from "@/components/admin/CompanySearchApiTab";
 import { TaxHelpAdminTab } from "@/components/admin/TaxHelpAdminTab";
 import { OffersManagementTab } from "@/components/admin/offers";
+import { DiagnosticCMSTab } from "@/components/admin/DiagnosticCMSTab";
 
 import type { UserProfile, Company, Parcours } from "@/types/database";
 import {
@@ -143,6 +144,7 @@ const Admin = () => {
     "not-found-config": "Page 404",
     "company-search-api": "Test API Entreprises",
     "offers": "Gestion des Offres",
+    "diagnostic-cms": "Diagnostic CMS",
   };
 
   const getBreadcrumbs = () => {
@@ -425,6 +427,9 @@ const Admin = () => {
                 
                 {/* Gestion des Offres */}
                 <Route path="offers" element={<OffersManagementTab />} />
+                
+                {/* Diagnostic CMS */}
+                <Route path="diagnostic-cms" element={<DiagnosticCMSTab />} />
                 
               </Routes>
             </div>

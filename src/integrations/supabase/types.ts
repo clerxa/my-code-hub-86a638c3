@@ -1294,6 +1294,33 @@ export type Database = {
         }
         Relationships: []
       }
+      diagnostic_configs: {
+        Row: {
+          config: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       epargne_precaution_simulations: {
         Row: {
           capacite_epargne_mensuelle: number
