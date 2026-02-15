@@ -68,6 +68,8 @@ import { TaxHelpAdminTab } from "@/components/admin/TaxHelpAdminTab";
 import { OffersManagementTab } from "@/components/admin/offers";
 import { DiagnosticCMSTab } from "@/components/admin/DiagnosticCMSTab";
 import { AnalyticsDashboardTab } from "@/components/admin/AnalyticsDashboardTab";
+import { IntentionScoringTab } from "@/components/admin/IntentionScoringTab";
+import { IntentionScoreConfigTab } from "@/components/admin/IntentionScoreConfigTab";
 
 import type { UserProfile, Company, Parcours } from "@/types/database";
 import {
@@ -148,6 +150,8 @@ const Admin = () => {
     "offers": "Gestion des Offres",
     "diagnostic-cms": "Diagnostic CMS",
     "analytics": "Analytics & Engagement",
+    "scoring": "Scoring d'intention",
+    "scoring-config": "Config Scoring",
   };
 
   const getBreadcrumbs = () => {
@@ -437,6 +441,10 @@ const Admin = () => {
                 
                 {/* Analytics Dashboard */}
                 <Route path="analytics" element={<AnalyticsDashboardTab />} />
+                
+                {/* Scoring d'intention */}
+                <Route path="scoring" element={<IntentionScoringTab />} />
+                <Route path="scoring-config" element={<IntentionScoreConfigTab />} />
                 
               </Routes>
             </div>
