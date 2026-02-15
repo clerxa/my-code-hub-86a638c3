@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -7,6 +7,9 @@ import { useNavigate } from "react-router-dom";
 import { DiagnosticConfig } from "@/data/diagnostic-config";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/AuthProvider";
+import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SectionScore {
   id: string;
@@ -35,6 +38,23 @@ const LEVEL_STYLES = {
 
 export function DiagnosticResults({ config, sectionScores, scorePercent, totalScore, totalMax, elapsed, onRestart }: Props) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Fetch company_id from profile
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => setCompanyId(data?.company_id || null));
+  }, [user]);
+
+  // Get expert booking URL respecting rank logic
+  const { bookingUrl } = useExpertBookingUrl(companyId);
+
   const result = useMemo(() => {
     return config.results.find((r) => scorePercent >= r.min && scorePercent <= r.max) || config.results[0];
   }, [config.results, scorePercent]);
@@ -71,10 +91,13 @@ export function DiagnosticResults({ config, sectionScores, scorePercent, totalSc
             <Button
               className="mt-2 gap-2"
               onClick={() => {
-                if (result.ctaUrl!.startsWith("http")) {
-                  window.open(result.ctaUrl!, "_blank");
+                const isBookingRoute = result.ctaUrl === "/employee/rdv" || result.ctaUrl === "/expert-booking";
+                const targetUrl = isBookingRoute && bookingUrl ? bookingUrl : result.ctaUrl!;
+                
+                if (targetUrl.startsWith("http")) {
+                  window.open(targetUrl, "_blank");
                 } else {
-                  navigate(result.ctaUrl!);
+                  navigate(targetUrl);
                 }
               }}
             >
