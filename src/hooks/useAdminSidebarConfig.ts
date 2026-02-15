@@ -132,6 +132,7 @@ const defaultAdminItems: AdminMenuItem[] = [
   { id: "company-search-api", label: "Test API Entreprises", url: "/admin/company-search-api", icon: "Search", order: 29, visible: true, categoryId: "settings" },
   { id: "tax-help", label: "Aide Fiscale", url: "/admin/tax-help", icon: "Receipt", order: 30, visible: true, categoryId: "settings" },
   { id: "offers", label: "Offres du moment", url: "/admin/offers", icon: "Gift", order: 31, visible: true, categoryId: "settings" },
+  { id: "diagnostic-cms", label: "Diagnostic CMS", url: "/admin/diagnostic-cms", icon: "Target", order: 32, visible: true, categoryId: "content" },
   // Community
   { id: "community", label: "Gestion du Forum", url: "/admin/community", icon: "MessageSquare", order: 0, visible: true, categoryId: "community" },
 ];
