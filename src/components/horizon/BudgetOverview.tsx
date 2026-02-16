@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Wallet, PiggyBank, Settings2 } from "lucide-react";
+import { Wallet, PiggyBank, Settings2, Download, CheckCircle2 } from "lucide-react";
+import { useUserFinancialProfile } from "@/hooks/useUserFinancialProfile";
 import type { HorizonBudget } from "@/hooks/useHorizonBudget";
 
 interface BudgetOverviewProps {
@@ -21,9 +22,18 @@ export function BudgetOverview({ budget, allocatedCapital, allocatedMonthly, onE
   const [editing, setEditing] = useState(false);
   const [capital, setCapital] = useState(String(budget.total_initial_capital));
   const [monthly, setMonthly] = useState(String(budget.total_monthly_savings));
+  const [importedFromProfile, setImportedFromProfile] = useState(false);
+  const { profile } = useUserFinancialProfile();
 
   const capitalPct = budget.total_initial_capital > 0 ? Math.min(100, (allocatedCapital / budget.total_initial_capital) * 100) : 0;
   const monthlyPct = budget.total_monthly_savings > 0 ? Math.min(100, (allocatedMonthly / budget.total_monthly_savings) * 100) : 0;
+
+  const handleImportFromProfile = () => {
+    if (profile?.capacite_epargne_mensuelle) {
+      setMonthly(String(profile.capacite_epargne_mensuelle));
+      setImportedFromProfile(true);
+    }
+  };
 
   const handleSave = async () => {
     await onEditBudget({
@@ -31,6 +41,7 @@ export function BudgetOverview({ budget, allocatedCapital, allocatedMonthly, onE
       total_monthly_savings: Number(monthly) || 0,
     });
     setEditing(false);
+    setImportedFromProfile(false);
   };
 
   return (
@@ -84,10 +95,13 @@ export function BudgetOverview({ budget, allocatedCapital, allocatedMonthly, onE
         </CardContent>
       </Card>
 
-      <Dialog open={editing} onOpenChange={setEditing}>
+      <Dialog open={editing} onOpenChange={(open) => { setEditing(open); if (!open) setImportedFromProfile(false); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Modifier mon budget</DialogTitle>
+            <DialogDescription>
+              Ajustez votre enveloppe globale. Ces montants seront répartis entre vos projets.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -96,7 +110,27 @@ export function BudgetOverview({ budget, allocatedCapital, allocatedMonthly, onE
             </div>
             <div className="space-y-2">
               <Label>Épargne mensuelle disponible (€/mois)</Label>
-              <Input type="number" min="0" value={monthly} onChange={e => setMonthly(e.target.value)} />
+              <Input type="number" min="0" value={monthly} onChange={e => { setMonthly(e.target.value); setImportedFromProfile(false); }} />
+              {profile?.capacite_epargne_mensuelle ? (
+                <div className="pt-1">
+                  {!importedFromProfile ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2 text-xs border-primary/30 text-primary hover:bg-primary/5"
+                      onClick={handleImportFromProfile}
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      Importer depuis mon profil ({fmt(profile.capacite_epargne_mensuelle)} €/mois)
+                    </Button>
+                  ) : (
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Importé depuis votre profil financier
+                    </p>
+                  )}
+                </div>
+              ) : null}
             </div>
           </div>
           <DialogFooter>
