@@ -48,6 +48,13 @@ const Index = () => {
     }
   };
 
+  const clientLogos = [
+    { name: "Palantir", logo: "https://mftrggltywyfsvlckhad.supabase.co/storage/v1/object/public/avatars/0.13603219857893978.png" },
+    { name: "Salesforce", logo: "https://www.numm.fr/wp-content/uploads/2019/03/logo-salesforce-200x200.png" },
+    { name: "Hubspot", logo: "https://cdn4.iconfinder.com/data/icons/logos-and-brands/512/168_Hubspot_logo_logos-512.png" },
+    { name: "Perlib", logo: "https://www.retraite.com/images/Logo_couleur.png" },
+  ];
+
   const features = [
     {
       icon: GraduationCap,
@@ -212,6 +219,26 @@ const Index = () => {
                 <div key={i}>
                   <p className="text-3xl lg:text-4xl font-bold hero-gradient">{stat.value}</p>
                   <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ===== CLIENT LOGOS ===== */}
+        <section className="w-full py-10 overflow-hidden">
+          <p className="text-center text-sm font-medium text-muted-foreground mb-6 tracking-wider uppercase">Ils nous font confiance</p>
+          <div className="relative">
+            <div className="flex gap-10 items-center w-max" style={{ animation: 'marquee 20s linear infinite' }}>
+              {[...clientLogos, ...clientLogos, ...clientLogos].map((client, i) => (
+                <div key={i} className="flex items-center gap-3 bg-card rounded-full px-5 py-3 shadow-sm border border-border/50 shrink-0">
+                  <img
+                    src={client.logo}
+                    alt={client.name}
+                    className="h-10 w-10 object-contain rounded-full bg-white p-1"
+                    loading="lazy"
+                  />
+                  <span className="text-sm font-medium whitespace-nowrap">{client.name}</span>
                 </div>
               ))}
             </div>
