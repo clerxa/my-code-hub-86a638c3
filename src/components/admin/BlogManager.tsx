@@ -11,7 +11,9 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { cn } from "@/lib/utils";
-import { Plus, ArrowLeft, Pencil, Trash2, Eye, EyeOff, Star } from "lucide-react";
+import { Plus, ArrowLeft, Pencil, Trash2, Eye, EyeOff, Star, MonitorSmartphone } from "lucide-react";
+import { RichText } from "@/components/ui/rich-text";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -53,6 +55,7 @@ export function BlogManager() {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<BlogPost | null>(null);
   const [creating, setCreating] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -194,11 +197,47 @@ export function BlogManager() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour
           </Button>
-          <h2 className="text-lg font-semibold">
-            {editing ? "Modifier l'article" : "Nouvel article"}
-          </h2>
+          <div className="flex items-center gap-4 flex-1">
+            <h2 className="text-lg font-semibold">
+              {editing ? "Modifier l'article" : "Nouvel article"}
+            </h2>
+          </div>
+          <Button
+            variant={previewMode ? "secondary" : "outline"}
+            size="sm"
+            onClick={() => setPreviewMode(!previewMode)}
+          >
+            <MonitorSmartphone className="h-4 w-4 mr-2" />
+            {previewMode ? "Éditer" : "Prévisualiser"}
+          </Button>
         </div>
 
+        {previewMode ? (
+          <Card>
+            <CardContent className="pt-6">
+              <article className="max-w-3xl mx-auto">
+                {form.cover_image_url && (
+                  <img
+                    src={form.cover_image_url}
+                    alt={form.cover_image_alt || form.title}
+                    className="w-full h-64 object-cover rounded-lg mb-6"
+                  />
+                )}
+                <div className="mb-4 flex items-center gap-3 text-sm text-muted-foreground">
+                  {form.category_id && categories.find(c => c.id === form.category_id) && (
+                    <Badge variant="outline">{categories.find(c => c.id === form.category_id)!.name}</Badge>
+                  )}
+                  <span>Par {form.author_name}</span>
+                </div>
+                <h1 className="text-3xl font-bold mb-4">{form.title || "Sans titre"}</h1>
+                {form.excerpt && (
+                  <p className="text-lg text-muted-foreground mb-8">{form.excerpt}</p>
+                )}
+                <RichText content={form.content} className="prose prose-lg dark:prose-invert max-w-none" />
+              </article>
+            </CardContent>
+          </Card>
+        ) : (
         <Card>
           <CardContent className="pt-6 space-y-6">
             <div className="grid md:grid-cols-2 gap-4">
@@ -374,6 +413,7 @@ export function BlogManager() {
             </div>
           </CardContent>
         </Card>
+        )}
       </div>
     );
   }
