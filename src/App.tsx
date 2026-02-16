@@ -73,6 +73,8 @@ import EmployeePartnership from "./pages/EmployeePartnership";
 import RiskProfile from "./pages/RiskProfile";
 import ExpertBookingLanding from "./pages/ExpertBookingLanding";
 import NotFound from "./pages/NotFound";
+import Blog from "./pages/Blog";
+import BlogArticle from "./pages/BlogArticle";
 import TaxDeclarationHelp from "./pages/TaxDeclarationHelp";
 import Diagnostic from "./pages/Diagnostic";
 import Horizon from "./pages/Horizon";
@@ -135,6 +137,8 @@ const App = () => (
             <Route path="/proposer-partenariat" element={<EmployeePartnership />} />
             <Route path="/rdv-expert" element={<ExpertBookingLanding />} />
             <Route path="/onboarding" element={<PublicOnboarding />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogArticle />} />
             
             {/* Routes administrateur - Nécessitent le rôle admin */}
             <Route
