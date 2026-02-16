@@ -52,78 +52,78 @@ const Index = () => {
     {
       icon: GraduationCap,
       title: "Modules d'éducation financière",
-      description: "Des parcours interactifs et ludiques pour comprendre l'épargne, le crédit, la fiscalité et les placements.",
+      description: "Offrez à vos collaborateurs des parcours interactifs sur l'épargne, la fiscalité et les placements — sans mobiliser vos équipes RH.",
     },
     {
       icon: Calculator,
       title: "Simulateurs personnalisés",
-      description: "Simulez votre capacité d'emprunt, votre épargne de précaution, votre PER et bien plus encore.",
+      description: "Vos salariés simulent leur capacité d'emprunt, épargne de précaution ou PER en autonomie, avec des résultats concrets.",
     },
     {
       icon: Calendar,
-      title: "Rendez-vous expert certifié",
-      description: "Échangez gratuitement avec un conseiller financier certifié, en toute confidentialité.",
+      title: "Rendez-vous experts certifiés",
+      description: "Donnez accès à des conseillers financiers certifiés pour un accompagnement individuel et confidentiel, inclus dans le programme.",
     },
     {
       icon: Target,
-      title: "Horizon – Planification budgétaire",
-      description: "Planifiez vos projets de vie et suivez vos objectifs financiers mois par mois.",
+      title: "Planification budgétaire (Horizon)",
+      description: "Aidez vos salariés à anticiper leurs projets de vie grâce à un outil de planification budgétaire mois par mois.",
     },
   ];
 
   const stats = [
-    { value: "92%", label: "des salariés satisfaits" },
-    { value: "+30", label: "modules disponibles" },
+    { value: "92%", label: "de satisfaction collaborateurs" },
+    { value: "+30", label: "modules clé en main" },
+    { value: "0", label: "charge RH supplémentaire" },
     { value: "100%", label: "confidentiel" },
-    { value: "0€", label: "pour le salarié" },
   ];
 
   const steps = [
     {
       number: "1",
-      title: "Votre entreprise active MyFinCare",
-      description: "L'employeur souscrit au programme. Aucune démarche pour le salarié.",
+      title: "Vous activez le programme",
+      description: "Déploiement en quelques jours, sans intégration technique. Nous configurons tout pour vous.",
     },
     {
       number: "2",
-      title: "Vous créez votre espace personnel",
-      description: "Inscription en 2 minutes avec votre email professionnel, diagnostic financier inclus.",
+      title: "Vos salariés s'inscrivent",
+      description: "Chaque collaborateur crée son espace en 2 minutes avec son email professionnel.",
     },
     {
       number: "3",
-      title: "Vous progressez à votre rythme",
-      description: "Modules, simulateurs, rendez-vous experts : tout est accessible depuis votre tableau de bord.",
+      title: "Vous suivez l'impact",
+      description: "Tableau de bord entreprise avec indicateurs d'engagement, de satisfaction et de ROI en temps réel.",
     },
   ];
 
   const faqItems = [
     {
-      question: "Qu'est-ce que MyFinCare ?",
-      answer: "MyFinCare est un programme d'éducation financière conçu pour les salariés. Il propose des modules interactifs, des simulateurs, des rendez-vous avec des experts certifiés et des outils de planification budgétaire.",
+      question: "Qu'est-ce que MyFinCare apporte à mon entreprise ?",
+      answer: "MyFinCare renforce votre marque employeur et réduit le stress financier de vos collaborateurs. Résultat : moins de turnover, plus d'engagement et un avantage social différenciant qui ne coûte rien en charges patronales.",
     },
     {
-      question: "Est-ce que MyFinCare est gratuit pour les salariés ?",
-      answer: "Oui, MyFinCare est entièrement gratuit pour les salariés. C'est l'entreprise qui finance le programme dans le cadre de sa politique de bien-être au travail.",
+      question: "Combien de temps faut-il pour déployer MyFinCare ?",
+      answer: "Le déploiement se fait en quelques jours. Aucune intégration technique n'est nécessaire : nous configurons la plateforme, vous communiquez à vos équipes.",
     },
     {
-      question: "Mes données financières sont-elles protégées ?",
-      answer: "Absolument. Vos données sont chiffrées et strictement confidentielles. Votre employeur n'a accès à aucune information personnelle ou financière.",
+      question: "Les données de mes salariés sont-elles protégées ?",
+      answer: "Absolument. Les données financières personnelles sont chiffrées et strictement confidentielles. En tant qu'employeur, vous n'avez accès qu'aux indicateurs agrégés et anonymisés.",
     },
     {
-      question: "Comment proposer MyFinCare à mon entreprise ?",
-      answer: "Vous pouvez remplir le formulaire de contact sur notre page partenariat ou nous écrire directement. Nous prendrons contact avec votre service RH.",
+      question: "Quel est le coût pour l'entreprise ?",
+      answer: "MyFinCare fonctionne sur un modèle d'abonnement par entreprise. Le programme est entièrement gratuit pour les salariés. Contactez-nous pour un devis personnalisé selon la taille de votre effectif.",
     },
     {
-      question: "Quels sujets sont couverts par les modules ?",
-      answer: "Épargne, crédit immobilier, fiscalité, retraite, investissement, budget, épargne salariale, assurances... Plus de 30 modules couvrent l'essentiel de la vie financière.",
+      question: "Comment mesurer le retour sur investissement ?",
+      answer: "Votre tableau de bord entreprise affiche en temps réel le taux d'adoption, la satisfaction, le nombre de rendez-vous experts et les indicateurs d'engagement — des métriques directement corrélées à la réduction du turnover.",
     },
   ];
 
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title="MyFinCare – L'éducation financière des salariés"
-        description="MyFinCare aide chaque salarié à reprendre le pouvoir sur ses finances grâce à des modules interactifs, des simulateurs et des rendez-vous experts personnalisés."
+        title="MyFinCare – Le bien-être financier de vos salariés"
+        description="Renforcez votre marque employeur avec MyFinCare : le programme d'éducation financière clé en main pour vos collaborateurs. Réduisez le turnover et boostez l'engagement."
         path="/"
       />
       <JsonLdOrganization />
@@ -136,17 +136,17 @@ const Index = () => {
             MyFinCare
           </Link>
           <div className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Fonctionnalités</a>
-            <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Comment ça marche</a>
+            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Le programme</a>
+            <a href="#impact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Impact</a>
+            <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Déploiement</a>
             <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
-            <Link to="/partenariat" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Entreprises</Link>
           </div>
           <div className="flex items-center gap-3">
             <Link to="/login">
-              <Button variant="ghost" size="sm">Se connecter</Button>
+              <Button variant="ghost" size="sm">Espace client</Button>
             </Link>
-            <Button size="sm" onClick={() => navigate("/onboarding")} className="btn-hero-gradient">
-              Commencer
+            <Button size="sm" onClick={() => navigate("/partenariat")} className="btn-hero-gradient">
+              Demander une démo
             </Button>
           </div>
         </nav>
@@ -160,18 +160,18 @@ const Index = () => {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-8 order-2 lg:order-1">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
-                  <span className="hero-gradient">Redonnez à vos salariés le pouvoir sur leurs finances.</span>
+                  <span className="hero-gradient">Le bien-être financier au cœur de votre politique RH.</span>
                 </h1>
                 <p className="text-lg lg:text-xl text-muted-foreground max-w-xl">
-                  MyFinCare est le programme d'éducation financière qui accompagne chaque salarié avec des modules interactifs, des simulateurs et des experts certifiés — en toute confidentialité.
+                  Offrez à vos collaborateurs un programme d'éducation financière complet : modules interactifs, simulateurs et experts certifiés — sans charge pour vos équipes RH.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     size="lg"
                     className="btn-hero-gradient text-base sm:text-lg px-8 py-6"
-                    onClick={() => navigate("/onboarding")}
+                    onClick={() => navigate("/partenariat")}
                   >
-                    Commencer l'expérience MyFinCare
+                    Demander une démo
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                   <Button
@@ -180,8 +180,7 @@ const Index = () => {
                     className="text-base sm:text-lg px-8 py-6"
                     onClick={() => navigate("/partenariat")}
                   >
-                    <Mail className="mr-2 h-5 w-5" />
-                    Proposer à mes salariés
+                    Découvrir le programme
                   </Button>
                 </div>
               </div>
@@ -224,10 +223,10 @@ const Index = () => {
           <div className="container max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-                Des outils concrets pour reprendre le contrôle
+                Un programme clé en main pour vos équipes
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Chaque salarié accède à un espace personnalisé avec tout ce dont il a besoin pour mieux comprendre et gérer ses finances.
+                Déployez un dispositif complet d'accompagnement financier, sans mobiliser vos ressources internes.
               </p>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -248,21 +247,21 @@ const Index = () => {
         </section>
 
         {/* ===== IMPACT ===== */}
-        <section className="py-20 lg:py-28 px-4 bg-card/30">
+        <section id="impact" className="py-20 lg:py-28 px-4 bg-card/30">
           <div className="container max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-                Le bien-être financier, un levier de performance
+                Un impact mesurable sur votre performance RH
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Quand les salariés ne s'inquiètent plus de leurs finances, l'entreprise en bénéficie directement.
+                Le stress financier coûte cher aux entreprises. MyFinCare vous aide à réduire le turnover, l'absentéisme et à renforcer l'engagement.
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
               {[
-                { icon: TrendingUp, value: "-27%", label: "de turnover", detail: "Les salariés accompagnés restent plus longtemps" },
-                { icon: Users, value: "+35%", label: "d'engagement", detail: "Des collaborateurs plus sereins et productifs" },
-                { icon: Shield, value: "534€", label: "d'économies/an", detail: "En moyenne pour chaque salarié utilisateur" },
+                { icon: TrendingUp, value: "-27%", label: "de turnover", detail: "Vos talents restent plus longtemps dans l'entreprise" },
+                { icon: Users, value: "+35%", label: "d'engagement", detail: "Des collaborateurs plus sereins, plus impliqués" },
+                { icon: Shield, value: "0€", label: "de charges supplémentaires", detail: "Un avantage social sans cotisations patronales" },
               ].map((item, i) => {
                 const Icon = item.icon;
                 return (
@@ -284,9 +283,9 @@ const Index = () => {
         <section id="how-it-works" className="py-20 lg:py-28 px-4">
           <div className="container max-w-5xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl lg:text-4xl font-bold mb-4">Comment ça marche ?</h2>
+              <h2 className="text-3xl lg:text-4xl font-bold mb-4">Déploiement simple et rapide</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Trois étapes simples pour démarrer votre parcours d'éducation financière.
+                Trois étapes pour offrir un programme d'éducation financière à vos collaborateurs.
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
@@ -309,23 +308,23 @@ const Index = () => {
         {/* ===== TESTIMONIALS ===== */}
         <section className="py-20 lg:py-28 px-4 bg-card/30">
           <div className="container max-w-6xl mx-auto">
-            <h2 className="text-3xl lg:text-4xl font-bold text-center mb-12">Ce qu'en disent nos utilisateurs</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-center mb-12">Ils ont déployé MyFinCare</h2>
             <div className="grid md:grid-cols-3 gap-6">
               {[
                 {
-                  quote: "Grâce à MyFinCare, j'ai enfin compris comment optimiser mon épargne salariale. Les modules sont clairs et concrets.",
-                  author: "Sophie L.",
-                  role: "Responsable marketing",
+                  quote: "MyFinCare nous a permis de proposer un avantage social innovant sans alourdir nos process RH. Le taux d'adoption a dépassé nos attentes.",
+                  author: "Caroline M.",
+                  role: "DRH – ETI (450 salariés)",
                 },
                 {
-                  quote: "Le simulateur de capacité d'emprunt m'a permis de préparer mon projet immobilier sereinement. Un vrai gain de temps.",
-                  author: "Thomas R.",
-                  role: "Développeur",
+                  quote: "Nos collaborateurs nous remercient pour cet accompagnement. C'est un vrai facteur de fidélisation, surtout chez les jeunes recrues.",
+                  author: "Marc D.",
+                  role: "Directeur des Ressources Humaines",
                 },
                 {
-                  quote: "J'ai pu prendre rendez-vous avec un expert certifié gratuitement. Il m'a aidé à comprendre ma fiche de paie et mes droits.",
-                  author: "Amina K.",
-                  role: "Assistante RH",
+                  quote: "Le tableau de bord entreprise nous donne une vision claire de l'engagement. On mesure concrètement l'impact sur le bien-être au travail.",
+                  author: "Léa S.",
+                  role: "Responsable QVT",
                 },
               ].map((t, i) => (
                 <article key={i} className="bg-card rounded-2xl p-6 shadow-card border border-border/50 flex flex-col">
@@ -365,28 +364,30 @@ const Index = () => {
         <section className="py-20 lg:py-28 px-4 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10">
           <div className="container max-w-3xl mx-auto text-center">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              Prêt à transformer le bien-être financier de vos équipes ?
+              Prêt à investir dans le bien-être financier de vos équipes ?
             </h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-              Rejoignez les entreprises qui investissent dans l'éducation financière de leurs salariés.
+              Rejoignez les entreprises qui font de l'éducation financière un pilier de leur politique RH.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 className="btn-hero-gradient text-lg px-8 py-6"
-                onClick={() => navigate("/onboarding")}
+                onClick={() => navigate("/partenariat")}
               >
-                Commencer gratuitement
+                Demander une démo
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button
                 size="lg"
                 variant="outline"
                 className="text-lg px-8 py-6"
-                onClick={() => navigate("/partenariat")}
+                onClick={() => {
+                  window.location.href = "mailto:contact@myfincare.fr?subject=Demande d'information MyFinCare";
+                }}
               >
                 <Mail className="mr-2 h-5 w-5" />
-                Proposer à mon entreprise
+                Nous contacter
               </Button>
             </div>
           </div>
@@ -400,24 +401,24 @@ const Index = () => {
             <div>
               <p className="font-bold text-lg hero-gradient mb-2">MyFinCare</p>
               <p className="text-sm text-muted-foreground">
-                Le programme d'éducation financière de Perlib, conçu pour accompagner chaque salarié vers une meilleure maîtrise de ses finances.
+                MyFinCare par Perlib — le programme d'éducation financière qui renforce votre marque employeur et accompagne vos collaborateurs au quotidien.
               </p>
             </div>
             <div>
-              <p className="font-semibold mb-3 text-sm">Navigation</p>
+              <p className="font-semibold mb-3 text-sm">Le programme</p>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#features" className="hover:text-foreground transition-colors">Fonctionnalités</a></li>
-                <li><a href="#how-it-works" className="hover:text-foreground transition-colors">Comment ça marche</a></li>
+                <li><a href="#impact" className="hover:text-foreground transition-colors">Impact RH</a></li>
+                <li><a href="#how-it-works" className="hover:text-foreground transition-colors">Déploiement</a></li>
                 <li><a href="#faq" className="hover:text-foreground transition-colors">FAQ</a></li>
-                <li><Link to="/partenariat" className="hover:text-foreground transition-colors">Entreprises</Link></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold mb-3 text-sm">Accès</p>
+              <p className="font-semibold mb-3 text-sm">Entreprises</p>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/login" className="hover:text-foreground transition-colors">Se connecter</Link></li>
-                <li><Link to="/onboarding" className="hover:text-foreground transition-colors">S'inscrire</Link></li>
-                <li><Link to="/rdv-expert" className="hover:text-foreground transition-colors">Rendez-vous expert</Link></li>
+                <li><Link to="/partenariat" className="hover:text-foreground transition-colors">Demander une démo</Link></li>
+                <li><Link to="/login" className="hover:text-foreground transition-colors">Espace client</Link></li>
+                <li><Link to="/rdv-expert" className="hover:text-foreground transition-colors">Nos experts</Link></li>
               </ul>
             </div>
           </div>

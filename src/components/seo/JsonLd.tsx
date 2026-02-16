@@ -7,7 +7,7 @@ const organizationSchema = {
   url: "https://myfincare-perlib.lovable.app",
   logo: "https://myfincare-perlib.lovable.app/favicon.gif",
   description:
-    "MyFinCare est le programme d'éducation financière qui aide chaque salarié à reprendre le pouvoir sur ses finances.",
+    "MyFinCare est le programme d'éducation financière B2B qui renforce la marque employeur et accompagne les collaborateurs vers une meilleure maîtrise de leurs finances.",
   foundingDate: "2024",
   sameAs: [],
 };
