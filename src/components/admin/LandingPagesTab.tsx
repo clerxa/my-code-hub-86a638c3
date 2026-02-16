@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Handshake, UserPlus, ExternalLink, ArrowLeft, Home } from "lucide-react";
+import { Calendar, Handshake, UserPlus, ExternalLink, ArrowLeft, Home, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Import the actual tab components
@@ -9,6 +9,7 @@ import { ExpertBookingTab } from "./ExpertBookingTab";
 import { PartnershipTab } from "./PartnershipTab";
 import { EmployeePartnershipEditor } from "./EmployeePartnershipEditor";
 import { IndexPageEditor } from "./IndexPageEditor";
+import { BlogManager } from "./BlogManager";
 
 interface LandingPageSection {
   id: string;
@@ -46,6 +47,13 @@ const sections: LandingPageSection[] = [
     description: "Page pour les employés souhaitant proposer MyFinCare à leur entreprise",
     icon: UserPlus,
     previewUrl: "/proposer-partenariat",
+  },
+  {
+    id: "blog",
+    title: "Blog",
+    description: "Gérez les articles du blog MyFinCare",
+    icon: BookOpen,
+    previewUrl: "/blog",
   },
 ];
 
@@ -113,6 +121,8 @@ export function LandingPagesTab() {
         return <PartnershipTab />;
       case "employee-partnership":
         return <EmployeePartnershipEditor />;
+      case "blog":
+        return <BlogManager />;
       default:
         return (
           <div className="flex items-center justify-center h-64 text-muted-foreground">
@@ -136,7 +146,7 @@ export function LandingPagesTab() {
 
       {/* Section selector when no section is active */}
       {!activeSection && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {sections.map((section) => (
             <SectionCard
               key={section.id}

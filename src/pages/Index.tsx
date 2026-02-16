@@ -142,6 +142,7 @@ const Index = () => {
             <a href="#impact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Impact</a>
             <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Déploiement</a>
             <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
+            <Link to="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Blog</Link>
           </div>
           <div className="flex items-center gap-3">
             <Link to="/login">
@@ -416,6 +417,7 @@ const Index = () => {
                 <li><a href="#impact" className="hover:text-foreground transition-colors">Impact</a></li>
                 <li><a href="#how-it-works" className="hover:text-foreground transition-colors">Déploiement</a></li>
                 <li><a href="#faq" className="hover:text-foreground transition-colors">FAQ</a></li>
+                <li><Link to="/blog" className="hover:text-foreground transition-colors">Blog</Link></li>
               </ul>
             </div>
             <div>
