@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Handshake, UserPlus, ExternalLink, ArrowLeft } from "lucide-react";
+import { Calendar, Handshake, UserPlus, ExternalLink, ArrowLeft, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Import the actual tab components
 import { ExpertBookingTab } from "./ExpertBookingTab";
 import { PartnershipTab } from "./PartnershipTab";
 import { EmployeePartnershipEditor } from "./EmployeePartnershipEditor";
+import { IndexPageEditor } from "./IndexPageEditor";
 
 interface LandingPageSection {
   id: string;
@@ -18,6 +19,13 @@ interface LandingPageSection {
 }
 
 const sections: LandingPageSection[] = [
+  {
+    id: "index",
+    title: "Page d'accueil",
+    description: "Page principale du site — logos clients et configuration",
+    icon: Home,
+    previewUrl: "/",
+  },
   {
     id: "expert-booking",
     title: "LP RDV Experts",
@@ -35,7 +43,7 @@ const sections: LandingPageSection[] = [
   {
     id: "employee-partnership",
     title: "Employee Partnership",
-    description: "Page pour les employés souhaitant proposer FinCare à leur entreprise",
+    description: "Page pour les employés souhaitant proposer MyFinCare à leur entreprise",
     icon: UserPlus,
     previewUrl: "/proposer-partenariat",
   },
@@ -97,6 +105,8 @@ export function LandingPagesTab() {
 
   const renderContent = () => {
     switch (activeSection) {
+      case "index":
+        return <IndexPageEditor />;
       case "expert-booking":
         return <ExpertBookingTab />;
       case "partnership":
@@ -126,7 +136,7 @@ export function LandingPagesTab() {
 
       {/* Section selector when no section is active */}
       {!activeSection && (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {sections.map((section) => (
             <SectionCard
               key={section.id}
