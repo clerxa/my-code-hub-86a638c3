@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { cn } from "@/lib/utils";
 import { Plus, ArrowLeft, Pencil, Trash2, Eye, EyeOff, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +59,9 @@ export function BlogManager() {
     excerpt: "",
     content: "",
     cover_image_url: "",
+    cover_image_alt: "",
+    meta_title: "",
+    meta_description: "",
     category_id: "",
     author_name: "L'équipe MyFinCare",
     is_published: false,
@@ -95,6 +99,9 @@ export function BlogManager() {
       excerpt: "",
       content: "",
       cover_image_url: "",
+      cover_image_alt: "",
+      meta_title: "",
+      meta_description: "",
       category_id: "",
       author_name: "L'équipe MyFinCare",
       is_published: false,
@@ -116,6 +123,9 @@ export function BlogManager() {
       excerpt: post.excerpt || "",
       content: post.content,
       cover_image_url: post.cover_image_url || "",
+      cover_image_alt: (post as any).cover_image_alt || "",
+      meta_title: (post as any).meta_title || "",
+      meta_description: (post as any).meta_description || "",
       category_id: post.category_id || "",
       author_name: post.author_name,
       is_published: post.is_published,
@@ -133,6 +143,9 @@ export function BlogManager() {
         excerpt: form.excerpt || null,
         content: form.content,
         cover_image_url: form.cover_image_url || null,
+        cover_image_alt: form.cover_image_alt || null,
+        meta_title: form.meta_title || null,
+        meta_description: form.meta_description || null,
         category_id: form.category_id || null,
         author_name: form.author_name,
         is_published: form.is_published,
@@ -240,23 +253,87 @@ export function BlogManager() {
               </div>
             </div>
 
+            {/* SEO Section */}
+            <Card className="border-dashed">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                  🔍 Optimisation SEO
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Meta Title</Label>
+                    <span className={cn("text-xs", (form.meta_title || form.title).length > 60 ? "text-destructive" : "text-muted-foreground")}>
+                      {(form.meta_title || form.title).length}/60
+                    </span>
+                  </div>
+                  <Input
+                    value={form.meta_title}
+                    onChange={(e) => setForm({ ...form, meta_title: e.target.value })}
+                    placeholder={form.title || "Titre SEO (laissez vide pour utiliser le titre)"}
+                  />
+                  <p className="text-xs text-muted-foreground">Titre affiché dans Google. Max 60 caractères recommandés.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Meta Description</Label>
+                    <span className={cn("text-xs", (form.meta_description || form.excerpt).length > 160 ? "text-destructive" : "text-muted-foreground")}>
+                      {(form.meta_description || form.excerpt).length}/160
+                    </span>
+                  </div>
+                  <Textarea
+                    value={form.meta_description}
+                    onChange={(e) => setForm({ ...form, meta_description: e.target.value })}
+                    rows={2}
+                    placeholder={form.excerpt || "Description SEO (laissez vide pour utiliser l'extrait)"}
+                  />
+                  <p className="text-xs text-muted-foreground">Description affichée dans Google. Max 160 caractères recommandés.</p>
+                </div>
+
+                {/* Google Preview */}
+                <div className="bg-muted/50 rounded-lg p-4 space-y-1">
+                  <p className="text-xs text-muted-foreground mb-2 font-medium">Aperçu Google</p>
+                  <p className="text-sm text-[#1a0dab] truncate font-medium">
+                    {form.meta_title || form.title || "Titre de l'article"} – Blog MyFinCare
+                  </p>
+                  <p className="text-xs text-[#006621] truncate">
+                    myfincare-perlib.lovable.app/blog/{form.slug || slugify(form.title) || "slug"}
+                  </p>
+                  <p className="text-xs text-[#545454] line-clamp-2">
+                    {form.meta_description || form.excerpt || "Description de l'article..."}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
             <div className="space-y-2">
               <Label>Extrait (chapô)</Label>
               <Textarea
                 value={form.excerpt}
                 onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
                 rows={2}
-                placeholder="Résumé affiché dans la liste du blog"
+                placeholder="Résumé affiché dans la liste du blog et utilisé comme meta description par défaut"
               />
             </div>
 
             <ImageUpload
-              label="Image de couverture"
+              label="Image de couverture (OG Image)"
               value={form.cover_image_url}
               onChange={(url) => setForm({ ...form, cover_image_url: url })}
               bucketName="landing-images"
               aspectRatio="landscape"
             />
+
+            <div className="space-y-2">
+              <Label>Texte alternatif de l'image (alt)</Label>
+              <Input
+                value={form.cover_image_alt}
+                onChange={(e) => setForm({ ...form, cover_image_alt: e.target.value })}
+                placeholder="Description de l'image pour l'accessibilité et le SEO"
+              />
+            </div>
 
             <div className="space-y-2">
               <Label>Contenu (Markdown)</Label>
