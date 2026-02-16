@@ -158,7 +158,7 @@ const Index = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
           <div className="container max-w-7xl mx-auto relative z-10">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-8">
+              <div className="space-y-8 order-2 lg:order-1">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
                   <span className="hero-gradient">Redonnez à vos salariés le pouvoir sur leurs finances.</span>
                 </h1>
@@ -186,15 +186,15 @@ const Index = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-center lg:justify-end">
-                <div className="w-full max-w-md lg:max-w-full aspect-square overflow-hidden">
+              <div className="order-1 lg:order-2 flex items-center justify-center lg:justify-end">
+                <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-full max-h-[35vh] sm:max-h-[40vh] lg:max-h-[60vh] aspect-square overflow-hidden rounded-2xl shadow-2xl">
                   <video
                     ref={videoRef}
                     autoPlay
                     muted
                     loop
                     playsInline
-                    className="w-full h-full object-cover rounded-2xl shadow-2xl"
+                    className="w-full h-full object-cover"
                   >
                     <source src="/video_index3.mp4" type="video/mp4" />
                     Votre navigateur ne supporte pas la lecture de vidéos.
