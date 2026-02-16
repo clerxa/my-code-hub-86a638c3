@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -336,13 +337,13 @@ export function BlogManager() {
             </div>
 
             <div className="space-y-2">
-              <Label>Contenu (Markdown)</Label>
-              <Textarea
+              <Label>Contenu de l'article</Label>
+              <p className="text-xs text-muted-foreground">Utilisez les boutons H1, H2, H3 pour structurer votre article (important pour le SEO)</p>
+              <RichTextEditor
                 value={form.content}
-                onChange={(e) => setForm({ ...form, content: e.target.value })}
-                rows={20}
-                placeholder="Rédigez votre article en Markdown..."
-                className="font-mono text-sm"
+                onChange={(value) => setForm({ ...form, content: value })}
+                placeholder="Rédigez votre article avec des titres, sous-titres, listes..."
+                className="min-h-[400px]"
               />
             </div>
 
