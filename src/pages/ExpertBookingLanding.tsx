@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageMeta } from "@/components/seo/PageMeta";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -140,6 +141,7 @@ export default function ExpertBookingLanding() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      <PageMeta title="Rendez-vous expert financier" description="Prenez rendez-vous avec un expert certifié MyFinCare pour un accompagnement financier personnalisé et confidentiel." path="/rdv-expert" />
       {/* Back Button */}
       <div className="container max-w-6xl mx-auto px-4 pt-6">
         <Button
