@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
+import { Helmet } from "react-helmet-async";
 
 interface BlogPost {
   id: string;
@@ -15,11 +16,17 @@ interface BlogPost {
   excerpt: string | null;
   content: string;
   cover_image_url: string | null;
+  cover_image_alt: string | null;
+  meta_title: string | null;
+  meta_description: string | null;
   author_name: string;
   published_at: string | null;
   created_at: string;
+  updated_at: string;
   blog_categories: { name: string; color: string; slug: string } | null;
 }
+
+const BASE_URL = "https://myfincare-perlib.lovable.app";
 
 export default function BlogArticle() {
   const { slug } = useParams<{ slug: string }>();
@@ -58,14 +65,57 @@ export default function BlogArticle() {
     );
   }
 
+  const seoTitle = post.meta_title || post.title;
+  const seoDescription = post.meta_description || post.excerpt || post.title;
+  const articleUrl = `${BASE_URL}/blog/${post.slug}`;
+  const publishedDate = post.published_at || post.created_at;
+
+  // JSON-LD Article structured data
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: seoDescription,
+    image: post.cover_image_url || undefined,
+    author: {
+      "@type": "Person",
+      name: post.author_name,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "MyFinCare",
+      url: BASE_URL,
+    },
+    datePublished: publishedDate,
+    dateModified: post.updated_at || publishedDate,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": articleUrl,
+    },
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title={`${post.title} – Blog MyFinCare`}
-        description={post.excerpt || post.title}
+        title={`${seoTitle} – Blog MyFinCare`}
+        description={seoDescription}
         path={`/blog/${post.slug}`}
         type="article"
       />
+
+      {/* JSON-LD + article-specific OG tags */}
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+        <meta property="article:published_time" content={publishedDate} />
+        <meta property="article:modified_time" content={post.updated_at || publishedDate} />
+        <meta property="article:author" content={post.author_name} />
+        {post.blog_categories && (
+          <meta property="article:section" content={post.blog_categories.name} />
+        )}
+        {post.cover_image_url && (
+          <meta property="og:image" content={post.cover_image_url} />
+        )}
+      </Helmet>
 
       {/* Navbar */}
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
@@ -98,7 +148,7 @@ export default function BlogArticle() {
             </span>
           )}
           <span className="text-sm text-muted-foreground">
-            {post.author_name} • {format(new Date(post.published_at || post.created_at), "d MMMM yyyy", { locale: fr })}
+            {post.author_name} • {format(new Date(publishedDate), "d MMMM yyyy", { locale: fr })}
           </span>
         </div>
 
@@ -107,8 +157,9 @@ export default function BlogArticle() {
         {post.cover_image_url && (
           <img
             src={post.cover_image_url}
-            alt={post.title}
+            alt={post.cover_image_alt || post.title}
             className="w-full h-auto rounded-2xl mb-10 shadow-lg"
+            loading="lazy"
           />
         )}
 
