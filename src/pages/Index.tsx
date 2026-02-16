@@ -52,7 +52,7 @@ const Index = () => {
     {
       icon: GraduationCap,
       title: "Modules d'éducation financière",
-      description: "Offrez à vos collaborateurs des parcours interactifs sur l'épargne, la fiscalité et les placements — sans mobiliser vos équipes RH.",
+      description: "Proposez à vos collaborateurs des parcours interactifs sur l'épargne, la fiscalité et les placements — un avantage concret, sans charge opérationnelle.",
     },
     {
       icon: Calculator,
@@ -67,15 +67,15 @@ const Index = () => {
     {
       icon: Target,
       title: "Planification budgétaire (Horizon)",
-      description: "Aidez vos salariés à anticiper leurs projets de vie grâce à un outil de planification budgétaire mois par mois.",
+      description: "Aidez vos collaborateurs à anticiper leurs projets de vie grâce à un outil de planification budgétaire mois par mois.",
     },
   ];
 
   const stats = [
     { value: "92%", label: "de satisfaction collaborateurs" },
     { value: "+30", label: "modules clé en main" },
-    { value: "0", label: "charge RH supplémentaire" },
-    { value: "100%", label: "confidentiel" },
+    { value: "0", label: "charge opérationnelle" },
+    { value: "100%", label: "confidentiel & anonyme" },
   ];
 
   const steps = [
@@ -99,11 +99,11 @@ const Index = () => {
   const faqItems = [
     {
       question: "Qu'est-ce que MyFinCare apporte à mon entreprise ?",
-      answer: "MyFinCare renforce votre marque employeur et réduit le stress financier de vos collaborateurs. Résultat : moins de turnover, plus d'engagement et un avantage social différenciant qui ne coûte rien en charges patronales.",
+      answer: "MyFinCare renforce votre politique sociale et réduit le stress financier de vos collaborateurs. Résultat : moins de turnover, plus d'engagement et un avantage différenciant, que vous soyez une direction d'entreprise ou un CSE.",
     },
     {
       question: "Combien de temps faut-il pour déployer MyFinCare ?",
-      answer: "Le déploiement se fait en quelques jours. Aucune intégration technique n'est nécessaire : nous configurons la plateforme, vous communiquez à vos équipes.",
+      answer: "Le déploiement se fait en quelques jours. Aucune intégration technique n'est nécessaire : nous configurons la plateforme, vous communiquez auprès de vos collaborateurs.",
     },
     {
       question: "Les données de mes salariés sont-elles protégées ?",
@@ -111,7 +111,7 @@ const Index = () => {
     },
     {
       question: "Quel est le coût pour l'entreprise ?",
-      answer: "MyFinCare fonctionne sur un modèle d'abonnement par entreprise. Le programme est entièrement gratuit pour les salariés. Contactez-nous pour un devis personnalisé selon la taille de votre effectif.",
+      answer: "MyFinCare fonctionne sur un modèle d'abonnement par structure (entreprise ou CSE). Le programme est entièrement gratuit pour les collaborateurs. Contactez-nous pour un devis adapté à la taille de votre effectif.",
     },
     {
       question: "Comment mesurer le retour sur investissement ?",
@@ -122,8 +122,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta
-        title="MyFinCare – Le bien-être financier de vos salariés"
-        description="Renforcez votre marque employeur avec MyFinCare : le programme d'éducation financière clé en main pour vos collaborateurs. Réduisez le turnover et boostez l'engagement."
+        title="MyFinCare – Bien-être financier pour vos collaborateurs"
+        description="MyFinCare : le programme d'éducation financière clé en main pour les entreprises et CSE. Renforcez votre politique sociale, fidélisez vos talents et boostez l'engagement."
         path="/"
       />
       <JsonLdOrganization />
@@ -160,10 +160,10 @@ const Index = () => {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-8 order-2 lg:order-1">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
-                  <span className="hero-gradient">Le bien-être financier au cœur de votre politique RH.</span>
+                  <span className="hero-gradient">Le bien-être financier au service de votre politique sociale.</span>
                 </h1>
                 <p className="text-lg lg:text-xl text-muted-foreground max-w-xl">
-                  Offrez à vos collaborateurs un programme d'éducation financière complet : modules interactifs, simulateurs et experts certifiés — sans charge pour vos équipes RH.
+                  Proposez à vos collaborateurs un programme d'éducation financière complet : modules interactifs, simulateurs et experts certifiés — un avantage clé en main pour votre entreprise ou votre CSE.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button
@@ -223,10 +223,10 @@ const Index = () => {
           <div className="container max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-                Un programme clé en main pour vos équipes
+                Un programme clé en main pour vos collaborateurs
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Déployez un dispositif complet d'accompagnement financier, sans mobiliser vos ressources internes.
+                Déployez un dispositif complet d'accompagnement financier, sans charge opérationnelle supplémentaire.
               </p>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -251,17 +251,17 @@ const Index = () => {
           <div className="container max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-                Un impact mesurable sur votre performance RH
+                Un impact mesurable sur votre organisation
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Le stress financier coûte cher aux entreprises. MyFinCare vous aide à réduire le turnover, l'absentéisme et à renforcer l'engagement.
+                Le stress financier coûte cher aux entreprises. MyFinCare vous aide à réduire le turnover, l'absentéisme et à renforcer l'engagement de vos équipes.
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
               {[
                 { icon: TrendingUp, value: "-27%", label: "de turnover", detail: "Vos talents restent plus longtemps dans l'entreprise" },
                 { icon: Users, value: "+35%", label: "d'engagement", detail: "Des collaborateurs plus sereins, plus impliqués" },
-                { icon: Shield, value: "0€", label: "de charges supplémentaires", detail: "Un avantage social sans cotisations patronales" },
+                { icon: Shield, value: "0€", label: "pour les collaborateurs", detail: "Un avantage social sans cotisations supplémentaires" },
               ].map((item, i) => {
                 const Icon = item.icon;
                 return (
@@ -312,19 +312,19 @@ const Index = () => {
             <div className="grid md:grid-cols-3 gap-6">
               {[
                 {
-                  quote: "MyFinCare nous a permis de proposer un avantage social innovant sans alourdir nos process RH. Le taux d'adoption a dépassé nos attentes.",
+                  quote: "MyFinCare nous a permis de proposer un avantage social innovant sans complexité opérationnelle. Le taux d'adoption a dépassé nos attentes.",
                   author: "Caroline M.",
-                  role: "DRH – ETI (450 salariés)",
+                  role: "Directrice des avantages sociaux – ETI (450 salariés)",
                 },
                 {
-                  quote: "Nos collaborateurs nous remercient pour cet accompagnement. C'est un vrai facteur de fidélisation, surtout chez les jeunes recrues.",
+                  quote: "En tant que CSE, c'est exactement le type de service que nos élus voulaient offrir. Concret, utile et apprécié par tous.",
                   author: "Marc D.",
-                  role: "Directeur des Ressources Humaines",
+                  role: "Secrétaire du CSE – Groupe industriel",
                 },
                 {
-                  quote: "Le tableau de bord entreprise nous donne une vision claire de l'engagement. On mesure concrètement l'impact sur le bien-être au travail.",
+                  quote: "Le tableau de bord nous donne une vision claire de l'engagement. On mesure concrètement l'impact sur le bien-être au travail.",
                   author: "Léa S.",
-                  role: "Responsable QVT",
+                  role: "Responsable QVT & politique sociale",
                 },
               ].map((t, i) => (
                 <article key={i} className="bg-card rounded-2xl p-6 shadow-card border border-border/50 flex flex-col">
@@ -364,10 +364,10 @@ const Index = () => {
         <section className="py-20 lg:py-28 px-4 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10">
           <div className="container max-w-3xl mx-auto text-center">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              Prêt à investir dans le bien-être financier de vos équipes ?
+              Prêt à renforcer votre politique sociale ?
             </h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-              Rejoignez les entreprises qui font de l'éducation financière un pilier de leur politique RH.
+              Rejoignez les entreprises et CSE qui font de l'éducation financière un avantage concret pour leurs collaborateurs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -401,20 +401,20 @@ const Index = () => {
             <div>
               <p className="font-bold text-lg hero-gradient mb-2">MyFinCare</p>
               <p className="text-sm text-muted-foreground">
-                MyFinCare par Perlib — le programme d'éducation financière qui renforce votre marque employeur et accompagne vos collaborateurs au quotidien.
+                MyFinCare par Perlib — le programme d'éducation financière qui renforce votre politique sociale et accompagne vos collaborateurs au quotidien.
               </p>
             </div>
             <div>
               <p className="font-semibold mb-3 text-sm">Le programme</p>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#features" className="hover:text-foreground transition-colors">Fonctionnalités</a></li>
-                <li><a href="#impact" className="hover:text-foreground transition-colors">Impact RH</a></li>
+                <li><a href="#impact" className="hover:text-foreground transition-colors">Impact</a></li>
                 <li><a href="#how-it-works" className="hover:text-foreground transition-colors">Déploiement</a></li>
                 <li><a href="#faq" className="hover:text-foreground transition-colors">FAQ</a></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold mb-3 text-sm">Entreprises</p>
+              <p className="font-semibold mb-3 text-sm">Entreprises & CSE</p>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link to="/partenariat" className="hover:text-foreground transition-colors">Demander une démo</Link></li>
                 <li><Link to="/login" className="hover:text-foreground transition-colors">Espace client</Link></li>
@@ -423,7 +423,7 @@ const Index = () => {
             </div>
           </div>
           <div className="pt-8 border-t border-border/50 text-center text-xs text-muted-foreground">
-            <p>© {new Date().getFullYear()} MyFinCare – Programme d'éducation financière de Perlib. Tous droits réservés.</p>
+            <p>© {new Date().getFullYear()} MyFinCare par Perlib – Programme d'éducation financière pour entreprises et CSE. Tous droits réservés.</p>
           </div>
         </div>
       </footer>
