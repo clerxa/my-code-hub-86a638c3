@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Mail, ArrowRight } from "lucide-react";
 import { PartnershipContent } from "@/components/PartnershipContent";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { PageMeta } from "@/components/seo/PageMeta";
+import { JsonLdOrganization, JsonLdSoftware } from "@/components/seo/JsonLd";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -52,6 +54,13 @@ const Index = () => {
 
   return (
     <div className="relative">
+      <PageMeta
+        title="MyFinCare – L'éducation financière des salariés"
+        description="L'app qui aide chaque salarié à reprendre le pouvoir sur ses finances grâce à des modules simples, ludiques et personnalisés."
+        path="/"
+      />
+      <JsonLdOrganization />
+      <JsonLdSoftware />
       {/* Main Hero Section */}
       <div
         className="min-h-screen bg-background flex flex-col"

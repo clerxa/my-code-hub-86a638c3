@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageMeta } from "@/components/seo/PageMeta";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
@@ -194,6 +195,7 @@ export default function Partnership() {
 
   return (
     <div className="min-h-screen">
+      <PageMeta title="Partenariat entreprise" description="Proposez MyFinCare à vos salariés : un programme d'éducation financière complet pour améliorer leur bien-être financier." path="/partenariat" />
       <Header />
       
       {/* Hero Section */}

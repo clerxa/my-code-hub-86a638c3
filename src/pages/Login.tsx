@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { PageMeta } from "@/components/seo/PageMeta";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -176,6 +177,7 @@ const Login = () => {
     }
   };
   return <div className="min-h-screen flex flex-col lg:flex-row" style={{ backgroundColor: '#101217' }}>
+      <PageMeta title="Connexion" description="Connectez-vous à votre espace MyFinCare pour accéder à vos modules d'éducation financière." path="/login" noindex />
       {/* Left side - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-8">
         <Card className="w-full max-w-md shadow-card">

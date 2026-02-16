@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageMeta } from "@/components/seo/PageMeta";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -218,6 +219,7 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
+      <PageMeta title="Inscription" description="Créez votre compte MyFinCare et commencez votre parcours d'éducation financière personnalisé." path="/signup" noindex />
       {/* Left side - Signup Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-8 bg-background">
         <Card className="w-full max-w-md shadow-card">
