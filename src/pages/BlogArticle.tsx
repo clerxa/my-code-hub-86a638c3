@@ -2,12 +2,14 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageMeta } from "@/components/seo/PageMeta";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight, ExternalLink, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import ReactMarkdown from "react-markdown";
+import { RichText } from "@/components/ui/rich-text";
 import { Helmet } from "react-helmet-async";
+import { cn } from "@/lib/utils";
 
 interface BlogPost {
   id: string;
@@ -24,9 +26,76 @@ interface BlogPost {
   created_at: string;
   updated_at: string;
   blog_categories: { name: string; color: string; slug: string } | null;
+  cta_text: string | null;
+  cta_url: string | null;
+  cta_button_label: string | null;
+  cta_style: string | null;
+  cta_position: string | null;
 }
 
 const BASE_URL = "https://myfincare-perlib.lovable.app";
+
+function ArticleCTA({ post, className }: { post: BlogPost; className?: string }) {
+  if (!post.cta_text || !post.cta_url) return null;
+
+  const isExternal = post.cta_url.startsWith("http");
+  const buttonLabel = post.cta_button_label || "En savoir plus";
+
+  const ctaButton = isExternal ? (
+    <a href={post.cta_url} target="_blank" rel="noopener noreferrer">
+      <Button className="gap-1.5">
+        {buttonLabel}
+        <ExternalLink className="h-3.5 w-3.5" />
+      </Button>
+    </a>
+  ) : (
+    <Link to={post.cta_url}>
+      <Button className="gap-1.5">
+        {buttonLabel}
+        <ArrowRight className="h-4 w-4" />
+      </Button>
+    </Link>
+  );
+
+  if (post.cta_style === "inline") {
+    return (
+      <div className={cn("flex items-center gap-4 p-4 rounded-lg border border-primary/20 bg-primary/5", className)}>
+        <p className="flex-1 text-sm font-medium">{post.cta_text}</p>
+        {ctaButton}
+      </div>
+    );
+  }
+
+  if (post.cta_style === "card") {
+    return (
+      <Card className={cn("border-primary/20 overflow-hidden not-prose", className)}>
+        <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+          <div className="p-3 rounded-full bg-primary/10">
+            <Megaphone className="h-6 w-6 text-primary" />
+          </div>
+          <p className="font-medium text-foreground">{post.cta_text}</p>
+          {ctaButton}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // banner (default)
+  return (
+    <div className={cn(
+      "relative rounded-xl overflow-hidden p-6 md:p-8 not-prose",
+      "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20",
+      className
+    )}>
+      <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+        <div className="flex-1">
+          <p className="font-semibold text-foreground">{post.cta_text}</p>
+        </div>
+        {ctaButton}
+      </div>
+    </div>
+  );
+}
 
 export default function BlogArticle() {
   const { slug } = useParams<{ slug: string }>();
@@ -70,28 +139,21 @@ export default function BlogArticle() {
   const articleUrl = `${BASE_URL}/blog/${post.slug}`;
   const publishedDate = post.published_at || post.created_at;
 
-  // JSON-LD Article structured data
+  const hasCTA = !!post.cta_text && !!post.cta_url;
+  const showCtaMiddle = hasCTA && (post.cta_position === "middle" || post.cta_position === "both");
+  const showCtaEnd = hasCTA && (post.cta_position === "end" || post.cta_position === "both");
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
     description: seoDescription,
     image: post.cover_image_url || undefined,
-    author: {
-      "@type": "Person",
-      name: post.author_name,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "MyFinCare",
-      url: BASE_URL,
-    },
+    author: { "@type": "Person", name: post.author_name },
+    publisher: { "@type": "Organization", name: "MyFinCare", url: BASE_URL },
     datePublished: publishedDate,
     dateModified: post.updated_at || publishedDate,
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": articleUrl,
-    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": articleUrl },
   };
 
   return (
@@ -103,7 +165,6 @@ export default function BlogArticle() {
         type="article"
       />
 
-      {/* JSON-LD + article-specific OG tags */}
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
         <meta property="article:published_time" content={publishedDate} />
@@ -117,7 +178,6 @@ export default function BlogArticle() {
         )}
       </Helmet>
 
-      {/* Navbar */}
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
         <nav className="container max-w-7xl mx-auto flex items-center justify-between h-16 px-4">
           <Link to="/" className="text-xl font-bold hero-gradient">
@@ -133,7 +193,6 @@ export default function BlogArticle() {
       </header>
 
       <main className="container max-w-3xl mx-auto px-4 py-12">
-        {/* Category + date */}
         <div className="flex items-center gap-3 mb-6">
           {post.blog_categories && (
             <span
@@ -163,12 +222,16 @@ export default function BlogArticle() {
           />
         )}
 
-        {/* Article content rendered as markdown */}
+        {/* CTA middle position - before content */}
+        {showCtaMiddle && <ArticleCTA post={post} className="mb-10" />}
+
         <article className="prose prose-lg dark:prose-invert max-w-none">
-          <ReactMarkdown>{post.content}</ReactMarkdown>
+          <RichText content={post.content} />
         </article>
 
-        {/* Back to blog */}
+        {/* CTA end position - after content */}
+        {showCtaEnd && <ArticleCTA post={post} className="mt-10" />}
+
         <div className="mt-16 pt-8 border-t border-border/50">
           <Link to="/blog">
             <Button variant="outline">
