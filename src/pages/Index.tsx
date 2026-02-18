@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, ArrowRight, GraduationCap, Calculator, Calendar, Shield, TrendingUp, Users, ChevronDown, BookOpen, Target, Lightbulb } from "lucide-react";
 import { ClientLogosMarquee } from "@/components/shared/ClientLogosMarquee";
 import { PageMeta } from "@/components/seo/PageMeta";
-import { JsonLdOrganization, JsonLdSoftware } from "@/components/seo/JsonLd";
+import { JsonLdOrganization, JsonLdSoftware, JsonLdFaq } from "@/components/seo/JsonLd";
 import {
   Accordion,
   AccordionContent,
@@ -130,6 +130,7 @@ const Index = () => {
       />
       <JsonLdOrganization />
       <JsonLdSoftware />
+      <JsonLdFaq />
 
       {/* ===== NAVBAR ===== */}
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
