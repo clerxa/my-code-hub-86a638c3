@@ -74,30 +74,26 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
     <div className={cn("border rounded-md bg-background", className)}>
       {/* Toolbar */}
       <div className="flex flex-wrap gap-1 p-2 border-b bg-muted/50">
-        <Button
-          type="button"
-          variant={editor.isActive('heading', { level: 1 }) ? 'secondary' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        >
-          <Heading1 className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant={editor.isActive('heading', { level: 2 }) ? 'secondary' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        >
-          <Heading2 className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant={editor.isActive('heading', { level: 3 }) ? 'secondary' : 'ghost'}
-          size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        >
-          <Heading3 className="h-4 w-4" />
-        </Button>
+        {([1, 2, 3] as const).map((level) => {
+          const isActive = editor.isActive('heading', { level });
+          const Icon = level === 1 ? Heading1 : level === 2 ? Heading2 : Heading3;
+          return (
+            <Button
+              key={level}
+              type="button"
+              variant={isActive ? 'default' : 'ghost'}
+              size="sm"
+              className={cn(
+                "gap-1 font-semibold text-xs min-w-[52px]",
+                isActive && "ring-2 ring-primary/30"
+              )}
+              onClick={() => editor.chain().focus().toggleHeading({ level }).run()}
+            >
+              <Icon className="h-4 w-4" />
+              <span>H{level}</span>
+            </Button>
+          );
+        })}
         
         <div className="w-px h-6 bg-border mx-1" />
         
