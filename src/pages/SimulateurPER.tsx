@@ -61,6 +61,8 @@ const SimulateurPER = () => {
     setSimulationName: setNomSimulation,
     saveSimulation,
     isSaving,
+    showExpertPrompt,
+    closeExpertPrompt,
   } = useUnifiedSimulationSave({
     type: 'per',
     queryCacheKey: ['simulations', 'per_simulations'],
@@ -607,7 +609,6 @@ const SimulateurPER = () => {
 
       <SaveSimulationDialog
         open={showSaveDialog}
-        // Ne gérer ici que la fermeture (pattern stable, évite les boucles open->onOpenChange->open)
         onOpenChange={(open) => {
           if (!open) closeSaveDialog();
         }}
@@ -615,6 +616,8 @@ const SimulateurPER = () => {
         onSimulationNameChange={setNomSimulation}
         onSave={handleConfirmSave}
         isSaving={isSaving}
+        showExpertPrompt={showExpertPrompt}
+        onCloseExpertPrompt={closeExpertPrompt}
       />
     </div>
   );

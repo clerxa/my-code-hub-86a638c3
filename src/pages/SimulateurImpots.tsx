@@ -105,6 +105,8 @@ const SimulateurImpots = () => {
     setSimulationName,
     saveSimulation,
     isSaving,
+    showExpertPrompt,
+    closeExpertPrompt,
   } = useUnifiedSimulationSave({
     type: 'impots',
     queryCacheKey: 'simulations',
@@ -454,6 +456,8 @@ const SimulateurImpots = () => {
           onSimulationNameChange={setSimulationName}
           onSave={handleSave}
           isSaving={isSaving}
+          showExpertPrompt={showExpertPrompt}
+          onCloseExpertPrompt={closeExpertPrompt}
         />
       </div>
     </div>

@@ -150,6 +150,8 @@ const SimulateurGestionPilotee = () => {
     setSimulationName,
     saveSimulation,
     isSaving,
+    showExpertPrompt,
+    closeExpertPrompt,
   } = useUnifiedSimulationSave({
     type: "gestion_pilotee",
     queryCacheKey: "simulations",
@@ -917,6 +919,8 @@ const SimulateurGestionPilotee = () => {
         onSimulationNameChange={setSimulationName}
         onSave={handleConfirmSave}
         isSaving={isSaving}
+        showExpertPrompt={showExpertPrompt}
+        onCloseExpertPrompt={closeExpertPrompt}
       />
     </>
   );

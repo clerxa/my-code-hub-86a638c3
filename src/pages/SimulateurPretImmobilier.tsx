@@ -46,6 +46,8 @@ const SimulateurPretImmobilier = () => {
     setSimulationName,
     saveSimulation,
     isSaving,
+    showExpertPrompt,
+    closeExpertPrompt,
   } = useUnifiedSimulationSave({
     type: 'pret_immobilier',
     queryCacheKey: ['simulations', 'pret_immobilier_simulations'],
@@ -482,6 +484,8 @@ const SimulateurPretImmobilier = () => {
         onSimulationNameChange={setSimulationName}
         onSave={handleConfirmSave}
         isSaving={isSaving}
+        showExpertPrompt={showExpertPrompt}
+        onCloseExpertPrompt={closeExpertPrompt}
       />
     </div>
   );

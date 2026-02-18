@@ -103,6 +103,8 @@ const SimulateurEpargnePrecaution = () => {
     setSimulationName: setNomSimulation,
     saveSimulation,
     isSaving,
+    showExpertPrompt,
+    closeExpertPrompt,
   } = useUnifiedSimulationSave({
     type: 'epargne_precaution',
     queryCacheKey: ['simulations', 'epargne_precaution_simulations'],
@@ -831,6 +833,8 @@ const SimulateurEpargnePrecaution = () => {
         onSimulationNameChange={setNomSimulation}
         onSave={handleConfirmSave}
         isSaving={isSaving}
+        showExpertPrompt={showExpertPrompt}
+        onCloseExpertPrompt={closeExpertPrompt}
       />
     </>
   );

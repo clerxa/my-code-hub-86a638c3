@@ -52,6 +52,8 @@ const SimulateurCapaciteEmprunt = () => {
     setSimulationName,
     saveSimulation,
     isSaving,
+    showExpertPrompt,
+    closeExpertPrompt,
   } = useUnifiedSimulationSave({
     type: 'capacite_emprunt',
     queryCacheKey: ['simulations', 'capacite_emprunt_simulations'],
@@ -630,6 +632,8 @@ const SimulateurCapaciteEmprunt = () => {
         onSimulationNameChange={setSimulationName}
         onSave={handleConfirmSave}
         isSaving={isSaving}
+        showExpertPrompt={showExpertPrompt}
+        onCloseExpertPrompt={closeExpertPrompt}
       />
     </div>
   );
