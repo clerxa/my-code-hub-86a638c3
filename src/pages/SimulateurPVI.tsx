@@ -43,7 +43,7 @@ const SimulateurPVI: React.FC = () => {
   );
   
   const { calculerPVILocal, calculerPVIBackend } = usePVICalculations();
-  const { saveSimulation, isSaving } = useUnifiedSimulationSave({
+  const { saveSimulation, isSaving, showExpertPrompt, closeExpertPrompt } = useUnifiedSimulationSave({
     type: 'pvi',
     queryCacheKey: ['simulations', 'pvi_simulations'],
   });
@@ -178,6 +178,8 @@ const SimulateurPVI: React.FC = () => {
         onSimulationNameChange={setSimulationName}
         onSave={handleSave}
         isSaving={isSaving}
+        showExpertPrompt={showExpertPrompt}
+        onCloseExpertPrompt={closeExpertPrompt}
       />
     </div>
   );

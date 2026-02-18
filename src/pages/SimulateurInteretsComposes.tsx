@@ -68,6 +68,8 @@ const SimulateurInteretsComposes = () => {
     setSimulationName,
     saveSimulation,
     isSaving,
+    showExpertPrompt,
+    closeExpertPrompt,
   } = useUnifiedSimulationSave({
     type: 'interets_composes',
     queryCacheKey: 'simulations',
@@ -606,6 +608,8 @@ const SimulateurInteretsComposes = () => {
         onSimulationNameChange={setSimulationName}
         onSave={handleConfirmSave}
         isSaving={isSaving}
+        showExpertPrompt={showExpertPrompt}
+        onCloseExpertPrompt={closeExpertPrompt}
       />
     </>
   );

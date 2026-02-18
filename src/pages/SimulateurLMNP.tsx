@@ -46,6 +46,8 @@ const SimulateurLMNP = () => {
     setSimulationName,
     saveSimulation,
     isSaving,
+    showExpertPrompt,
+    closeExpertPrompt,
   } = useUnifiedSimulationSave({
     type: 'lmnp',
     queryCacheKey: ['simulations', 'lmnp_simulations'],
@@ -639,6 +641,8 @@ const SimulateurLMNP = () => {
         onSimulationNameChange={setSimulationName}
         onSave={handleConfirmSave}
         isSaving={isSaving}
+        showExpertPrompt={showExpertPrompt}
+        onCloseExpertPrompt={closeExpertPrompt}
       />
     </div>
   );

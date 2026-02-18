@@ -23,6 +23,8 @@ interface UseUnifiedSimulationSaveReturn {
   setSimulationName: (name: string) => void;
   saveSimulation: (data: Record<string, unknown>) => Promise<void>;
   isSaving: boolean;
+  showExpertPrompt: boolean;
+  closeExpertPrompt: () => void;
 }
 
 /**
@@ -41,6 +43,7 @@ export function useUnifiedSimulationSave({
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [simulationName, setSimulationName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showExpertPrompt, setShowExpertPrompt] = useState(false);
 
   const openSaveDialog = useCallback((defaultName?: string) => {
     if (defaultName) {
@@ -117,11 +120,8 @@ export function useUnifiedSimulationSave({
       closeSaveDialog();
       onSuccess?.();
       
-      // Redirection vers l'historique des simulations
-      if (redirectAfterSave) {
-        console.log('[useUnifiedSimulationSave] Redirection vers /employee/simulations?tab=historique');
-        navigate('/employee/simulations?tab=historique');
-      }
+      // Show expert prompt instead of immediate redirect
+      setShowExpertPrompt(true);
     } catch (error) {
       console.error('[useUnifiedSimulationSave] Catch error:', error);
       logger.supabaseError('simulations', 'insert', error);
@@ -136,6 +136,13 @@ export function useUnifiedSimulationSave({
     }
   }, [simulationName, type, queryCacheKey, toast, queryClient, closeSaveDialog, onSuccess, navigate, redirectAfterSave]);
 
+  const closeExpertPrompt = useCallback(() => {
+    setShowExpertPrompt(false);
+    if (redirectAfterSave) {
+      navigate('/employee/simulations?tab=historique');
+    }
+  }, [redirectAfterSave, navigate]);
+
   return {
     showSaveDialog,
     openSaveDialog,
@@ -144,5 +151,7 @@ export function useUnifiedSimulationSave({
     setSimulationName,
     saveSimulation,
     isSaving,
+    showExpertPrompt,
+    closeExpertPrompt,
   };
 }

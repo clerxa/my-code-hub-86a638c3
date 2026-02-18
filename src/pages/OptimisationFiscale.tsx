@@ -57,6 +57,8 @@ export default function OptimisationFiscale() {
     setSimulationName,
     saveSimulation,
     isSaving,
+    showExpertPrompt,
+    closeExpertPrompt,
   } = useUnifiedSimulationSave({
     type: 'optimisation_fiscale',
     queryCacheKey: 'simulations',
@@ -438,6 +440,8 @@ export default function OptimisationFiscale() {
         onSimulationNameChange={setSimulationName}
         onSave={handleSave}
         isSaving={isSaving}
+        showExpertPrompt={showExpertPrompt}
+        onCloseExpertPrompt={closeExpertPrompt}
       />
     </div>
   );
