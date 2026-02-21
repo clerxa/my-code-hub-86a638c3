@@ -5,6 +5,7 @@ import { PageMeta } from "@/components/seo/PageMeta";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Heart, Leaf, BadgeCheck, Loader2 } from "lucide-react";
+import { ClientLogosMarquee } from "@/components/shared/ClientLogosMarquee";
 
 const LandingPageDynamic = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -43,24 +44,9 @@ const LandingPageDynamic = () => {
   }
 
   const arguments_ = [
-    {
-      icon: Heart,
-      title: "Bien-être financier",
-      text: page.argument_sante_mentale,
-      gradient: "from-primary to-secondary",
-    },
-    {
-      icon: Leaf,
-      title: "Engagement RSE",
-      text: page.argument_performance_rse,
-      gradient: "from-secondary to-accent",
-    },
-    {
-      icon: BadgeCheck,
-      title: "Expertise Paie",
-      text: page.argument_technique_paie,
-      gradient: "from-accent to-primary",
-    },
+    { icon: Heart, text: page.argument_sante_mentale, gradient: "from-primary to-secondary" },
+    { icon: Leaf, text: page.argument_performance_rse, gradient: "from-secondary to-accent" },
+    { icon: BadgeCheck, text: page.argument_technique_paie, gradient: "from-accent to-primary" },
   ];
 
   return (
@@ -131,7 +117,6 @@ const LandingPageDynamic = () => {
                     <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${arg.gradient} flex items-center justify-center shadow-lg`}>
                       <arg.icon className="h-7 w-7 text-white" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground">{arg.title}</h3>
                     <p className="text-muted-foreground leading-relaxed">{arg.text}</p>
                   </CardContent>
                 </Card>
@@ -139,6 +124,9 @@ const LandingPageDynamic = () => {
             </div>
           </div>
         </section>
+
+        {/* Logos clients */}
+        <ClientLogosMarquee title="Ils nous font confiance" />
 
         {/* CTA Final */}
         <section className="px-4 py-20 lg:py-28">
