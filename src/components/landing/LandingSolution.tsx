@@ -17,6 +17,10 @@ interface LandingSolutionProps {
 export const LandingSolution = ({ title, description, pillars }: LandingSolutionProps) => {
   const { ref, isVisible } = useScrollAnimation();
   
+  if (!Array.isArray(pillars) || pillars.length === 0) {
+    return null;
+  }
+  
   return (
     <section ref={ref as any} className="py-24 px-4">
       <div className="container max-w-7xl">
