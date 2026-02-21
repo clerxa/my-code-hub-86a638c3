@@ -15,6 +15,10 @@ interface LandingProblemsProps {
 export const LandingProblems = ({ problems }: LandingProblemsProps) => {
   const { ref, isVisible } = useScrollAnimation();
   
+  if (!Array.isArray(problems) || problems.length === 0) {
+    return null;
+  }
+  
   return (
     <section ref={ref as any} className="py-24 px-4 bg-card/30">
       <div className="container max-w-7xl">
