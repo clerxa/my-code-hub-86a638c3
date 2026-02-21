@@ -75,6 +75,7 @@ import ExpertBookingLanding from "./pages/ExpertBookingLanding";
 import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
+import LandingPageDynamic from "./pages/LandingPageDynamic";
 import TaxDeclarationHelp from "./pages/TaxDeclarationHelp";
 import Diagnostic from "./pages/Diagnostic";
 import Horizon from "./pages/Horizon";
@@ -139,6 +140,7 @@ const App = () => (
             <Route path="/onboarding" element={<PublicOnboarding />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogArticle />} />
+            <Route path="/lp/:slug" element={<LandingPageDynamic />} />
             
             {/* Routes administrateur - Nécessitent le rôle admin */}
             <Route

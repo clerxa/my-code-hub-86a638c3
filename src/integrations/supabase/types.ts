@@ -2917,6 +2917,48 @@ export type Database = {
         }
         Relationships: []
       }
+      landing_pages: {
+        Row: {
+          argument_performance_rse: string | null
+          argument_sante_mentale: string | null
+          argument_technique_paie: string | null
+          article_id: string | null
+          created_at: string
+          cta_label: string | null
+          id: string
+          image_url: string | null
+          slug: string
+          sous_titre_hero: string | null
+          titre_hero: string | null
+        }
+        Insert: {
+          argument_performance_rse?: string | null
+          argument_sante_mentale?: string | null
+          argument_technique_paie?: string | null
+          article_id?: string | null
+          created_at?: string
+          cta_label?: string | null
+          id?: string
+          image_url?: string | null
+          slug: string
+          sous_titre_hero?: string | null
+          titre_hero?: string | null
+        }
+        Update: {
+          argument_performance_rse?: string | null
+          argument_sante_mentale?: string | null
+          argument_technique_paie?: string | null
+          article_id?: string | null
+          created_at?: string
+          cta_label?: string | null
+          id?: string
+          image_url?: string | null
+          slug?: string
+          sous_titre_hero?: string | null
+          titre_hero?: string | null
+        }
+        Relationships: []
+      }
       lmnp_simulations: {
         Row: {
           amort_immo: number | null
