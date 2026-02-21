@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Heart, Leaf, BadgeCheck, Loader2 } from "lucide-react";
 import { ClientLogosMarquee } from "@/components/shared/ClientLogosMarquee";
+import { LandingProblems } from "@/components/landing/LandingProblems";
+import { LandingSolution } from "@/components/landing/LandingSolution";
+import { LandingBenefits } from "@/components/landing/LandingBenefits";
+import { LandingFAQ } from "@/components/landing/LandingFAQ";
+import { LandingCTAFinal } from "@/components/landing/LandingCTAFinal";
 
 const LandingPageDynamic = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -49,6 +54,16 @@ const LandingPageDynamic = () => {
     { icon: BadgeCheck, text: page.argument_technique_paie, gradient: "from-accent to-primary" },
   ];
 
+  const ctaLabel = page.cta_label || "Prendre rendez-vous";
+  const openCalendly = () => window.open("https://calendly.com/myfincare", "_blank");
+
+  // Parse JSONB fields
+  const problems = page.problems as any[] | null;
+  const solution = page.solution as { title: string; description: string; pillars: any[] } | null;
+  const benefits = page.benefits as { title: string; items: any[] } | null;
+  const faq = page.faq as { question: string; answer: string }[] | null;
+  const ctaFinal = page.cta_final as { title: string; subtitle: string; cta: string } | null;
+
   return (
     <>
       <PageMeta
@@ -79,9 +94,9 @@ const LandingPageDynamic = () => {
               <Button
                 size="lg"
                 className="btn-hero-gradient text-lg px-10 py-7 shadow-glow"
-                onClick={() => window.open("https://calendly.com/myfincare", "_blank")}
+                onClick={openCalendly}
               >
-                {page.cta_label || "Prendre rendez-vous"}
+                {ctaLabel}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
@@ -98,6 +113,11 @@ const LandingPageDynamic = () => {
             )}
           </div>
         </section>
+
+        {/* Problems (if defined) */}
+        {problems && problems.length > 0 && (
+          <LandingProblems problems={problems} />
+        )}
 
         {/* Arguments */}
         <section className="px-4 py-20 lg:py-28">
@@ -125,32 +145,63 @@ const LandingPageDynamic = () => {
           </div>
         </section>
 
+        {/* Solution (if defined) */}
+        {solution && (
+          <LandingSolution
+            title={solution.title}
+            description={solution.description}
+            pillars={solution.pillars}
+          />
+        )}
+
         {/* Logos clients */}
         <ClientLogosMarquee title="Ils nous font confiance" />
 
+        {/* Benefits (if defined) */}
+        {benefits && benefits.items && benefits.items.length > 0 && (
+          <LandingBenefits
+            title={benefits.title}
+            items={benefits.items}
+          />
+        )}
+
+        {/* FAQ (if defined) */}
+        {faq && faq.length > 0 && (
+          <LandingFAQ items={faq} />
+        )}
+
         {/* CTA Final */}
-        <section className="px-4 py-20 lg:py-28">
-          <div className="container max-w-4xl">
-            <div className="relative overflow-hidden rounded-3xl p-[2px] bg-gradient-to-r from-primary via-secondary to-accent">
-              <div className="bg-card rounded-3xl p-12 md:p-16 text-center space-y-6">
-                <h2 className="text-3xl lg:text-4xl font-bold text-foreground">
-                  Prêt à transformer le bien-être financier de vos équipes ?
-                </h2>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Échangeons ensemble sur les besoins spécifiques de votre entreprise.
-                </p>
-                <Button
-                  size="lg"
-                  className="btn-hero-gradient text-lg px-10 py-7"
-                  onClick={() => window.open("https://calendly.com/myfincare", "_blank")}
-                >
-                  {page.cta_label || "Prendre rendez-vous"}
-                  <ArrowRight className="ml-2 h-6 w-6" />
-                </Button>
+        {ctaFinal ? (
+          <LandingCTAFinal
+            title={ctaFinal.title}
+            subtitle={ctaFinal.subtitle}
+            cta={ctaFinal.cta}
+            onCTA={openCalendly}
+          />
+        ) : (
+          <section className="px-4 py-20 lg:py-28">
+            <div className="container max-w-4xl">
+              <div className="relative overflow-hidden rounded-3xl p-[2px] bg-gradient-to-r from-primary via-secondary to-accent">
+                <div className="bg-card rounded-3xl p-12 md:p-16 text-center space-y-6">
+                  <h2 className="text-3xl lg:text-4xl font-bold text-foreground">
+                    Prêt à transformer le bien-être financier de vos équipes ?
+                  </h2>
+                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                    Échangeons ensemble sur les besoins spécifiques de votre entreprise.
+                  </p>
+                  <Button
+                    size="lg"
+                    className="btn-hero-gradient text-lg px-10 py-7"
+                    onClick={openCalendly}
+                  >
+                    {ctaLabel}
+                    <ArrowRight className="ml-2 h-6 w-6" />
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
     </>
   );

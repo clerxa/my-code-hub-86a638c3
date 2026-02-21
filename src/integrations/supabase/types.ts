@@ -2923,11 +2923,16 @@ export type Database = {
           argument_sante_mentale: string | null
           argument_technique_paie: string | null
           article_id: string | null
+          benefits: Json | null
           created_at: string
+          cta_final: Json | null
           cta_label: string | null
+          faq: Json | null
           id: string
           image_url: string | null
+          problems: Json | null
           slug: string
+          solution: Json | null
           sous_titre_hero: string | null
           titre_hero: string | null
         }
@@ -2936,11 +2941,16 @@ export type Database = {
           argument_sante_mentale?: string | null
           argument_technique_paie?: string | null
           article_id?: string | null
+          benefits?: Json | null
           created_at?: string
+          cta_final?: Json | null
           cta_label?: string | null
+          faq?: Json | null
           id?: string
           image_url?: string | null
+          problems?: Json | null
           slug: string
+          solution?: Json | null
           sous_titre_hero?: string | null
           titre_hero?: string | null
         }
@@ -2949,11 +2959,16 @@ export type Database = {
           argument_sante_mentale?: string | null
           argument_technique_paie?: string | null
           article_id?: string | null
+          benefits?: Json | null
           created_at?: string
+          cta_final?: Json | null
           cta_label?: string | null
+          faq?: Json | null
           id?: string
           image_url?: string | null
+          problems?: Json | null
           slug?: string
+          solution?: Json | null
           sous_titre_hero?: string | null
           titre_hero?: string | null
         }
