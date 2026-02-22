@@ -11,6 +11,8 @@ import { LandingSolution } from "@/components/landing/LandingSolution";
 import { LandingBenefits } from "@/components/landing/LandingBenefits";
 import { LandingFAQ } from "@/components/landing/LandingFAQ";
 import { LandingCTAFinal } from "@/components/landing/LandingCTAFinal";
+import { LandingAboutMyFinCare } from "@/components/landing/LandingAboutMyFinCare";
+import { LandingTestimonial } from "@/components/landing/LandingTestimonial";
 
 const LandingPageDynamic = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -145,6 +147,9 @@ const LandingPageDynamic = () => {
           </div>
         </section>
 
+        {/* About MyFinCare */}
+        <LandingAboutMyFinCare />
+
         {/* Solution (if defined) */}
         {solution && (
           <LandingSolution
@@ -169,6 +174,9 @@ const LandingPageDynamic = () => {
         {faq && faq.length > 0 && (
           <LandingFAQ items={faq} />
         )}
+
+        {/* Testimonial */}
+        <LandingTestimonial />
 
         {/* CTA Final */}
         {ctaFinal ? (
