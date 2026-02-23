@@ -316,15 +316,16 @@ serve(async (req: Request) => {
         }
 
         // The profile should be created automatically via trigger
-        // But let's ensure it's linked to the company
+        // But as a safety net, upsert the profile in case the trigger didn't fire
         await supabaseAdmin
           .from("profiles")
-          .update({
+          .upsert({
+            id: newUser.user.id,
+            email: email.toLowerCase(),
             company_id: companyId,
             first_name: firstName || null,
             last_name: lastName || null,
-          })
-          .eq("id", newUser.user.id);
+          }, { onConflict: "id" });
 
         let emailSent = false;
 
