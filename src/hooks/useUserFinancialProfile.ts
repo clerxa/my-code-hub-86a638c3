@@ -244,11 +244,16 @@ export const useUserFinancialProfile = () => {
     return p?.[fieldKey as keyof UserFinancialProfile] ?? null;
   };
 
+  // Fields where 0 is a valid intentional answer (not "unfilled")
+  const ZERO_IS_VALID_FIELDS = ['nb_enfants'];
+
   const isFieldFilled = (fieldKey: string, p: UserFinancialProfile | null) => {
     const value = getFieldValue(fieldKey, p);
     if (value === null || value === undefined || value === '') return false;
-    // For numeric fields, 0 is a valid answer (e.g. nb_enfants = 0)
-    if (typeof value === 'number') return true;
+    // For numeric fields, 0 means "not filled" unless it's a field where 0 is valid
+    if (typeof value === 'number' && value === 0) {
+      return ZERO_IS_VALID_FIELDS.includes(fieldKey);
+    }
     return true;
   };
 

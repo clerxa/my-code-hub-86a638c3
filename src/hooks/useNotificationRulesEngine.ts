@@ -416,14 +416,14 @@ export function useNotificationRulesEngine() {
       context.loyer_actuel = financialProfile.loyer_actuel;
       context.is_complete = financialProfile.is_complete;
       
-      // Calculate profile completeness
+      // Calculate profile completeness (0 = not filled for numeric fields, except nb_enfants)
       const fields = [
         financialProfile.tmi,
         financialProfile.revenu_mensuel_net,
         financialProfile.epargne_livrets,
         financialProfile.age
       ];
-      const filledFields = fields.filter(f => f !== null && f !== undefined).length;
+      const filledFields = fields.filter(f => f !== null && f !== undefined && f !== 0).length;
       context.financial_profile_completeness = Math.round((filledFields / fields.length) * 100);
     } else {
       context.financial_profile_completeness = 0;
