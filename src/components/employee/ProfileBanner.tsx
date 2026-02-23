@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({
   onNavigatePartnership,
   onOpenRiskProfile,
 }) => {
+  const navigate = useNavigate();
   const isPartner = company?.partnership_type && company.partnership_type.toLowerCase() !== "aucun";
   const isAdminOrContact = userRole === "admin" || userRole === "contact_entreprise";
 
@@ -146,22 +148,18 @@ const ProfileBanner: React.FC<ProfileBannerProps> = ({
             )}
           </div>
 
-          {/* Risk profile */}
-          <div className="flex flex-col gap-3 pt-4">
-            <div className="w-full">
-              {riskProfile && (
-                <Button variant="outline" size="sm" onClick={onOpenRiskProfile}
-                  className="w-full gap-2 flex-wrap justify-center sm:justify-start h-auto py-2 border-white/20 text-white/80 hover:bg-white/10 hover:text-white"
-                >
-                  <Shield className="h-4 w-4 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm">Profil de risque : <strong>{riskProfile.profile_type}</strong></span>
-                  <Badge variant="secondary" className="ml-1 text-xs bg-white/10 text-white/90 border-white/20">
-                    {riskProfile.total_weighted_score.toFixed(0)}/100
-                  </Badge>
-                </Button>
-              )}
+          {/* Risk profile - discreet badge */}
+          {riskProfile && (
+            <div className="pt-3">
+              <button
+                onClick={() => navigate('/risk-profile')}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-colors cursor-pointer border border-white/10"
+              >
+                <Shield className="h-3 w-3 flex-shrink-0" />
+                <span>Profil {riskProfile.profile_type}</span>
+              </button>
             </div>
-          </div>
+          )}
         </div>
 
       </div>

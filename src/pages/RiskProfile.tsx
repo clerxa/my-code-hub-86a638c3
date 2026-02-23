@@ -11,6 +11,7 @@ import { ArrowLeft, ArrowRight, Shield, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { QuestionWithAnswers, RiskProfile, RiskProfileSettings } from "@/types/risk-profile";
+import { RiskProfileResults } from "@/components/risk-profile/RiskProfileResults";
 
 export default function RiskProfilePage() {
   const navigate = useNavigate();
@@ -21,6 +22,8 @@ export default function RiskProfilePage() {
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<RiskProfileSettings | null>(null);
   const [existingProfile, setExistingProfile] = useState<RiskProfile | null>(null);
+  const [showResults, setShowResults] = useState(false);
+  const [calculatedProfile, setCalculatedProfile] = useState<RiskProfile | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -95,7 +98,11 @@ export default function RiskProfilePage() {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      setExistingProfile(profileData);
+      if (profileData) {
+        setExistingProfile(profileData);
+        setCalculatedProfile(profileData);
+        setShowResults(true);
+      }
 
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -128,8 +135,8 @@ export default function RiskProfilePage() {
         const answer = question.answers.find(a => a.id === answerId);
         if (!answer) continue;
 
-        const weightedScore = answer.score_value * question.amf_weight;
-        totalWeightedScore += weightedScore;
+        const normalizedScore = ((answer.score_value - 1) / 3) * question.amf_weight * 100;
+        totalWeightedScore += normalizedScore;
 
         // Save response
         await supabase
@@ -145,7 +152,7 @@ export default function RiskProfilePage() {
       }
 
       // Determine profile type based on thresholds
-      let profileType: 'Prudent' | 'Équilibré' | 'Dynamique' | 'Audacieux' = 'Prudent';
+      let profileType: string = 'Prudent';
       
       if (settings) {
         if (totalWeightedScore > settings.threshold_dynamique) {
@@ -169,8 +176,17 @@ export default function RiskProfilePage() {
           onConflict: 'user_id'
         });
 
+      const newProfile: RiskProfile = {
+        user_id: user.id,
+        total_weighted_score: totalWeightedScore,
+        profile_type: profileType,
+        last_updated: new Date().toISOString()
+      };
+
+      setCalculatedProfile(newProfile);
+      setExistingProfile(newProfile);
+      setShowResults(true);
       toast.success("Profil de risque enregistré avec succès !");
-      navigate('/employee');
 
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -178,6 +194,12 @@ export default function RiskProfilePage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleRetake = () => {
+    setShowResults(false);
+    setCurrentStep(0);
+    setResponses({});
   };
 
   const currentQuestion = questions[currentStep];
@@ -196,7 +218,7 @@ export default function RiskProfilePage() {
     );
   }
 
-  if (questions.length === 0) {
+  if (questions.length === 0 && !showResults) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -227,110 +249,118 @@ export default function RiskProfilePage() {
           Retour
         </Button>
 
-        <div className="space-y-6">
-          {/* Header */}
-          <Card className="border-primary/20">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <Shield className="h-8 w-8 text-primary" />
-                <div>
-                  <CardTitle className="text-2xl">Profil de Risque Investisseur</CardTitle>
-                  <CardDescription>
-                    Questionnaire conforme AMF / MiFID II - {questions.length} questions
-                  </CardDescription>
+        {showResults && calculatedProfile ? (
+          <div className="space-y-6">
+            <Card className="border-primary/20">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <Shield className="h-8 w-8 text-primary" />
+                  <div>
+                    <CardTitle className="text-2xl">Votre Profil de Risque</CardTitle>
+                    <CardDescription>
+                      Résultats de votre évaluation AMF / MiFID II
+                    </CardDescription>
+                  </div>
                 </div>
+              </CardHeader>
+            </Card>
+            <RiskProfileResults profile={calculatedProfile} onRetake={handleRetake} />
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Header */}
+            <Card className="border-primary/20">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <Shield className="h-8 w-8 text-primary" />
+                  <div>
+                    <CardTitle className="text-2xl">Profil de Risque Investisseur</CardTitle>
+                    <CardDescription>
+                      Questionnaire conforme AMF / MiFID II - {questions.length} questions
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Progress */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  Question {currentStep + 1} sur {questions.length}
+                </span>
+                <span className="font-medium">{Math.round(progress)}%</span>
               </div>
-            </CardHeader>
-          </Card>
-
-          {/* Progress */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">
-                Question {currentStep + 1} sur {questions.length}
-              </span>
-              <span className="font-medium">{Math.round(progress)}%</span>
+              <Progress value={progress} className="h-2" />
             </div>
-            <Progress value={progress} className="h-2" />
-          </div>
 
-          {/* Question Card */}
-          <Card>
-            <CardHeader>
-              <Badge variant="outline" className="w-fit mb-2">
-                {currentQuestion?.category}
-              </Badge>
-              <CardTitle className="text-xl">
-                {currentQuestion?.question_text}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup
-                value={responses[currentQuestion?.id] || ''}
-                onValueChange={(value) => handleAnswer(currentQuestion.id, value)}
-              >
-                <div className="space-y-3">
-                  {currentQuestion?.answers.map((answer) => (
-                    <div
-                      key={answer.id}
-                      className="flex items-center space-x-3 p-4 rounded-lg border hover:bg-accent cursor-pointer transition-colors"
-                      onClick={() => handleAnswer(currentQuestion.id, answer.id)}
-                    >
-                      <RadioGroupItem value={answer.id} id={answer.id} />
-                      <Label
-                        htmlFor={answer.id}
-                        className="flex-1 cursor-pointer font-normal"
+            {/* Question Card */}
+            <Card>
+              <CardHeader>
+                <Badge variant="outline" className="w-fit mb-2">
+                  {currentQuestion?.category}
+                </Badge>
+                <CardTitle className="text-xl">
+                  {currentQuestion?.question_text}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup
+                  value={responses[currentQuestion?.id] || ''}
+                  onValueChange={(value) => handleAnswer(currentQuestion.id, value)}
+                >
+                  <div className="space-y-3">
+                    {currentQuestion?.answers.map((answer) => (
+                      <div
+                        key={answer.id}
+                        className="flex items-center space-x-3 p-4 rounded-lg border hover:bg-accent cursor-pointer transition-colors"
+                        onClick={() => handleAnswer(currentQuestion.id, answer.id)}
                       >
-                        {answer.answer_text}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </RadioGroup>
-            </CardContent>
-          </Card>
-
-          {/* Navigation */}
-          <div className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
-              disabled={currentStep === 0}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Précédent
-            </Button>
-
-            {isLastQuestion ? (
-              <Button
-                onClick={calculateProfile}
-                disabled={!canGoNext || saving}
-              >
-                {saving ? "Enregistrement..." : "Calculer mon profil"}
-                <CheckCircle2 className="h-4 w-4 ml-2" />
-              </Button>
-            ) : (
-              <Button
-                onClick={() => setCurrentStep(prev => Math.min(questions.length - 1, prev + 1))}
-                disabled={!canGoNext}
-              >
-                Suivant
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            )}
-          </div>
-
-          {/* Info Footer */}
-          {existingProfile && (
-            <Card className="bg-muted/50">
-              <CardContent className="pt-6">
-                <p className="text-sm text-muted-foreground text-center">
-                  Profil actuel : <strong>{existingProfile.profile_type}</strong> (Score : {existingProfile.total_weighted_score})
-                </p>
+                        <RadioGroupItem value={answer.id} id={answer.id} />
+                        <Label
+                          htmlFor={answer.id}
+                          className="flex-1 cursor-pointer font-normal"
+                        >
+                          {answer.answer_text}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </RadioGroup>
               </CardContent>
             </Card>
-          )}
-        </div>
+
+            {/* Navigation */}
+            <div className="flex justify-between">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
+                disabled={currentStep === 0}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Précédent
+              </Button>
+
+              {isLastQuestion ? (
+                <Button
+                  onClick={calculateProfile}
+                  disabled={!canGoNext || saving}
+                >
+                  {saving ? "Calcul en cours..." : "Voir mes résultats"}
+                  <CheckCircle2 className="h-4 w-4 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setCurrentStep(prev => Math.min(questions.length - 1, prev + 1))}
+                  disabled={!canGoNext}
+                >
+                  Suivant
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
