@@ -145,8 +145,8 @@ serve(async (req: Request) => {
       throw new Error("Company not found");
     }
 
-    // Get app URL from origin header or default
-    const origin = req.headers.get("origin") || "https://myfincare.lovable.app";
+    // Always use production URL for email links so users land on the correct domain
+    const origin = "https://myfincare.fr";
 
     console.log(
       `Creating ${emails.length} beta user(s) for company: ${company.name}`
