@@ -154,8 +154,8 @@ serve(async (req: Request) => {
       companyName = company?.name || "";
     }
 
-    // Always use the published URL for password reset links (not preview URLs)
-    const origin = "https://myfincare.lovable.app";
+    // Always use the production domain for password reset links
+    const origin = "https://myfincare.fr";
 
     // Generate password recovery link using the auth email
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
