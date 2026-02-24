@@ -206,7 +206,8 @@ serve(async (req: Request) => {
 
               if (linkError) {
                 console.warn(`Failed to generate reset link for ${email}:`, linkError.message);
-              } else if (linkData?.properties?.action_link) {
+              } else if (linkData?.properties?.hashed_token) {
+                const resetLink = `${origin}/reset-password?token_hash=${linkData.properties.hashed_token}&type=recovery`;
                 const displayName = firstName || "Bonjour";
 
                  const sendResult = await sendResendEmailWithFallback(resend, {
@@ -240,7 +241,7 @@ serve(async (req: Request) => {
                           </p>
                           
                           <div style="text-align: center; margin: 32px 0;">
-                            <a href="${linkData.properties.action_link}" 
+                            <a href="${resetLink}" 
                                style="display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
                               Réinitialiser mon mot de passe
                             </a>
@@ -344,7 +345,8 @@ serve(async (req: Request) => {
 
             if (linkError) {
               console.warn(`Failed to generate reset link for ${email}:`, linkError.message);
-            } else if (linkData?.properties?.action_link) {
+            } else if (linkData?.properties?.hashed_token) {
+              const resetLink = `${origin}/reset-password?token_hash=${linkData.properties.hashed_token}&type=recovery`;
               // Send email via Resend
               const displayName = firstName ? `${firstName}` : "Bienvenue";
 
@@ -379,7 +381,7 @@ serve(async (req: Request) => {
                         </p>
                         
                         <div style="text-align: center; margin: 32px 0;">
-                          <a href="${linkData.properties.action_link}" 
+                          <a href="${resetLink}" 
                              style="display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
                             Créer mon mot de passe
                           </a>

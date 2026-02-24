@@ -166,10 +166,14 @@ serve(async (req: Request) => {
       },
     });
 
-    if (linkError || !linkData?.properties?.action_link) {
+    if (linkError || !linkData?.properties?.hashed_token) {
       console.error('Failed to generate reset link:', linkError?.message);
       throw new Error('Failed to generate reset link');
     }
+
+    // Build a link to our app page with the token_hash as a query param.
+    // This prevents email scanners (Outlook Safe Links) from consuming the one-time token.
+    const resetLink = `${origin}/reset-password?token_hash=${linkData.properties.hashed_token}&type=recovery`;
 
     // Send email via Resend
     if (!resendApiKey) {
@@ -211,7 +215,7 @@ serve(async (req: Request) => {
               </p>
               
               <div style="text-align: center; margin: 32px 0;">
-                <a href="${linkData.properties.action_link}" 
+                <a href="${resetLink}" 
                    style="display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
                   Réinitialiser mon mot de passe
                 </a>
