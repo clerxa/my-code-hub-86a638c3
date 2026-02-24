@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { KeyRound } from "lucide-react";
+import { KeyRound, Loader2 } from "lucide-react";
 import { z } from "zod";
 
 const passwordSchema = z
@@ -15,31 +15,57 @@ const passwordSchema = z
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
 
   useEffect(() => {
-    // Vérifier si on est en mode recovery (après avoir cliqué sur le lien email)
-    supabase.auth.onAuthStateChange((event, session) => {
+    const tokenHash = searchParams.get("token_hash");
+    const type = searchParams.get("type");
+
+    // If we have a token_hash in query params, verify it via verifyOtp
+    // This approach prevents email scanners (Outlook Safe Links) from consuming
+    // the one-time token, since they only prefetch the page (not execute JS).
+    if (tokenHash && type === "recovery") {
+      setVerifying(true);
+      supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: "recovery",
+      }).then(({ error }) => {
+        setVerifying(false);
+        if (error) {
+          console.error("Token verification failed:", error.message);
+          // Don't set recovery mode - will show "invalid link" UI
+        } else {
+          setIsRecoveryMode(true);
+        }
+      });
+      return;
+    }
+
+    // Fallback: check for PASSWORD_RECOVERY event (legacy flow via hash fragments)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setIsRecoveryMode(true);
       }
     });
 
-    // Vérifier la session actuelle
+    // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setIsRecoveryMode(true);
       }
     });
-  }, []);
+
+    return () => subscription.unsubscribe();
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
     const passwordValidation = passwordSchema.safeParse(password);
     if (!passwordValidation.success) {
       toast.error(passwordValidation.error.errors[0].message);
@@ -68,11 +94,7 @@ const ResetPassword = () => {
       }
 
       toast.success("Mot de passe modifié avec succès !");
-      
-      // Déconnecter l'utilisateur pour qu'il se reconnecte avec son nouveau mot de passe
       await supabase.auth.signOut();
-      
-      // Rediriger vers la page de connexion
       navigate("/login");
     } catch (error: any) {
       console.error("Erreur lors de la réinitialisation:", error);
@@ -83,6 +105,24 @@ const ResetPassword = () => {
       setLoading(false);
     }
   };
+
+  if (verifying) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-background to-secondary/10">
+        <Card className="w-full max-w-md shadow-card">
+          <CardHeader className="text-center space-y-2">
+            <div className="flex justify-center mb-2">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Vérification en cours...</CardTitle>
+            <CardDescription>
+              Nous vérifions votre lien de réinitialisation.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   if (!isRecoveryMode) {
     return (

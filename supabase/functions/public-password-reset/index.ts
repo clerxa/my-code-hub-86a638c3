@@ -115,8 +115,8 @@ serve(async (req: Request) => {
       companyName = company?.name || "";
     }
 
-    // Always use the published URL for password reset links (not preview URLs)
-    const origin = "https://myfincare.lovable.app";
+    // Always use the production domain for password reset links
+    const origin = "https://myfincare.fr";
 
     // Generate password recovery link
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
@@ -127,10 +127,15 @@ serve(async (req: Request) => {
       },
     });
 
-    if (linkError || !linkData?.properties?.action_link) {
+    if (linkError || !linkData?.properties?.hashed_token) {
       console.error("Failed to generate reset link:", linkError);
       throw new Error(`Failed to generate reset link: ${linkError?.message || "Unknown error"}`);
     }
+
+    // Build a link to our app page with the token_hash as a query param.
+    // This prevents email scanners (Outlook Safe Links) from consuming the one-time token
+    // by pre-fetching the Supabase /verify endpoint.
+    const resetLink = `${origin}/reset-password?token_hash=${linkData.properties.hashed_token}&type=recovery`;
 
     console.log(`Generated reset link for ${profile.email}`);
 
@@ -169,7 +174,7 @@ serve(async (req: Request) => {
               </p>
               
               <div style="text-align: center; margin: 32px 0;">
-                <a href="${linkData.properties.action_link}" 
+                <a href="${resetLink}" 
                    style="display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
                   Réinitialiser mon mot de passe
                 </a>
