@@ -148,11 +148,12 @@ export const appendUtmParams = (url: string, utmCampaign: string): string => {
     const urlObj = new URL(url);
     urlObj.searchParams.set('utm_source', 'fincare_app');
     urlObj.searchParams.set('utm_campaign', utmCampaign);
+    urlObj.searchParams.set('origin', utmCampaign);
     return urlObj.toString();
   } catch {
     // If URL parsing fails, try simple concatenation
     const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}utm_source=fincare_app&utm_campaign=${encodeURIComponent(utmCampaign)}`;
+    return `${url}${separator}utm_source=fincare_app&utm_campaign=${encodeURIComponent(utmCampaign)}&origin=${encodeURIComponent(utmCampaign)}`;
   }
 };
 

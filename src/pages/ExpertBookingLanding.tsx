@@ -10,6 +10,7 @@ import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
 import { useAuth } from "@/components/AuthProvider";
 import { useBookingReferrer, getStoredUtmCampaignFull } from "@/hooks/useBookingReferrer";
 import { useEventTracking } from "@/hooks/useEventTracking";
+import { useBookingContextMessage } from "@/hooks/useBookingContextMessage";
 
 interface Benefit {
   icon: string;
@@ -59,6 +60,9 @@ export default function ExpertBookingLanding() {
   
   // Track referrer when user arrives on this page
   useBookingReferrer();
+  
+  // Get contextual message based on referrer
+  const { contextMessage } = useBookingContextMessage();
   
   // Track page view for intention scoring
   const { trackPageView } = useEventTracking();
@@ -185,6 +189,8 @@ export default function ExpertBookingLanding() {
                   fallbackUrl={fallbackUrl || undefined}
                   triggerText={settings?.cta_text || "Réserver mon créneau"}
                   utmCampaign={utmCampaign}
+                  dialogTitle={contextMessage.dialog_title}
+                  dialogDescription={contextMessage.dialog_description}
                 />
               </div>
               {settings?.cta_secondary_text && (
@@ -332,6 +338,8 @@ export default function ExpertBookingLanding() {
             fallbackUrl={fallbackUrl || undefined}
             triggerText={settings?.cta_text || "Réserver mon créneau"}
             utmCampaign={utmCampaign}
+            dialogTitle={contextMessage.dialog_title}
+            dialogDescription={contextMessage.dialog_description}
           />
           {settings?.footer_text && (
             <p className="mt-6 text-sm text-muted-foreground">
