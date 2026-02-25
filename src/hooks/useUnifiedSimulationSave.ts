@@ -4,7 +4,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/lib/logger';
+import { format } from 'date-fns';
 import type { SimulationType } from '@/types/simulations';
+import { SIMULATION_TYPE_LABELS } from '@/types/simulations';
 import type { Json } from '@/integrations/supabase/types';
 
 interface UseUnifiedSimulationSaveOptions {
@@ -46,11 +48,10 @@ export function useUnifiedSimulationSave({
   const [showExpertPrompt, setShowExpertPrompt] = useState(false);
 
   const openSaveDialog = useCallback((defaultName?: string) => {
-    if (defaultName) {
-      setSimulationName(defaultName);
-    }
+    const name = defaultName || `${SIMULATION_TYPE_LABELS[type] || type} - ${format(new Date(), 'dd/MM/yyyy HH:mm')}`;
+    setSimulationName(name);
     setShowSaveDialog(true);
-  }, []);
+  }, [type]);
 
   const closeSaveDialog = useCallback(() => {
     setShowSaveDialog(false);
