@@ -440,6 +440,39 @@ export type Database = {
           },
         ]
       }
+      booking_context_messages: {
+        Row: {
+          created_at: string
+          dialog_description: string | null
+          dialog_title: string
+          id: string
+          is_active: boolean
+          origin_key: string
+          origin_label: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dialog_description?: string | null
+          dialog_title?: string
+          id?: string
+          is_active?: boolean
+          origin_key: string
+          origin_label: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dialog_description?: string | null
+          dialog_title?: string
+          id?: string
+          is_active?: boolean
+          origin_key?: string
+          origin_label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booking_referrers: {
         Row: {
           appointment_id: string | null

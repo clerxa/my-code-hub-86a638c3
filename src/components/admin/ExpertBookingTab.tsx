@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "./ImageUpload";
-import { Loader2, Save, Calendar, ExternalLink, Code, Image, Plus, Trash2, Eye, Search, CheckCircle, Clock, Link2 } from "lucide-react";
+import { Loader2, Save, Calendar, ExternalLink, Code, Image, Plus, Trash2, Eye, Search, CheckCircle, Clock, Link2, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Json } from "@/integrations/supabase/types";
@@ -15,6 +15,7 @@ import { ExpertBookingLandingPreview } from "./ExpertBookingLandingPreview";
 import { IconSelector } from "./IconSelector";
 import { ImageGalleryUploader } from "./ImageGalleryUploader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BookingContextMessagesEditor } from "./BookingContextMessagesEditor";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -515,6 +516,10 @@ export function ExpertBookingTab() {
           <TabsTrigger value="appointments" className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
             RDV Confirmés ({hubspotAppointments.length})
+          </TabsTrigger>
+          <TabsTrigger value="context-messages" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Messages contextuels
           </TabsTrigger>
         </TabsList>
 
@@ -1199,6 +1204,10 @@ export function ExpertBookingTab() {
               </Table>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="context-messages" className="space-y-6">
+          <BookingContextMessagesEditor />
         </TabsContent>
       </Tabs>
 

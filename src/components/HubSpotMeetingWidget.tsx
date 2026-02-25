@@ -30,6 +30,10 @@ interface HubSpotMeetingWidgetProps {
   redirectToLanding?: boolean;
   /** UTM campaign label to append to booking URLs/embeds */
   utmCampaign?: string;
+  /** Custom dialog title (overrides default) */
+  dialogTitle?: string;
+  /** Custom dialog description (shown below title) */
+  dialogDescription?: string | null;
 }
 
 /**
@@ -107,6 +111,8 @@ export const HubSpotMeetingWidget = ({
   triggerText = "Prendre rendez-vous",
   redirectToLanding = false,
   utmCampaign,
+  dialogTitle,
+  dialogDescription,
 }: HubSpotMeetingWidgetProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
@@ -246,7 +252,10 @@ export const HubSpotMeetingWidget = ({
           </DialogTrigger>
           <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
             <DialogHeader>
-              <DialogTitle>Réserver un rendez-vous</DialogTitle>
+              <DialogTitle>{dialogTitle || "Réserver un rendez-vous"}</DialogTitle>
+              {dialogDescription && (
+                <p className="text-sm text-muted-foreground mt-1">{dialogDescription}</p>
+              )}
             </DialogHeader>
             <div className="overflow-y-auto max-h-[70vh]">
               {embedContent}
