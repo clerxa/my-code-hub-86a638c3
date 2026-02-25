@@ -43,7 +43,7 @@ interface CompaniesTabProps {
 
 function SignupLinkCopy({ slug }: { slug: string }) {
   const [copied, setCopied] = useState(false);
-  const url = `${window.location.origin}/join/${slug}`;
+  const url = `https://myfincare.fr/join/${slug}`;
   
   const handleCopy = async () => {
     await navigator.clipboard.writeText(url);

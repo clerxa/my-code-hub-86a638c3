@@ -123,7 +123,7 @@ export function CompanyCommunicationTab({ companyId }: CompanyCommunicationTabPr
         setReferralUrl(companyData.referral_typeform_url);
         setCompanyName(companyData.name);
         if ((companyData as any).signup_slug) {
-          setSignupUrl(`${window.location.origin}/join/${(companyData as any).signup_slug}`);
+          setSignupUrl(`https://myfincare.fr/join/${(companyData as any).signup_slug}`);
         }
       }
 
