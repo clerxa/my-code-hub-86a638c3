@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit, Settings, ExternalLink, X, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Trash2, Edit, Settings, ExternalLink, X, ArrowUpDown, ArrowUp, ArrowDown, Link2, Copy, Check } from "lucide-react";
 import type { Company, CompanyModule } from "@/types/database";
 import type { TaxPermanenceConfig } from "@/types/tax-declaration";
 
@@ -39,6 +39,29 @@ interface CompaniesTabProps {
   companies: Company[];
   modules: Module[];
   onRefresh: () => void;
+}
+
+function SignupLinkCopy({ slug }: { slug: string }) {
+  const [copied, setCopied] = useState(false);
+  const url = `${window.location.origin}/join/${slug}`;
+  
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    toast.success("Lien d'inscription copié !");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="flex items-center gap-1">
+      <span className="text-xs font-mono text-muted-foreground truncate max-w-[120px]" title={url}>
+        /join/{slug}
+      </span>
+      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopy} title="Copier le lien">
+        {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+      </Button>
+    </div>
+  );
 }
 
 export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProps) => {
@@ -1581,6 +1604,7 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
                 <TableHead className="text-center"><SortButton field="employeeCount">Nb salariés inscrits</SortButton></TableHead>
                 <TableHead className="text-center"><SortButton field="avgProgress">% moyen progression</SortButton></TableHead>
                 <TableHead className="text-center">Aide Fiscale</TableHead>
+                <TableHead>Lien inscription</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -1674,7 +1698,14 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
                     />
                   </TableCell>
                   <TableCell>
-                    <div className="flex gap-2">
+                    {(company as any).signup_slug ? (
+                      <SignupLinkCopy slug={(company as any).signup_slug} />
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
