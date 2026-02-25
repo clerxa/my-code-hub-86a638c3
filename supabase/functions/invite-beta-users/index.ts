@@ -134,10 +134,10 @@ serve(async (req: Request) => {
       throw new Error("Company ID is required");
     }
 
-    // Verify company exists
+    // Verify company exists and get signup_slug
     const { data: company, error: companyError } = await supabaseAdmin
       .from("companies")
-      .select("id, name")
+      .select("id, name, signup_slug")
       .eq("id", companyId)
       .maybeSingle();
 
@@ -145,18 +145,22 @@ serve(async (req: Request) => {
       throw new Error("Company not found");
     }
 
-    // Always use production URL for email links so users land on the correct domain
+    if (!company.signup_slug) {
+      throw new Error("Company has no signup slug configured");
+    }
+
+    // Always use production URL for email links
     const origin = "https://myfincare.fr";
+    const signupLink = `${origin}/join/${company.signup_slug}`;
 
     console.log(
-      `Creating ${emails.length} beta user(s) for company: ${company.name}`
+      `Inviting ${emails.length} user(s) for company: ${company.name} (link: ${signupLink})`
     );
 
     const results: Array<{
       email: string;
       success: boolean;
       error?: string;
-      userId?: string;
       emailSent?: boolean;
     }> = [];
 
@@ -165,269 +169,81 @@ serve(async (req: Request) => {
 
     for (const email of emails) {
       try {
-        // Check if user already exists
-        const { data: existingProfile } = await supabaseAdmin
-          .from("profiles")
-          .select("id, email")
-          .eq("email", email.toLowerCase())
-          .maybeSingle();
-
-        if (existingProfile) {
-          // User exists - update company_id if needed
-          const { error: updateError } = await supabaseAdmin
-            .from("profiles")
-            .update({ company_id: companyId })
-            .eq("id", existingProfile.id);
-
-          if (updateError) {
-            results.push({
-              email,
-              success: false,
-              error: `Failed to update existing user: ${updateError.message}`,
-            });
-            continue;
-          }
-          
-          console.log(`Updated existing user ${email} to company ${companyId}`);
-          
-          // Send email even for existing users
-          let emailSent = false;
-          if (sendEmail && resend) {
-            try {
-              // Generate password recovery link
-              const { data: linkData, error: linkError } =
-                await supabaseAdmin.auth.admin.generateLink({
-                  type: "recovery",
-                  email: email.toLowerCase(),
-                  options: {
-                    redirectTo: `${origin}/reset-password`,
-                  },
-                });
-
-              if (linkError) {
-                console.warn(`Failed to generate reset link for ${email}:`, linkError.message);
-              } else if (linkData?.properties?.hashed_token) {
-                const resetLink = `${origin}/reset-password?token_hash=${linkData.properties.hashed_token}&type=recovery`;
-                const displayName = firstName || "Bonjour";
-
-                 const sendResult = await sendResendEmailWithFallback(resend, {
-                   to: [email.toLowerCase()],
-                   subject: `Rappel : Votre accès à FinCare - ${company.name}`,
-                   html: `
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                      <meta charset="utf-8">
-                      <meta name="viewport" content="width=device-width, initial-scale=1">
-                    </head>
-                    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f4f4f5; margin: 0; padding: 20px;">
-                      <div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                        <!-- Header -->
-                        <div style="background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%); padding: 32px; text-align: center;">
-                          <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">FinCare</h1>
-                          <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 14px;">Votre bien-être financier</p>
-                        </div>
-                        
-                        <!-- Content -->
-                        <div style="padding: 32px;">
-                          <h2 style="color: #18181b; margin: 0 0 16px; font-size: 20px;">${displayName},</h2>
-                          
-                          <p style="color: #52525b; line-height: 1.6; margin: 0 0 16px;">
-                            Votre compte FinCare est prêt ! Vous êtes rattaché(e) à <strong>${company.name}</strong>.
-                          </p>
-                          
-                          <p style="color: #52525b; line-height: 1.6; margin: 0 0 24px;">
-                            Si vous avez oublié votre mot de passe ou souhaitez le réinitialiser, cliquez sur le bouton ci-dessous :
-                          </p>
-                          
-                          <div style="text-align: center; margin: 32px 0;">
-                            <a href="${resetLink}" 
-                               style="display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                              Réinitialiser mon mot de passe
-                            </a>
-                          </div>
-                          
-                          <p style="color: #71717a; font-size: 14px; line-height: 1.6; margin: 24px 0 0;">
-                            Ce lien est valable pendant 24 heures. Si vous n'avez pas demandé cet accès, vous pouvez ignorer cet email.
-                          </p>
-                        </div>
-                        
-                        <!-- Footer -->
-                        <div style="background: #f4f4f5; padding: 24px 32px; text-align: center;">
-                          <p style="color: #a1a1aa; font-size: 12px; margin: 0;">
-                            © ${new Date().getFullYear()} FinCare. Tous droits réservés.
-                          </p>
-                        </div>
-                      </div>
-                    </body>
-                    </html>
-                  `,
-                 });
-
-                 if (!sendResult.sent) {
-                   console.error(`Failed to send email to ${email}:`, sendResult.error);
-                 } else {
-                   emailSent = true;
-                   console.log(
-                     `Reminder email sent to existing user ${email} (from: ${sendResult.usedFrom})`
-                   );
-                 }
-              }
-            } catch (emailErr: any) {
-              console.error(`Email sending error for ${email}:`, emailErr.message);
-            }
-            
-            // Small delay to respect Resend rate limits
-            await new Promise((resolve) => setTimeout(resolve, 600));
-          }
-          
-          results.push({
-            email,
-            success: true,
-            userId: existingProfile.id,
-            emailSent,
-          });
-          continue;
-        }
-
-        // Generate a random password (user will reset it)
-        const tempPassword = crypto.randomUUID();
-
-        // Create the user
-        const { data: newUser, error: createError } =
-          await supabaseAdmin.auth.admin.createUser({
-            email: email.toLowerCase(),
-            password: tempPassword,
-            email_confirm: true, // Auto-confirm email
-            user_metadata: {
-              first_name: firstName || null,
-              last_name: lastName || null,
-              company_id: companyId,
-            },
-          });
-
-        if (createError) {
-          results.push({
-            email,
-            success: false,
-            error: createError.message,
-          });
-          console.error(`Failed to create user ${email}:`, createError.message);
-          continue;
-        }
-
-        // The profile should be created automatically via trigger
-        // But as a safety net, upsert the profile in case the trigger didn't fire
-        await supabaseAdmin
-          .from("profiles")
-          .upsert({
-            id: newUser.user.id,
-            email: email.toLowerCase(),
-            company_id: companyId,
-            first_name: firstName || null,
-            last_name: lastName || null,
-          }, { onConflict: "id" });
-
         let emailSent = false;
 
-        // Send invitation email via Resend if requested
         if (sendEmail && resend) {
-          try {
-            // Generate password recovery link
-            const { data: linkData, error: linkError } =
-              await supabaseAdmin.auth.admin.generateLink({
-                type: "recovery",
-                email: email.toLowerCase(),
-                options: {
-                  redirectTo: `${origin}/reset-password`,
-                },
-              });
+          const displayName = firstName || "Bonjour";
 
-            if (linkError) {
-              console.warn(`Failed to generate reset link for ${email}:`, linkError.message);
-            } else if (linkData?.properties?.hashed_token) {
-              const resetLink = `${origin}/reset-password?token_hash=${linkData.properties.hashed_token}&type=recovery`;
-              // Send email via Resend
-              const displayName = firstName ? `${firstName}` : "Bienvenue";
-
-              const sendResult = await sendResendEmailWithFallback(resend, {
-                to: [email.toLowerCase()],
-                subject: `Votre accès à FinCare - ${company.name}`,
-                html: `
-                  <!DOCTYPE html>
-                  <html>
-                  <head>
-                    <meta charset="utf-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1">
-                  </head>
-                  <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f4f4f5; margin: 0; padding: 20px;">
-                    <div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                      <!-- Header -->
-                      <div style="background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%); padding: 32px; text-align: center;">
-                        <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">FinCare</h1>
-                        <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 14px;">Votre bien-être financier</p>
-                      </div>
-                      
-                      <!-- Content -->
-                      <div style="padding: 32px;">
-                        <h2 style="color: #18181b; margin: 0 0 16px; font-size: 20px;">Bonjour ${displayName},</h2>
-                        
-                        <p style="color: #52525b; line-height: 1.6; margin: 0 0 16px;">
-                          Vous avez été invité(e) à rejoindre la plateforme FinCare dans le cadre du partenariat avec <strong>${company.name}</strong>.
-                        </p>
-                        
-                        <p style="color: #52525b; line-height: 1.6; margin: 0 0 24px;">
-                          Pour accéder à votre espace personnel et découvrir tous les outils mis à votre disposition, veuillez créer votre mot de passe en cliquant sur le bouton ci-dessous :
-                        </p>
-                        
-                        <div style="text-align: center; margin: 32px 0;">
-                          <a href="${resetLink}" 
-                             style="display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                            Créer mon mot de passe
-                          </a>
-                        </div>
-                        
-                        <p style="color: #71717a; font-size: 14px; line-height: 1.6; margin: 24px 0 0;">
-                          Ce lien est valable pendant 24 heures. Si vous n'avez pas demandé cet accès, vous pouvez ignorer cet email.
-                        </p>
-                      </div>
-                      
-                      <!-- Footer -->
-                      <div style="background: #f4f4f5; padding: 24px 32px; text-align: center;">
-                        <p style="color: #a1a1aa; font-size: 12px; margin: 0;">
-                          © ${new Date().getFullYear()} FinCare. Tous droits réservés.
-                        </p>
-                      </div>
+          const sendResult = await sendResendEmailWithFallback(resend, {
+            to: [email.toLowerCase()],
+            subject: `Votre invitation FinCare - ${company.name}`,
+            html: `
+              <!DOCTYPE html>
+              <html>
+              <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+              </head>
+              <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f4f4f5; margin: 0; padding: 20px;">
+                <div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                  <!-- Header -->
+                  <div style="background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%); padding: 32px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">FinCare</h1>
+                    <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 14px;">Votre bien-être financier</p>
+                  </div>
+                  
+                  <!-- Content -->
+                  <div style="padding: 32px;">
+                    <h2 style="color: #18181b; margin: 0 0 16px; font-size: 20px;">Bonjour ${displayName},</h2>
+                    
+                    <p style="color: #52525b; line-height: 1.6; margin: 0 0 16px;">
+                      Vous avez été invité(e) à rejoindre la plateforme <strong>FinCare</strong> dans le cadre du programme avec <strong>${company.name}</strong>.
+                    </p>
+                    
+                    <p style="color: #52525b; line-height: 1.6; margin: 0 0 24px;">
+                      Pour créer votre compte et accéder à votre espace personnel, cliquez sur le bouton ci-dessous :
+                    </p>
+                    
+                    <div style="text-align: center; margin: 32px 0;">
+                      <a href="${signupLink}" 
+                         style="display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                        Créer mon compte
+                      </a>
                     </div>
-                  </body>
-                  </html>
-                `,
-              });
+                    
+                    <p style="color: #71717a; font-size: 14px; line-height: 1.6; margin: 24px 0 0;">
+                      Ce lien reste valable à tout moment. Si vous n'avez pas demandé cet accès, vous pouvez ignorer cet email.
+                    </p>
+                  </div>
+                  
+                  <!-- Footer -->
+                  <div style="background: #f4f4f5; padding: 24px 32px; text-align: center;">
+                    <p style="color: #a1a1aa; font-size: 12px; margin: 0;">
+                      © ${new Date().getFullYear()} FinCare. Tous droits réservés.
+                    </p>
+                  </div>
+                </div>
+              </body>
+              </html>
+            `,
+          });
 
-              if (!sendResult.sent) {
-                console.error(`Failed to send email to ${email}:`, sendResult.error);
-              } else {
-                emailSent = true;
-                console.log(`Invitation email sent to ${email} (from: ${sendResult.usedFrom})`);
-              }
-            }
-          } catch (emailErr: any) {
-            console.error(`Email sending error for ${email}:`, emailErr.message);
+          if (!sendResult.sent) {
+            console.error(`Failed to send email to ${email}:`, sendResult.error);
+          } else {
+            emailSent = true;
+            console.log(`Invitation email sent to ${email} (from: ${sendResult.usedFrom})`);
           }
+
+          // Small delay to respect Resend rate limits
+          await new Promise((resolve) => setTimeout(resolve, 600));
         }
 
         results.push({
           email,
           success: true,
-          userId: newUser.user.id,
           emailSent,
         });
-        console.log(`Created beta user: ${email} (email sent: ${emailSent})`);
-
-        // Small delay to respect Resend rate limits
-        if (sendEmail && resend) {
-          await new Promise((resolve) => setTimeout(resolve, 600));
-        }
       } catch (error: any) {
         results.push({
           email,
