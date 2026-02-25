@@ -33,6 +33,7 @@ import { CheckPlanAccess } from "@/components/CheckPlanAccess";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import CompanySignup from "./pages/CompanySignup";
 import ResetPassword from "./pages/ResetPassword";
 import Admin from "./pages/Admin";
 import Company from "./pages/Company";
@@ -133,6 +134,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/join/:slug" element={<CompanySignup />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/partenariat" element={<Partnership />} />
             <Route path="/proposer-partenariat" element={<EmployeePartnership />} />

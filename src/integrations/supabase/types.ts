@@ -832,6 +832,7 @@ export type Database = {
           id: string
           internal_communications: Json | null
           internal_initiatives: Json | null
+          is_beta: boolean
           logo_url: string | null
           max_tax_declarations: number | null
           name: string
@@ -841,6 +842,7 @@ export type Database = {
           rang: number | null
           referral_typeform_url: string | null
           secondary_color: string | null
+          signup_slug: string | null
           simulators_config: Json | null
           tax_declaration_help_enabled: boolean | null
           tax_permanence_config: Json | null
@@ -866,6 +868,7 @@ export type Database = {
           id?: string
           internal_communications?: Json | null
           internal_initiatives?: Json | null
+          is_beta?: boolean
           logo_url?: string | null
           max_tax_declarations?: number | null
           name: string
@@ -875,6 +878,7 @@ export type Database = {
           rang?: number | null
           referral_typeform_url?: string | null
           secondary_color?: string | null
+          signup_slug?: string | null
           simulators_config?: Json | null
           tax_declaration_help_enabled?: boolean | null
           tax_permanence_config?: Json | null
@@ -900,6 +904,7 @@ export type Database = {
           id?: string
           internal_communications?: Json | null
           internal_initiatives?: Json | null
+          is_beta?: boolean
           logo_url?: string | null
           max_tax_declarations?: number | null
           name?: string
@@ -909,6 +914,7 @@ export type Database = {
           rang?: number | null
           referral_typeform_url?: string | null
           secondary_color?: string | null
+          signup_slug?: string | null
           simulators_config?: Json | null
           tax_declaration_help_enabled?: boolean | null
           tax_permanence_config?: Json | null

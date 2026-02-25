@@ -215,7 +215,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { email, password, firstName, lastName, onboardingSessionId, invitationToken } = await req.json();
+    const { email, password, firstName, lastName, onboardingSessionId, invitationToken, companyId } = await req.json();
 
     // Validate inputs
     if (!email || !password || !firstName || !lastName) {
@@ -229,34 +229,71 @@ serve(async (req) => {
     const domain = extractMainDomain(email);
     console.log('Extracted domain:', domain);
 
-    // Check if it's a personal email domain
-    if (PERSONAL_DOMAINS.includes(domain)) {
-      // Check if personal emails are allowed in beta mode
-      const { data: betaSetting } = await supabaseAdmin
-        .from('global_settings')
-        .select('value')
-        .eq('category', 'beta')
-        .eq('key', 'allow_personal_emails')
+    // If companyId is provided (from company signup link), use it directly
+    let company: { id: string; name: string; partnership_type: string | null };
+    
+    if (companyId) {
+      // Fetch the specified company
+      const { data: companyData, error: companyError } = await supabaseAdmin
+        .from('companies')
+        .select('id, name, partnership_type, is_beta')
+        .eq('id', companyId)
         .single();
-
-      const allowPersonalEmails = betaSetting?.value === true || betaSetting?.value === 'true';
       
-      if (!allowPersonalEmails) {
+      if (companyError || !companyData) {
         return new Response(
-          JSON.stringify({ 
-            success: false,
-            error: 'personal_email',
-            message: 'Votre email doit être un email professionnel. Les adresses personnelles ne sont pas autorisées.' 
-          }),
+          JSON.stringify({ success: false, error: 'invalid_company', message: 'Entreprise non trouvée' }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
-      console.log('Personal email allowed in beta mode:', email);
-    }
+      // For beta companies, skip personal email check
+      if (!companyData.is_beta && PERSONAL_DOMAINS.includes(domain)) {
+        // Non-beta company with personal email: check partnership
+        const hasPartnership = companyData.partnership_type && companyData.partnership_type.toLowerCase() !== 'aucun';
+        if (!hasPartnership) {
+          return new Response(
+            JSON.stringify({ 
+              success: false,
+              error: 'personal_email',
+              message: 'Votre email doit être un email professionnel.' 
+            }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+      
+      company = { id: companyData.id, name: companyData.name, partnership_type: companyData.partnership_type };
+      console.log('Using provided company:', company.name);
+    } else {
+      // Original flow: check personal email and find/create company by domain
+      if (PERSONAL_DOMAINS.includes(domain)) {
+        const { data: betaSetting } = await supabaseAdmin
+          .from('global_settings')
+          .select('value')
+          .eq('category', 'beta')
+          .eq('key', 'allow_personal_emails')
+          .single();
 
-    // Find or create company
-    const company = await findOrCreateCompany(supabaseAdmin, domain);
+        const allowPersonalEmails = betaSetting?.value === true || betaSetting?.value === 'true';
+        
+        if (!allowPersonalEmails) {
+          return new Response(
+            JSON.stringify({ 
+              success: false,
+              error: 'personal_email',
+              message: 'Votre email doit être un email professionnel. Les adresses personnelles ne sont pas autorisées.' 
+            }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        console.log('Personal email allowed in beta mode:', email);
+      }
+
+      // Find or create company
+      company = await findOrCreateCompany(supabaseAdmin, domain);
+    }
 
     // Create user account
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
