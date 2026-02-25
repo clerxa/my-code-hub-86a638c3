@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CommunicationKitTab } from "@/components/admin/CommunicationKitTab";
 import { CompanyDocumentsTab } from "./CompanyDocumentsTab";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FileText, Megaphone, Link2, Copy, Check, Calendar, Users, Image as ImageIcon, HelpCircle, Download, ChevronDown } from "lucide-react";
+import { FileText, Megaphone, Link2, Copy, Check, Calendar, Users, Image as ImageIcon, HelpCircle, Download, ChevronDown, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
 import { toast } from "sonner";
@@ -104,6 +104,7 @@ const categoryLabels: Record<string, string> = {
 
 export function CompanyCommunicationTab({ companyId }: CompanyCommunicationTabProps) {
   const [referralUrl, setReferralUrl] = useState<string | null>(null);
+  const [signupUrl, setSignupUrl] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [visualResources, setVisualResources] = useState<VisualResource[]>([]);
   const [faqs, setFaqs] = useState<CompanyFAQ[]>([]);
@@ -114,13 +115,16 @@ export function CompanyCommunicationTab({ companyId }: CompanyCommunicationTabPr
       // Fetch company data
       const { data: companyData } = await supabase
         .from("companies")
-        .select("referral_typeform_url, name")
+        .select("referral_typeform_url, name, signup_slug")
         .eq("id", companyId)
         .single();
 
       if (companyData) {
         setReferralUrl(companyData.referral_typeform_url);
         setCompanyName(companyData.name);
+        if ((companyData as any).signup_slug) {
+          setSignupUrl(`${window.location.origin}/join/${(companyData as any).signup_slug}`);
+        }
       }
 
       // Fetch visual resources (global ones where company_id is null)
@@ -236,6 +240,12 @@ export function CompanyCommunicationTab({ companyId }: CompanyCommunicationTabPr
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <LinkItem
+                icon={<UserPlus className="h-5 w-5" />}
+                title="Lien d'inscription à l'application"
+                description="Partagez ce lien à vos collaborateurs pour qu'ils s'inscrivent directement"
+                url={signupUrl}
+              />
               <LinkItem
                 icon={<Calendar className="h-5 w-5" />}
                 title="Prise de rendez-vous expert"
