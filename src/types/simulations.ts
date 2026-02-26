@@ -283,6 +283,7 @@ export const SimulationType = z.enum([
   'interets_composes',
   'pvi',
   'gestion_pilotee',
+  'rsu',
 ]);
 
 export type SimulationType = z.infer<typeof SimulationType>;
@@ -347,6 +348,7 @@ export const SIMULATION_TYPE_LABELS: Record<SimulationType, string> = {
   interets_composes: 'Intérêts',
   pvi: 'Plus-Value Immo',
   gestion_pilotee: 'Gestion Pilotée',
+  rsu: 'RSU',
 };
 
 export const SIMULATION_TYPE_URLS: Record<SimulationType, { edit: string; view: string }> = {
@@ -361,4 +363,5 @@ export const SIMULATION_TYPE_URLS: Record<SimulationType, { edit: string; view: 
   interets_composes: { edit: '/simulateur-interets-composes', view: '/simulateur-interets-composes' },
   pvi: { edit: '/simulateur-pvi', view: '/simulateur-pvi' },
   gestion_pilotee: { edit: '/simulateur-gestion-pilotee', view: '/simulateur-gestion-pilotee' },
+  rsu: { edit: '/simulateur-rsu', view: '/simulateur-rsu' },
 };

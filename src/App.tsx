@@ -51,6 +51,7 @@ import SimulateurCapaciteEmprunt from "./pages/SimulateurCapaciteEmprunt";
 import SimulateurPVI from "./pages/SimulateurPVI";
 import SimulateurGestionPilotee from "./pages/SimulateurGestionPilotee";
 import SimulateurCapaciteEpargne from "./pages/SimulateurCapaciteEpargne";
+import SimulateurRSU from "./pages/SimulateurRSU";
 import Employee from "./pages/Employee";
 import EmployeeProfile from "./pages/EmployeeProfile";
 import EmployeeSimulations from "./pages/EmployeeSimulations";
@@ -421,6 +422,16 @@ const App = () => (
                 <ProtectedRoute>
                   <CheckPlanAccess featureKey="simulateur_capacite_epargne">
                     <SimulateurCapaciteEpargne />
+                  </CheckPlanAccess>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/simulateur-rsu"
+              element={
+                <ProtectedRoute>
+                  <CheckPlanAccess featureKey="simulateur_rsu">
+                    <SimulateurRSU />
                   </CheckPlanAccess>
                 </ProtectedRoute>
               }
