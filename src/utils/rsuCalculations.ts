@@ -1,210 +1,198 @@
 /**
- * Calculs fiscaux RSU centralisés
- * Utilise les règles de global_settings via FiscalRules
+ * Calculs fiscaux RSU centralisés — Règles détaillées
+ * 
+ * Étapes 1→9 : gain d'acquisition, PV cession, consolidation R1/R2,
+ * fiscalité par régime, totaux consolidés.
  */
 
-import type { FiscalRules } from '@/types/global-settings';
 import type { RSUPlan, RSUCessionParams, RSUPlanResult, RSUSimulationResult } from '@/types/rsu';
 
-// Defaults basés sur la législation 2024/2025
-const DEFAULT_RSU_RULES = {
-  // R1 Qualifié post 30/12/2016
-  rsu_q_abattement_taux: 50,
-  rsu_q_abattement_seuil: 300000,
-  rsu_q_contribution_patronale: 0, // payée par l'employeur
-  rsu_q_csg_crds_rate: 9.7,
-  rsu_q_csg_deductible: 6.8,
-  rsu_q_contribution_salariale_excedent: 10,
-  // R3 Non qualifié
-  rsu_nq_charges_sociales_salarie: 0, // intégré au salaire, déjà précompté
-  // PV cession
-  rsu_pv_cession_pfu_ir: 12.8,
-  rsu_pv_cession_ps: 17.2,
-  // PS standard
-  social_charges_rate: 17.2,
-};
+// ─── ÉTAPE 1 — Gain d'acquisition par vesting ───
+// gain_vesting_eur = nb_rsu × cours × taux_change (1 si EUR)
+// → déjà calculé en temps réel dans RSUPlanEditor (computedVestings)
 
-function getRules(fiscalRules?: Partial<FiscalRules>) {
-  return { ...DEFAULT_RSU_RULES, ...fiscalRules };
+// ─── ÉTAPE 2 — Gain total par plan ───
+function getPlanAggregates(plan: RSUPlan) {
+  const nb_rsu_plan = plan.vestings.reduce((s, v) => s + v.nb_rsu, 0);
+  const plan_gain_eur = plan.gain_acquisition_total; // Σ gain_vesting_eur
+  const valeur_moy_acq_eur = nb_rsu_plan > 0 ? plan_gain_eur / nb_rsu_plan : 0;
+  return { nb_rsu_plan, plan_gain_eur, valeur_moy_acq_eur };
 }
 
-function calculatePlanResult(
-  plan: RSUPlan,
-  params: RSUCessionParams,
-  rules: ReturnType<typeof getRules>,
-  seuilRestant: number
-): { result: RSUPlanResult; seuilConsomme: number } {
-  const nbActionsTotal = plan.vestings.reduce((s, v) => s + v.nb_rsu, 0);
-  const gainAcquisitionEur = plan.gain_acquisition_total;
-
-  // Calcul PV de cession
-  const coursVenteEur = plan.devise === 'USD'
+// ─── ÉTAPE 3 — Plus-value de cession par plan ───
+function getPVCession(plan: RSUPlan, params: RSUCessionParams) {
+  const { nb_rsu_plan, valeur_moy_acq_eur } = getPlanAggregates(plan);
+  const prix_cession_eur = plan.devise === 'USD'
     ? params.prix_vente * params.taux_change_vente
     : params.prix_vente;
 
-  // PRU moyen pondéré en EUR
-  const totalCoutAcquisition = plan.vestings.reduce((s, v) => {
-    const coursEur = plan.devise === 'USD' ? v.cours * v.taux_change : v.cours;
-    return s + (coursEur * v.nb_rsu);
-  }, 0);
-  const pvCessionEur = Math.max(0, (coursVenteEur * nbActionsTotal) - totalCoutAcquisition);
+  const pv_raw = nb_rsu_plan * (prix_cession_eur - valeur_moy_acq_eur);
+  const moins_value = pv_raw < 0 ? Math.abs(pv_raw) : 0;
+  const pv_plan = Math.max(0, pv_raw);
 
-  let irGainAcquisition = 0;
-  let psGainAcquisition = 0;
-  let contributionSalariale = 0;
-  let csgCrds = 0;
-
-  if (plan.regime === 'R1') {
-    // Régime qualifié post 30/12/2016
-    // Abattement de 50% sur la fraction ≤ 300k€
-    const fractionAbattue = Math.min(gainAcquisitionEur, seuilRestant);
-    const fractionExcedent = Math.max(0, gainAcquisitionEur - seuilRestant);
-    const seuilConsomme = fractionAbattue;
-
-    const baseApresAbattement = fractionAbattue * (1 - rules.rsu_q_abattement_taux / 100) + fractionExcedent;
-    irGainAcquisition = baseApresAbattement * (params.tmi / 100);
-
-    // CSG/CRDS sur le gain total (pas d'abattement)
-    csgCrds = gainAcquisitionEur * (rules.rsu_q_csg_crds_rate / 100);
-
-    // Contribution salariale de 10% sur l'excédent > 300k
-    contributionSalariale = fractionExcedent * (rules.rsu_q_contribution_salariale_excedent / 100);
-
-    // PS = 0 pour le gain d'acquisition qualifié (déjà couvert par CSG/CRDS)
-    psGainAcquisition = 0;
-
-    // PV cession : PFU
-    const irPvCession = pvCessionEur * (rules.rsu_pv_cession_pfu_ir / 100);
-    const psPvCession = pvCessionEur * (rules.rsu_pv_cession_ps / 100);
-
-    const totalImpots = irGainAcquisition + csgCrds + contributionSalariale + irPvCession + psPvCession;
-
-    return {
-      result: {
-        plan_id: plan.id,
-        plan_nom: plan.nom,
-        regime: plan.regime,
-        devise: plan.devise,
-        nb_actions_total: nbActionsTotal,
-        gain_acquisition_eur: gainAcquisitionEur,
-        pv_cession_eur: pvCessionEur,
-        ir_gain_acquisition: irGainAcquisition,
-        ps_gain_acquisition: psGainAcquisition,
-        contribution_salariale: contributionSalariale,
-        csg_crds: csgCrds,
-        ir_pv_cession: irPvCession,
-        ps_pv_cession: psPvCession,
-        total_impots: totalImpots,
-        gain_net: gainAcquisitionEur + pvCessionEur - totalImpots,
-      },
-      seuilConsomme,
-    };
-  } else if (plan.regime === 'R2') {
-    // Régime qualifié 08/2015 - 12/2016 : même logique que R1 mais contribution salariale dès le 1er euro > seuil
-    const fractionAbattue = Math.min(gainAcquisitionEur, seuilRestant);
-    const fractionExcedent = Math.max(0, gainAcquisitionEur - seuilRestant);
-    const seuilConsomme = fractionAbattue;
-
-    const baseApresAbattement = fractionAbattue * (1 - rules.rsu_q_abattement_taux / 100) + fractionExcedent;
-    irGainAcquisition = baseApresAbattement * (params.tmi / 100);
-    csgCrds = gainAcquisitionEur * (rules.rsu_q_csg_crds_rate / 100);
-    contributionSalariale = fractionExcedent * (rules.rsu_q_contribution_salariale_excedent / 100);
-
-    const irPvCession = pvCessionEur * (rules.rsu_pv_cession_pfu_ir / 100);
-    const psPvCession = pvCessionEur * (rules.rsu_pv_cession_ps / 100);
-
-    const totalImpots = irGainAcquisition + csgCrds + contributionSalariale + irPvCession + psPvCession;
-
-    return {
-      result: {
-        plan_id: plan.id,
-        plan_nom: plan.nom,
-        regime: plan.regime,
-        devise: plan.devise,
-        nb_actions_total: nbActionsTotal,
-        gain_acquisition_eur: gainAcquisitionEur,
-        pv_cession_eur: pvCessionEur,
-        ir_gain_acquisition: irGainAcquisition,
-        ps_gain_acquisition: psGainAcquisition,
-        contribution_salariale: contributionSalariale,
-        csg_crds: csgCrds,
-        ir_pv_cession: irPvCession,
-        ps_pv_cession: psPvCession,
-        total_impots: totalImpots,
-        gain_net: gainAcquisitionEur + pvCessionEur - totalImpots,
-      },
-      seuilConsomme,
-    };
-  } else {
-    // R3 Non qualifié : gain d'acquisition taxé comme salaire
-    irGainAcquisition = gainAcquisitionEur * (params.tmi / 100);
-    psGainAcquisition = gainAcquisitionEur * (rules.social_charges_rate / 100);
-
-    const irPvCession = pvCessionEur * (rules.rsu_pv_cession_pfu_ir / 100);
-    const psPvCession = pvCessionEur * (rules.rsu_pv_cession_ps / 100);
-
-    const totalImpots = irGainAcquisition + psGainAcquisition + irPvCession + psPvCession;
-
-    return {
-      result: {
-        plan_id: plan.id,
-        plan_nom: plan.nom,
-        regime: plan.regime,
-        devise: plan.devise,
-        nb_actions_total: nbActionsTotal,
-        gain_acquisition_eur: gainAcquisitionEur,
-        pv_cession_eur: pvCessionEur,
-        ir_gain_acquisition: irGainAcquisition,
-        ps_gain_acquisition: psGainAcquisition,
-        contribution_salariale: 0,
-        csg_crds: 0,
-        ir_pv_cession: irPvCession,
-        ps_pv_cession: psPvCession,
-        total_impots: totalImpots,
-        gain_net: gainAcquisitionEur + pvCessionEur - totalImpots,
-      },
-      seuilConsomme: 0,
-    };
-  }
+  return { pv_plan, moins_value, nb_rsu_plan, prix_cession_eur, valeur_moy_acq_eur };
 }
 
+// ─── ÉTAPE 6 helper — Durée de détention R2 et abattement ───
+function getR2Abattement(plan: RSUPlan, dateCession: Date): number {
+  if (plan.vestings.length === 0) return 0;
+  
+  // Date du dernier vesting
+  const lastVestingDate = plan.vestings
+    .filter(v => v.date)
+    .map(v => new Date(v.date))
+    .sort((a, b) => b.getTime() - a.getTime())[0];
+
+  if (!lastVestingDate) return 0;
+
+  const diffMs = dateCession.getTime() - lastVestingDate.getTime();
+  const dureeAnnees = diffMs / (1000 * 60 * 60 * 24 * 365.25);
+
+  if (dureeAnnees < 2) return 0;
+  if (dureeAnnees < 8) return 0.50;
+  return 0.65;
+}
+
+// ─── CALCUL PRINCIPAL ───
 export function calculateRSUSimulation(
   plans: RSUPlan[],
   params: RSUCessionParams,
-  fiscalRules?: Partial<FiscalRules>
 ): RSUSimulationResult {
-  const rules = getRules(fiscalRules);
-  const seuil300k = rules.rsu_q_abattement_seuil;
+  const dateCession = new Date(params.annee_cession, 11, 31); // fin d'année fiscale
 
-  let seuilRestant = seuil300k;
-  const planResults: RSUPlanResult[] = [];
+  // Séparer par régime
+  const plansR1 = plans.filter(p => p.regime === 'R1');
+  const plansR2 = plans.filter(p => p.regime === 'R2');
+  const plansR3 = plans.filter(p => p.regime === 'R3');
 
-  // Traiter les plans qualifiés d'abord (R1, R2) pour le seuil mutualisé
-  const sortedPlans = [...plans].sort((a, b) => {
-    const order = { R1: 0, R2: 1, R3: 2 };
-    return order[a.regime] - order[b.regime];
-  });
-
-  for (const plan of sortedPlans) {
-    const { result, seuilConsomme } = calculatePlanResult(plan, params, rules, seuilRestant);
-    planResults.push(result);
-    seuilRestant -= seuilConsomme;
+  // ─── ÉTAPE 3 — PV cession par plan ───
+  const planPVs = new Map<string, { pv_plan: number; moins_value: number; nb_rsu_plan: number }>();
+  for (const plan of plans) {
+    planPVs.set(plan.id, getPVCession(plan, params));
   }
 
-  const gainBrutTotal = planResults.reduce((s, r) => s + r.gain_acquisition_eur + r.pv_cession_eur, 0);
-  const totalImpots = planResults.reduce((s, r) => s + r.total_impots, 0);
-  const gainNetTotal = planResults.reduce((s, r) => s + r.gain_net, 0);
+  // ─── ÉTAPE 4 — Consolidation R1 + R2 ───
+  const gain_R1 = plansR1.reduce((s, p) => s + p.gain_acquisition_total, 0);
+  const gain_R2 = plansR2.reduce((s, p) => s + p.gain_acquisition_total, 0);
+  const gain_consolide_R1R2 = gain_R1 + gain_R2;
+  const tranche_A = Math.min(gain_consolide_R1R2, 300000);
+  const tranche_B = Math.max(0, gain_consolide_R1R2 - 300000);
+
+  // ─── ÉTAPE 5 — Fiscalité R1 (sur tranches consolidées) ───
+  const tmi = params.tmi / 100;
+  const ir_A = tranche_A * 0.5 * tmi;
+  const ps_A = tranche_A * 0.172;
+  const ir_B = tranche_B * tmi;
+  const ps_B = tranche_B * 0.097;
+  const contrib_B = tranche_B * 0.10;
+
+  // Répartir la fiscalité R1 proportionnellement entre plans R1
+  // (pour le détail plan par plan dans le tableau)
+  const totalR1Gain = gain_R1;
+
+  // ─── ÉTAPE 6 — Fiscalité R2 (plan par plan) ───
+  let ir_R2_total = 0;
+  let ps_R2_total = 0;
+  const r2Details = new Map<string, { ir: number; ps: number; abattement: number }>();
+
+  for (const plan of plansR2) {
+    const abattement = getR2Abattement(plan, dateCession);
+    const base_ir = plan.gain_acquisition_total * (1 - abattement);
+    const ir_plan = base_ir * tmi;
+    const ps_plan = plan.gain_acquisition_total * 0.172; // assiette AVANT abattement
+    ir_R2_total += ir_plan;
+    ps_R2_total += ps_plan;
+    r2Details.set(plan.id, { ir: ir_plan, ps: ps_plan, abattement });
+  }
+
+  // ─── ÉTAPE 7 — Fiscalité R3 ───
+  const gain_R3 = plansR3.reduce((s, p) => s + p.gain_acquisition_total, 0);
+  const ir_R3 = gain_R3 * tmi;
+  const ps_R3 = gain_R3 * 0.097;
+  const contrib_R3 = gain_R3 * 0.10;
+
+  // ─── ÉTAPE 8 — PV cession (tous régimes, PFU) ───
+  let pv_totale = 0;
+  for (const [, pv] of planPVs) {
+    pv_totale += pv.pv_plan;
+  }
+  const ir_pv = pv_totale * 0.128;
+  const ps_pv = pv_totale * 0.172;
+
+  // ─── ÉTAPE 9 — Totaux consolidés ───
+  const total_ir = ir_A + ir_B + ir_R2_total + ir_R3 + ir_pv;
+  const total_ps = ps_A + ps_B + ps_R2_total + ps_R3 + ps_pv;
+  const total_contrib = contrib_B + contrib_R3;
+  const total_impots = total_ir + total_ps + total_contrib;
+  const gain_brut_total = gain_consolide_R1R2 + gain_R3 + pv_totale;
+  const gain_net = gain_brut_total - total_impots;
+  const taux_effectif = gain_brut_total > 0 ? (total_impots / gain_brut_total) * 100 : 0;
+
+  // ─── Construire les résultats plan par plan ───
+  const planResults: RSUPlanResult[] = plans.map(plan => {
+    const pvData = planPVs.get(plan.id)!;
+    const { nb_rsu_plan } = getPlanAggregates(plan);
+    let ir_ga = 0, ps_ga = 0, contrib_sal = 0, csg_crds = 0;
+
+    if (plan.regime === 'R1') {
+      // Part proportionnelle de la fiscalité consolidée R1
+      const ratio = totalR1Gain > 0 ? plan.gain_acquisition_total / totalR1Gain : 0;
+      // Fraction du plan dans tranche A et B
+      const planTrancheA = tranche_A * ratio;
+      const planTrancheB = tranche_B * ratio;
+      ir_ga = (planTrancheA * 0.5 * tmi) + (planTrancheB * tmi);
+      ps_ga = (planTrancheA * 0.172) + (planTrancheB * 0.097);
+      contrib_sal = planTrancheB * 0.10;
+      csg_crds = 0; // inclus dans ps_ga pour R1
+    } else if (plan.regime === 'R2') {
+      const detail = r2Details.get(plan.id)!;
+      ir_ga = detail.ir;
+      ps_ga = detail.ps;
+      contrib_sal = 0;
+      csg_crds = 0;
+    } else {
+      // R3
+      ir_ga = plan.gain_acquisition_total * tmi;
+      ps_ga = plan.gain_acquisition_total * 0.097;
+      contrib_sal = plan.gain_acquisition_total * 0.10;
+      csg_crds = 0;
+    }
+
+    // PV cession par plan (PFU)
+    const ir_pv_plan = pvData.pv_plan * 0.128;
+    const ps_pv_plan = pvData.pv_plan * 0.172;
+
+    const totalImPlan = ir_ga + ps_ga + contrib_sal + csg_crds + ir_pv_plan + ps_pv_plan;
+
+    return {
+      plan_id: plan.id,
+      plan_nom: plan.nom,
+      regime: plan.regime,
+      devise: plan.devise,
+      nb_actions_total: nb_rsu_plan,
+      gain_acquisition_eur: plan.gain_acquisition_total,
+      pv_cession_eur: pvData.pv_plan,
+      ir_gain_acquisition: ir_ga,
+      ps_gain_acquisition: ps_ga,
+      contribution_salariale: contrib_sal,
+      csg_crds,
+      ir_pv_cession: ir_pv_plan,
+      ps_pv_cession: ps_pv_plan,
+      total_impots: totalImPlan,
+      gain_net: plan.gain_acquisition_total + pvData.pv_plan - totalImPlan,
+    };
+  });
 
   return {
     plans: planResults,
-    gain_brut_total: gainBrutTotal,
-    total_impots: totalImpots,
-    gain_net_total: gainNetTotal,
-    taux_effectif: gainBrutTotal > 0 ? (totalImpots / gainBrutTotal) * 100 : 0,
-    seuil_300k_applique: seuilRestant < seuil300k,
-    total_ir: planResults.reduce((s, r) => s + r.ir_gain_acquisition + r.ir_pv_cession, 0),
-    total_ps: planResults.reduce((s, r) => s + r.ps_gain_acquisition + r.ps_pv_cession, 0),
-    total_contribution_salariale: planResults.reduce((s, r) => s + r.contribution_salariale, 0),
-    total_csg_crds: planResults.reduce((s, r) => s + r.csg_crds, 0),
+    gain_brut_total,
+    total_impots,
+    gain_net_total: gain_net,
+    taux_effectif,
+    seuil_300k_applique: gain_consolide_R1R2 > 300000,
+    total_ir,
+    total_ps,
+    total_contribution_salariale: total_contrib,
+    total_csg_crds: 0, // CSG/CRDS intégrée dans PS pour simplification affichage
   };
 }

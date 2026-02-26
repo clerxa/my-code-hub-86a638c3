@@ -10,14 +10,12 @@ import { SimulatorHeader } from '@/components/simulators/SimulatorHeader';
 import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer';
 import { RSUPlansDashboard, RSUPlanEditor, RSUCessionParams, RSUResults } from '@/components/simulators/rsu';
 import { calculateRSUSimulation } from '@/utils/rsuCalculations';
-import { useFiscalRules } from '@/contexts/GlobalSettingsContext';
 import type { RSUPlan, RSUCessionParams as CessionParamsType, RSUSimulationResult } from '@/types/rsu';
 
 type Screen = 'dashboard' | 'editor' | 'cession' | 'results';
 
 const SimulateurRSU = () => {
   const navigate = useNavigate();
-  const fiscalRules = useFiscalRules();
 
   const [screen, setScreen] = useState<Screen>('dashboard');
   const [plans, setPlans] = useState<RSUPlan[]>([]);
@@ -78,10 +76,10 @@ const SimulateurRSU = () => {
 
   // Simulation
   const handleSimulate = useCallback(() => {
-    const simResult = calculateRSUSimulation(plans, cessionParams, fiscalRules);
+    const simResult = calculateRSUSimulation(plans, cessionParams);
     setResult(simResult);
     setScreen('results');
-  }, [plans, cessionParams, fiscalRules]);
+  }, [plans, cessionParams]);
 
   const handleReset = useCallback(() => {
     setResult(null);
