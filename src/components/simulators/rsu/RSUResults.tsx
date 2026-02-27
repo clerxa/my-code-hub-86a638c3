@@ -171,12 +171,28 @@ export function RSUResults({ result, onReset }: RSUResultsProps) {
 
       {/* Avertissement seuil 300k */}
       {result.seuil_300k_applique && (
-        <Alert className="border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/30">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800 dark:text-amber-200 text-sm">
-            Le seuil de 300 000 € est appliqué sur l'ensemble de vos plans. Cette interprétation est la plus prudente — consultez un expert Perlib pour valider votre situation spécifique.
-          </AlertDescription>
-        </Alert>
+        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2 text-amber-800 dark:text-amber-200">
+              <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+              Le seuil de 300 000 € — comment ça fonctionne
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-amber-800 dark:text-amber-200 space-y-2">
+            <p>
+              En France, le gain d'acquisition issu de vos RSU bénéficie d'un régime fiscal avantageux jusqu'à 300 000 € — c'est la <strong>Tranche A</strong>, imposée au barème progressif avec un abattement de 50 %.
+            </p>
+            <p>
+              Au-delà de 300 000 € — c'est la <strong>Tranche B</strong> — le gain est imposé comme un salaire classique, sans abattement, ce qui représente une charge fiscale nettement plus élevée.
+            </p>
+            <p>
+              Ce seuil s'applique sur le total de vos gains d'acquisition de l'année, tous plans confondus. Nous avons donc consolidé l'ensemble de vos plans pour calculer si vous dépassez ce seuil.
+            </p>
+            <p className="font-medium">
+              Cette interprétation est la plus prudente fiscalement. Consultez un expert Perlib pour valider l'application exacte à votre situation.
+            </p>
+          </CardContent>
+        </Card>
       )}
 
       {/* Taux effectif */}
