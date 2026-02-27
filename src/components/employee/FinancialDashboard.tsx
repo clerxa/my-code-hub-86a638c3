@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { 
   TrendingUp, Home, PiggyBank, Percent, 
   Wallet, Target, Building2, Info, Calculator, ArrowRight, Minus, Plus, Equal, ChevronRight,
-  Download, Loader2
+  Download, Loader2, AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -34,10 +34,17 @@ interface EpargnePrecautionData {
   epargne_manquante: number;
 }
 
+interface MissingFieldDetailed {
+  label: string;
+  fieldKey: string;
+}
+
 interface FinancialDashboardProps {
   formData: FinancialProfileInput;
   completeness: number;
   missingFields: string[];
+  missingFieldsDetailed?: MissingFieldDetailed[];
+  fieldToTabMapping?: Record<string, string>;
   onNavigateToTab: (tab: string) => void;
   epargnePrecautionData?: EpargnePrecautionData | null;
 }
@@ -51,6 +58,8 @@ export function FinancialDashboard({
   formData, 
   completeness, 
   missingFields,
+  missingFieldsDetailed = [],
+  fieldToTabMapping = {},
   onNavigateToTab,
   epargnePrecautionData = null
 }: FinancialDashboardProps) {
@@ -297,6 +306,37 @@ export function FinancialDashboard({
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Missing fields alert */}
+      {missingFieldsDetailed.length > 0 && (
+        <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-2.5 flex-1">
+                <p className="text-sm font-medium text-foreground">
+                  {missingFieldsDetailed.length} champ{missingFieldsDetailed.length > 1 ? 's' : ''} à compléter pour affiner votre synthèse
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {missingFieldsDetailed.map((field, index) => {
+                    const targetTab = fieldToTabMapping[field.fieldKey] || "personal";
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => onNavigateToTab(targetTab)}
+                        className="px-2.5 py-1 bg-background rounded-full text-xs border border-border hover:border-primary hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center gap-1 group"
+                      >
+                        <span>{field.label}</span>
+                        <ArrowRight className="h-3 w-3 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Key metrics grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Revenus */}

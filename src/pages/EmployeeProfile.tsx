@@ -84,7 +84,7 @@ const tabs = [
 ];
 
 // Mapping field_key → tab id for clickable missing fields navigation
-const FIELD_TO_TAB: Record<string, string> = {
+export const FIELD_TO_TAB: Record<string, string> = {
   // Situation
   date_naissance: "situation",
   situation_familiale: "situation",
@@ -878,6 +878,8 @@ export default function EmployeeProfile() {
                     formData={formData}
                     completeness={completeness}
                     missingFields={missingFields}
+                    missingFieldsDetailed={missingFieldsDetailed}
+                    fieldToTabMapping={FIELD_TO_TAB}
                     onNavigateToTab={handleTabChange}
                     epargnePrecautionData={epargnePrecautionData}
                   />
