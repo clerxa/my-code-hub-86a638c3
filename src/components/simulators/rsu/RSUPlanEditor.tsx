@@ -1,11 +1,12 @@
 /**
  * Écran 2 — Création / Modification d'un plan RSU
  * Avec : recherche entreprise autocomplete, auto-fetch cours/taux, R3 encadré
+ * Auto-naming, année d'attribution → régime fiscal, devise auto-notice, wow effect
  */
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Trash2, HelpCircle, ExternalLink, RefreshCw, Info, Search, Loader2, AlertCircle, CheckCircle2, TrendingUp, Download } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Trash2, HelpCircle, ExternalLink, RefreshCw, Info, Search, Loader2, AlertCircle, CheckCircle2, TrendingUp, Download, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,6 +20,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import type { RSUPlan, RSURegime, RSUDevise, VestingLine } from '@/types/rsu';
 import { REGIME_LABELS } from '@/types/rsu';
 import { searchSymbols, fetchStockPricesBatch, fetchFxRate, type SymbolSearchResult } from '@/hooks/useStockData';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
@@ -53,6 +56,13 @@ const FREQUENCY_MONTHS: Record<Exclude<VestingFrequency, 'custom'>, number> = {
 };
 
 const DURATION_OPTIONS = [1, 2, 3, 4, 5, 6];
+
+/** Determine fiscal regime based on attribution year */
+function inferRegimeFromYear(year: number): RSURegime {
+  if (year >= 2017) return 'R1'; // Post 30/12/2016
+  if (year >= 2015) return 'R2'; // 08/2015 - 12/2016
+  return 'R3'; // Before 2015 → typically non-qualified
+}
 
 interface RSUPlanEditorProps {
   plan?: RSUPlan;
@@ -132,7 +142,6 @@ function CompanySearch({
     onReset();
   };
 
-  // If a company is selected, show the confirmation card instead of input
   if (selected) {
     return (
       <div className="space-y-2">
@@ -213,7 +222,7 @@ function CompanySearch({
   );
 }
 
-// --- Vesting Row (simple, no auto-fetch) ---
+// --- Vesting Row ---
 function VestingRow({
   v,
   devise,
@@ -338,18 +347,18 @@ function VestingRow({
 export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
   const isEditing = !!plan;
 
-  const [nom, setNom] = useState(plan?.nom ?? '');
   const [ticker, setTicker] = useState(plan?.ticker ?? '');
   const [entrepriseNom, setEntrepriseNom] = useState(plan?.entreprise_nom ?? '');
   const [annee, setAnnee] = useState(plan?.annee_attribution ?? currentYear - 1);
   const [regime, setRegime] = useState<RSURegime>(plan?.regime ?? 'R1');
   const [devise, setDevise] = useState<RSUDevise>(plan?.devise ?? 'EUR');
+  const [deviseAutoSet, setDeviseAutoSet] = useState(false);
   const [vestings, setVestings] = useState<VestingLine[]>(
     plan?.vestings?.length ? plan.vestings : [createEmptyVesting()]
   );
 
   // Paramètres de pré-remplissage
-  const [startDate, setStartDate] = useState('');
+  const [startDate, setStartDate] = useState(plan?.vestings?.[0]?.date || '');
   const [frequency, setFrequency] = useState<VestingFrequency>('quarterly');
   const [duration, setDuration] = useState(4);
   const [totalActions, setTotalActions] = useState<number>(0);
@@ -363,21 +372,27 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
 
   const isCustom = frequency === 'custom';
 
+  // Auto-set regime when year changes
+  useEffect(() => {
+    if (!isEditing) {
+      setRegime(inferRegimeFromYear(annee));
+    }
+  }, [annee, isEditing]);
+
   const handleCompanySelect = useCallback((name: string, sym: string, currency: string, exchange: string, country: string) => {
     setEntrepriseNom(name);
     setTicker(sym);
     setSelectedCompany({ name, ticker: sym, exchange, currency, country });
     // Auto-set devise based on detected currency
-    if (currency === 'USD') setDevise('USD');
-    else if (currency === 'EUR') setDevise('EUR');
-    // Auto-fill plan name if empty
-    if (!nom) setNom(`${name} RSU`);
-  }, [nom]);
+    if (currency === 'USD') { setDevise('USD'); setDeviseAutoSet(true); }
+    else if (currency === 'EUR') { setDevise('EUR'); setDeviseAutoSet(true); }
+  }, []);
 
   const handleCompanyReset = useCallback(() => {
     setSelectedCompany(null);
     setEntrepriseNom('');
     setTicker('');
+    setDeviseAutoSet(false);
   }, []);
 
   // Recalcul gains
@@ -420,12 +435,12 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
     const nbPeriodes = duration * freqPerYear;
     const actionsPerPeriod = Math.round((totalActions / nbPeriodes) * 10000) / 10000;
 
-    const [year, month] = startDate.split('-').map(Number);
+    const startD = new Date(startDate);
     const newVestings: VestingLine[] = [];
 
     for (let i = 0; i < nbPeriodes; i++) {
-      const d = new Date(year, month - 1 + i * monthsInterval, 1);
-      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+      const d = new Date(startD.getFullYear(), startD.getMonth() + i * monthsInterval, startD.getDate());
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       newVestings.push({
         id: generateId(),
         date: dateStr,
@@ -452,6 +467,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
   const [fetchStatuses, setFetchStatuses] = useState<Record<string, { loadingCours?: boolean; loadingFx?: boolean; coursError?: string; fxError?: string; coursNote?: string; fxNote?: string }>>({});
   const [isBulkFetching, setIsBulkFetching] = useState(false);
   const [bulkFetchDone, setBulkFetchDone] = useState(false);
+  const [showWow, setShowWow] = useState(false);
 
   const vestingsWithDates = useMemo(() => vestings.filter(v => v.date), [vestings]);
   const canBulkFetch = ticker && vestingsWithDates.length > 0;
@@ -460,7 +476,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
     if (!ticker || vestingsWithDates.length === 0) return;
     setIsBulkFetching(true);
     setBulkFetchDone(false);
-    const newStatuses: typeof fetchStatuses = {};
+    setShowWow(false);
 
     // Set all rows to loading
     const initialStatuses: typeof fetchStatuses = {};
@@ -509,6 +525,8 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
     setFetchStatuses(finalStatuses);
     setIsBulkFetching(false);
     setBulkFetchDone(true);
+    setShowWow(true);
+    setTimeout(() => setShowWow(false), 3000);
   }, [ticker, vestingsWithDates, devise, updateVesting]);
 
   const showRoundingNote = useMemo(() => {
@@ -518,11 +536,20 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
     return totalActions % nbPeriodes !== 0;
   }, [isCustom, frequency, duration, totalActions]);
 
+  // Auto-generate plan name
+  const autoName = useMemo(() => {
+    if (!entrepriseNom) return '';
+    const datePart = startDate
+      ? format(new Date(startDate), 'MMM yyyy', { locale: fr })
+      : '';
+    return `${entrepriseNom}${datePart ? ` — ${datePart}` : ''}`;
+  }, [entrepriseNom, startDate]);
+
   const handleSubmit = () => {
-    if (!nom.trim()) return;
+    const finalName = autoName || 'Plan RSU';
     onSave({
       id: plan?.id ?? generateId(),
-      nom: nom.trim(),
+      nom: finalName,
       ticker: ticker || undefined,
       entreprise_nom: entrepriseNom || undefined,
       annee_attribution: annee,
@@ -533,7 +560,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
     });
   };
 
-  const isValid = nom.trim().length > 0 && computedVestings.some(v => v.nb_rsu > 0 && v.cours > 0);
+  const isValid = computedVestings.some(v => v.nb_rsu > 0 && v.cours > 0) && entrepriseNom.length > 0;
 
   return (
     <motion.div
@@ -549,28 +576,47 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2 sm:col-span-2">
+            <Label>Entreprise</Label>
+            <CompanySearch
+              value={entrepriseNom}
+              ticker={ticker}
+              onSelect={handleCompanySelect}
+              onReset={handleCompanyReset}
+              selected={selectedCompany}
+            />
+          </div>
+
+          {/* Devise notice */}
+          {deviseAutoSet && selectedCompany && (
+            <Alert className="border-blue-200 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/30 py-2 px-3">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-xs text-blue-800 dark:text-blue-200">
+                La devise a été automatiquement définie sur <strong>{devise}</strong> d'après la bourse de cotation de {selectedCompany.name}.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2 sm:col-span-2">
-              <Label>Entreprise</Label>
-              <CompanySearch
-                value={entrepriseNom}
-                ticker={ticker}
-                onSelect={handleCompanySelect}
-                onReset={handleCompanyReset}
-                selected={selectedCompany}
-              />
-            </div>
             <div className="space-y-2">
-              <Label htmlFor="plan-nom">Nom du plan</Label>
-              <Input
-                id="plan-nom"
-                placeholder="Ex: Google RSU 2023"
-                value={nom}
-                onChange={e => setNom(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Année d'attribution du plan</Label>
+              <div className="flex items-center gap-2">
+                <Label>Année d'attribution du plan</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-xs text-sm space-y-2">
+                      <p>L'année d'attribution détermine le <strong>régime fiscal</strong> applicable :</p>
+                      <ul className="list-disc pl-4 space-y-1">
+                        <li><strong>≥ 2017</strong> → Qualifié (R1) — abattement 50% sous 300k€</li>
+                        <li><strong>2015-2016</strong> → Qualifié (R2) — abattement pour durée de détention</li>
+                        <li><strong>{'< 2015'}</strong> → Non qualifié (R3) — imposé comme salaire</li>
+                      </ul>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Select value={String(annee)} onValueChange={v => setAnnee(Number(v))}>
                 <SelectTrigger>
                   <SelectValue />
@@ -582,9 +628,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label>Régime fiscal</Label>
@@ -620,19 +664,23 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                   <SelectItem value="R3">{REGIME_LABELS.R3}</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-[10px] text-muted-foreground">
+                Pré-rempli automatiquement en fonction de l'année d'attribution. Modifiable si besoin.
+              </p>
             </div>
-            <div className="space-y-2">
-              <Label>Devise</Label>
-              <Select value={devise} onValueChange={v => setDevise(v as RSUDevise)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="EUR">EUR (€)</SelectItem>
-                  <SelectItem value="USD">USD ($)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Devise</Label>
+            <Select value={devise} onValueChange={v => { setDevise(v as RSUDevise); setDeviseAutoSet(false); }}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="EUR">EUR (€)</SelectItem>
+                <SelectItem value="USD">USD ($)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Encadré R3 */}
@@ -640,9 +688,17 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
             <Alert className="border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/30">
               <Info className="h-4 w-4 text-amber-600" />
               <AlertDescription className="text-amber-800 dark:text-amber-200 text-sm">
-                <strong>Plan non qualifié</strong> — Votre gain d'acquisition sera imposé comme un salaire à chaque vesting, au barème progressif de l'impôt sur le revenu + prélèvements sociaux (9,7%) + contribution salariale (10%). Aucun abattement ni régime de faveur ne s'applique. Le simulateur calcule l'imposition théorique cumulée sur l'ensemble de vos vestings.
+                <strong>Plan non qualifié</strong> — Votre gain d'acquisition sera imposé comme un salaire à chaque vesting, au barème progressif de l'impôt sur le revenu + prélèvements sociaux (9,7%) + contribution salariale (10%). Aucun abattement ni régime de faveur ne s'applique.
               </AlertDescription>
             </Alert>
+          )}
+
+          {/* Auto-name preview */}
+          {autoName && (
+            <div className="rounded-md border bg-muted/50 px-3 py-2">
+              <p className="text-xs text-muted-foreground">Nom du plan (généré automatiquement)</p>
+              <p className="font-medium text-sm">{autoName}</p>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -657,7 +713,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
             <div className="space-y-2">
               <Label>Date du premier vesting</Label>
               <Input
-                type="month"
+                type="date"
                 value={startDate}
                 onChange={e => setStartDate(e.target.value)}
                 className="h-10"
@@ -775,48 +831,69 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
 
           {/* Bouton explicite de récupération des données de marché */}
           {canBulkFetch && (
-            <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="rounded-full bg-primary/10 p-2 shrink-0">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                </div>
-                <div className="space-y-1">
-                  <p className="font-semibold text-sm">Récupérer automatiquement les données de marché</p>
-                  <p className="text-xs text-muted-foreground">
-                    Nous allons chercher le <strong>cours de clôture</strong> de {ticker} 
-                    {devise === 'USD' && <> et le <strong>taux de change €/$</strong> (BCE)</>} pour chaque date de vesting renseignée.
-                    Vous pourrez modifier les valeurs manuellement si nécessaire.
-                  </p>
-                </div>
-              </div>
-              <Button
-                onClick={handleBulkFetch}
-                disabled={isBulkFetching}
-                className="w-full gap-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-semibold h-11"
-              >
-                {isBulkFetching ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Récupération en cours…
-                  </>
-                ) : bulkFetchDone ? (
-                  <>
-                    <RefreshCw className="h-4 w-4" />
-                    Actualiser les cours et taux
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-4 w-4" />
-                    Récupérer les cours{devise === 'USD' ? ' et taux de change' : ''}
-                  </>
+            <div className="relative">
+              <AnimatePresence>
+                {showWow && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="absolute -inset-1 rounded-xl bg-gradient-to-r from-green-400/20 via-emerald-400/20 to-teal-400/20 blur-sm pointer-events-none z-0"
+                  />
                 )}
-              </Button>
-              {bulkFetchDone && (
-                <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  Données récupérées — vérifiez les valeurs et corrigez si besoin.
-                </p>
-              )}
+              </AnimatePresence>
+              <div className="relative z-10 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-primary/10 p-2 shrink-0">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-semibold text-sm">Récupérer automatiquement les données de marché</p>
+                    <p className="text-xs text-muted-foreground">
+                      Nous allons chercher le <strong>cours de clôture</strong> de {ticker} 
+                      {devise === 'USD' && <> et le <strong>taux de change €/$</strong> (BCE)</>} pour chaque date de vesting renseignée.
+                      Vous pourrez modifier les valeurs manuellement si nécessaire.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleBulkFetch}
+                  disabled={isBulkFetching}
+                  className="w-full gap-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-semibold h-11"
+                >
+                  {isBulkFetching ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Récupération en cours…
+                    </>
+                  ) : bulkFetchDone ? (
+                    <>
+                      <RefreshCw className="h-4 w-4" />
+                      Actualiser les cours et taux
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4" />
+                      Récupérer les cours{devise === 'USD' ? ' et taux de change' : ''}
+                    </>
+                  )}
+                </Button>
+                <AnimatePresence>
+                  {bulkFetchDone && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="flex items-center gap-2"
+                    >
+                      <Sparkles className="h-4 w-4 text-green-500" />
+                      <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                        Données récupérées avec succès ! Vérifiez les valeurs et corrigez si besoin.
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           )}
 
