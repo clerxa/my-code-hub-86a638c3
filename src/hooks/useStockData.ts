@@ -47,13 +47,13 @@ export async function fetchStockPrice(
 export async function fetchStockPricesBatch(
   ticker: string,
   dates: string[]
-): Promise<Record<string, { price: number | null; isBusinessDay: boolean; error?: string }>> {
+): Promise<Record<string, { price: number | null; isBusinessDay: boolean; closestDate?: string; error?: string }>> {
   if (!ticker || !dates.length) return {};
   try {
     const data = await callStockData({ action: 'stock_prices_batch', ticker, dates });
     return data.results || {};
   } catch {
-    const fallback: Record<string, { price: number | null; isBusinessDay: boolean; error?: string }> = {};
+    const fallback: Record<string, { price: number | null; isBusinessDay: boolean; closestDate?: string; error?: string }> = {};
     for (const d of dates) fallback[d] = { price: null, isBusinessDay: true, error: 'Network error' };
     return fallback;
   }
