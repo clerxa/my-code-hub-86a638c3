@@ -4,6 +4,7 @@ const corsHeaders = {
 };
 
 const TWELVE_DATA_KEY = Deno.env.get('VITE_TWELVE_DATA_API_KEY') || '';
+const ALPHA_VANTAGE_KEY = Deno.env.get('ALPHA_VANTAGE_API_KEY') || '';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -13,6 +14,7 @@ Deno.serve(async (req) => {
   try {
     const { action, ...params } = await req.json();
 
+    // --- Symbol search via Twelve Data (works fine on free tier) ---
     if (action === 'symbol_search') {
       const { query } = params;
       if (!TWELVE_DATA_KEY || !query || query.length < 2) {
@@ -26,25 +28,50 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ data: results }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // --- Stock price via Alpha Vantage (full history on free tier) ---
     if (action === 'stock_price') {
       const { ticker, date } = params;
-      if (!TWELVE_DATA_KEY || !ticker || !date) {
+      if (!ALPHA_VANTAGE_KEY || !ticker || !date) {
         return new Response(JSON.stringify({ price: null, isBusinessDay: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      const res = await fetch(`https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(ticker)}&interval=1day&start_date=${date}&end_date=${date}&outputsize=1&apikey=${TWELVE_DATA_KEY}`);
+
+      // Use TIME_SERIES_DAILY with outputsize=full for historical access
+      const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(ticker)}&outputsize=full&apikey=${ALPHA_VANTAGE_KEY}`;
+      const res = await fetch(url);
       const data = await res.json();
-      if (data.status === 'error') {
-        return new Response(JSON.stringify({ price: null, isBusinessDay: true, error: data.message }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+      // Check for API errors
+      if (data['Error Message']) {
+        return new Response(JSON.stringify({ price: null, isBusinessDay: true, error: data['Error Message'] }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      const values = data.values;
-      if (!values || values.length === 0) {
+      if (data['Note']) {
+        // Rate limit hit
+        return new Response(JSON.stringify({ price: null, isBusinessDay: true, error: 'Limite API atteinte — réessayez dans 1 minute' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const timeSeries = data['Time Series (Daily)'];
+      if (!timeSeries) {
         return new Response(JSON.stringify({ price: null, isBusinessDay: true, error: 'No data' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      const close = parseFloat(values[0].close);
-      const isBusinessDay = values[0].datetime === date;
-      return new Response(JSON.stringify({ price: close, isBusinessDay }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+      // Try exact date first, then find closest previous business day
+      if (timeSeries[date]) {
+        const close = parseFloat(timeSeries[date]['4. close']);
+        return new Response(JSON.stringify({ price: close, isBusinessDay: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      // Find the closest previous trading day
+      const sortedDates = Object.keys(timeSeries).sort().reverse();
+      const closestDate = sortedDates.find(d => d <= date);
+      if (closestDate) {
+        const close = parseFloat(timeSeries[closestDate]['4. close']);
+        return new Response(JSON.stringify({ price: close, isBusinessDay: false, closestDate }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      return new Response(JSON.stringify({ price: null, isBusinessDay: true, error: 'No data for this date' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // --- FX rate via Frankfurter (BCE) ---
     if (action === 'fx_rate') {
       const { date } = params;
       if (!date) {
