@@ -8,7 +8,7 @@ import {
   Target, Database, Sword, Calendar, Lightbulb, Calculator, Video,
   Plus, List, UserCheck, Circle, Settings, PartyPopper, Wallet,
   FlaskConical, MessageSquare, Crown, Image, HelpCircle, FileWarning,
-  Search, Receipt, Briefcase, Gift, Grid3x3, BarChart3,
+  Search, Receipt, Briefcase, Gift, Grid3x3, BarChart3, MessageSquarePlus,
   type LucideIcon
 } from "lucide-react";
 
@@ -150,6 +150,7 @@ const defaultAdminItems: AdminMenuItem[] = [
   },
   // Community
   { id: "community", label: "Gestion du Forum", url: "/admin/community", icon: "MessageSquare", order: 0, visible: true, categoryId: "community" },
+  { id: "feedbacks", label: "Feedbacks", url: "/admin/feedbacks", icon: "MessageSquarePlus", order: 1, visible: true, categoryId: "community" },
 ];
 
 const iconMap: Record<string, LucideIcon> = {
@@ -158,7 +159,7 @@ const iconMap: Record<string, LucideIcon> = {
   UserPlus, Palette, Paintbrush, FileText, Sparkles, 
   Target, Database, Sword, Calendar, Lightbulb, Calculator, Video,
   Plus, List, UserCheck, Circle, Settings, PartyPopper, Wallet, FlaskConical,
-  MessageSquare, Crown, FileWarning, Search, Receipt, Briefcase, Gift, Grid3x3, BarChart3,
+  MessageSquare, Crown, FileWarning, Search, Receipt, Briefcase, Gift, Grid3x3, BarChart3, MessageSquarePlus,
 };
 
 export const getAdminIconComponent = (iconName: string): LucideIcon => {

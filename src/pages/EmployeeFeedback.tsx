@@ -327,6 +327,20 @@ export default function EmployeeFeedback() {
                               </Badge>
                             </div>
                             <p className="text-sm whitespace-pre-wrap">{fb.message}</p>
+                            {fb.admin_response && (
+                              <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-1">
+                                <p className="text-xs font-semibold text-primary flex items-center gap-1.5">
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                  Réponse de l'équipe FinCare
+                                </p>
+                                <p className="text-sm whitespace-pre-wrap">{fb.admin_response}</p>
+                                {fb.responded_at && (
+                                  <p className="text-[10px] text-muted-foreground">
+                                    {new Date(fb.responded_at).toLocaleDateString("fr-FR")}
+                                  </p>
+                                )}
+                              </div>
+                            )}
                             <div className="flex justify-end">
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>

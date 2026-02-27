@@ -70,6 +70,7 @@ import { DiagnosticCMSTab } from "@/components/admin/DiagnosticCMSTab";
 import { AnalyticsDashboardTab } from "@/components/admin/AnalyticsDashboardTab";
 import { IntentionScoringTab } from "@/components/admin/IntentionScoringTab";
 import { IntentionScoreConfigTab } from "@/components/admin/IntentionScoreConfigTab";
+import { FeedbackAdminTab } from "@/components/admin/FeedbackAdminTab";
 
 import type { UserProfile, Company, Parcours } from "@/types/database";
 import {
@@ -445,6 +446,9 @@ const Admin = () => {
                 {/* Scoring d'intention */}
                 <Route path="scoring" element={<IntentionScoringTab />} />
                 <Route path="scoring-config" element={<IntentionScoreConfigTab />} />
+                
+                {/* Feedbacks utilisateurs */}
+                <Route path="feedbacks" element={<FeedbackAdminTab />} />
                 
               </Routes>
             </div>
