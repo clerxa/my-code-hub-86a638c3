@@ -18,12 +18,10 @@ import { CompanyFAQsTab } from "@/components/admin/CompanyFAQsTab";
 import FeaturesTab from "@/components/admin/FeaturesTab";
 import { ParcoursTab } from "@/components/admin/ParcoursTab";
 import { FormationsTab } from "@/components/admin/FormationsTab";
-import { PartnershipTab } from "@/components/admin/PartnershipTab";
+
 
 
 import { RiskProfileTab } from "@/components/admin/RiskProfileTab";
-import { LayoutCustomizationTab } from "@/components/admin/LayoutCustomizationTab";
-import { EmployeePartnershipEditor } from "@/components/admin/EmployeePartnershipEditor";
 import { PointsAndValidationTab } from "@/components/admin/PointsAndValidationTab";
 
 import { DesignNavigationTab } from "@/components/admin/DesignNavigationTab";
@@ -31,11 +29,9 @@ import { DesignNavigationTab } from "@/components/admin/DesignNavigationTab";
 import { DocumentationTab } from "@/components/admin/DocumentationTab";
 import { ReferralBlockTab } from "@/components/admin/ReferralBlockTab";
 import { SimulatorsTab } from "@/components/admin/SimulatorsTab";
-import { FooterTab } from "@/components/admin/FooterTab";
+
 import { UserFinancialProfilesTab } from "@/components/admin/UserFinancialProfilesTab";
 import { AdvisorsTab } from "@/components/admin/AdvisorsTab";
-import { SidebarConfigurationTab } from "@/components/admin/SidebarConfigurationTab";
-import { AdminSidebarConfigurationTab } from "@/components/admin/AdminSidebarConfigurationTab";
 import { FinancialProfileSettingsTab } from "@/components/admin/FinancialProfileSettingsTab";
 import { GlobalSettingsTab } from "@/components/admin/GlobalSettingsTab";
 import { BetaLabTab } from "@/components/admin/BetaLabTab";
@@ -63,7 +59,7 @@ import { ProductObjectiveMatrixTab } from "@/components/admin/ProductObjectiveMa
 import { CommunityManagementTab } from "@/components/admin/CommunityManagementTab";
 import { EmailConfigTab } from "@/components/admin/EmailConfigTab";
 import { NotFoundConfigTab } from "@/components/admin/NotFoundConfigTab";
-import { CompanySearchApiTab } from "@/components/admin/CompanySearchApiTab";
+
 import { TaxHelpAdminTab } from "@/components/admin/TaxHelpAdminTab";
 import { OffersManagementTab } from "@/components/admin/offers";
 import { DiagnosticCMSTab } from "@/components/admin/DiagnosticCMSTab";
@@ -117,23 +113,18 @@ const Admin = () => {
     features: "Gestion des Features",
     communication: "Communication",
     partnership: "Partnership",
-    permissions: "Permissions",
     users: "Utilisateurs",
     "risk-profile": "Risk Profile",
     validation: "Validation",
     
-    layout: "Layout",
-    "landing-employee-partnership": "Employee Partnership",
     
     "design-navigation": "Design & Navigation",
     "business-development": "Business Development",
-    footer: "Footer",
+    
     simulators: "Simulateurs",
     "simulation-logs": "Simulations réalisées",
     "non-partner-welcome": "Paramètres Non-Partenaires",
     advisors: "Conseillers",
-    "sidebar-config": "Menus latéraux",
-    "admin-sidebar-config": "Menu admin",
     "financial-profile-settings": "Page Profil Financier",
     "workflow-hub": "Workflow Hub",
     "celebration": "Célébration Parcours",
@@ -147,7 +138,7 @@ const Admin = () => {
     "global-settings": "Paramètres Globaux",
     "email-config": "Configuration Email",
     "not-found-config": "Page 404",
-    "company-search-api": "Test API Entreprises",
+    
     "offers": "Gestion des Offres",
     "diagnostic-cms": "Diagnostic CMS",
     "analytics": "Analytics & Engagement",
@@ -391,16 +382,11 @@ const Admin = () => {
                 <Route path="validation" element={<PointsAndValidationTab />} />
                 <Route path="notifications" element={<NotificationsTab />} />
                 
-                <Route path="layout" element={<LayoutCustomizationTab />} />
-                <Route path="sidebar-config" element={<SidebarConfigurationTab />} />
-                <Route path="admin-sidebar-config" element={<AdminSidebarConfigurationTab />} />
                 <Route path="design-navigation" element={<DesignNavigationTab />} />
                 <Route path="communication" element={<CommunicationKitTab />} />
                 <Route path="communication-templates" element={<CommunicationTemplatesEditor />} />
                 <Route path="visual-resources" element={<VisualResourcesTab />} />
                 <Route path="company-faqs" element={<CompanyFAQsTab />} />
-                <Route path="partnership" element={<PartnershipTab />} />
-                <Route path="landing-employee-partnership" element={<EmployeePartnershipEditor />} />
                 <Route path="business-development" element={<ReferralBlockTab />} />
                 
                 <Route path="onboarding-cms" element={<OnboardingCMSTab />} />
@@ -411,7 +397,7 @@ const Admin = () => {
                 <Route path="financial-profile-settings" element={<FinancialProfileSettingsTab />} />
                 <Route path="recommendations" element={<RecommendationsTab />} />
                 <Route path="non-partner-welcome" element={<NonPartnerWelcomeTab />} />
-                <Route path="footer" element={<FooterTab />} />
+                
                 
                 <Route path="global-settings" element={<GlobalSettingsTab />} />
                 <Route path="beta-lab" element={<BetaLabTab />} />
@@ -428,8 +414,6 @@ const Admin = () => {
                 {/* Configuration Page 404 */}
                 <Route path="not-found-config" element={<NotFoundConfigTab />} />
                 
-                {/* Test API Entreprises */}
-                <Route path="company-search-api" element={<CompanySearchApiTab />} />
                 
                 {/* Aide Déclaration Fiscale */}
                 <Route path="tax-help" element={<TaxHelpAdminTab />} />
