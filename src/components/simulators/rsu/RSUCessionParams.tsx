@@ -3,9 +3,9 @@
  * Date de cession complète, fetch cours/taux avec effet wow, TMI depuis profil
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, HelpCircle, Loader2, Download, CheckCircle2, TrendingUp, UserCircle, Sparkles } from 'lucide-react';
+import { ArrowRight, HelpCircle, Loader2, Download, CheckCircle2, TrendingUp, UserCircle, Sparkles, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -133,7 +133,9 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
           </div>
 
           {/* Bouton fetch cours/taux */}
-          {ticker && params.date_cession && (
+          {ticker && params.date_cession && (() => {
+            const isFuture = new Date(params.date_cession) > new Date();
+            return (
             <div className="relative">
               <AnimatePresence>
                 {showWow && (
@@ -148,56 +150,73 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
               <div className="relative z-10 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-4 space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="rounded-full bg-primary/10 p-2 shrink-0">
-                    <TrendingUp className="h-5 w-5 text-primary" />
+                    {isFuture ? <CalendarClock className="h-5 w-5 text-primary" /> : <TrendingUp className="h-5 w-5 text-primary" />}
                   </div>
                   <div className="space-y-1">
-                    <p className="font-semibold text-sm">Récupérer les données de marché</p>
-                    <p className="text-xs text-muted-foreground">
-                      Cours de clôture de <strong>{ticker}</strong>
-                      {hasUSD && <> et <strong>taux de change €/$</strong> (BCE)</>} à la date de cession.
-                    </p>
+                    {isFuture ? (
+                      <>
+                        <p className="font-semibold text-sm">Date de cession future</p>
+                        <p className="text-xs text-muted-foreground">
+                          Les données de marché ne sont pas disponibles pour une date future. Saisissez manuellement le <strong>prix de vente estimé</strong>
+                          {hasUSD && <> et le <strong>taux de change €/$</strong></>} pour réaliser votre simulation.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-semibold text-sm">Récupérer les données de marché</p>
+                        <p className="text-xs text-muted-foreground">
+                          Cours de clôture de <strong>{ticker}</strong>
+                          {hasUSD && <> et <strong>taux de change €/$</strong> (BCE)</>} à la date de cession.
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
-                <Button
-                  onClick={handleFetchAll}
-                  disabled={loadingPrice || loadingFx}
-                  className="w-full gap-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-semibold h-11"
-                >
-                  {(loadingPrice || loadingFx) ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Récupération en cours…
-                    </>
-                  ) : fetchDone ? (
-                    <>
-                      <CheckCircle2 className="h-4 w-4" />
-                      Actualiser les cours et taux
-                    </>
-                  ) : (
-                    <>
-                      <Download className="h-4 w-4" />
-                      Récupérer le cours{hasUSD ? ' et taux de change' : ''}
-                    </>
-                  )}
-                </Button>
-                <AnimatePresence>
-                  {fetchDone && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="flex items-center gap-2"
+                {!isFuture && (
+                  <>
+                    <Button
+                      onClick={handleFetchAll}
+                      disabled={loadingPrice || loadingFx}
+                      className="w-full gap-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-semibold h-11"
                     >
-                      <Sparkles className="h-4 w-4 text-green-500" />
-                      <p className="text-xs text-green-600 dark:text-green-400 font-medium">
-                        Données récupérées avec succès !
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      {(loadingPrice || loadingFx) ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Récupération en cours…
+                        </>
+                      ) : fetchDone ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4" />
+                          Actualiser les cours et taux
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-4 w-4" />
+                          Récupérer le cours{hasUSD ? ' et taux de change' : ''}
+                        </>
+                      )}
+                    </Button>
+                    <AnimatePresence>
+                      {fetchDone && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          className="flex items-center gap-2"
+                        >
+                          <Sparkles className="h-4 w-4 text-green-500" />
+                          <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                            Données récupérées avec succès !
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </>
+                )}
               </div>
             </div>
-          )}
+            );
+          })()}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
