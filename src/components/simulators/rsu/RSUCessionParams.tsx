@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, HelpCircle, Loader2, Download } from 'lucide-react';
+import { ArrowRight, HelpCircle, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -123,16 +123,16 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
                 <Button
                   type="button"
                   variant="outline"
+                  size="icon"
                   onClick={handleFetchAll}
                   disabled={loadingPrice || loadingFx}
-                  className="gap-2 whitespace-nowrap"
+                  title="Récupérer les cours"
                 >
                   {(loadingPrice || loadingFx) ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Download className="h-4 w-4" />
+                    <RefreshCw className="h-4 w-4" />
                   )}
-                  Récupérer les cours
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
