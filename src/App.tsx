@@ -81,6 +81,7 @@ import LandingPageDynamic from "./pages/LandingPageDynamic";
 import TaxDeclarationHelp from "./pages/TaxDeclarationHelp";
 import Diagnostic from "./pages/Diagnostic";
 import Horizon from "./pages/Horizon";
+import EmployeeFeedback from "./pages/EmployeeFeedback";
 import { Navigate } from "react-router-dom";
 
 /**
@@ -245,6 +246,14 @@ const App = () => (
                 <PartnershipRoute featureType="company">
                   <Horizon />
                 </PartnershipRoute>
+              }
+            />
+            <Route
+              path="/employee/feedback"
+              element={
+                <ProtectedRoute>
+                  <EmployeeFeedback />
+                </ProtectedRoute>
               }
             />
             <Route

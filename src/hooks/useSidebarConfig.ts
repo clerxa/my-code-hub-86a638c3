@@ -5,7 +5,7 @@ import {
   User, UserCircle, TrendingUp, GraduationCap, Calculator, Trophy, 
   Calendar, Video, Users, Building2, UserCheck, Settings, MessageSquareText,
   Circle, Lock, Home, FileText, Bell, Mail, Star, Heart, Bookmark, Wallet,
-  HelpCircle, Contact, Gift, Compass,
+  HelpCircle, Contact, Gift, Compass, MessageSquarePlus,
   type LucideIcon
 } from "lucide-react";
 
@@ -45,6 +45,7 @@ const defaultEmployeeItems: SidebarMenuItem[] = [
   { id: "contacts", label: "Mes contacts", icon: "Contact", order: 11, visible: true, categoryId: "mon-espace" },
   { id: "company", label: "Mon entreprise", icon: "Building2", order: 12, visible: true },
   { id: "forum", label: "Communauté", icon: "MessageSquareText", order: 13, visible: true },
+  { id: "feedback", label: "Feedback", icon: "MessageSquarePlus", order: 14, visible: true },
 ];
 
 const defaultCompanyItems: SidebarMenuItem[] = [
@@ -61,7 +62,7 @@ const iconMap: Record<string, LucideIcon> = {
   User, UserCircle, TrendingUp, GraduationCap, Calculator, Trophy,
   Calendar, Video, Users, Building2, UserCheck, Settings, MessageSquareText,
   Circle, Lock, Home, FileText, Bell, Mail, Star, Heart, Bookmark, Wallet,
-  HelpCircle, Contact, Gift, Compass,
+  HelpCircle, Contact, Gift, Compass, MessageSquarePlus,
 };
 
 export const getIconComponent = (iconName: string): LucideIcon => {

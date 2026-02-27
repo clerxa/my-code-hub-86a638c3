@@ -12,6 +12,7 @@ const EMPLOYEE_ROUTE_MAP: Record<string, string[]> = {
   "parcours": ["/parcours"],
   "simulations": ["/employee/simulations"],
   "horizon": ["/employee/horizon"],
+  "feedback": ["/employee/feedback"],
   "forum": ["/forum"],
   // "company" is dynamic (/company/:id), handled separately
 };
