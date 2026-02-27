@@ -60,6 +60,9 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
   const handleFetchAll = async () => {
     setFetchDone(false);
     setShowWow(false);
+
+    const updates: Partial<CessionParamsType> = {};
+
     const promises: Promise<void>[] = [];
 
     if (ticker && params.date_cession) {
@@ -69,7 +72,7 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
         fetchStockPricesBatch(ticker, [params.date_cession]).then(results => {
           const result = results?.[params.date_cession];
           if (result?.price) {
-            onChange({ ...params, prix_vente: Math.round(result.price * 100) / 100 });
+            updates.prix_vente = Math.round(result.price * 100) / 100;
             setPriceNote(!result.isBusinessDay && result.closestDate
               ? `Cours du ${new Date(result.closestDate).toLocaleDateString('fr-FR')} (dernier jour ouvré)`
               : 'Cours de clôture Yahoo Finance');
@@ -86,7 +89,7 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
       promises.push(
         fetchFxRate(params.date_cession).then(result => {
           if (result?.rate) {
-            onChange({ ...params, taux_change_vente: Math.round(result.rate * 10000) / 10000 });
+            updates.taux_change_vente = Math.round(result.rate * 10000) / 10000;
             setFxNote(!result.isBusinessDay ? 'Taux BCE du dernier jour ouvré' : 'Taux BCE');
           } else {
             setFxNote(result?.error || 'Taux non disponible');
@@ -96,6 +99,10 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
     }
 
     await Promise.all(promises);
+    // Apply all updates at once to avoid stale closure issues
+    if (Object.keys(updates).length > 0) {
+      onChange({ ...params, ...updates });
+    }
     setFetchDone(true);
     setShowWow(true);
     setTimeout(() => setShowWow(false), 3000);
