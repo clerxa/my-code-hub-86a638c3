@@ -11,7 +11,8 @@ const TWELVE_DATA_KEY = Deno.env.get('VITE_TWELVE_DATA_API_KEY') || '';
  */
 async function fetchYahooHistory(ticker: string, fromDate: string, toDate: string): Promise<Map<string, number>> {
   // Convert dates to Unix timestamps
-  const period1 = Math.floor(new Date(fromDate + 'T00:00:00Z').getTime() / 1000);
+  // Subtract 10 days from fromDate to handle holidays/weekends at the start of the range
+  const period1 = Math.floor(new Date(fromDate + 'T00:00:00Z').getTime() / 1000) - 86400 * 10;
   // Add a few days buffer after toDate to handle weekends
   const period2 = Math.floor(new Date(toDate + 'T00:00:00Z').getTime() / 1000) + 86400 * 5;
 
