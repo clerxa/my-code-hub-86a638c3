@@ -53,6 +53,7 @@ interface ESPPPeriodEditorProps {
 
 export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorProps) {
   const [data, setData] = useState<ESPPPeriod>(period || createEmptyPeriod());
+  const [rabaisInput, setRabaisInput] = useState(String(data.taux_rabais || ''));
   const isUSD = data.entreprise_devise === 'USD';
 
   // ─── Recherche entreprise ───
@@ -238,19 +239,32 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
                       <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
-                      <p className="text-sm">Le taux de décote appliqué par votre entreprise sur le prix d'achat. Vérifiez dans vos documents de plan.</p>
+                      <p className="text-sm">Le taux de décote appliqué par votre entreprise sur le prix d'achat. La plupart des plans Section 423 offrent 15%. Vérifiez dans vos documents de plan.</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
               <Input
-                type="number"
-                min={1}
-                max={15}
-                value={data.taux_rabais || ''}
-                onChange={e => setData(prev => ({ ...prev, taux_rabais: Math.min(15, Math.max(0, Number(e.target.value))) }))}
+                type="text"
+                inputMode="decimal"
+                value={rabaisInput}
+                onChange={e => {
+                  const raw = e.target.value;
+                  setRabaisInput(raw);
+                  const num = parseFloat(raw.replace(',', '.'));
+                  if (!isNaN(num)) {
+                    setData(prev => ({ ...prev, taux_rabais: Math.min(15, Math.max(0, num)) }));
+                  } else if (raw === '') {
+                    setData(prev => ({ ...prev, taux_rabais: 0 }));
+                  }
+                }}
+                onBlur={() => {
+                  if (data.taux_rabais > 0) setRabaisInput(String(data.taux_rabais));
+                  else setRabaisInput('');
+                }}
                 placeholder="ex. 15"
               />
+              <p className="text-xs text-muted-foreground">Entre 1% et 15% — consultez les documents de votre plan ESPP.</p>
             </div>
             <div className="space-y-2">
               <Label>Nombre d'actions achetées</Label>
@@ -261,6 +275,7 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
                 onChange={e => setData(prev => ({ ...prev, nb_actions_achetees: Math.max(0, parseInt(e.target.value) || 0) }))}
                 placeholder="ex. 50"
               />
+              <p className="text-xs text-muted-foreground">Le nombre d'actions réellement achetées à la fin de la période.</p>
             </div>
           </div>
         </CardContent>
@@ -270,7 +285,12 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Dates et cours</CardTitle>
+            <div>
+              <CardTitle className="text-lg">Dates et cours</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Renseignez les dates clés de votre période ESPP. Les cours et taux de change sont récupérés automatiquement.
+              </p>
+            </div>
             {data.entreprise_ticker && (
               <Button
                 type="button"
@@ -286,6 +306,13 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
           </div>
         </CardHeader>
         <CardContent className="space-y-0">
+          {/* Bloc pédagogique look-back */}
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-accent/30 border border-accent mb-4">
+            <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              <strong className="text-foreground">Pourquoi le début de la période d'offre ?</strong> La plupart des plans ESPP Section 423 appliquent le « look-back » : le prix d'achat est calculé sur le cours <em>le plus bas</em> entre le début de la période d'offre et la date d'achat. C'est ce qui rend la décote encore plus avantageuse quand le cours a monté.
+            </p>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -299,7 +326,10 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
               <tbody>
                 {/* Début de l'offre */}
                 <tr className="border-b">
-                  <td className="py-3 pr-2 text-muted-foreground whitespace-nowrap">Début période d'offre</td>
+                  <td className="py-3 pr-2 whitespace-nowrap">
+                    <div className="text-muted-foreground">Début période d'offre</div>
+                    <div className="text-[11px] text-muted-foreground/60">Pour le calcul du look-back</div>
+                  </td>
                   <td className="py-3 px-2">
                     <Input
                       type="date"
