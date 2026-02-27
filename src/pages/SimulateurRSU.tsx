@@ -13,6 +13,7 @@ import { RSUPlansDashboard, RSUPlanEditor, RSUCessionParams, RSUResults, RSUIntr
 import { calculateRSUSimulation } from '@/utils/rsuCalculations';
 import { useUnifiedSimulationSave } from '@/hooks/useUnifiedSimulationSave';
 import { useSimulationDefaults } from '@/contexts/GlobalSettingsContext';
+import { Header } from '@/components/Header';
 import type { RSUPlan, RSUCessionParams as CessionParamsType, RSUSimulationResult } from '@/types/rsu';
 
 type Screen = 'intro' | 'dashboard' | 'editor' | 'cession' | 'results';
@@ -147,7 +148,8 @@ const SimulateurRSU = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl mx-auto px-4 py-8 pb-24">
+      <Header />
+      <div className="max-w-4xl mx-auto px-4 py-8 pb-24">
         {screen !== 'intro' && (
           <SimulatorHeader
             title={screenTitle}
