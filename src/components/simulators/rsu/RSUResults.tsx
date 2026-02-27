@@ -189,6 +189,15 @@ export function RSUResults({ result, onReset }: RSUResultsProps) {
         </CardContent>
       </Card>
 
+      {/* Disclaimer légal obligatoire */}
+      <Card className="bg-muted/50 border-muted">
+        <CardContent className="py-4">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Ce simulateur est fourni à titre indicatif et pédagogique uniquement. Il ne constitue pas un conseil fiscal, juridique ou financier au sens de la réglementation en vigueur. Les résultats présentés sont des estimations basées sur les données saisies et les règles fiscales générales applicables aux résidents fiscaux français. Ils peuvent varier significativement selon votre situation personnelle complète (revenus globaux, parts fiscales, situation matrimoniale, mobilité internationale, conventions fiscales applicables, évolutions législatives). Perlib recommande de consulter un expert avant toute décision. Sources réglementaires : articles L225-197-1 du Code de commerce, 200 A et 150-0 A du CGI.
+          </p>
+        </CardContent>
+      </Card>
+
       {/* CTAs */}
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <Button asChild className="flex-1 gap-2" size="lg">
