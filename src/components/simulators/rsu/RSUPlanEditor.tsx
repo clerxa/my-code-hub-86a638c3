@@ -5,7 +5,7 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, HelpCircle, ExternalLink, RefreshCw, Info, Search, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, HelpCircle, ExternalLink, RefreshCw, Info, Search, Loader2, AlertCircle, CheckCircle2, TrendingUp, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -213,83 +213,25 @@ function CompanySearch({
   );
 }
 
-// --- Vesting Row with auto-fetch ---
+// --- Vesting Row (simple, no auto-fetch) ---
 function VestingRow({
   v,
   devise,
-  ticker,
   showFx,
   onUpdate,
   onRemove,
   canRemove,
+  fetchStatus,
 }: {
   v: VestingLine & { gain_eur: number };
   devise: RSUDevise;
-  ticker?: string;
   showFx: boolean;
   onUpdate: (id: string, field: keyof VestingLine, value: string | number) => void;
   onRemove: (id: string) => void;
   canRemove: boolean;
+  fetchStatus?: { loadingCours?: boolean; loadingFx?: boolean; coursError?: string; fxError?: string; coursNote?: string; fxNote?: string };
 }) {
-  const [loadingCours, setLoadingCours] = useState(false);
-  const [loadingFx, setLoadingFx] = useState(false);
-  const [coursError, setCoursError] = useState<string | null>(null);
-  const [fxError, setFxError] = useState<string | null>(null);
-  const [coursNote, setCoursNote] = useState<string | null>(null);
-  const [fxNote, setFxNote] = useState<string | null>(null);
-  const lastFetchedDate = useRef<string>('');
-
-  const handleDateChange = async (date: string) => {
-    onUpdate(v.id, 'date', date);
-    if (!date || date === lastFetchedDate.current) return;
-    lastFetchedDate.current = date;
-
-    // Reset states
-    setCoursError(null);
-    setFxError(null);
-    setCoursNote(null);
-    setFxNote(null);
-
-    const promises: Promise<void>[] = [];
-
-    // Fetch stock price
-    if (ticker) {
-      setLoadingCours(true);
-      promises.push(
-        fetchStockPrice(ticker, date).then(({ price, isBusinessDay, error }) => {
-          setLoadingCours(false);
-          if (error || price === null) {
-            setCoursError('Cours non disponible — saisie manuelle requise');
-          } else {
-            onUpdate(v.id, 'cours', price);
-            if (!isBusinessDay) {
-              setCoursNote('Pas de cotation ce jour — le cours du dernier jour ouvré a été utilisé');
-            }
-          }
-        })
-      );
-    }
-
-    // Fetch FX rate (only if USD)
-    if (devise === 'USD') {
-      setLoadingFx(true);
-      promises.push(
-        fetchFxRate(date).then(({ rate, isBusinessDay, error }) => {
-          setLoadingFx(false);
-          if (error || rate === null) {
-            setFxError('Taux non disponible — saisie manuelle requise');
-          } else {
-            onUpdate(v.id, 'taux_change', rate);
-            if (!isBusinessDay) {
-              setFxNote('Taux BCE du dernier jour ouvré utilisé');
-            }
-          }
-        })
-      );
-    }
-
-    await Promise.all(promises);
-  };
+  const status = fetchStatus || {};
 
   return (
     <TableRow>
@@ -297,7 +239,7 @@ function VestingRow({
         <Input
           type="date"
           value={v.date}
-          onChange={e => handleDateChange(e.target.value)}
+          onChange={e => onUpdate(v.id, 'date', e.target.value)}
           className="h-9"
         />
       </TableCell>
@@ -321,21 +263,21 @@ function VestingRow({
                   min={0}
                   step={0.01}
                   value={v.cours || ''}
-                  onChange={e => { onUpdate(v.id, 'cours', Number(e.target.value)); setCoursError(null); setCoursNote(null); }}
-                  className={`h-9 ${coursError ? 'border-destructive' : ''} ${loadingCours ? 'pr-8' : ''}`}
+                  onChange={e => onUpdate(v.id, 'cours', Number(e.target.value))}
+                  className={`h-9 ${status.coursError ? 'border-destructive' : ''} ${status.loadingCours ? 'pr-8' : ''}`}
                 />
-                {loadingCours && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                {status.loadingCours && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
               </div>
             </TooltipTrigger>
-            {v.cours > 0 && !coursError && (
+            {v.cours > 0 && !status.coursError && (
               <TooltipContent side="top" className="text-xs">
                 Cours de clôture source Twelve Data
               </TooltipContent>
             )}
           </Tooltip>
         </TooltipProvider>
-        {coursError && <p className="text-[10px] text-destructive mt-0.5">{coursError}</p>}
-        {coursNote && <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">{coursNote}</p>}
+        {status.coursError && <p className="text-[10px] text-destructive mt-0.5">{status.coursError}</p>}
+        {status.coursNote && <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">{status.coursNote}</p>}
       </TableCell>
       {showFx && (
         <TableCell>
@@ -348,21 +290,21 @@ function VestingRow({
                     min={0}
                     step={0.0001}
                     value={v.taux_change || ''}
-                    onChange={e => { onUpdate(v.id, 'taux_change', Number(e.target.value)); setFxError(null); setFxNote(null); }}
-                    className={`h-9 ${fxError ? 'border-destructive' : ''} ${loadingFx ? 'pr-8' : ''}`}
+                    onChange={e => onUpdate(v.id, 'taux_change', Number(e.target.value))}
+                    className={`h-9 ${status.fxError ? 'border-destructive' : ''} ${status.loadingFx ? 'pr-8' : ''}`}
                   />
-                  {loadingFx && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                  {status.loadingFx && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
                 </div>
               </TooltipTrigger>
-              {v.taux_change > 0 && v.taux_change !== 1 && !fxError && (
+              {v.taux_change > 0 && v.taux_change !== 1 && !status.fxError && (
                 <TooltipContent side="top" className="text-xs">
                   Taux de change source Banque Centrale Européenne
                 </TooltipContent>
               )}
             </Tooltip>
           </TooltipProvider>
-          {fxError && <p className="text-[10px] text-destructive mt-0.5">{fxError}</p>}
-          {fxNote && <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">{fxNote}</p>}
+          {status.fxError && <p className="text-[10px] text-destructive mt-0.5">{status.fxError}</p>}
+          {status.fxNote && <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">{status.fxNote}</p>}
         </TableCell>
       )}
       <TableCell className="text-right font-medium">
@@ -497,6 +439,59 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
       generateVestings();
     }
   };
+
+  // Bulk fetch status per vesting row
+  const [fetchStatuses, setFetchStatuses] = useState<Record<string, { loadingCours?: boolean; loadingFx?: boolean; coursError?: string; fxError?: string; coursNote?: string; fxNote?: string }>>({});
+  const [isBulkFetching, setIsBulkFetching] = useState(false);
+  const [bulkFetchDone, setBulkFetchDone] = useState(false);
+
+  const vestingsWithDates = useMemo(() => vestings.filter(v => v.date), [vestings]);
+  const canBulkFetch = ticker && vestingsWithDates.length > 0;
+
+  const handleBulkFetch = useCallback(async () => {
+    if (!ticker || vestingsWithDates.length === 0) return;
+    setIsBulkFetching(true);
+    setBulkFetchDone(false);
+    const newStatuses: typeof fetchStatuses = {};
+
+    // Process all rows in parallel
+    await Promise.all(vestingsWithDates.map(async (v) => {
+      newStatuses[v.id] = { loadingCours: true, loadingFx: devise === 'USD' };
+      setFetchStatuses(prev => ({ ...prev, [v.id]: { ...newStatuses[v.id] } }));
+
+      const [priceResult, fxResult] = await Promise.all([
+        fetchStockPrice(ticker, v.date),
+        devise === 'USD' ? fetchFxRate(v.date) : Promise.resolve({ rate: null, isBusinessDay: true } as { rate: number | null; isBusinessDay: boolean; error?: string }),
+      ]);
+
+      const status: typeof newStatuses[string] = {};
+
+      if (priceResult.error || priceResult.price === null) {
+        status.coursError = 'Cours non disponible — saisie manuelle requise';
+      } else {
+        updateVesting(v.id, 'cours', priceResult.price);
+        if (!priceResult.isBusinessDay) {
+          status.coursNote = 'Cours du dernier jour ouvré utilisé';
+        }
+      }
+
+      if (devise === 'USD') {
+        if (fxResult.error || fxResult.rate === null) {
+          status.fxError = 'Taux non disponible — saisie manuelle requise';
+        } else {
+          updateVesting(v.id, 'taux_change', fxResult.rate);
+          if (!fxResult.isBusinessDay) {
+            status.fxNote = 'Taux BCE du dernier jour ouvré utilisé';
+          }
+        }
+      }
+
+      setFetchStatuses(prev => ({ ...prev, [v.id]: status }));
+    }));
+
+    setIsBulkFetching(false);
+    setBulkFetchDone(true);
+  }, [ticker, vestingsWithDates, devise, updateVesting]);
 
   const showRoundingNote = useMemo(() => {
     if (isCustom || totalActions <= 0) return false;
@@ -737,11 +732,11 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                     key={v.id}
                     v={v}
                     devise={devise}
-                    ticker={ticker}
                     showFx={devise === 'USD'}
                     onUpdate={updateVesting}
                     onRemove={removeVesting}
                     canRemove={computedVestings.length > 1}
+                    fetchStatus={fetchStatuses[v.id]}
                   />
                 ))}
               </TableBody>
@@ -759,6 +754,62 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
               </TableFooter>
             </Table>
           </div>
+
+          {/* Bouton explicite de récupération des données de marché */}
+          {canBulkFetch && (
+            <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-primary/10 p-2 shrink-0">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <p className="font-semibold text-sm">Récupérer automatiquement les données de marché</p>
+                  <p className="text-xs text-muted-foreground">
+                    Nous allons chercher le <strong>cours de clôture</strong> de {ticker} 
+                    {devise === 'USD' && <> et le <strong>taux de change €/$</strong> (BCE)</>} pour chaque date de vesting renseignée.
+                    Vous pourrez modifier les valeurs manuellement si nécessaire.
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={handleBulkFetch}
+                disabled={isBulkFetching}
+                className="w-full gap-2 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-semibold h-11"
+              >
+                {isBulkFetching ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Récupération en cours…
+                  </>
+                ) : bulkFetchDone ? (
+                  <>
+                    <RefreshCw className="h-4 w-4" />
+                    Actualiser les cours et taux
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4" />
+                    Récupérer les cours{devise === 'USD' ? ' et taux de change' : ''}
+                  </>
+                )}
+              </Button>
+              {bulkFetchDone && (
+                <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Données récupérées — vérifiez les valeurs et corrigez si besoin.
+                </p>
+              )}
+            </div>
+          )}
+
+          {!canBulkFetch && ticker === '' && vestingsWithDates.length > 0 && (
+            <Alert className="border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/30">
+              <Info className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-sm text-amber-800 dark:text-amber-200">
+                Sélectionnez une entreprise ci-dessus pour pouvoir récupérer automatiquement les cours de bourse.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {showRoundingNote && hasGenerated && (
             <p className="text-xs text-amber-600 dark:text-amber-400">
