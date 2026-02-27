@@ -538,14 +538,31 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
       )}
 
       {/* Actions */}
-      <div className="flex gap-3">
-        <Button variant="outline" onClick={onCancel} className="flex-1">
-          Annuler
-        </Button>
-        <Button onClick={handleSave} disabled={!isValid} className="flex-1 gap-2">
-          Enregistrer la période
-          <ArrowRight className="h-4 w-4" />
-        </Button>
+      <div className="space-y-2">
+        {!isValid && (
+          <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 space-y-1">
+            <p className="font-medium text-foreground">Pour enregistrer, vérifiez que :</p>
+            <ul className="list-disc list-inside space-y-0.5">
+              {!confirmed && <li>L'entreprise est sélectionnée</li>}
+              {data.taux_rabais <= 0 && <li>Le taux de rabais est renseigné</li>}
+              {data.nb_actions_achetees <= 0 && <li>Le nombre d'actions est renseigné</li>}
+              {!data.date_debut_offre && <li>La date de début de période d'offre est renseignée</li>}
+              {!data.date_achat && <li>La date d'achat effectif est renseignée</li>}
+              {data.cours_debut_offre_devise <= 0 && <li>Le cours au début de la période est renseigné</li>}
+              {data.cours_achat_devise <= 0 && <li>Le cours à l'achat est renseigné</li>}
+              {isUSD && data.taux_change_achat <= 0 && <li>Le taux de change €/$ à l'achat est renseigné</li>}
+            </ul>
+          </div>
+        )}
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={onCancel} className="flex-1">
+            Annuler
+          </Button>
+          <Button onClick={handleSave} disabled={!isValid} className="flex-1 gap-2">
+            Enregistrer la période
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </motion.div>
   );
