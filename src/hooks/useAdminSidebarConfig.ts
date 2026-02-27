@@ -48,13 +48,16 @@ const defaultAdminCategories: AdminCategory[] = [
   { id: "content", name: "Content", order: 2 },
   { id: "gamification", name: "Gamification", order: 3 },
   { id: "community", name: "Communauté", order: 4 },
-  { id: "settings", name: "Settings", order: 5 },
+  { id: "simulators-data", name: "Simulateurs & Données", order: 5 },
+  { id: "engagement", name: "Engagement", order: 6 },
+  { id: "appearance", name: "Apparence", order: 7 },
+  { id: "technical", name: "Technique", order: 8 },
 ];
 
 // Default menu items
 const defaultAdminItems: AdminMenuItem[] = [
   // General
-  { id: "documentation", label: "Documentation", url: "/admin/documentation", icon: "FileText", order: 0, visible: true, categoryId: "general" },
+  { id: "analytics", label: "Analytics & Engagement", url: "/admin/analytics", icon: "BarChart3", order: 0, visible: true, categoryId: "general" },
   { id: "landing-pages", label: "Landing Pages", url: "/admin/landing-pages", icon: "Layout", order: 1, visible: true, categoryId: "general" },
   { id: "expert-booking", label: "Gestion des liens de rdv", url: "/admin/expert-booking", icon: "Calendar", order: 2, visible: true, categoryId: "general" },
   { 
@@ -62,85 +65,20 @@ const defaultAdminItems: AdminMenuItem[] = [
     label: "Webinars", 
     url: "#", 
     icon: "Video", 
-    order: 4, 
+    order: 3, 
     visible: true, 
     categoryId: "general",
     subItems: [
       { id: "create-webinar", label: "Créer webinar", url: "/admin/create-livestorm-webinar", icon: "Plus" },
       { id: "webinars-list", label: "Liste & Suivi", url: "/admin/livestorm-webinars", icon: "List" },
-      { id: "livestorm-owner", label: "Owner Livestorm", url: "/admin/get-livestorm-owner", icon: "UserCheck" },
     ]
   },
-  // Companies
-  { id: "companies", label: "Companies", url: "/admin/companies", icon: "Building2", order: 0, visible: true, categoryId: "companies" },
-  { id: "company-ranking", label: "Configuration des rangs", url: "/admin/company-ranking", icon: "Crown", order: 1, visible: true, categoryId: "companies" },
-  { id: "users", label: "Utilisateurs", url: "/admin/users", icon: "Users", order: 2, visible: true, categoryId: "companies" },
-  { id: "advisors", label: "Conseillers", url: "/admin/advisors", icon: "UserCheck", order: 3, visible: true, categoryId: "companies" },
-  // Content
-  { id: "modules", label: "Modules", url: "/admin/modules", icon: "BookOpen", order: 0, visible: true, categoryId: "content" },
-  { id: "parcours", label: "Parcours", url: "/admin/parcours", icon: "Route", order: 1, visible: true, categoryId: "content" },
-  { id: "formations", label: "Formations", url: "/admin/formations", icon: "BookOpen", order: 2, visible: true, categoryId: "content" },
-  { id: "financial-products", label: "Produits Financiers", url: "/admin/financial-products", icon: "Wallet", order: 3, visible: true, categoryId: "content" },
-  { id: "product-objective-matrix", label: "Matrice Objectifs × Produits", url: "/admin/product-objective-matrix", icon: "Grid3x3", order: 4, visible: true, categoryId: "content" },
-  // Gamification
-  { id: "features", label: "Features de partenariat", url: "/admin/features", icon: "Sparkles", order: 0, visible: true, categoryId: "gamification" },
-  { id: "celebration", label: "Célébration Parcours", url: "/admin/celebration", icon: "PartyPopper", order: 1, visible: true, categoryId: "gamification" },
-  // Settings
-  { id: "permissions", label: "Permissions", url: "/admin/permissions", icon: "Shield", order: 0, visible: true, categoryId: "settings" },
-  { id: "risk-profile", label: "Risk Profile", url: "/admin/risk-profile", icon: "Target", order: 1, visible: true, categoryId: "settings" },
-  { id: "validation", label: "Points & Validation", url: "/admin/validation", icon: "Trophy", order: 2, visible: true, categoryId: "settings" },
-  { id: "notifications", label: "Notifications", url: "/admin/notifications", icon: "Bell", order: 3, visible: true, categoryId: "settings" },
-  { id: "storage", label: "Storage", url: "/admin/storage", icon: "Database", order: 4, visible: true, categoryId: "settings" },
-  { id: "design-navigation", label: "Design & Navigation", url: "/admin/design-navigation", icon: "Palette", order: 5, visible: true, categoryId: "settings" },
-  { id: "layout", label: "Layout", url: "/admin/layout", icon: "Layout", order: 6, visible: false, categoryId: "settings" },
-  { id: "sidebar-config", label: "Menus latéraux", url: "/admin/sidebar-config", icon: "Layout", order: 7, visible: false, categoryId: "settings" },
-  { id: "admin-sidebar-config", label: "Menu admin", url: "/admin/admin-sidebar-config", icon: "Layout", order: 8, visible: false, categoryId: "settings" },
-  { id: "footer", label: "Footer", url: "/admin/footer", icon: "FileText", order: 9, visible: false, categoryId: "settings" },
-  
-  { 
-    id: "communication", 
-    label: "Communication", 
-    url: "#", 
-    icon: "Mail", 
-    order: 11, 
-    visible: true, 
-    categoryId: "settings",
-    subItems: [
-      { id: "communication-kit", label: "Kit de Communication", url: "/admin/communication", icon: "Mail" },
-      { id: "communication-templates", label: "Templates", url: "/admin/communication-templates", icon: "FileEdit" },
-      { id: "visual-resources", label: "Ressources visuelles", url: "/admin/visual-resources", icon: "Image" },
-      { id: "company-faqs", label: "FAQ Entreprises", url: "/admin/company-faqs", icon: "HelpCircle" },
-      { id: "community", label: "Communauté", url: "/admin/community", icon: "MessageSquare" },
-    ]
-  },
-  { id: "partnership", label: "Partnership", url: "/admin/partnership", icon: "Handshake", order: 14, visible: false, categoryId: "settings" },
-  { id: "employee-partnership", label: "Employee Partnership", url: "/admin/landing-employee-partnership", icon: "UserPlus", order: 13, visible: false, categoryId: "settings" },
-  { id: "business-development", label: "Business Development", url: "/admin/business-development", icon: "Briefcase", order: 14, visible: true, categoryId: "settings" },
-
-  { id: "onboarding-cms", label: "Onboarding CMS", url: "/admin/onboarding-cms", icon: "BookOpen", order: 16, visible: true, categoryId: "settings" },
-  { id: "simulator-ctas", label: "CTAs Simulateurs", url: "/admin/simulator-ctas", icon: "MousePointerClick", order: 17, visible: true, categoryId: "settings" },
-  { id: "simulators", label: "Simulateurs", url: "/admin/simulators", icon: "Calculator", order: 18, visible: true, categoryId: "settings" },
-  { id: "simulation-logs", label: "Simulations réalisées", url: "/admin/simulation-logs", icon: "Calculator", order: 19, visible: true, categoryId: "settings" },
-  { id: "financial-profiles", label: "Profils Financiers", url: "/admin/financial-profiles", icon: "Users", order: 20, visible: true, categoryId: "settings" },
-  { id: "financial-profile-settings", label: "Page Profil Financier", url: "/admin/financial-profile-settings", icon: "Wallet", order: 21, visible: true, categoryId: "settings" },
-  { id: "recommendations", label: "Recommandations", url: "/admin/recommendations", icon: "Lightbulb", order: 22, visible: true, categoryId: "settings" },
-  { id: "non-partner-welcome", label: "Non-Partner Welcome", url: "/admin/non-partner-welcome", icon: "UserPlus", order: 23, visible: true, categoryId: "settings" },
-  { id: "global-settings", label: "Paramètres Globaux", url: "/admin/global-settings", icon: "Settings", order: 24, visible: true, categoryId: "settings" },
-  { id: "beta-lab", label: "Beta Lab", url: "/admin/beta-lab", icon: "FlaskConical", order: 25, visible: true, categoryId: "settings" },
-  { id: "workflow-hub", label: "Workflow Hub", url: "/admin/workflow-hub", icon: "Zap", order: 26, visible: true, categoryId: "settings" },
-  { id: "email-config", label: "Configuration Email", url: "/admin/email-config", icon: "Mail", order: 27, visible: true, categoryId: "settings" },
-  { id: "not-found-config", label: "Page 404", url: "/admin/not-found-config", icon: "FileWarning", order: 28, visible: true, categoryId: "settings" },
-  { id: "company-search-api", label: "Test API Entreprises", url: "/admin/company-search-api", icon: "Search", order: 29, visible: true, categoryId: "settings" },
-  { id: "tax-help", label: "Aide Fiscale", url: "/admin/tax-help", icon: "Receipt", order: 30, visible: true, categoryId: "settings" },
-  { id: "offers", label: "Offres du moment", url: "/admin/offers", icon: "Gift", order: 31, visible: true, categoryId: "settings" },
-  { id: "diagnostic-cms", label: "Diagnostic CMS", url: "/admin/diagnostic-cms", icon: "Target", order: 32, visible: true, categoryId: "content" },
-  { id: "analytics", label: "Analytics & Engagement", url: "/admin/analytics", icon: "BarChart3", order: 33, visible: true, categoryId: "general" },
   { 
     id: "scoring", 
     label: "Scoring d'intention", 
     url: "#", 
     icon: "Target", 
-    order: 34, 
+    order: 4, 
     visible: true, 
     categoryId: "general",
     subItems: [
@@ -148,9 +86,73 @@ const defaultAdminItems: AdminMenuItem[] = [
       { id: "scoring-config", label: "Configuration poids", url: "/admin/scoring-config", icon: "Settings" },
     ]
   },
+  
+  // Companies
+  { id: "companies", label: "Companies", url: "/admin/companies", icon: "Building2", order: 0, visible: true, categoryId: "companies" },
+  { id: "company-ranking", label: "Configuration des rangs", url: "/admin/company-ranking", icon: "Crown", order: 1, visible: true, categoryId: "companies" },
+  { id: "users", label: "Utilisateurs", url: "/admin/users", icon: "Users", order: 2, visible: true, categoryId: "companies" },
+  { id: "advisors", label: "Conseillers", url: "/admin/advisors", icon: "UserCheck", order: 3, visible: true, categoryId: "companies" },
+  
+  // Content
+  { id: "modules", label: "Modules", url: "/admin/modules", icon: "BookOpen", order: 0, visible: true, categoryId: "content" },
+  { id: "parcours", label: "Parcours", url: "/admin/parcours", icon: "Route", order: 1, visible: true, categoryId: "content" },
+  { id: "formations", label: "Formations", url: "/admin/formations", icon: "BookOpen", order: 2, visible: true, categoryId: "content" },
+  { id: "financial-products", label: "Produits Financiers", url: "/admin/financial-products", icon: "Wallet", order: 3, visible: true, categoryId: "content" },
+  { id: "product-objective-matrix", label: "Matrice Objectifs × Produits", url: "/admin/product-objective-matrix", icon: "Grid3x3", order: 4, visible: true, categoryId: "content" },
+  { id: "diagnostic-cms", label: "Diagnostic CMS", url: "/admin/diagnostic-cms", icon: "Target", order: 5, visible: true, categoryId: "content" },
+  
+  // Gamification
+  { id: "features", label: "Features de partenariat", url: "/admin/features", icon: "Sparkles", order: 0, visible: true, categoryId: "gamification" },
+  { id: "celebration", label: "Célébration Parcours", url: "/admin/celebration", icon: "PartyPopper", order: 1, visible: true, categoryId: "gamification" },
+  { id: "validation", label: "Points & Validation", url: "/admin/validation", icon: "Trophy", order: 2, visible: true, categoryId: "gamification" },
+  
   // Community
   { id: "community", label: "Gestion du Forum", url: "/admin/community", icon: "MessageSquare", order: 0, visible: true, categoryId: "community" },
   { id: "feedbacks", label: "Feedbacks", url: "/admin/feedbacks", icon: "MessageSquarePlus", order: 1, visible: true, categoryId: "community" },
+  
+  // Simulateurs & Données
+  { id: "simulators", label: "Simulateurs", url: "/admin/simulators", icon: "Calculator", order: 0, visible: true, categoryId: "simulators-data" },
+  { id: "simulator-ctas", label: "CTAs Simulateurs", url: "/admin/simulator-ctas", icon: "MousePointerClick", order: 1, visible: true, categoryId: "simulators-data" },
+  { id: "simulation-logs", label: "Simulations réalisées", url: "/admin/simulation-logs", icon: "Calculator", order: 2, visible: true, categoryId: "simulators-data" },
+  { id: "financial-profiles", label: "Profils Financiers", url: "/admin/financial-profiles", icon: "Users", order: 3, visible: true, categoryId: "simulators-data" },
+  { id: "financial-profile-settings", label: "Page Profil Financier", url: "/admin/financial-profile-settings", icon: "Wallet", order: 4, visible: true, categoryId: "simulators-data" },
+  { id: "recommendations", label: "Recommandations", url: "/admin/recommendations", icon: "Lightbulb", order: 5, visible: true, categoryId: "simulators-data" },
+  
+  // Engagement
+  { id: "onboarding-cms", label: "Onboarding CMS", url: "/admin/onboarding-cms", icon: "BookOpen", order: 0, visible: true, categoryId: "engagement" },
+  { id: "notifications", label: "Notifications", url: "/admin/notifications", icon: "Bell", order: 1, visible: true, categoryId: "engagement" },
+  { id: "workflow-hub", label: "Workflow Hub", url: "/admin/workflow-hub", icon: "Zap", order: 2, visible: true, categoryId: "engagement" },
+  { id: "non-partner-welcome", label: "Non-Partner Welcome", url: "/admin/non-partner-welcome", icon: "UserPlus", order: 3, visible: true, categoryId: "engagement" },
+  { id: "offers", label: "Offres du moment", url: "/admin/offers", icon: "Gift", order: 4, visible: true, categoryId: "engagement" },
+  { id: "business-development", label: "Business Development", url: "/admin/business-development", icon: "Briefcase", order: 5, visible: true, categoryId: "engagement" },
+  
+  // Apparence
+  { id: "design-navigation", label: "Design & Navigation", url: "/admin/design-navigation", icon: "Palette", order: 0, visible: true, categoryId: "appearance" },
+  { 
+    id: "communication", 
+    label: "Communication", 
+    url: "#", 
+    icon: "Mail", 
+    order: 1, 
+    visible: true, 
+    categoryId: "appearance",
+    subItems: [
+      { id: "communication-kit", label: "Kit de Communication", url: "/admin/communication", icon: "Mail" },
+      { id: "communication-templates", label: "Templates", url: "/admin/communication-templates", icon: "FileEdit" },
+      { id: "visual-resources", label: "Ressources visuelles", url: "/admin/visual-resources", icon: "Image" },
+      { id: "company-faqs", label: "FAQ Entreprises", url: "/admin/company-faqs", icon: "HelpCircle" },
+    ]
+  },
+  
+  // Technique
+  { id: "permissions", label: "Permissions", url: "/admin/permissions", icon: "Shield", order: 0, visible: true, categoryId: "technical" },
+  { id: "storage", label: "Storage", url: "/admin/storage", icon: "Database", order: 1, visible: true, categoryId: "technical" },
+  { id: "global-settings", label: "Paramètres Globaux", url: "/admin/global-settings", icon: "Settings", order: 2, visible: true, categoryId: "technical" },
+  { id: "email-config", label: "Configuration Email", url: "/admin/email-config", icon: "Mail", order: 3, visible: true, categoryId: "technical" },
+  { id: "beta-lab", label: "Beta Lab", url: "/admin/beta-lab", icon: "FlaskConical", order: 4, visible: true, categoryId: "technical" },
+  { id: "risk-profile", label: "Risk Profile", url: "/admin/risk-profile", icon: "Target", order: 5, visible: true, categoryId: "technical" },
+  { id: "tax-help", label: "Aide Fiscale", url: "/admin/tax-help", icon: "Receipt", order: 6, visible: true, categoryId: "technical" },
+  { id: "documentation", label: "Documentation", url: "/admin/documentation", icon: "FileText", order: 7, visible: true, categoryId: "technical" },
 ];
 
 const iconMap: Record<string, LucideIcon> = {
