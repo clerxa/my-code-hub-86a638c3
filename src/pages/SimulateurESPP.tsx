@@ -10,6 +10,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Header } from '@/components/Header';
 import { SimulatorHeader } from '@/components/simulators/SimulatorHeader';
 import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer';
+import { SimulationValidationOverlay } from '@/components/simulators/SimulationValidationOverlay';
 import { SaveSimulationDialog } from '@/components/simulators/SaveSimulationDialog';
 import {
   ESPPIntroScreen,
@@ -34,6 +35,7 @@ const SimulateurESPP = () => {
   const [editingPeriodId, setEditingPeriodId] = useState<string | null>(null);
   const [tmi, setTmi] = useState(30);
   const [result, setResult] = useState<ESPPSimulationResult | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
 
   // Sync TMI depuis les settings globaux
   useEffect(() => {
@@ -126,8 +128,13 @@ const SimulateurESPP = () => {
   const handleSimulate = useCallback(() => {
     const simResult = calculateESPPSimulation(periods, tmi);
     setResult(simResult);
-    setScreen('results');
+    setIsValidating(true);
   }, [periods, tmi]);
+
+  const handleValidationComplete = useCallback(() => {
+    setIsValidating(false);
+    setScreen('results');
+  }, []);
 
   const handleReset = useCallback(() => {
     setResult(null);
@@ -195,6 +202,13 @@ const SimulateurESPP = () => {
             />
           )}
         </AnimatePresence>
+
+        <SimulationValidationOverlay
+          isValidating={isValidating}
+          onComplete={handleValidationComplete}
+          simulatorName="Simulateur ESPP"
+          simulatorId="espp"
+        />
 
         <div className="mt-8">
           <SimulatorDisclaimer />
