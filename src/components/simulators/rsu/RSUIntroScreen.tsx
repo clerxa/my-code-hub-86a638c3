@@ -42,6 +42,24 @@ export function RSUIntroScreen({ onStart }: RSUIntroScreenProps) {
       exit={{ opacity: 0, y: -20 }}
       className="space-y-6"
     >
+      <div className="text-center mb-2">
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-4xl font-bold hero-gradient mb-3"
+        >
+          Simulateur RSU
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-lg text-muted-foreground"
+        >
+          Estimez l'impact fiscal de la cession de vos actions gratuites
+        </motion.p>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2">
         {BLOCKS.map((block, i) => (
           <motion.div
