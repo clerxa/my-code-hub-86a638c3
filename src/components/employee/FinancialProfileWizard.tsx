@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -703,6 +704,39 @@ export function FinancialProfileWizard({
                 </div>
               )}
             </div>
+
+            {/* 🏘️ Immobilier locatif (auto-importé) */}
+            {(realEstateTotals.mensualitesTotal > 0 || realEstateTotals.chargesTotal > 0) && (
+              <div className="space-y-4 pt-4 border-t">
+                <h4 className="font-medium flex items-center gap-2">
+                  🏘️ Charges mensuelles Immobilier locatif
+                </h4>
+                <div className="p-4 rounded-lg bg-muted/30 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
+                      Récupéré de l'onglet Revenus fonciers
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {realEstateTotals.mensualitesTotal > 0 && (
+                      <div className="space-y-1">
+                        <Label className="text-muted-foreground">Mensualités crédits (biens locatifs)</Label>
+                        <p className="text-base font-medium">{realEstateTotals.mensualitesTotal.toLocaleString('fr-FR')} €/mois</p>
+                      </div>
+                    )}
+                    {realEstateTotals.chargesTotal > 0 && (
+                      <div className="space-y-1">
+                        <Label className="text-muted-foreground">Charges & taxes (biens locatifs)</Label>
+                        <p className="text-base font-medium">{realEstateTotals.chargesTotal.toLocaleString('fr-FR')} €/mois</p>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Ces montants sont calculés automatiquement à partir de vos biens renseignés dans l'onglet Revenus fonciers. Pour les modifier, rendez-vous dans cet onglet.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* 🚗 Transports et Mobilité */}
             <div className="space-y-4 pt-4 border-t">
