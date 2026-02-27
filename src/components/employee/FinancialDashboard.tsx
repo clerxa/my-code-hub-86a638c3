@@ -45,7 +45,7 @@ interface FinancialDashboardProps {
   missingFields: string[];
   missingFieldsDetailed?: MissingFieldDetailed[];
   fieldToTabMapping?: Record<string, string>;
-  onNavigateToTab: (tab: string) => void;
+  onNavigateToTab: (tab: string, fieldKey?: string) => void;
   epargnePrecautionData?: EpargnePrecautionData | null;
 }
 
@@ -322,7 +322,7 @@ export function FinancialDashboard({
                     return (
                       <button
                         key={index}
-                        onClick={() => onNavigateToTab(targetTab)}
+                        onClick={() => onNavigateToTab(targetTab, field.fieldKey)}
                         className="px-2.5 py-1 bg-background rounded-full text-xs border border-border hover:border-primary hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center gap-1 group"
                       >
                         <span>{field.label}</span>

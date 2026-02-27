@@ -33,6 +33,7 @@ interface FinancialProfileWizardProps {
   hasEquityBenefits: boolean;
   onInviteSpouse?: () => void;
   requiredFieldKeys?: string[];
+  initialStepId?: string | null;
 }
 
 interface WizardStep {
@@ -58,10 +59,23 @@ export function FinancialProfileWizard({
   hasEquityBenefits,
   onInviteSpouse,
   requiredFieldKeys = [],
+  initialStepId = null,
 }: FinancialProfileWizardProps) {
-  const [currentStep, setCurrentStep] = useState(0);
+  const getStepIndex = (stepId: string | null) => {
+    if (!stepId) return 0;
+    const idx = STEPS.findIndex(s => s.id === stepId);
+    return idx >= 0 ? idx : 0;
+  };
+  const [currentStep, setCurrentStep] = useState(getStepIndex(initialStepId));
   const [showWhyInfo, setShowWhyInfo] = useState(false);
   const [hasShownSpouseInvite, setHasShownSpouseInvite] = useState(false);
+
+  // React to external step navigation requests
+  useEffect(() => {
+    if (initialStepId) {
+      setCurrentStep(getStepIndex(initialStepId));
+    }
+  }, [initialStepId]);
 
   const isMarriedOrPacs = situationFamiliale === "marie" || situationFamiliale === "pacse";
 

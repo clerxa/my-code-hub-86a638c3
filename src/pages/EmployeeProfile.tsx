@@ -121,6 +121,42 @@ export const FIELD_TO_TAB: Record<string, string> = {
   patrimoine_immo_credit_restant: "savings",
 };
 
+// Mapping field_key → wizard step id (for financial tab sub-navigation)
+export const FIELD_TO_WIZARD_STEP: Record<string, string> = {
+  // Revenus pro
+  revenu_annuel_brut: "revenus-pro",
+  revenu_mensuel_net: "revenus-pro",
+  revenu_fiscal_annuel: "revenus-pro",
+  revenu_fiscal_foyer: "revenus-pro",
+  revenu_annuel_conjoint: "revenus-pro",
+  revenu_annuel_brut_conjoint: "revenus-pro",
+  autres_revenus_mensuels: "revenus-pro",
+  // Revenus capital
+  revenus_dividendes: "revenus-capital",
+  revenus_ventes_actions: "revenus-capital",
+  revenus_capital_autres: "revenus-capital",
+  // Revenus fonciers
+  revenus_locatifs: "revenus-fonciers",
+  // Charges
+  charges_fixes_mensuelles: "charges",
+  loyer_actuel: "charges",
+  credits_immobilier: "charges",
+  credits_consommation: "charges",
+  credits_auto: "charges",
+  charges_copropriete_taxes: "charges",
+  charges_energie: "charges",
+  charges_assurance_habitation: "charges",
+  charges_transport_commun: "charges",
+  charges_assurance_auto: "charges",
+  charges_lld_loa_auto: "charges",
+  charges_internet: "charges",
+  charges_mobile: "charges",
+  charges_abonnements: "charges",
+  charges_frais_scolarite: "charges",
+  pensions_alimentaires: "charges",
+  charges_autres: "charges",
+};
+
 export default function EmployeeProfile() {
   const navigate = useNavigate();
   const fiscalRules = useFiscalRules();
@@ -130,6 +166,7 @@ export default function EmployeeProfile() {
   const highlightField = searchParams.get("highlight");
   const [activeTab, setActiveTab] = useState(initialTab);
   const [highlightedField, setHighlightedField] = useState<string | null>(null);
+  const [wizardInitialStep, setWizardInitialStep] = useState<string | null>(null);
   
   // Profile state
   const [loading, setLoading] = useState(true);
@@ -175,10 +212,16 @@ export default function EmployeeProfile() {
 
   const hasChanges = hasProfileChanges || hasFinancialChanges || hasCompanyChanges;
 
-  // Handle tab change with URL sync
-  const handleTabChange = (value: string) => {
+  // Handle tab change with URL sync + optional wizard step
+  const handleTabChange = (value: string, fieldKey?: string) => {
     setActiveTab(value);
     setSearchParams({ tab: value });
+    // If navigating to financial tab with a specific field, set wizard step
+    if (value === "financial" && fieldKey && FIELD_TO_WIZARD_STEP[fieldKey]) {
+      setWizardInitialStep(FIELD_TO_WIZARD_STEP[fieldKey]);
+    } else {
+      setWizardInitialStep(null);
+    }
   };
 
   useEffect(() => {
@@ -845,7 +888,7 @@ export default function EmployeeProfile() {
                             return (
                               <button 
                                 key={index}
-                                onClick={() => handleTabChange(targetTab)}
+                                onClick={() => handleTabChange(targetTab, field.fieldKey)}
                                 className="px-3 py-1.5 bg-muted/50 rounded-full text-xs border hover:border-primary hover:bg-primary/5 hover:text-primary transition-all cursor-pointer flex items-center gap-1.5 group"
                               >
                                 <span>{field.label}</span>
@@ -1560,6 +1603,7 @@ export default function EmployeeProfile() {
                 hasEquityBenefits={formData.has_rsu_aga || formData.has_espp || formData.has_stock_options || formData.has_bspce || formData.has_equity_autres || false}
                 onInviteSpouse={() => setShowInviteDialog(true)}
                 requiredFieldKeys={requiredFieldKeys}
+                initialStepId={wizardInitialStep}
               />
             </TabsContent>
 
