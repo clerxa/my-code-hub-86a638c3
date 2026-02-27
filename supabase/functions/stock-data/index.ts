@@ -4,16 +4,66 @@ const corsHeaders = {
 };
 
 const TWELVE_DATA_KEY = Deno.env.get('VITE_TWELVE_DATA_API_KEY') || '';
-const ALPHA_VANTAGE_KEY = Deno.env.get('ALPHA_VANTAGE_API_KEY') || '';
 
-function findPrice(timeSeries: Record<string, any>, date: string): { price: number | null; isBusinessDay: boolean; closestDate?: string } {
-  if (timeSeries[date]) {
-    return { price: parseFloat(timeSeries[date]['4. close']), isBusinessDay: true };
+/**
+ * Fetch historical daily prices from Yahoo Finance (no API key required).
+ * Returns a Map of "YYYY-MM-DD" -> close price.
+ */
+async function fetchYahooHistory(ticker: string, fromDate: string, toDate: string): Promise<Map<string, number>> {
+  // Convert dates to Unix timestamps
+  const period1 = Math.floor(new Date(fromDate + 'T00:00:00Z').getTime() / 1000);
+  // Add a few days buffer after toDate to handle weekends
+  const period2 = Math.floor(new Date(toDate + 'T00:00:00Z').getTime() / 1000) + 86400 * 5;
+
+  const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?period1=${period1}&period2=${period2}&interval=1d&includePrePost=false`;
+  
+  console.log('[Yahoo] Fetching:', url);
+  
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    },
+  });
+  
+  if (!res.ok) {
+    console.log('[Yahoo] HTTP error:', res.status);
+    throw new Error(`Yahoo Finance HTTP ${res.status}`);
   }
-  const sortedDates = Object.keys(timeSeries).sort().reverse();
+  
+  const data = await res.json();
+  const result = data?.chart?.result?.[0];
+  if (!result) {
+    console.log('[Yahoo] No chart result. Response:', JSON.stringify(data).substring(0, 500));
+    throw new Error('No data from Yahoo Finance');
+  }
+
+  const timestamps = result.timestamp || [];
+  const closes = result.indicators?.quote?.[0]?.close || [];
+  
+  const priceMap = new Map<string, number>();
+  for (let i = 0; i < timestamps.length; i++) {
+    if (closes[i] != null) {
+      const dateStr = new Date(timestamps[i] * 1000).toISOString().split('T')[0];
+      priceMap.set(dateStr, closes[i]);
+    }
+  }
+  
+  console.log(`[Yahoo] Got ${priceMap.size} daily prices for ${ticker}`);
+  return priceMap;
+}
+
+/**
+ * Find the closing price for a date, or the closest previous business day.
+ */
+function findPriceInMap(priceMap: Map<string, number>, date: string): { price: number | null; isBusinessDay: boolean; closestDate?: string } {
+  if (priceMap.has(date)) {
+    return { price: priceMap.get(date)!, isBusinessDay: true };
+  }
+  // Find closest previous date
+  const sortedDates = Array.from(priceMap.keys()).sort().reverse();
   const closestDate = sortedDates.find(d => d <= date);
   if (closestDate) {
-    return { price: parseFloat(timeSeries[closestDate]['4. close']), isBusinessDay: false, closestDate };
+    return { price: priceMap.get(closestDate)!, isBusinessDay: false, closestDate };
   }
   return { price: null, isBusinessDay: true };
 }
@@ -40,69 +90,47 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ data: results }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // --- Single stock price via Alpha Vantage ---
+    // --- Single stock price via Yahoo Finance ---
     if (action === 'stock_price') {
       const { ticker, date } = params;
-      if (!ALPHA_VANTAGE_KEY || !ticker || !date) {
+      if (!ticker || !date) {
         return new Response(JSON.stringify({ price: null, isBusinessDay: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(ticker)}&outputsize=compact&apikey=${ALPHA_VANTAGE_KEY}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data['Error Message']) {
-        return new Response(JSON.stringify({ price: null, isBusinessDay: true, error: data['Error Message'] }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      try {
+        const priceMap = await fetchYahooHistory(ticker, date, date);
+        const result = findPriceInMap(priceMap, date);
+        return new Response(JSON.stringify(result), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      } catch (e) {
+        console.log('[stock_price] Error:', e.message);
+        return new Response(JSON.stringify({ price: null, isBusinessDay: true, error: e.message }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      if (data['Note']) {
-        return new Response(JSON.stringify({ price: null, isBusinessDay: true, error: 'Limite API atteinte — réessayez dans 1 minute' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
-      const timeSeries = data['Time Series (Daily)'];
-      if (!timeSeries) {
-        return new Response(JSON.stringify({ price: null, isBusinessDay: true, error: 'No data' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
-      const result = findPrice(timeSeries, date);
-      return new Response(JSON.stringify(result), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // --- BATCH stock prices: 1 API call, multiple dates ---
+    // --- BATCH stock prices via Yahoo Finance: 1 API call, multiple dates ---
     if (action === 'stock_prices_batch') {
       const { ticker, dates } = params as { ticker: string; dates: string[] };
-      if (!ALPHA_VANTAGE_KEY || !ticker || !dates?.length) {
+      if (!ticker || !dates?.length) {
         return new Response(JSON.stringify({ results: {} }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(ticker)}&outputsize=compact&apikey=${ALPHA_VANTAGE_KEY}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      console.log('[stock_prices_batch] Alpha Vantage response keys:', Object.keys(data));
-      if (data['Information']) {
-        console.log('[stock_prices_batch] Information:', data['Information']);
+      try {
+        // Find min/max dates to fetch the full range in one call
+        const sortedDates = [...dates].sort();
+        const minDate = sortedDates[0];
+        const maxDate = sortedDates[sortedDates.length - 1];
+        
+        const priceMap = await fetchYahooHistory(ticker, minDate, maxDate);
+        
+        const results: Record<string, any> = {};
+        for (const d of dates) {
+          results[d] = findPriceInMap(priceMap, d);
+        }
+        return new Response(JSON.stringify({ results }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      } catch (e) {
+        console.log('[stock_prices_batch] Error:', e.message);
         const errResults: Record<string, any> = {};
-        for (const d of dates) errResults[d] = { price: null, isBusinessDay: true, error: data['Information'] };
+        for (const d of dates) errResults[d] = { price: null, isBusinessDay: true, error: e.message };
         return new Response(JSON.stringify({ results: errResults }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      if (data['Error Message']) {
-        console.log('[stock_prices_batch] Error:', data['Error Message']);
-        const errResults: Record<string, any> = {};
-        for (const d of dates) errResults[d] = { price: null, isBusinessDay: true, error: data['Error Message'] };
-        return new Response(JSON.stringify({ results: errResults }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
-      if (data['Note']) {
-        console.log('[stock_prices_batch] Note (rate limit):', data['Note']);
-        const errResults: Record<string, any> = {};
-        for (const d of dates) errResults[d] = { price: null, isBusinessDay: true, error: 'Limite API atteinte — réessayez dans 1 minute' };
-        return new Response(JSON.stringify({ results: errResults }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
-      const timeSeries = data['Time Series (Daily)'];
-      if (!timeSeries) {
-        console.log('[stock_prices_batch] No Time Series found. Full response:', JSON.stringify(data).substring(0, 500));
-        const errResults: Record<string, any> = {};
-        for (const d of dates) errResults[d] = { price: null, isBusinessDay: true, error: 'No data' };
-        return new Response(JSON.stringify({ results: errResults }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
-      const results: Record<string, any> = {};
-      for (const d of dates) {
-        results[d] = findPrice(timeSeries, d);
-      }
-      return new Response(JSON.stringify({ results }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // --- FX rate via Frankfurter (BCE) ---
