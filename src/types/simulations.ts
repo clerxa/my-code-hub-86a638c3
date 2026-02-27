@@ -63,17 +63,45 @@ export const LMNPDataSchema = z.object({
 });
 
 export const ESPPDataSchema = z.object({
-  broker: z.string().nullable(),
-  date_debut: z.string(),
-  date_fin: z.string(),
-  devise_plan: z.string().nullable(),
-  discount_pct: z.number().nullable(),
-  entreprise: z.string(),
-  fmv_debut: z.number(),
-  fmv_fin: z.number(),
-  lookback: z.boolean().nullable(),
-  montant_investi: z.number(),
-  taux_change_payroll: z.number(),
+  // V2 — Nouveau format ESPP multi-périodes
+  periodes: z.array(z.object({
+    id: z.string(),
+    entreprise_nom: z.string(),
+    entreprise_ticker: z.string(),
+    entreprise_devise: z.enum(['EUR', 'USD']),
+    taux_rabais: z.number(),
+    nb_actions_achetees: z.number(),
+    date_debut_offre: z.string(),
+    date_achat: z.string(),
+    cours_debut_offre_devise: z.number(),
+    cours_achat_devise: z.number(),
+    taux_change_achat: z.number(),
+    has_sold: z.boolean(),
+    date_cession: z.string(),
+    prix_cession_devise: z.number(),
+    taux_change_cession: z.number(),
+  })).optional(),
+  tmi: z.number().optional(),
+  result: z.object({
+    gain_brut_total: z.number(),
+    total_impots: z.number(),
+    gain_net_total: z.number(),
+    taux_effectif: z.number(),
+    rabais_brut_total: z.number(),
+    pv_brute_total: z.number(),
+  }).optional(),
+  // V1 legacy fields
+  broker: z.string().nullable().optional(),
+  date_debut: z.string().optional(),
+  date_fin: z.string().optional(),
+  devise_plan: z.string().nullable().optional(),
+  discount_pct: z.number().nullable().optional(),
+  entreprise: z.string().optional(),
+  fmv_debut: z.number().optional(),
+  fmv_fin: z.number().optional(),
+  lookback: z.boolean().nullable().optional(),
+  montant_investi: z.number().optional(),
+  taux_change_payroll: z.number().optional(),
 });
 
 export const ImpotsDataSchema = z.object({
