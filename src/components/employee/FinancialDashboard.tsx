@@ -204,19 +204,24 @@ export function FinancialDashboard({
   const capaciteEpargne = formData.capacite_epargne_mensuelle || 0;
 
   // Détail charges par catégorie avec sous-items
-  const chargesLogement = (formData.loyer_actuel || 0) + (formData.credits_immobilier || 0) +
+  const chargesLogementRP = (formData.loyer_actuel || 0) + (formData.credits_immobilier || 0) +
     (formData.charges_copropriete_taxes || 0) + (formData.charges_energie || 0) +
-    (formData.charges_assurance_habitation || 0) +
-    chargesFoncieresMensualites + chargesFoncieresCharges;
+    (formData.charges_assurance_habitation || 0);
+  const chargesImmobilierLocatif = chargesFoncieresMensualites + chargesFoncieresCharges;
+  const chargesLogement = chargesLogementRP + chargesImmobilierLocatif;
+  
   const detailLogement = [
     { label: "Loyer", value: formData.loyer_actuel || 0 },
     { label: "Crédit immobilier (RP)", value: formData.credits_immobilier || 0 },
     { label: "Copropriété & taxes", value: formData.charges_copropriete_taxes || 0 },
     { label: "Énergie", value: formData.charges_energie || 0 },
     { label: "Assurance habitation", value: formData.charges_assurance_habitation || 0 },
-    { label: "Mensualités crédits fonciers", value: chargesFoncieresMensualites },
-    { label: "Charges biens fonciers", value: chargesFoncieresCharges },
-  ].filter(d => d.value > 0);
+    ...(chargesImmobilierLocatif > 0 ? [
+      { label: "── Revenus fonciers ──", value: -1 },
+      { label: "Mensualités crédits (biens locatifs)", value: chargesFoncieresMensualites },
+      { label: "Charges & taxes (biens locatifs)", value: chargesFoncieresCharges },
+    ] : []),
+  ].filter(d => d.value > 0 || d.value === -1);
 
   const chargesTransport = (formData.charges_transport_commun || 0) +
     (formData.charges_assurance_auto || 0) + (formData.charges_lld_loa_auto || formData.credits_auto || 0);
@@ -477,10 +482,16 @@ export function FinancialDashboard({
                         <p className="text-xs font-semibold mb-2">{item.label}</p>
                         <div className="space-y-1">
                           {item.details.map((d) => (
-                            <div key={d.label} className="flex justify-between text-xs">
-                              <span className="text-muted-foreground">{d.label}</span>
-                              <span className="font-medium">{formatCurrency(d.value)}</span>
-                            </div>
+                            d.value === -1 ? (
+                              <p key={d.label} className="text-xs font-semibold text-foreground/70 mt-2 mb-1 border-t border-border/50 pt-1.5">
+                                🏘️ Immobilier locatif
+                              </p>
+                            ) : (
+                              <div key={d.label} className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">{d.label}</span>
+                                <span className="font-medium">{formatCurrency(d.value)}</span>
+                              </div>
+                            )
                           ))}
                         </div>
                       </PopoverContent>
