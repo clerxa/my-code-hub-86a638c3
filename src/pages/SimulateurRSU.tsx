@@ -3,21 +3,22 @@
  * 4 écrans : Dashboard → Éditeur de plan → Paramètres cession → Résultats
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { SimulatorHeader } from '@/components/simulators/SimulatorHeader';
 import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer';
-import { RSUPlansDashboard, RSUPlanEditor, RSUCessionParams, RSUResults } from '@/components/simulators/rsu';
+import { RSUPlansDashboard, RSUPlanEditor, RSUCessionParams, RSUResults, RSUIntroScreen } from '@/components/simulators/rsu';
 import { calculateRSUSimulation } from '@/utils/rsuCalculations';
 import type { RSUPlan, RSUCessionParams as CessionParamsType, RSUSimulationResult } from '@/types/rsu';
 
-type Screen = 'dashboard' | 'editor' | 'cession' | 'results';
+type Screen = 'intro' | 'dashboard' | 'editor' | 'cession' | 'results';
 
 const SimulateurRSU = () => {
   const navigate = useNavigate();
 
-  const [screen, setScreen] = useState<Screen>('dashboard');
+  const introSeen = useRef(false);
+  const [screen, setScreen] = useState<Screen>('intro');
   const [plans, setPlans] = useState<RSUPlan[]>([]);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [cessionParams, setCessionParams] = useState<CessionParamsType>({
@@ -34,11 +35,18 @@ const SimulateurRSU = () => {
       case 'editor': setScreen('dashboard'); setEditingPlanId(null); break;
       case 'cession': setScreen('dashboard'); break;
       case 'results': setScreen('cession'); break;
+      case 'dashboard': navigate(-1); break;
       default: navigate(-1);
     }
   }, [screen, navigate]);
 
+  const handleIntroComplete = useCallback(() => {
+    introSeen.current = true;
+    setScreen('dashboard');
+  }, []);
+
   const screenTitle = {
+    intro: 'Simulateur RSU',
     dashboard: 'Simulateur RSU',
     editor: editingPlanId ? 'Modifier le plan' : 'Nouveau plan',
     cession: 'Paramètres de cession',
@@ -91,15 +99,21 @@ const SimulateurRSU = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-4xl mx-auto px-4 py-8 pb-24">
-        <SimulatorHeader
-          title={screenTitle}
-          description={screen === 'dashboard' ? 'Simulez l\'impact fiscal de la cession de vos RSU multi-plans' : undefined}
-          onBack={handleBack}
-          backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour'}
-          onViewSimulations={screen === 'dashboard' ? () => navigate('/employee/simulations') : undefined}
-        />
+        {screen !== 'intro' && (
+          <SimulatorHeader
+            title={screenTitle}
+            description={screen === 'dashboard' ? 'Simulez l\'impact fiscal de la cession de vos RSU multi-plans' : undefined}
+            onBack={handleBack}
+            backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour'}
+            onViewSimulations={screen === 'dashboard' ? () => navigate('/employee/simulations') : undefined}
+          />
+        )}
 
         <AnimatePresence mode="wait">
+          {screen === 'intro' && (
+            <RSUIntroScreen key="intro" onStart={handleIntroComplete} />
+          )}
+
           {screen === 'dashboard' && (
             <RSUPlansDashboard
               key="dashboard"
