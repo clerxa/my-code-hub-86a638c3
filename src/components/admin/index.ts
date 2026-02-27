@@ -40,7 +40,7 @@ export { QueteFinCareEditor } from './QueteFinCareEditor';
 export { FinancialProductsTab } from './FinancialProductsTab';
 
 // Settings
-export { RolesPermissionsTab } from './RolesPermissionsTab';
+
 export { RiskProfileTab } from './RiskProfileTab';
 export { RiskProfileQuestionEditor } from './RiskProfileQuestionEditor';
 export { RiskProfileResultsEditor } from './RiskProfileResultsEditor';

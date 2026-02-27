@@ -14,7 +14,7 @@ import { CommunicationKitTab } from "@/components/admin/CommunicationKitTab";
 import { CommunicationTemplatesEditor } from "@/components/admin/CommunicationTemplatesEditor";
 import { VisualResourcesTab } from "@/components/admin/VisualResourcesTab";
 import { CompanyFAQsTab } from "@/components/admin/CompanyFAQsTab";
-import { RolesPermissionsTab } from "@/components/admin/RolesPermissionsTab";
+
 import FeaturesTab from "@/components/admin/FeaturesTab";
 import { ParcoursTab } from "@/components/admin/ParcoursTab";
 import { FormationsTab } from "@/components/admin/FormationsTab";
@@ -386,7 +386,7 @@ const Admin = () => {
                 <Route path="celebration" element={<CelebrationSettingsTab />} />
                 
                 {/* Settings */}
-                <Route path="permissions" element={<RolesPermissionsTab />} />
+                
                 <Route path="risk-profile" element={<RiskProfileTab />} />
                 <Route path="validation" element={<PointsAndValidationTab />} />
                 <Route path="notifications" element={<NotificationsTab />} />
