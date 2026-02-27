@@ -17,6 +17,8 @@ export interface VestingLine {
 export interface RSUPlan {
   id: string;
   nom: string;
+  ticker?: string; // symbole boursier (ex: CRM, GOOGL)
+  entreprise_nom?: string; // nom affiché (ex: Salesforce Inc.)
   annee_attribution: number;
   regime: RSURegime;
   devise: RSUDevise;

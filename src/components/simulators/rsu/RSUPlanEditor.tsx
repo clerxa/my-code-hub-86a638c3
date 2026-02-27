@@ -1,11 +1,11 @@
 /**
  * Écran 2 — Création / Modification d'un plan RSU
- * Avec : année dropdown, R3 encadré, pré-remplissage vestings, disclaimer
+ * Avec : recherche entreprise autocomplete, auto-fetch cours/taux, R3 encadré
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, HelpCircle, ExternalLink, RefreshCw, Info } from 'lucide-react';
+import { Plus, Trash2, HelpCircle, ExternalLink, RefreshCw, Info, Search, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { RSUPlan, RSURegime, RSUDevise, VestingLine } from '@/types/rsu';
 import { REGIME_LABELS } from '@/types/rsu';
+import { searchSymbols, fetchStockPrice, fetchFxRate, type SymbolSearchResult } from '@/hooks/useStockData';
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
@@ -30,7 +31,6 @@ function createEmptyVesting(): VestingLine {
   return { id: generateId(), date: '', nb_rsu: 0, cours: 0, taux_change: 1, gain_eur: 0 };
 }
 
-// Génère les années de 2010 à l'année courante (décroissant)
 const currentYear = new Date().getFullYear();
 const YEAR_OPTIONS = Array.from({ length: currentYear - 2010 + 1 }, (_, i) => currentYear - i);
 
@@ -45,17 +45,11 @@ const FREQUENCY_LABELS: Record<VestingFrequency, string> = {
 };
 
 const FREQUENCY_PER_YEAR: Record<Exclude<VestingFrequency, 'custom'>, number> = {
-  monthly: 12,
-  quarterly: 4,
-  semiannual: 2,
-  annual: 1,
+  monthly: 12, quarterly: 4, semiannual: 2, annual: 1,
 };
 
 const FREQUENCY_MONTHS: Record<Exclude<VestingFrequency, 'custom'>, number> = {
-  monthly: 1,
-  quarterly: 3,
-  semiannual: 6,
-  annual: 12,
+  monthly: 1, quarterly: 3, semiannual: 6, annual: 12,
 };
 
 const DURATION_OPTIONS = [1, 2, 3, 4, 5, 6];
@@ -66,10 +60,281 @@ interface RSUPlanEditorProps {
   onCancel: () => void;
 }
 
+// --- Company Search Autocomplete ---
+function CompanySearch({
+  value,
+  ticker,
+  onSelect,
+}: {
+  value: string;
+  ticker?: string;
+  onSelect: (name: string, ticker: string, currency: string, exchange: string) => void;
+}) {
+  const [query, setQuery] = useState(value);
+  const [results, setResults] = useState<SymbolSearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setQuery(value);
+  }, [value]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleChange = (text: string) => {
+    setQuery(text);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (text.length < 2) {
+      setResults([]);
+      setShowDropdown(false);
+      return;
+    }
+    setIsSearching(true);
+    debounceRef.current = setTimeout(async () => {
+      const res = await searchSymbols(text);
+      setResults(res);
+      setShowDropdown(res.length > 0);
+      setIsSearching(false);
+    }, 350);
+  };
+
+  const handleSelect = (r: SymbolSearchResult) => {
+    setQuery(r.instrument_name);
+    setShowDropdown(false);
+    onSelect(r.instrument_name, r.symbol, r.currency, r.exchange);
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={query}
+          onChange={e => handleChange(e.target.value)}
+          onFocus={() => results.length > 0 && setShowDropdown(true)}
+          placeholder="Rechercher (ex: Salesforce, Google…)"
+          className="pl-9 h-10"
+        />
+        {isSearching && (
+          <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+        )}
+      </div>
+      {ticker && (
+        <p className="text-xs text-muted-foreground mt-1">
+          Ticker : <span className="font-mono font-semibold">{ticker}</span>
+        </p>
+      )}
+      {showDropdown && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg max-h-60 overflow-y-auto">
+          {results.map((r, i) => (
+            <button
+              key={`${r.symbol}-${r.exchange}-${i}`}
+              className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors flex items-center justify-between"
+              onClick={() => handleSelect(r)}
+            >
+              <span>
+                <span className="font-medium">{r.instrument_name}</span>
+                <span className="text-muted-foreground"> — {r.symbol}</span>
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {r.exchange} · {r.currency}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- Vesting Row with auto-fetch ---
+function VestingRow({
+  v,
+  devise,
+  ticker,
+  showFx,
+  onUpdate,
+  onRemove,
+  canRemove,
+}: {
+  v: VestingLine & { gain_eur: number };
+  devise: RSUDevise;
+  ticker?: string;
+  showFx: boolean;
+  onUpdate: (id: string, field: keyof VestingLine, value: string | number) => void;
+  onRemove: (id: string) => void;
+  canRemove: boolean;
+}) {
+  const [loadingCours, setLoadingCours] = useState(false);
+  const [loadingFx, setLoadingFx] = useState(false);
+  const [coursError, setCoursError] = useState<string | null>(null);
+  const [fxError, setFxError] = useState<string | null>(null);
+  const [coursNote, setCoursNote] = useState<string | null>(null);
+  const [fxNote, setFxNote] = useState<string | null>(null);
+  const lastFetchedDate = useRef<string>('');
+
+  const handleDateChange = async (date: string) => {
+    onUpdate(v.id, 'date', date);
+    if (!date || date === lastFetchedDate.current) return;
+    lastFetchedDate.current = date;
+
+    // Reset states
+    setCoursError(null);
+    setFxError(null);
+    setCoursNote(null);
+    setFxNote(null);
+
+    const promises: Promise<void>[] = [];
+
+    // Fetch stock price
+    if (ticker) {
+      setLoadingCours(true);
+      promises.push(
+        fetchStockPrice(ticker, date).then(({ price, isBusinessDay, error }) => {
+          setLoadingCours(false);
+          if (error || price === null) {
+            setCoursError('Cours non disponible — saisie manuelle requise');
+          } else {
+            onUpdate(v.id, 'cours', price);
+            if (!isBusinessDay) {
+              setCoursNote('Pas de cotation ce jour — le cours du dernier jour ouvré a été utilisé');
+            }
+          }
+        })
+      );
+    }
+
+    // Fetch FX rate (only if USD)
+    if (devise === 'USD') {
+      setLoadingFx(true);
+      promises.push(
+        fetchFxRate(date).then(({ rate, isBusinessDay, error }) => {
+          setLoadingFx(false);
+          if (error || rate === null) {
+            setFxError('Taux non disponible — saisie manuelle requise');
+          } else {
+            onUpdate(v.id, 'taux_change', rate);
+            if (!isBusinessDay) {
+              setFxNote('Taux BCE du dernier jour ouvré utilisé');
+            }
+          }
+        })
+      );
+    }
+
+    await Promise.all(promises);
+  };
+
+  return (
+    <TableRow>
+      <TableCell>
+        <Input
+          type="date"
+          value={v.date}
+          onChange={e => handleDateChange(e.target.value)}
+          className="h-9"
+        />
+      </TableCell>
+      <TableCell>
+        <Input
+          type="number"
+          min={0}
+          step="any"
+          value={v.nb_rsu || ''}
+          onChange={e => onUpdate(v.id, 'nb_rsu', Number(e.target.value))}
+          className="h-9"
+        />
+      </TableCell>
+      <TableCell>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="relative">
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={v.cours || ''}
+                  onChange={e => { onUpdate(v.id, 'cours', Number(e.target.value)); setCoursError(null); setCoursNote(null); }}
+                  className={`h-9 ${coursError ? 'border-destructive' : ''} ${loadingCours ? 'pr-8' : ''}`}
+                />
+                {loadingCours && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+              </div>
+            </TooltipTrigger>
+            {v.cours > 0 && !coursError && (
+              <TooltipContent side="top" className="text-xs">
+                Cours de clôture source Twelve Data
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
+        {coursError && <p className="text-[10px] text-destructive mt-0.5">{coursError}</p>}
+        {coursNote && <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">{coursNote}</p>}
+      </TableCell>
+      {showFx && (
+        <TableCell>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min={0}
+                    step={0.0001}
+                    value={v.taux_change || ''}
+                    onChange={e => { onUpdate(v.id, 'taux_change', Number(e.target.value)); setFxError(null); setFxNote(null); }}
+                    className={`h-9 ${fxError ? 'border-destructive' : ''} ${loadingFx ? 'pr-8' : ''}`}
+                  />
+                  {loadingFx && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                </div>
+              </TooltipTrigger>
+              {v.taux_change > 0 && v.taux_change !== 1 && !fxError && (
+                <TooltipContent side="top" className="text-xs">
+                  Taux de change source Banque Centrale Européenne
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+          {fxError && <p className="text-[10px] text-destructive mt-0.5">{fxError}</p>}
+          {fxNote && <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">{fxNote}</p>}
+        </TableCell>
+      )}
+      <TableCell className="text-right font-medium">
+        {fmt(v.gain_eur)}
+      </TableCell>
+      <TableCell>
+        {canRemove && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            onClick={() => onRemove(v.id)}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+}
+
+// --- Main Editor ---
 export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
   const isEditing = !!plan;
 
   const [nom, setNom] = useState(plan?.nom ?? '');
+  const [ticker, setTicker] = useState(plan?.ticker ?? '');
+  const [entrepriseNom, setEntrepriseNom] = useState(plan?.entreprise_nom ?? '');
   const [annee, setAnnee] = useState(plan?.annee_attribution ?? currentYear - 1);
   const [regime, setRegime] = useState<RSURegime>(plan?.regime ?? 'R1');
   const [devise, setDevise] = useState<RSUDevise>(plan?.devise ?? 'EUR');
@@ -86,6 +351,16 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
   const [hasGenerated, setHasGenerated] = useState(false);
 
   const isCustom = frequency === 'custom';
+
+  const handleCompanySelect = useCallback((name: string, sym: string, currency: string) => {
+    setEntrepriseNom(name);
+    setTicker(sym);
+    // Auto-set devise based on detected currency
+    if (currency === 'USD') setDevise('USD');
+    else if (currency === 'EUR') setDevise('EUR');
+    // Auto-fill plan name if empty
+    if (!nom) setNom(`${name} RSU`);
+  }, [nom]);
 
   // Recalcul gains
   const computedVestings = useMemo(() => {
@@ -122,7 +397,6 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
 
   const generateVestings = useCallback(() => {
     if (!canGenerate || isCustom) return;
-
     const freqPerYear = FREQUENCY_PER_YEAR[frequency as Exclude<VestingFrequency, 'custom'>];
     const monthsInterval = FREQUENCY_MONTHS[frequency as Exclude<VestingFrequency, 'custom'>];
     const nbPeriodes = duration * freqPerYear;
@@ -156,7 +430,6 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
     }
   };
 
-  // Vérification arrondi
   const showRoundingNote = useMemo(() => {
     if (isCustom || totalActions <= 0) return false;
     const freqPerYear = FREQUENCY_PER_YEAR[frequency as Exclude<VestingFrequency, 'custom'>];
@@ -169,6 +442,8 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
     onSave({
       id: plan?.id ?? generateId(),
       nom: nom.trim(),
+      ticker: ticker || undefined,
+      entreprise_nom: entrepriseNom || undefined,
       annee_attribution: annee,
       regime,
       devise,
@@ -194,6 +469,14 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Entreprise</Label>
+              <CompanySearch
+                value={entrepriseNom}
+                ticker={ticker}
+                onSelect={handleCompanySelect}
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="plan-nom">Nom du plan</Label>
               <Input
@@ -380,63 +663,16 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
               </TableHeader>
               <TableBody>
                 {computedVestings.map(v => (
-                  <TableRow key={v.id}>
-                    <TableCell>
-                      <Input
-                        type="date"
-                        value={v.date}
-                        onChange={e => updateVesting(v.id, 'date', e.target.value)}
-                        className="h-9"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        min={0}
-                        step="any"
-                        value={v.nb_rsu || ''}
-                        onChange={e => updateVesting(v.id, 'nb_rsu', Number(e.target.value))}
-                        className="h-9"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        min={0}
-                        step={0.01}
-                        value={v.cours || ''}
-                        onChange={e => updateVesting(v.id, 'cours', Number(e.target.value))}
-                        className="h-9"
-                      />
-                    </TableCell>
-                    {devise === 'USD' && (
-                      <TableCell>
-                        <Input
-                          type="number"
-                          min={0}
-                          step={0.0001}
-                          value={v.taux_change || ''}
-                          onChange={e => updateVesting(v.id, 'taux_change', Number(e.target.value))}
-                          className="h-9"
-                        />
-                      </TableCell>
-                    )}
-                    <TableCell className="text-right font-medium">
-                      {fmt(v.gain_eur)}
-                    </TableCell>
-                    <TableCell>
-                      {computedVestings.length > 1 && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => removeVesting(v.id)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
+                  <VestingRow
+                    key={v.id}
+                    v={v}
+                    devise={devise}
+                    ticker={ticker}
+                    showFx={devise === 'USD'}
+                    onUpdate={updateVesting}
+                    onRemove={removeVesting}
+                    canRemove={computedVestings.length > 1}
+                  />
                 ))}
               </TableBody>
               <TableFooter>
@@ -465,7 +701,6 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
             Ajouter une ligne de vesting
           </Button>
 
-          {/* Disclaimer vestings */}
           <p className="text-xs text-muted-foreground italic mt-4">
             Les périodes de vesting pré-remplies sont calculées sur la base des paramètres saisis. Vérifiez chaque date et nombre d'actions avec votre contrat d'attribution RSU.
           </p>
