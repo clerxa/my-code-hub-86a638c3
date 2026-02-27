@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
       if (!ALPHA_VANTAGE_KEY || !ticker || !date) {
         return new Response(JSON.stringify({ price: null, isBusinessDay: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(ticker)}&outputsize=full&apikey=${ALPHA_VANTAGE_KEY}`;
+      const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(ticker)}&outputsize=compact&apikey=${ALPHA_VANTAGE_KEY}`;
       const res = await fetch(url);
       const data = await res.json();
       if (data['Error Message']) {
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       if (!ALPHA_VANTAGE_KEY || !ticker || !dates?.length) {
         return new Response(JSON.stringify({ results: {} }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(ticker)}&outputsize=full&apikey=${ALPHA_VANTAGE_KEY}`;
+      const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(ticker)}&outputsize=compact&apikey=${ALPHA_VANTAGE_KEY}`;
       const res = await fetch(url);
       const data = await res.json();
       console.log('[stock_prices_batch] Alpha Vantage response keys:', Object.keys(data));
