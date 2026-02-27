@@ -5,7 +5,7 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, HelpCircle, ExternalLink, RefreshCw, Info, Search, Loader2, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, HelpCircle, ExternalLink, RefreshCw, Info, Search, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -60,15 +60,27 @@ interface RSUPlanEditorProps {
   onCancel: () => void;
 }
 
-// --- Company Search Autocomplete ---
+// --- Company Search Autocomplete with confirmation card ---
+interface SelectedCompany {
+  name: string;
+  ticker: string;
+  exchange: string;
+  currency: string;
+  country: string;
+}
+
 function CompanySearch({
   value,
   ticker,
   onSelect,
+  onReset,
+  selected,
 }: {
   value: string;
   ticker?: string;
-  onSelect: (name: string, ticker: string, currency: string, exchange: string) => void;
+  onSelect: (name: string, ticker: string, currency: string, exchange: string, country: string) => void;
+  onReset: () => void;
+  selected: SelectedCompany | null;
 }) {
   const [query, setQuery] = useState(value);
   const [results, setResults] = useState<SymbolSearchResult[]>([]);
@@ -111,8 +123,57 @@ function CompanySearch({
   const handleSelect = (r: SymbolSearchResult) => {
     setQuery(r.instrument_name);
     setShowDropdown(false);
-    onSelect(r.instrument_name, r.symbol, r.currency, r.exchange);
+    onSelect(r.instrument_name, r.symbol, r.currency, r.exchange, r.country);
   };
+
+  const handleSearchAgain = () => {
+    setQuery('');
+    setResults([]);
+    onReset();
+  };
+
+  // If a company is selected, show the confirmation card instead of input
+  if (selected) {
+    return (
+      <div className="space-y-2">
+        <div className="rounded-lg border border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-950/30 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <span className="font-semibold text-green-800 dark:text-green-300 text-sm">Entreprise identifiée</span>
+          </div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+            <div>
+              <span className="text-muted-foreground">Nom complet</span>
+              <p className="font-medium">{selected.name}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Ticker</span>
+              <p className="font-mono font-semibold">{selected.ticker}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Bourse</span>
+              <p className="font-medium">{selected.exchange}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Devise</span>
+              <p className="font-medium">{selected.currency}</p>
+            </div>
+            <div className="col-span-2">
+              <span className="text-muted-foreground">Pays</span>
+              <p className="font-medium">{selected.country}</p>
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleSearchAgain}
+          className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+        >
+          Ce n'est pas la bonne entreprise ? Recherchez à nouveau
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className="relative">
@@ -129,11 +190,6 @@ function CompanySearch({
           <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
         )}
       </div>
-      {ticker && (
-        <p className="text-xs text-muted-foreground mt-1">
-          Ticker : <span className="font-mono font-semibold">{ticker}</span>
-        </p>
-      )}
       {showDropdown && (
         <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg max-h-60 overflow-y-auto">
           {results.map((r, i) => (
@@ -349,18 +405,30 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
   const [totalActions, setTotalActions] = useState<number>(0);
   const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<SelectedCompany | null>(
+    plan?.ticker && plan?.entreprise_nom
+      ? { name: plan.entreprise_nom, ticker: plan.ticker, exchange: '', currency: plan.devise, country: '' }
+      : null
+  );
 
   const isCustom = frequency === 'custom';
 
-  const handleCompanySelect = useCallback((name: string, sym: string, currency: string) => {
+  const handleCompanySelect = useCallback((name: string, sym: string, currency: string, exchange: string, country: string) => {
     setEntrepriseNom(name);
     setTicker(sym);
+    setSelectedCompany({ name, ticker: sym, exchange, currency, country });
     // Auto-set devise based on detected currency
     if (currency === 'USD') setDevise('USD');
     else if (currency === 'EUR') setDevise('EUR');
     // Auto-fill plan name if empty
     if (!nom) setNom(`${name} RSU`);
   }, [nom]);
+
+  const handleCompanyReset = useCallback(() => {
+    setSelectedCompany(null);
+    setEntrepriseNom('');
+    setTicker('');
+  }, []);
 
   // Recalcul gains
   const computedVestings = useMemo(() => {
@@ -475,6 +543,8 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                 value={entrepriseNom}
                 ticker={ticker}
                 onSelect={handleCompanySelect}
+                onReset={handleCompanyReset}
+                selected={selectedCompany}
               />
             </div>
             <div className="space-y-2">
