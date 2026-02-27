@@ -5,6 +5,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -605,282 +606,223 @@ export function FinancialProfileWizard({
         const isHeberge = formData.statut_residence === 'heberge';
         const hasResidenceStatus = isLocataire || isProprietaire || isHeberge;
 
+        // Calculate subtotals per category
+        const logementSubtotal = (isLocataire ? (formData.loyer_actuel || 0) : 0) +
+          (isProprietaire ? (formData.credits_immobilier || 0) + (formData.charges_copropriete_taxes || 0) : 0) +
+          (formData.charges_energie || 0) + (formData.charges_assurance_habitation || 0);
+        const locatifSubtotal = (realEstateTotals.mensualitesTotal || 0) + (realEstateTotals.chargesTotal || 0);
+        const transportSubtotal = (formData.charges_transport_commun || 0) + (formData.charges_assurance_auto || 0) + (formData.charges_lld_loa_auto || formData.credits_auto || 0);
+        const communicationSubtotal = (formData.charges_internet || 0) + (formData.charges_mobile || 0) + (formData.charges_abonnements || 0);
+        const familleSubtotal = (formData.charges_frais_scolarite || 0) + (formData.pensions_alimentaires || 0);
+        const creditSubtotal = (formData.credits_consommation || 0);
+        const autresSubtotal = (formData.charges_autres || 0);
+
+        const SubtotalBadge = ({ amount }: { amount: number }) => (
+          <span className={cn(
+            "ml-auto mr-2 text-sm font-semibold tabular-nums",
+            amount > 0 ? "text-primary" : "text-muted-foreground"
+          )}>
+            {amount.toLocaleString('fr-FR')} €
+          </span>
+        );
+
         return (
-          <div className="space-y-6">
-            {/* 🏠 Logement et Énergie */}
-            <div className="space-y-4">
-              <h4 className="font-medium flex items-center gap-2">
-                🏠 Charges mensuelles Logement et Énergie
-              </h4>
-              
-              {/* Message si statut non renseigné */}
-              {!hasResidenceStatus && (
-                <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    💡 Pour personnaliser cette section, renseignez votre <strong>statut de résidence</strong> dans l'onglet "Situation" de votre profil.
-                  </p>
-                </div>
+          <div className="space-y-4">
+            <Accordion type="multiple" defaultValue={["logement"]} className="space-y-2">
+
+              {/* 🏠 Logement et Énergie */}
+              <AccordionItem value="logement" className="border rounded-lg px-4 bg-card">
+                <AccordionTrigger className="hover:no-underline gap-2">
+                  <span className="flex items-center gap-2 text-left">🏠 Logement & Énergie</span>
+                  <SubtotalBadge amount={logementSubtotal} />
+                </AccordionTrigger>
+                <AccordionContent className="space-y-4 pb-4">
+                  {!hasResidenceStatus && (
+                    <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+                      <p className="text-sm text-amber-800 dark:text-amber-200">
+                        💡 Renseignez votre <strong>statut de résidence</strong> dans l'onglet "Situation" pour personnaliser cette section.
+                      </p>
+                    </div>
+                  )}
+                  {isLocataire && (
+                    <div className="space-y-3 p-3 rounded-lg bg-muted/30">
+                      <p className="text-xs font-medium text-primary">🏠 Locataire</p>
+                      <div className="space-y-2">
+                        <Label>Loyer charges comprises (€/mois)</Label>
+                        <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.loyer_actuel)} onChange={(e) => handleNumericInput("loyer_actuel", e.target.value)} placeholder="Ex: 1 200" />
+                      </div>
+                    </div>
+                  )}
+                  {isProprietaire && (
+                    <div className="space-y-3 p-3 rounded-lg bg-muted/30">
+                      <p className="text-xs font-medium text-primary">🏡 Propriétaire</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Mensualité crédit immobilier (€/mois)</Label>
+                          <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.credits_immobilier)} onChange={(e) => handleNumericInput("credits_immobilier", e.target.value)} placeholder="Ex: 1 500" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Charges copropriété / taxes foncières (€/mois)</Label>
+                          <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_copropriete_taxes)} onChange={(e) => handleNumericInput("charges_copropriete_taxes", e.target.value)} placeholder="Ex: 150" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {isHeberge && (
+                    <div className="p-3 rounded-lg bg-muted/30">
+                      <p className="text-xs font-medium text-primary">🏠 Hébergé à titre gratuit</p>
+                      <p className="text-sm text-muted-foreground">Aucune charge de logement principale à déclarer.</p>
+                    </div>
+                  )}
+                  {hasResidenceStatus && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Électricité, gaz, eau (€/mois)</Label>
+                        <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_energie)} onChange={(e) => handleNumericInput("charges_energie", e.target.value)} placeholder="Ex: 120" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Assurance habitation (€/mois)</Label>
+                        <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_assurance_habitation)} onChange={(e) => handleNumericInput("charges_assurance_habitation", e.target.value)} placeholder="Ex: 30" />
+                      </div>
+                    </div>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* 🏘️ Immobilier locatif */}
+              {(realEstateTotals.mensualitesTotal > 0 || realEstateTotals.chargesTotal > 0) && (
+                <AccordionItem value="locatif" className="border rounded-lg px-4 bg-card">
+                  <AccordionTrigger className="hover:no-underline gap-2">
+                    <span className="flex items-center gap-2 text-left">🏘️ Immobilier locatif</span>
+                    <SubtotalBadge amount={locatifSubtotal} />
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-4">
+                    <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                      <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
+                        Récupéré de l'onglet Revenus fonciers
+                      </Badge>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {realEstateTotals.mensualitesTotal > 0 && (
+                          <div className="space-y-1">
+                            <Label className="text-muted-foreground">Mensualités crédits (biens locatifs)</Label>
+                            <p className="text-base font-medium">{realEstateTotals.mensualitesTotal.toLocaleString('fr-FR')} €/mois</p>
+                          </div>
+                        )}
+                        {realEstateTotals.chargesTotal > 0 && (
+                          <div className="space-y-1">
+                            <Label className="text-muted-foreground">Charges & taxes (biens locatifs)</Label>
+                            <p className="text-base font-medium">{realEstateTotals.chargesTotal.toLocaleString('fr-FR')} €/mois</p>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Calculé depuis vos biens dans l'onglet Revenus fonciers.
+                      </p>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
               )}
 
-              {/* Locataire */}
-              {isLocataire && (
-                <div className="space-y-3 p-4 rounded-lg bg-muted/30">
-                  <p className="text-sm font-medium text-primary">🏠 Vous êtes locataire</p>
-                  <div className="space-y-2">
-                    <Label>Loyer charges comprises (€/mois)</Label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={getNumericDisplayValue(formData.loyer_actuel)}
-                      onChange={(e) => handleNumericInput("loyer_actuel", e.target.value)}
-                      placeholder="Ex: 1 200"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Propriétaire */}
-              {isProprietaire && (
-                <div className="space-y-3 p-4 rounded-lg bg-muted/30">
-                  <p className="text-sm font-medium text-primary">🏡 Vous êtes propriétaire</p>
+              {/* 🚗 Transports et Mobilité */}
+              <AccordionItem value="transport" className="border rounded-lg px-4 bg-card">
+                <AccordionTrigger className="hover:no-underline gap-2">
+                  <span className="flex items-center gap-2 text-left">🚗 Transports & Mobilité</span>
+                  <SubtotalBadge amount={transportSubtotal} />
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Mensualité crédit immobilier (€/mois)</Label>
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        value={getNumericDisplayValue(formData.credits_immobilier)}
-                        onChange={(e) => handleNumericInput("credits_immobilier", e.target.value)}
-                        placeholder="Ex: 1 500"
-                      />
+                      <Label>Transports en commun (€/mois)</Label>
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_transport_commun)} onChange={(e) => handleNumericInput("charges_transport_commun", e.target.value)} placeholder="Ex: 84" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Charges copropriété / taxes foncières (€/mois)</Label>
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        value={getNumericDisplayValue(formData.charges_copropriete_taxes)}
-                        onChange={(e) => handleNumericInput("charges_copropriete_taxes", e.target.value)}
-                        placeholder="Ex: 150"
-                      />
+                      <Label>Assurance automobile (€/mois)</Label>
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_assurance_auto)} onChange={(e) => handleNumericInput("charges_assurance_auto", e.target.value)} placeholder="Ex: 60" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>LLD/LOA ou crédit auto (€/mois)</Label>
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_lld_loa_auto || formData.credits_auto)} onChange={(e) => handleNumericInput("charges_lld_loa_auto", e.target.value)} placeholder="Ex: 350" />
                     </div>
                   </div>
-                </div>
-              )}
+                </AccordionContent>
+              </AccordionItem>
 
-              {/* Hébergé à titre gratuit */}
-              {isHeberge && (
-                <div className="space-y-3 p-4 rounded-lg bg-muted/30">
-                  <p className="text-sm font-medium text-primary">🏠 Vous êtes hébergé à titre gratuit</p>
-                  <p className="text-sm text-muted-foreground">
-                    Aucune charge de logement principale à déclarer.
-                  </p>
-                </div>
-              )}
-
-              {/* Charges communes (toujours affichées si statut renseigné) */}
-              {hasResidenceStatus && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Électricité, gaz, eau (€/mois)</Label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={getNumericDisplayValue(formData.charges_energie)}
-                      onChange={(e) => handleNumericInput("charges_energie", e.target.value)}
-                      placeholder="Ex: 120"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Assurance habitation (€/mois)</Label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={getNumericDisplayValue(formData.charges_assurance_habitation)}
-                      onChange={(e) => handleNumericInput("charges_assurance_habitation", e.target.value)}
-                      placeholder="Ex: 30"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 🏘️ Immobilier locatif (auto-importé) */}
-            {(realEstateTotals.mensualitesTotal > 0 || realEstateTotals.chargesTotal > 0) && (
-              <div className="space-y-4 pt-4 border-t">
-                <h4 className="font-medium flex items-center gap-2">
-                  🏘️ Charges mensuelles Immobilier locatif
-                </h4>
-                <div className="p-4 rounded-lg bg-muted/30 space-y-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
-                      Récupéré de l'onglet Revenus fonciers
-                    </Badge>
-                  </div>
+              {/* 📱 Communication et Services */}
+              <AccordionItem value="communication" className="border rounded-lg px-4 bg-card">
+                <AccordionTrigger className="hover:no-underline gap-2">
+                  <span className="flex items-center gap-2 text-left">📱 Communication & Services</span>
+                  <SubtotalBadge amount={communicationSubtotal} />
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {realEstateTotals.mensualitesTotal > 0 && (
-                      <div className="space-y-1">
-                        <Label className="text-muted-foreground">Mensualités crédits (biens locatifs)</Label>
-                        <p className="text-base font-medium">{realEstateTotals.mensualitesTotal.toLocaleString('fr-FR')} €/mois</p>
-                      </div>
-                    )}
-                    {realEstateTotals.chargesTotal > 0 && (
-                      <div className="space-y-1">
-                        <Label className="text-muted-foreground">Charges & taxes (biens locatifs)</Label>
-                        <p className="text-base font-medium">{realEstateTotals.chargesTotal.toLocaleString('fr-FR')} €/mois</p>
-                      </div>
-                    )}
+                    <div className="space-y-2">
+                      <Label>Internet (Box) (€/mois)</Label>
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_internet)} onChange={(e) => handleNumericInput("charges_internet", e.target.value)} placeholder="Ex: 35" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Forfait mobile (€/mois)</Label>
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_mobile)} onChange={(e) => handleNumericInput("charges_mobile", e.target.value)} placeholder="Ex: 20" />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Streaming, sport, presse (€/mois)</Label>
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_abonnements)} onChange={(e) => handleNumericInput("charges_abonnements", e.target.value)} placeholder="Ex: 50" />
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Ces montants sont calculés automatiquement à partir de vos biens renseignés dans l'onglet Revenus fonciers. Pour les modifier, rendez-vous dans cet onglet.
-                  </p>
-                </div>
-              </div>
-            )}
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* 🚗 Transports et Mobilité */}
-            <div className="space-y-4 pt-4 border-t">
-              <h4 className="font-medium flex items-center gap-2">
-                🚗 Charges mensuelles Transports et Mobilité
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Abonnement transports en commun (€/mois)</Label>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={getNumericDisplayValue(formData.charges_transport_commun)}
-                    onChange={(e) => handleNumericInput("charges_transport_commun", e.target.value)}
-                    placeholder="Ex: 84"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Assurance automobile (€/mois)</Label>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={getNumericDisplayValue(formData.charges_assurance_auto)}
-                    onChange={(e) => handleNumericInput("charges_assurance_auto", e.target.value)}
-                    placeholder="Ex: 60"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>LLD/LOA ou crédit auto (€/mois)</Label>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={getNumericDisplayValue(formData.charges_lld_loa_auto || formData.credits_auto)}
-                    onChange={(e) => handleNumericInput("charges_lld_loa_auto", e.target.value)}
-                    placeholder="Ex: 350"
-                  />
-                </div>
-              </div>
-            </div>
+              {/* 👨‍👩‍👧 Famille */}
+              <AccordionItem value="famille" className="border rounded-lg px-4 bg-card">
+                <AccordionTrigger className="hover:no-underline gap-2">
+                  <span className="flex items-center gap-2 text-left">👨‍👩‍👧 Famille</span>
+                  <SubtotalBadge amount={familleSubtotal} />
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Scolarité, crèche, garde d'enfants (€/mois)</Label>
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_frais_scolarite)} onChange={(e) => handleNumericInput("charges_frais_scolarite", e.target.value)} placeholder="Ex: 200" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Pension alimentaire (€/mois)</Label>
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.pensions_alimentaires)} onChange={(e) => handleNumericInput("pensions_alimentaires", e.target.value)} placeholder="Ex: 0" />
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* 📱 Communication et Services */}
-            <div className="space-y-4 pt-4 border-t">
-              <h4 className="font-medium flex items-center gap-2">
-                📱 Charges mensuelles Communication et Services
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Abonnement Internet (Box) (€/mois)</Label>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={getNumericDisplayValue(formData.charges_internet)}
-                    onChange={(e) => handleNumericInput("charges_internet", e.target.value)}
-                    placeholder="Ex: 35"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Forfait mobile (€/mois)</Label>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={getNumericDisplayValue(formData.charges_mobile)}
-                    onChange={(e) => handleNumericInput("charges_mobile", e.target.value)}
-                    placeholder="Ex: 20"
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label>Streaming, sport, presse (€/mois)</Label>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={getNumericDisplayValue(formData.charges_abonnements)}
-                    onChange={(e) => handleNumericInput("charges_abonnements", e.target.value)}
-                    placeholder="Ex: 50"
-                  />
-                </div>
-              </div>
-            </div>
+              {/* 💰 Crédit consommation */}
+              <AccordionItem value="credit" className="border rounded-lg px-4 bg-card">
+                <AccordionTrigger className="hover:no-underline gap-2">
+                  <span className="flex items-center gap-2 text-left">💰 Crédit consommation</span>
+                  <SubtotalBadge amount={creditSubtotal} />
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <div className="space-y-2">
+                    <Label>Mensualité crédit consommation (€/mois)</Label>
+                    <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.credits_consommation)} onChange={(e) => handleNumericInput("credits_consommation", e.target.value)} placeholder="Ex: 200" />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* 👨‍👩‍👧 Famille */}
-            <div className="space-y-4 pt-4 border-t">
-              <h4 className="font-medium flex items-center gap-2">
-                👨‍👩‍👧 Charges mensuelles Famille
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Frais de scolarité, crèche, garde d'enfants (€/mois)</Label>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={getNumericDisplayValue(formData.charges_frais_scolarite)}
-                    onChange={(e) => handleNumericInput("charges_frais_scolarite", e.target.value)}
-                    placeholder="Ex: 200"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Pension alimentaire (€/mois)</Label>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={getNumericDisplayValue(formData.pensions_alimentaires)}
-                    onChange={(e) => handleNumericInput("pensions_alimentaires", e.target.value)}
-                    placeholder="Ex: 0"
-                  />
-                </div>
-              </div>
-            </div>
+              {/* 💳 Autres */}
+              <AccordionItem value="autres" className="border rounded-lg px-4 bg-card">
+                <AccordionTrigger className="hover:no-underline gap-2">
+                  <span className="flex items-center gap-2 text-left">💳 Autres charges</span>
+                  <SubtotalBadge amount={autresSubtotal} />
+                </AccordionTrigger>
+                <AccordionContent className="pb-4">
+                  <div className="space-y-2">
+                    <Label>Autres charges fixes (mutuelle, prévoyance...) (€/mois)</Label>
+                    <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_autres)} onChange={(e) => handleNumericInput("charges_autres", e.target.value)} placeholder="Ex: 100" />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* 💰 Crédit consommation */}
-            <div className="space-y-4 pt-4 border-t">
-              <h4 className="font-medium flex items-center gap-2">
-                💰 Crédit consommation
-              </h4>
-              <div className="space-y-2">
-                <Label>Mensualité crédit consommation (€/mois)</Label>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  value={getNumericDisplayValue(formData.credits_consommation)}
-                  onChange={(e) => handleNumericInput("credits_consommation", e.target.value)}
-                  placeholder="Ex: 200"
-                />
-              </div>
-            </div>
-
-            {/* 💳 Autres */}
-            <div className="space-y-4 pt-4 border-t">
-              <h4 className="font-medium flex items-center gap-2">
-                💳 Autres charges mensuelles
-              </h4>
-              <div className="space-y-2">
-                <Label>Autres charges fixes (mutuelle, prévoyance...) (€/mois)</Label>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  value={getNumericDisplayValue(formData.charges_autres)}
-                  onChange={(e) => handleNumericInput("charges_autres", e.target.value)}
-                  placeholder="Ex: 100"
-                />
-              </div>
-            </div>
+            </Accordion>
 
             {/* 📊 Total charges fixes mensuelles */}
-            <div className="mt-6 p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Wallet className="h-5 w-5 text-primary" />
@@ -890,9 +832,6 @@ export function FinancialProfileWizard({
                   {calculateTotalCharges().toLocaleString('fr-FR')} €
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Ce total est calculé automatiquement à partir des charges renseignées ci-dessus.
-              </p>
             </div>
 
           </div>
