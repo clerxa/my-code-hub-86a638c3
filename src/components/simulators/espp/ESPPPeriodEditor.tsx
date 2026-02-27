@@ -277,7 +277,9 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
                 }}
                 placeholder="ex. 15"
               />
-              <p className="text-xs text-muted-foreground">Entre 1% et 15% — consultez les documents de votre plan ESPP.</p>
+              <p className="text-xs text-muted-foreground">
+                Entre 1% et 15% — <span className="font-medium">15% est le plafond légal</span> fixé par la Section 423 de l'IRC (Internal Revenue Code américain).
+              </p>
             </div>
             <div className="space-y-2">
               <Label>Nombre d'actions achetées</Label>
