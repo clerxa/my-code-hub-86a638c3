@@ -72,18 +72,28 @@ Deno.serve(async (req) => {
       const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(ticker)}&outputsize=full&apikey=${ALPHA_VANTAGE_KEY}`;
       const res = await fetch(url);
       const data = await res.json();
+      console.log('[stock_prices_batch] Alpha Vantage response keys:', Object.keys(data));
+      if (data['Information']) {
+        console.log('[stock_prices_batch] Information:', data['Information']);
+        const errResults: Record<string, any> = {};
+        for (const d of dates) errResults[d] = { price: null, isBusinessDay: true, error: data['Information'] };
+        return new Response(JSON.stringify({ results: errResults }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
       if (data['Error Message']) {
+        console.log('[stock_prices_batch] Error:', data['Error Message']);
         const errResults: Record<string, any> = {};
         for (const d of dates) errResults[d] = { price: null, isBusinessDay: true, error: data['Error Message'] };
         return new Response(JSON.stringify({ results: errResults }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
       if (data['Note']) {
+        console.log('[stock_prices_batch] Note (rate limit):', data['Note']);
         const errResults: Record<string, any> = {};
         for (const d of dates) errResults[d] = { price: null, isBusinessDay: true, error: 'Limite API atteinte — réessayez dans 1 minute' };
         return new Response(JSON.stringify({ results: errResults }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
       const timeSeries = data['Time Series (Daily)'];
       if (!timeSeries) {
+        console.log('[stock_prices_batch] No Time Series found. Full response:', JSON.stringify(data).substring(0, 500));
         const errResults: Record<string, any> = {};
         for (const d of dates) errResults[d] = { price: null, isBusinessDay: true, error: 'No data' };
         return new Response(JSON.stringify({ results: errResults }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
