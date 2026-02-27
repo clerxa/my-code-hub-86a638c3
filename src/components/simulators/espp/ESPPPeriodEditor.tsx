@@ -472,7 +472,7 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
               <Button
                 type="button"
                 onClick={handleFetchAll}
-                disabled={loadingPrices || (!data.date_debut_offre && !data.date_achat)}
+                disabled={loadingPrices || !data.date_debut_offre || !data.date_achat}
                 className="w-full gap-2 relative overflow-hidden group"
                 variant={fetchSuccess ? 'default' : 'outline'}
               >
