@@ -18,7 +18,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { RSUPlan, RSURegime, RSUDevise, VestingLine } from '@/types/rsu';
 import { REGIME_LABELS } from '@/types/rsu';
-import { searchSymbols, fetchStockPrice, fetchFxRate, type SymbolSearchResult } from '@/hooks/useStockData';
+import { searchSymbols, fetchStockPricesBatch, fetchFxRate, type SymbolSearchResult } from '@/hooks/useStockData';
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
@@ -454,20 +454,28 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
     setBulkFetchDone(false);
     const newStatuses: typeof fetchStatuses = {};
 
-    // Process all rows in parallel
-    await Promise.all(vestingsWithDates.map(async (v) => {
-      newStatuses[v.id] = { loadingCours: true, loadingFx: devise === 'USD' };
-      setFetchStatuses(prev => ({ ...prev, [v.id]: { ...newStatuses[v.id] } }));
+    // Set all rows to loading
+    const initialStatuses: typeof fetchStatuses = {};
+    for (const v of vestingsWithDates) {
+      initialStatuses[v.id] = { loadingCours: true, loadingFx: devise === 'USD' };
+    }
+    setFetchStatuses(initialStatuses);
 
-      const [priceResult, fxResult] = await Promise.all([
-        fetchStockPrice(ticker, v.date),
-        devise === 'USD' ? fetchFxRate(v.date) : Promise.resolve({ rate: null, isBusinessDay: true } as { rate: number | null; isBusinessDay: boolean; error?: string }),
-      ]);
+    // 1 single API call for all stock prices (batch)
+    const dates = vestingsWithDates.map(v => v.date);
+    const [priceResults, ...fxResults] = await Promise.all([
+      fetchStockPricesBatch(ticker, dates),
+      ...(devise === 'USD' ? vestingsWithDates.map(v => fetchFxRate(v.date)) : []),
+    ]);
 
-      const status: typeof newStatuses[string] = {};
+    // Map results back to each row
+    const finalStatuses: typeof fetchStatuses = {};
+    vestingsWithDates.forEach((v, i) => {
+      const status: typeof finalStatuses[string] = {};
+      const priceResult = priceResults[v.date];
 
-      if (priceResult.error || priceResult.price === null) {
-        status.coursError = 'Cours non disponible — saisie manuelle requise';
+      if (!priceResult || priceResult.error || priceResult.price === null) {
+        status.coursError = priceResult?.error || 'Cours non disponible — saisie manuelle requise';
       } else {
         updateVesting(v.id, 'cours', priceResult.price);
         if (!priceResult.isBusinessDay) {
@@ -476,8 +484,9 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
       }
 
       if (devise === 'USD') {
-        if (fxResult.error || fxResult.rate === null) {
-          status.fxError = 'Taux non disponible — saisie manuelle requise';
+        const fxResult = fxResults[i] as { rate: number | null; isBusinessDay: boolean; error?: string };
+        if (!fxResult || fxResult.error || fxResult.rate === null) {
+          status.fxError = fxResult?.error || 'Taux non disponible — saisie manuelle requise';
         } else {
           updateVesting(v.id, 'taux_change', fxResult.rate);
           if (!fxResult.isBusinessDay) {
@@ -486,9 +495,10 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
         }
       }
 
-      setFetchStatuses(prev => ({ ...prev, [v.id]: status }));
-    }));
+      finalStatuses[v.id] = status;
+    });
 
+    setFetchStatuses(finalStatuses);
     setIsBulkFetching(false);
     setBulkFetchDone(true);
   }, [ticker, vestingsWithDates, devise, updateVesting]);
