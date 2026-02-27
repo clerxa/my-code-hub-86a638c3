@@ -145,8 +145,6 @@ const defaultAdminItems: AdminMenuItem[] = [
   },
   
   // Technique
-  { id: "storage", label: "Storage", url: "/admin/storage", icon: "Database", order: 0, visible: true, categoryId: "technical" },
-  { id: "storage", label: "Storage", url: "/admin/storage", icon: "Database", order: 1, visible: true, categoryId: "technical" },
   { id: "global-settings", label: "Paramètres Globaux", url: "/admin/global-settings", icon: "Settings", order: 2, visible: true, categoryId: "technical" },
   { id: "email-config", label: "Configuration Email", url: "/admin/email-config", icon: "Mail", order: 3, visible: true, categoryId: "technical" },
   { id: "beta-lab", label: "Beta Lab", url: "/admin/beta-lab", icon: "FlaskConical", order: 4, visible: true, categoryId: "technical" },

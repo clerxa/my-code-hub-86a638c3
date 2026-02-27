@@ -20,7 +20,7 @@ import { ParcoursTab } from "@/components/admin/ParcoursTab";
 import { FormationsTab } from "@/components/admin/FormationsTab";
 import { PartnershipTab } from "@/components/admin/PartnershipTab";
 
-import { StorageBucketsTab } from "@/components/admin/StorageBucketsTab";
+
 import { RiskProfileTab } from "@/components/admin/RiskProfileTab";
 import { LayoutCustomizationTab } from "@/components/admin/LayoutCustomizationTab";
 import { EmployeePartnershipEditor } from "@/components/admin/EmployeePartnershipEditor";
@@ -121,7 +121,7 @@ const Admin = () => {
     users: "Utilisateurs",
     "risk-profile": "Risk Profile",
     validation: "Validation",
-    storage: "Storage",
+    
     layout: "Layout",
     "landing-employee-partnership": "Employee Partnership",
     
@@ -390,7 +390,7 @@ const Admin = () => {
                 <Route path="risk-profile" element={<RiskProfileTab />} />
                 <Route path="validation" element={<PointsAndValidationTab />} />
                 <Route path="notifications" element={<NotificationsTab />} />
-                <Route path="storage" element={<StorageBucketsTab />} />
+                
                 <Route path="layout" element={<LayoutCustomizationTab />} />
                 <Route path="sidebar-config" element={<SidebarConfigurationTab />} />
                 <Route path="admin-sidebar-config" element={<AdminSidebarConfigurationTab />} />
