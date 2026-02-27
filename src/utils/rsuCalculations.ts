@@ -58,7 +58,7 @@ export function calculateRSUSimulation(
   plans: RSUPlan[],
   params: RSUCessionParams,
 ): RSUSimulationResult {
-  const dateCession = new Date(params.annee_cession, 11, 31); // fin d'année fiscale
+  const dateCession = params.date_cession ? new Date(params.date_cession) : new Date();
 
   // Séparer par régime
   const plansR1 = plans.filter(p => p.regime === 'R1');

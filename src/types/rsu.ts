@@ -30,7 +30,8 @@ export interface RSUCessionParams {
   prix_vente: number; // en devise
   taux_change_vente: number; // €/$ au jour de la vente
   tmi: number; // 11, 30, 41, 45
-  annee_cession: number;
+  date_cession: string; // YYYY-MM-DD
+  tmi_from_profile?: boolean; // whether TMI was loaded from financial profile
 }
 
 // Résultat par plan

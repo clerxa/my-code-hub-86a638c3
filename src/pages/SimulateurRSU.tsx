@@ -30,7 +30,7 @@ const SimulateurRSU = () => {
     prix_vente: 0,
     taux_change_vente: 1,
     tmi: 30,
-    annee_cession: new Date().getFullYear(),
+    date_cession: new Date().toISOString().split('T')[0],
   });
   const [result, setResult] = useState<RSUSimulationResult | null>(null);
 
