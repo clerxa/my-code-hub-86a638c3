@@ -259,11 +259,15 @@ function VestingRow({
             <TooltipTrigger asChild>
               <div className="relative">
                 <Input
-                  type="number"
-                  min={0}
-                  step={0.01}
-                  value={v.cours || ''}
-                  onChange={e => onUpdate(v.id, 'cours', Number(e.target.value))}
+                  type="text"
+                  inputMode="decimal"
+                  value={v.cours ? v.cours.toFixed(2).replace('.', ',') : ''}
+                  onChange={e => {
+                    const val = e.target.value.replace(',', '.');
+                    const num = parseFloat(val);
+                    if (!isNaN(num) || val === '' || val === '0') onUpdate(v.id, 'cours', isNaN(num) ? 0 : num);
+                  }}
+                  placeholder="0,00"
                   className={`h-9 ${status.coursError ? 'border-destructive' : ''} ${status.loadingCours ? 'pr-8' : ''}`}
                 />
                 {status.loadingCours && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
@@ -286,11 +290,15 @@ function VestingRow({
               <TooltipTrigger asChild>
                 <div className="relative">
                   <Input
-                    type="number"
-                    min={0}
-                    step={0.0001}
-                    value={v.taux_change || ''}
-                    onChange={e => onUpdate(v.id, 'taux_change', Number(e.target.value))}
+                    type="text"
+                    inputMode="decimal"
+                    value={v.taux_change && v.taux_change !== 1 ? v.taux_change.toFixed(4).replace('.', ',') : v.taux_change === 1 ? '1,0000' : ''}
+                    onChange={e => {
+                      const val = e.target.value.replace(',', '.');
+                      const num = parseFloat(val);
+                      if (!isNaN(num) || val === '' || val === '0') onUpdate(v.id, 'taux_change', isNaN(num) ? 0 : num);
+                    }}
+                    placeholder="0,0000"
                     className={`h-9 ${status.fxError ? 'border-destructive' : ''} ${status.loadingFx ? 'pr-8' : ''}`}
                   />
                   {status.loadingFx && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
