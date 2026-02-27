@@ -41,6 +41,24 @@ export async function fetchStockPrice(
   }
 }
 
+/**
+ * Batch fetch: 1 single API call for all dates of the same ticker
+ */
+export async function fetchStockPricesBatch(
+  ticker: string,
+  dates: string[]
+): Promise<Record<string, { price: number | null; isBusinessDay: boolean; error?: string }>> {
+  if (!ticker || !dates.length) return {};
+  try {
+    const data = await callStockData({ action: 'stock_prices_batch', ticker, dates });
+    return data.results || {};
+  } catch {
+    const fallback: Record<string, { price: number | null; isBusinessDay: boolean; error?: string }> = {};
+    for (const d of dates) fallback[d] = { price: null, isBusinessDay: true, error: 'Network error' };
+    return fallback;
+  }
+}
+
 export async function fetchFxRate(
   date: string
 ): Promise<{ rate: number | null; isBusinessDay: boolean; error?: string }> {
