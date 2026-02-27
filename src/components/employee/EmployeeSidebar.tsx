@@ -129,6 +129,9 @@ export const EmployeeSidebar = ({
       case "forum":
         navigate("/forum");
         break;
+      case "feedback":
+        navigate("/employee/feedback");
+        break;
       case "offers":
         navigate("/employee");
         setTimeout(() => onSectionChange("offers"), 100);
