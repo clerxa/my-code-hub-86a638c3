@@ -4,8 +4,8 @@
  */
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Loader2, CheckCircle2, HelpCircle, RefreshCw, Info, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Loader2, CheckCircle2, HelpCircle, Info, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -101,10 +101,14 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
 
   // ─── Auto-fetch cours et taux ───
   const [loadingPrices, setLoadingPrices] = useState(false);
+  const [fetchedFields, setFetchedFields] = useState<Set<string>>(new Set());
+  const [fetchSuccess, setFetchSuccess] = useState(false);
 
   const handleFetchAll = useCallback(async () => {
     if (!data.entreprise_ticker) return;
     setLoadingPrices(true);
+    setFetchedFields(new Set());
+    setFetchSuccess(false);
 
     const dates: string[] = [];
     if (data.date_debut_offre) dates.push(data.date_debut_offre);
@@ -123,25 +127,34 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
         isUSD && data.has_sold && data.date_cession ? fetchFxRate(data.date_cession) : Promise.resolve(null),
       ]);
 
+      const filled = new Set<string>();
       setData(prev => {
         const updated = { ...prev };
         if (data.date_debut_offre && prices[data.date_debut_offre]?.price) {
           updated.cours_debut_offre_devise = Math.round(prices[data.date_debut_offre].price! * 100) / 100;
+          filled.add('cours_debut');
         }
         if (data.date_achat && prices[data.date_achat]?.price) {
           updated.cours_achat_devise = Math.round(prices[data.date_achat].price! * 100) / 100;
+          filled.add('cours_achat');
         }
         if (data.has_sold && data.date_cession && prices[data.date_cession]?.price) {
           updated.prix_cession_devise = Math.round(prices[data.date_cession].price! * 100) / 100;
+          filled.add('cours_cession');
         }
         if (fxAchat?.rate) {
           updated.taux_change_achat = Math.round(fxAchat.rate * 10000) / 10000;
+          filled.add('fx_achat');
         }
         if (fxCession?.rate) {
           updated.taux_change_cession = Math.round(fxCession.rate * 10000) / 10000;
+          filled.add('fx_cession');
         }
         return updated;
       });
+      setFetchedFields(filled);
+      setFetchSuccess(true);
+      setTimeout(() => { setFetchedFields(new Set()); setFetchSuccess(false); }, 3000);
     } catch {
       // silently fail
     }
@@ -284,25 +297,11 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
       {/* Section C — Dates et cours */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Dates et cours</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Renseignez les dates clés de votre période ESPP. Les cours et taux de change sont récupérés automatiquement.
-              </p>
-            </div>
-            {data.entreprise_ticker && (
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={handleFetchAll}
-                disabled={loadingPrices}
-                title="Récupérer les cours automatiquement"
-              >
-                {loadingPrices ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-              </Button>
-            )}
+          <div>
+            <CardTitle className="text-lg">Dates et cours</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Renseignez les dates ci-dessous, puis cliquez sur le bouton magique pour récupérer automatiquement les cours et taux de change.
+            </p>
           </div>
         </CardHeader>
         <CardContent className="space-y-0">
@@ -319,8 +318,12 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
                 <tr className="border-b">
                   <th className="text-left py-2 pr-2 font-medium">Événement</th>
                   <th className="text-left py-2 px-2 font-medium">Date</th>
-                  <th className="text-left py-2 px-2 font-medium">Cours ({deviseSymbol})</th>
-                  {isUSD && <th className="text-left py-2 pl-2 font-medium">Taux €/$</th>}
+                  <th className="text-left py-2 px-2 font-medium">
+                    <span className="flex items-center gap-1">Cours ({deviseSymbol}) <span className="text-[10px] font-normal text-muted-foreground/60">auto</span></span>
+                  </th>
+                  {isUSD && <th className="text-left py-2 pl-2 font-medium">
+                    <span className="flex items-center gap-1">Taux €/$ <span className="text-[10px] font-normal text-muted-foreground/60">auto</span></span>
+                  </th>}
                 </tr>
               </thead>
               <tbody>
@@ -339,17 +342,19 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
                     />
                   </td>
                   <td className="py-3 px-2">
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      value={data.cours_debut_offre_devise ? data.cours_debut_offre_devise.toFixed(2).replace('.', ',') : ''}
-                      onChange={e => {
-                        const num = parseFloat(e.target.value.replace(',', '.'));
-                        setData(prev => ({ ...prev, cours_debut_offre_devise: isNaN(num) ? 0 : num }));
-                      }}
-                      placeholder="0,00"
-                      className="w-[120px]"
-                    />
+                    <motion.div animate={fetchedFields.has('cours_debut') ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 0.4 }}>
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        value={data.cours_debut_offre_devise ? data.cours_debut_offre_devise.toFixed(2).replace('.', ',') : ''}
+                        onChange={e => {
+                          const num = parseFloat(e.target.value.replace(',', '.'));
+                          setData(prev => ({ ...prev, cours_debut_offre_devise: isNaN(num) ? 0 : num }));
+                        }}
+                        placeholder="✨ Auto"
+                        className={`w-[120px] transition-colors duration-500 ${fetchedFields.has('cours_debut') ? 'border-primary ring-2 ring-primary/20' : ''}`}
+                      />
+                    </motion.div>
                   </td>
                   {isUSD && <td className="py-3 pl-2"><span className="text-muted-foreground text-xs">—</span></td>}
                 </tr>
@@ -365,31 +370,35 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
                     />
                   </td>
                   <td className="py-3 px-2">
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      value={data.cours_achat_devise ? data.cours_achat_devise.toFixed(2).replace('.', ',') : ''}
-                      onChange={e => {
-                        const num = parseFloat(e.target.value.replace(',', '.'));
-                        setData(prev => ({ ...prev, cours_achat_devise: isNaN(num) ? 0 : num }));
-                      }}
-                      placeholder="0,00"
-                      className="w-[120px]"
-                    />
-                  </td>
-                  {isUSD && (
-                    <td className="py-3 pl-2">
+                    <motion.div animate={fetchedFields.has('cours_achat') ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 0.4, delay: 0.1 }}>
                       <Input
                         type="text"
                         inputMode="decimal"
-                        value={data.taux_change_achat ? data.taux_change_achat.toFixed(4).replace('.', ',') : ''}
+                        value={data.cours_achat_devise ? data.cours_achat_devise.toFixed(2).replace('.', ',') : ''}
                         onChange={e => {
                           const num = parseFloat(e.target.value.replace(',', '.'));
-                          setData(prev => ({ ...prev, taux_change_achat: isNaN(num) ? 0 : num }));
+                          setData(prev => ({ ...prev, cours_achat_devise: isNaN(num) ? 0 : num }));
                         }}
-                        placeholder="0,9200"
-                        className="w-[110px]"
+                        placeholder="✨ Auto"
+                        className={`w-[120px] transition-colors duration-500 ${fetchedFields.has('cours_achat') ? 'border-primary ring-2 ring-primary/20' : ''}`}
                       />
+                    </motion.div>
+                  </td>
+                  {isUSD && (
+                    <td className="py-3 pl-2">
+                      <motion.div animate={fetchedFields.has('fx_achat') ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 0.4, delay: 0.2 }}>
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          value={data.taux_change_achat ? data.taux_change_achat.toFixed(4).replace('.', ',') : ''}
+                          onChange={e => {
+                            const num = parseFloat(e.target.value.replace(',', '.'));
+                            setData(prev => ({ ...prev, taux_change_achat: isNaN(num) ? 0 : num }));
+                          }}
+                          placeholder="✨ Auto"
+                          className={`w-[110px] transition-colors duration-500 ${fetchedFields.has('fx_achat') ? 'border-primary ring-2 ring-primary/20' : ''}`}
+                        />
+                      </motion.div>
                     </td>
                   )}
                 </tr>
@@ -408,40 +417,46 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
                     />
                   </td>
                   <td className="py-3 px-2">
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      value={data.prix_cession_devise ? data.prix_cession_devise.toFixed(2).replace('.', ',') : ''}
-                      onChange={e => {
-                        const num = parseFloat(e.target.value.replace(',', '.'));
-                        setData(prev => ({ ...prev, prix_cession_devise: isNaN(num) ? 0 : num }));
-                      }}
-                      placeholder="0,00"
-                      className="w-[120px]"
-                      disabled={!data.has_sold}
-                    />
-                  </td>
-                  {isUSD && (
-                    <td className="py-3 pl-2">
+                    <motion.div animate={fetchedFields.has('cours_cession') ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 0.4, delay: 0.3 }}>
                       <Input
                         type="text"
                         inputMode="decimal"
-                        value={data.taux_change_cession ? data.taux_change_cession.toFixed(4).replace('.', ',') : ''}
+                        value={data.prix_cession_devise ? data.prix_cession_devise.toFixed(2).replace('.', ',') : ''}
                         onChange={e => {
                           const num = parseFloat(e.target.value.replace(',', '.'));
-                          setData(prev => ({ ...prev, taux_change_cession: isNaN(num) ? 0 : num }));
+                          setData(prev => ({ ...prev, prix_cession_devise: isNaN(num) ? 0 : num }));
                         }}
-                        placeholder="0,9200"
-                        className="w-[110px]"
+                        placeholder="✨ Auto"
+                        className={`w-[120px] transition-colors duration-500 ${fetchedFields.has('cours_cession') ? 'border-primary ring-2 ring-primary/20' : ''}`}
                         disabled={!data.has_sold}
                       />
+                    </motion.div>
+                  </td>
+                  {isUSD && (
+                    <td className="py-3 pl-2">
+                      <motion.div animate={fetchedFields.has('fx_cession') ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 0.4, delay: 0.4 }}>
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          value={data.taux_change_cession ? data.taux_change_cession.toFixed(4).replace('.', ',') : ''}
+                          onChange={e => {
+                            const num = parseFloat(e.target.value.replace(',', '.'));
+                            setData(prev => ({ ...prev, taux_change_cession: isNaN(num) ? 0 : num }));
+                          }}
+                          placeholder="✨ Auto"
+                          className={`w-[110px] transition-colors duration-500 ${fetchedFields.has('fx_cession') ? 'border-primary ring-2 ring-primary/20' : ''}`}
+                          disabled={!data.has_sold}
+                        />
+                      </motion.div>
                     </td>
                   )}
                 </tr>
               </tbody>
             </table>
           </div>
-          <div className="flex items-center gap-3 pt-4">
+
+          {/* Toggle vente */}
+          <div className="flex items-center gap-3 pt-4 pb-4 border-b">
             <Switch
               checked={data.has_sold}
               onCheckedChange={checked => setData(prev => ({ ...prev, has_sold: checked }))}
@@ -450,6 +465,41 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
               {data.has_sold ? 'J\'ai vendu mes actions' : 'Je n\'ai pas encore vendu'}
             </Label>
           </div>
+
+          {/* Bouton fetch magique — après le toggle */}
+          {data.entreprise_ticker && (
+            <div className="pt-4">
+              <Button
+                type="button"
+                onClick={handleFetchAll}
+                disabled={loadingPrices || (!data.date_debut_offre && !data.date_achat)}
+                className="w-full gap-2 relative overflow-hidden group"
+                variant={fetchSuccess ? 'default' : 'outline'}
+              >
+                <AnimatePresence mode="wait">
+                  {loadingPrices ? (
+                    <motion.span key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Récupération des cours en cours…
+                    </motion.span>
+                  ) : fetchSuccess ? (
+                    <motion.span key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4" />
+                      Cours et taux récupérés avec succès !
+                    </motion.span>
+                  ) : (
+                    <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Récupérer automatiquement les cours et taux de change
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </Button>
+              <p className="text-[11px] text-muted-foreground/60 text-center mt-1.5">
+                Remplissez d'abord les dates, puis cliquez ici pour tout récupérer d'un coup.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
