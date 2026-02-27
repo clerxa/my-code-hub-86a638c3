@@ -267,6 +267,44 @@ export const GestionPiloteeDataSchema = z.object({
   total_investi: z.number().optional(),
 });
 
+export const RSUDataSchema = z.object({
+  plans: z.array(z.object({
+    id: z.string(),
+    nom: z.string(),
+    ticker: z.string().optional(),
+    entreprise_nom: z.string().optional(),
+    annee_attribution: z.number(),
+    regime: z.enum(['R1', 'R2', 'R3']),
+    devise: z.enum(['EUR', 'USD']),
+    vestings: z.array(z.object({
+      id: z.string(),
+      date: z.string(),
+      nb_rsu: z.number(),
+      cours: z.number(),
+      taux_change: z.number(),
+      gain_eur: z.number(),
+    })),
+    gain_acquisition_total: z.number(),
+  })),
+  cession_params: z.object({
+    prix_vente: z.number(),
+    taux_change_vente: z.number(),
+    tmi: z.number(),
+    annee_cession: z.number(),
+  }),
+  result: z.object({
+    gain_brut_total: z.number(),
+    total_impots: z.number(),
+    gain_net_total: z.number(),
+    taux_effectif: z.number(),
+    seuil_300k_applique: z.boolean(),
+    total_ir: z.number(),
+    total_ps: z.number(),
+    total_contribution_salariale: z.number(),
+    total_csg_crds: z.number(),
+  }),
+});
+
 // ============================================
 // Types de simulation supportés
 // ============================================
@@ -304,6 +342,7 @@ export const SimulationDataSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('interets_composes'), data: InteretsComposesDataSchema }),
   z.object({ type: z.literal('pvi'), data: PVIDataSchema }),
   z.object({ type: z.literal('gestion_pilotee'), data: GestionPiloteeDataSchema }),
+  z.object({ type: z.literal('rsu'), data: RSUDataSchema }),
 ]);
 
 // ============================================

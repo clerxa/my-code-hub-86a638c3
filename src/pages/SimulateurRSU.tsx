@@ -3,19 +3,23 @@
  * 4 écrans : Dashboard → Éditeur de plan → Paramètres cession → Résultats
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { SimulatorHeader } from '@/components/simulators/SimulatorHeader';
 import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer';
+import { SaveSimulationDialog } from '@/components/simulators/SaveSimulationDialog';
 import { RSUPlansDashboard, RSUPlanEditor, RSUCessionParams, RSUResults, RSUIntroScreen } from '@/components/simulators/rsu';
 import { calculateRSUSimulation } from '@/utils/rsuCalculations';
+import { useUnifiedSimulationSave } from '@/hooks/useUnifiedSimulationSave';
+import { useSimulationDefaults } from '@/contexts/GlobalSettingsContext';
 import type { RSUPlan, RSUCessionParams as CessionParamsType, RSUSimulationResult } from '@/types/rsu';
 
 type Screen = 'intro' | 'dashboard' | 'editor' | 'cession' | 'results';
 
 const SimulateurRSU = () => {
   const navigate = useNavigate();
+  const { default_tmi, isLoading: settingsLoading } = useSimulationDefaults();
 
   const introSeen = useRef(false);
   const [screen, setScreen] = useState<Screen>('intro');
@@ -28,6 +32,51 @@ const SimulateurRSU = () => {
     annee_cession: new Date().getFullYear(),
   });
   const [result, setResult] = useState<RSUSimulationResult | null>(null);
+
+  // Mettre à jour le TMI par défaut quand les settings sont chargés
+  useEffect(() => {
+    if (!settingsLoading && default_tmi) {
+      setCessionParams(prev => prev.tmi === 30 ? { ...prev, tmi: default_tmi } : prev);
+    }
+  }, [settingsLoading, default_tmi]);
+
+  // Sauvegarde unifiée
+  const {
+    showSaveDialog,
+    openSaveDialog,
+    closeSaveDialog,
+    simulationName,
+    setSimulationName,
+    saveSimulation,
+    isSaving,
+    showExpertPrompt,
+    closeExpertPrompt,
+  } = useUnifiedSimulationSave({
+    type: 'rsu',
+    queryCacheKey: ['simulations', 'rsu_simulations'],
+  });
+
+  const handleSave = useCallback(() => {
+    if (!result) return;
+    saveSimulation({
+      plans: plans.map(p => ({
+        ...p,
+        vestings: p.vestings.map(v => ({ ...v })),
+      })),
+      cession_params: { ...cessionParams },
+      result: {
+        gain_brut_total: result.gain_brut_total,
+        total_impots: result.total_impots,
+        gain_net_total: result.gain_net_total,
+        taux_effectif: result.taux_effectif,
+        seuil_300k_applique: result.seuil_300k_applique,
+        total_ir: result.total_ir,
+        total_ps: result.total_ps,
+        total_contribution_salariale: result.total_contribution_salariale,
+        total_csg_crds: result.total_csg_crds,
+      },
+    });
+  }, [result, plans, cessionParams, saveSimulation]);
 
   // Navigation handlers
   const handleBack = useCallback(() => {
@@ -150,6 +199,7 @@ const SimulateurRSU = () => {
               key="results"
               result={result}
               onReset={handleReset}
+              onSave={() => openSaveDialog()}
             />
           )}
         </AnimatePresence>
@@ -158,6 +208,17 @@ const SimulateurRSU = () => {
           <SimulatorDisclaimer />
         </div>
       </div>
+
+      <SaveSimulationDialog
+        open={showSaveDialog}
+        onOpenChange={closeSaveDialog}
+        simulationName={simulationName}
+        onSimulationNameChange={setSimulationName}
+        onSave={handleSave}
+        isSaving={isSaving}
+        showExpertPrompt={showExpertPrompt}
+        onCloseExpertPrompt={closeExpertPrompt}
+      />
     </div>
   );
 };

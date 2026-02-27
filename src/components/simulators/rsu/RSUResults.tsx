@@ -3,7 +3,7 @@
  */
 
 import { motion } from 'framer-motion';
-import { TrendingUp, Landmark, Wallet, AlertTriangle, ExternalLink, RotateCcw } from 'lucide-react';
+import { TrendingUp, Landmark, Wallet, AlertTriangle, ExternalLink, RotateCcw, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,9 +25,10 @@ const DONUT_COLORS = ['#f59e0b', '#6366f1', '#ec4899', '#22c55e'];
 interface RSUResultsProps {
   result: RSUSimulationResult;
   onReset: () => void;
+  onSave?: () => void;
 }
 
-export function RSUResults({ result, onReset }: RSUResultsProps) {
+export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
   const donutData = [
     { name: 'Impôt sur le revenu', value: result.total_ir },
     { name: 'Prélèvements sociaux', value: result.total_ps + result.total_csg_crds },
@@ -222,6 +223,12 @@ export function RSUResults({ result, onReset }: RSUResultsProps) {
             Optimiser avec un expert Perlib
           </a>
         </Button>
+        {onSave && (
+          <Button variant="secondary" onClick={onSave} className="flex-1 gap-2" size="lg">
+            <Save className="h-4 w-4" />
+            Sauvegarder
+          </Button>
+        )}
         <Button variant="outline" onClick={onReset} className="flex-1 gap-2" size="lg">
           <RotateCcw className="h-4 w-4" />
           Nouvelle simulation
