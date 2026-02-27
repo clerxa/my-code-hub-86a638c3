@@ -174,11 +174,11 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
       className="space-y-6"
     >
       {/* Section A — Entreprise */}
-      <Card>
+      <Card className="relative z-20 overflow-visible">
         <CardHeader>
           <CardTitle className="text-lg">Entreprise</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 overflow-visible">
           <div className="relative" ref={dropdownRef}>
             <Label>Rechercher votre entreprise</Label>
             <div className="relative mt-1.5">
