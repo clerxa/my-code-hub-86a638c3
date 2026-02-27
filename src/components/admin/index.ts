@@ -47,7 +47,7 @@ export { RiskProfileResultsEditor } from './RiskProfileResultsEditor';
 export { PointsAndValidationTab } from './PointsAndValidationTab';
 export { NotificationsTab } from './NotificationsTab';
 export { NotificationPreview } from './NotificationPreview';
-export { StorageBucketsTab } from './StorageBucketsTab';
+
 export { LayoutCustomizationTab } from './LayoutCustomizationTab';
 export { PageLayoutEditor } from './PageLayoutEditor';
 export { CommunicationKitTab } from './CommunicationKitTab';
