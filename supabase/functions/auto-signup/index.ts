@@ -215,12 +215,59 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { email, password, firstName, lastName, onboardingSessionId, invitationToken, companyId } = await req.json();
+    const body = await req.json();
+    const email = typeof body.email === 'string' ? body.email.trim() : '';
+    const password = typeof body.password === 'string' ? body.password : '';
+    const firstName = typeof body.firstName === 'string' ? body.firstName.trim() : '';
+    const lastName = typeof body.lastName === 'string' ? body.lastName.trim() : '';
+    const onboardingSessionId = typeof body.onboardingSessionId === 'string' ? body.onboardingSessionId : null;
+    const invitationToken = typeof body.invitationToken === 'string' ? body.invitationToken : null;
+    const companyId = typeof body.companyId === 'string' ? body.companyId : null;
 
-    // Validate inputs
+    // Validate required fields
     if (!email || !password || !firstName || !lastName) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate name fields: max 100 chars, only letters/spaces/hyphens/apostrophes
+    const nameRegex = /^[\p{L}\s'\-]{1,100}$/u;
+    if (!nameRegex.test(firstName) || !nameRegex.test(lastName)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid name format', message: 'Les noms ne doivent contenir que des lettres, espaces, tirets ou apostrophes (100 caractères max).' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate email format
+    if (!isValidEmail(email)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid email format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate password length
+    if (password.length < 6 || password.length > 128) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid password', message: 'Le mot de passe doit contenir entre 6 et 128 caractères.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate optional UUID fields
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (onboardingSessionId && !uuidRegex.test(onboardingSessionId)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid onboarding session ID' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    if (companyId && !uuidRegex.test(companyId)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid company ID' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
