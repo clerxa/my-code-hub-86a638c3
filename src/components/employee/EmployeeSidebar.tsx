@@ -77,7 +77,7 @@ export const EmployeeSidebar = ({
 
   // Note: "simulations" removed - users now have 10 free simulations before being limited
   // "company" and "forum" (Communauté) are locked for non-partner users
-  const lockedItems = ["progression", "company", "forum"];
+  const lockedItems = ["progression", "company", "forum", "vega", "horizon"];
 
   // State for locked dialogs
   const [showCompanyLockedDialog, setShowCompanyLockedDialog] = useState(false);
@@ -96,6 +96,12 @@ export const EmployeeSidebar = ({
     // Special handling for community (forum) - show dialog instead of redirecting
     if (itemId === "forum" && isLocked) {
       setShowCommunityLockedDialog(true);
+      return;
+    }
+
+    // Vega & Horizon locked for non-partner users
+    if ((itemId === "vega" || itemId === "horizon") && isLocked) {
+      navigate("/proposer-partenariat");
       return;
     }
 
