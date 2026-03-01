@@ -63,7 +63,7 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
   };
 
   // Keep mobile consistent with sidebar: lock company + community (forum) for non-partner users
-  const lockedItems = ["progression", "company", "forum"];
+  const lockedItems = ["progression", "company", "forum", "vega", "horizon"];
   
   const handleItemClick = (itemId: string) => {
     const isLocked = lockedItems.includes(itemId) && !hasPartnership;
@@ -71,6 +71,13 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
     if (isLocked && (itemId === "company" || itemId === "forum")) {
       setOpen(false);
       setLockedDialog(itemId);
+      return;
+    }
+
+    // Vega & Horizon locked for non-partner users
+    if ((itemId === "vega" || itemId === "horizon") && isLocked) {
+      setOpen(false);
+      navigate("/proposer-partenariat");
       return;
     }
     
