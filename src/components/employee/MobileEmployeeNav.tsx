@@ -87,6 +87,9 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
       case "simulations":
         navigate("/employee/simulations");
         break;
+      case "vega":
+        navigate("/employee/vega");
+        break;
       case "horizon":
         navigate("/employee/horizon");
         break;

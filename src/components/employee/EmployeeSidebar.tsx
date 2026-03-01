@@ -111,6 +111,9 @@ export const EmployeeSidebar = ({
       case "simulations":
         navigate("/employee/simulations");
         break;
+      case "vega":
+        navigate("/employee/vega");
+        break;
       case "horizon":
         navigate("/employee/horizon");
         return;
