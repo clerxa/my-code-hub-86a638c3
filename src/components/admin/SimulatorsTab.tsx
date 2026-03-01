@@ -39,6 +39,7 @@ interface Simulator {
   order_num: number;
   is_active: boolean;
   visibility_status: 'visible' | 'disabled' | 'hidden';
+  vega_eligible: boolean;
 }
 
 export function SimulatorsTab() {
@@ -73,6 +74,7 @@ export function SimulatorsTab() {
     order_num: 0,
     is_active: true,
     visibility_status: 'visible' as 'visible' | 'disabled' | 'hidden',
+    vega_eligible: false,
   });
 
   // Fetch categories
@@ -180,6 +182,7 @@ export function SimulatorsTab() {
         order_num: simulator.order_num,
         is_active: simulator.is_active,
         visibility_status: simulator.visibility_status || 'visible',
+        vega_eligible: simulator.vega_eligible || false,
       });
     } else {
       setEditingSimulator(null);
@@ -195,6 +198,7 @@ export function SimulatorsTab() {
         order_num: (simulators?.length || 0) + 1,
         is_active: true,
         visibility_status: 'visible',
+        vega_eligible: false,
       });
     }
     setSimulatorDialogOpen(true);
@@ -400,6 +404,11 @@ export function SimulatorsTab() {
                               {sim.visibility_status === 'disabled' && 'En développement'}
                               {sim.visibility_status === 'hidden' && 'Masqué'}
                             </Badge>
+                            {sim.vega_eligible && (
+                              <Badge variant="outline" className="border-primary text-primary">
+                                Vega
+                              </Badge>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
@@ -615,6 +624,18 @@ export function SimulatorsTab() {
                 {simulatorForm.visibility_status === 'disabled' && "Affiché mais non cliquable, avec mention \"Bientôt disponible\""}
                 {simulatorForm.visibility_status === 'hidden' && "Le simulateur n'apparaît pas dans la liste"}
               </p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Page Vega</Label>
+                  <p className="text-xs text-muted-foreground">Afficher ce simulateur sur la page Vega (actionnariat salarié)</p>
+                </div>
+                <Switch
+                  checked={simulatorForm.vega_eligible}
+                  onCheckedChange={(checked) => setSimulatorForm({ ...simulatorForm, vega_eligible: checked })}
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>

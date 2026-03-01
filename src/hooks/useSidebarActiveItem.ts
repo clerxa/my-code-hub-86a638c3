@@ -11,6 +11,7 @@ const EMPLOYEE_ROUTE_MAP: Record<string, string[]> = {
   "financial-profile": ["/employee/profile"],
   "parcours": ["/parcours"],
   "simulations": ["/employee/simulations"],
+  "vega": ["/employee/vega"],
   "horizon": ["/employee/horizon"],
   "feedback": ["/employee/feedback"],
   "forum": ["/forum"],

@@ -5076,6 +5076,7 @@ export type Database = {
           route: string
           slug: string
           updated_at: string
+          vega_eligible: boolean
           visibility_status: string
         }
         Insert: {
@@ -5093,6 +5094,7 @@ export type Database = {
           route: string
           slug: string
           updated_at?: string
+          vega_eligible?: boolean
           visibility_status?: string
         }
         Update: {
@@ -5110,6 +5112,7 @@ export type Database = {
           route?: string
           slug?: string
           updated_at?: string
+          vega_eligible?: boolean
           visibility_status?: string
         }
         Relationships: []

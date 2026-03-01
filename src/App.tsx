@@ -55,6 +55,7 @@ import SimulateurRSU from "./pages/SimulateurRSU";
 import Employee from "./pages/Employee";
 import EmployeeProfile from "./pages/EmployeeProfile";
 import EmployeeSimulations from "./pages/EmployeeSimulations";
+import VegaPage from "./pages/VegaPage";
 import Parcours from "./pages/Parcours";
 import ParcoursPreview from "./pages/ParcoursPreview";
 import Forum from "./pages/Forum";
@@ -221,6 +222,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <EmployeeSimulations />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/vega"
+              element={
+                <ProtectedRoute>
+                  <VegaPage />
                 </ProtectedRoute>
               }
             />
