@@ -103,7 +103,7 @@ export default function VegaPage() {
   });
 
   const routeToType: Record<string, string> = {
-    '/simulateur-rsu': 'rsu_simulations',
+    '/simulateur-rsu': 'rsu',
     '/simulateur-espp': 'espp',
   };
 

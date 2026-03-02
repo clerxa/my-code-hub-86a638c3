@@ -52,6 +52,7 @@ export function CategorySection({ name, description, icon, simulators, simulatio
       '/simulateur-espp': 'espp',
       '/simulateur-pvi': 'pvi',
       '/simulateur-lmnp': 'lmnp',
+      '/simulateur-rsu': 'rsu',
       '/optimisation-fiscale': 'optimisation_fiscale',
       '/simulateur-capacite-epargne': 'capacite_epargne_sim',
     };
