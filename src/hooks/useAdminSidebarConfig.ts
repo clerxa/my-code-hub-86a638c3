@@ -125,6 +125,7 @@ const defaultAdminItems: AdminMenuItem[] = [
   { id: "non-partner-welcome", label: "Non-Partner Welcome", url: "/admin/non-partner-welcome", icon: "UserPlus", order: 3, visible: true, categoryId: "engagement" },
   { id: "offers", label: "Offres du moment", url: "/admin/offers", icon: "Gift", order: 4, visible: true, categoryId: "engagement" },
   { id: "business-development", label: "Business Development", url: "/admin/business-development", icon: "Briefcase", order: 5, visible: true, categoryId: "engagement" },
+  { id: "presentations", label: "Présentations Prospects", url: "/admin/presentations", icon: "FileText", order: 6, visible: true, categoryId: "engagement" },
   
   // Apparence
   { id: "design-navigation", label: "Design & Navigation", url: "/admin/design-navigation", icon: "Palette", order: 0, visible: true, categoryId: "appearance" },
