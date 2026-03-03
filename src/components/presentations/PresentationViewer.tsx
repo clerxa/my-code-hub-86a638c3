@@ -23,11 +23,71 @@ interface Props {
   presentation: ProspectPresentation;
 }
 
-// Slide component wrapper — renders at 1920x1080 and scales
-function SlideFrame({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+/**
+ * Slide wrapper — fixed 1920×1080, scaled to fit container.
+ * Uses inline styles referencing CSS custom properties for theme coherence.
+ */
+function SlideFrame({ children, variant = "light", className = "" }: {
+  children: React.ReactNode;
+  variant?: "dark" | "light" | "subtle" | "accent" | "deep";
+  className?: string;
+}) {
+  const variantStyles: Record<string, React.CSSProperties> = {
+    dark: {
+      background: "linear-gradient(135deg, hsl(var(--primary) / 1) 0%, hsl(var(--secondary) / 1) 100%)",
+      color: "hsl(var(--primary-foreground))",
+    },
+    deep: {
+      background: "linear-gradient(135deg, hsl(217 91% 12%) 0%, hsl(271 81% 18%) 100%)",
+      color: "hsl(var(--primary-foreground))",
+    },
+    light: {
+      background: "hsl(var(--card))",
+      color: "hsl(var(--card-foreground))",
+    },
+    subtle: {
+      background: "hsl(var(--muted))",
+      color: "hsl(var(--card-foreground))",
+    },
+    accent: {
+      background: "linear-gradient(135deg, hsl(var(--secondary) / 1) 0%, hsl(var(--primary) / 1) 100%)",
+      color: "hsl(var(--primary-foreground))",
+    },
+  };
+
   return (
-    <div className={`w-[1920px] h-[1080px] flex flex-col justify-center p-24 ${className}`}>
+    <div
+      className={`w-[1920px] h-[1080px] flex flex-col justify-center p-24 ${className}`}
+      style={variantStyles[variant]}
+    >
       {children}
+    </div>
+  );
+}
+
+/* Reusable style constants using CSS vars */
+const accentColor = "hsl(var(--accent))";
+const primaryColor = "hsl(var(--primary))";
+const mutedText = "hsl(var(--muted-foreground))";
+
+function AccentBadge({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold"
+      style={{ background: accentColor, color: "white" }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function NumberCircle({ n }: { n: number }) {
+  return (
+    <div
+      className="w-16 h-16 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6"
+      style={{ background: "var(--gradient-hero)", color: "white" }}
+    >
+      {n}
     </div>
   );
 }
@@ -37,50 +97,74 @@ export function PresentationViewer({ presentation }: Props) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const p = presentation;
 
-  // Build slides array
   const slides: React.ReactNode[] = [];
 
-  // 1. Hero
+  // ───── 1. HERO ─────
   slides.push(
-    <SlideFrame key="hero" className="bg-gradient-to-br from-[hsl(217,91%,15%)] to-[hsl(271,81%,20%)] text-white items-center text-center">
+    <SlideFrame key="hero" variant="deep" className="items-center text-center">
       <div className="flex items-center justify-center gap-12 mb-16">
-        {p.prospect_logo_url && <img src={p.prospect_logo_url} alt="" className="h-24 object-contain bg-white rounded-2xl p-4" />}
-        <span className="text-5xl font-light text-white/40">×</span>
-        <div className="text-5xl font-bold tracking-tight">Fin<span className="text-[hsl(38,92%,50%)]">Care</span></div>
+        {p.prospect_logo_url && (
+          <img src={p.prospect_logo_url} alt="" className="h-24 object-contain bg-white rounded-2xl p-4" />
+        )}
+        <span className="text-5xl font-light opacity-40">×</span>
+        <div className="text-5xl font-bold tracking-tight">
+          Fin<span style={{ color: accentColor }}>Care</span>
+        </div>
       </div>
       <h1 className="text-7xl font-bold leading-tight mb-8">
         Programme d'éducation financière
-        {p.prospect_name && <span className="block text-[hsl(38,92%,50%)]">pour {p.prospect_name}</span>}
+        {p.prospect_name && (
+          <span className="block" style={{ color: accentColor }}>
+            pour {p.prospect_name}
+          </span>
+        )}
       </h1>
-      <p className="text-2xl text-white/70">Accompagner vos collaborateurs dans leurs décisions financières</p>
+      <p className="text-2xl opacity-70">Accompagner vos collaborateurs dans leurs décisions financières</p>
     </SlideFrame>
   );
 
-  // 2. Stats
+  // ───── 2. STATS ─────
   const selectedStats = PRESENTATION_STATS.filter(s => (p.selected_stats || []).includes(s.id));
   selectedStats.forEach(stat => {
     slides.push(
-      <SlideFrame key={`stat-${stat.id}`} className="bg-gradient-to-br from-[hsl(217,91%,25%)] to-[hsl(271,81%,30%)] text-white items-center text-center">
-        <div className="text-[180px] font-black leading-none mb-12 bg-clip-text text-transparent bg-gradient-to-r from-white to-[hsl(38,92%,50%)]">
+      <SlideFrame key={`stat-${stat.id}`} variant="dark" className="items-center text-center">
+        <div
+          className="text-[180px] font-black leading-none mb-12 bg-clip-text text-transparent"
+          style={{ backgroundImage: `linear-gradient(90deg, white 0%, ${accentColor} 100%)` }}
+        >
           {stat.figure}
         </div>
         <p className="text-4xl leading-relaxed max-w-[1200px] font-light">{stat.text}</p>
-        {stat.source && <p className="text-xl text-white/40 mt-8">{stat.source}</p>}
+        {stat.source && <p className="text-xl opacity-40 mt-8">{stat.source}</p>}
       </SlideFrame>
     );
   });
 
-  // 3. Employee questions
+  // ───── 3. EMPLOYEE QUESTIONS ─────
   slides.push(
-    <SlideFrame key="questions" className="bg-white text-gray-900">
-      <h2 className="text-5xl font-bold mb-16 text-center">Les questions que se posent vos salariés</h2>
+    <SlideFrame key="questions" variant="light">
+      <h2 className="text-5xl font-bold mb-16 text-center" style={{ color: "hsl(var(--foreground))" }}>
+        Les questions que se posent vos salariés
+      </h2>
       <div className="grid grid-cols-2 gap-8">
         {EMPLOYEE_QUESTIONS.map((q, i) => (
-          <div key={i} className={`flex items-start gap-6 p-6 rounded-2xl border-2 ${q.techHighlight && p.prospect_sector === "tech" ? "border-[hsl(38,92%,50%)] bg-amber-50" : "border-gray-200"}`}>
+          <div
+            key={i}
+            className="flex items-start gap-6 p-6 rounded-2xl border-2"
+            style={{
+              borderColor: q.techHighlight && p.prospect_sector === "tech" ? accentColor : "hsl(var(--border))",
+              background: q.techHighlight && p.prospect_sector === "tech" ? "hsl(var(--accent) / 0.08)" : "transparent",
+            }}
+          >
             <span className="text-4xl">{q.icon}</span>
             <p className="text-2xl leading-snug">{q.text}</p>
             {q.techHighlight && p.prospect_sector === "tech" && (
-              <span className="shrink-0 px-4 py-1 rounded-full bg-[hsl(38,92%,50%)] text-white text-sm font-bold">Tech</span>
+              <span
+                className="shrink-0 px-4 py-1 rounded-full text-sm font-bold"
+                style={{ background: accentColor, color: "white" }}
+              >
+                Tech
+              </span>
             )}
           </div>
         ))}
@@ -88,126 +172,162 @@ export function PresentationViewer({ presentation }: Props) {
     </SlideFrame>
   );
 
-  // 4. Education needs
+  // ───── 4. EDUCATION NEEDS ─────
   slides.push(
-    <SlideFrame key="needs" className="bg-gradient-to-br from-gray-50 to-white text-gray-900">
-      <h2 className="text-5xl font-bold mb-16 text-center">Les 5 besoins en éducation financière</h2>
+    <SlideFrame key="needs" variant="subtle">
+      <h2 className="text-5xl font-bold mb-16 text-center" style={{ color: "hsl(var(--foreground))" }}>
+        Les 5 besoins en éducation financière
+      </h2>
       <div className="flex gap-8 mb-16">
         {EDUCATION_NEEDS.map((need, i) => (
-          <div key={i} className="flex-1 bg-white rounded-3xl shadow-lg p-8 border border-gray-100 text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[hsl(217,91%,60%)] to-[hsl(271,81%,56%)] text-white flex items-center justify-center text-3xl font-bold mx-auto mb-6">{i + 1}</div>
+          <div key={i} className="flex-1 rounded-3xl shadow-lg p-8 text-center" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <NumberCircle n={i + 1} />
             <p className="text-xl font-medium leading-snug">{need}</p>
           </div>
         ))}
       </div>
-      <p className="text-xl text-gray-500 text-center max-w-[1400px] mx-auto italic">{EDUCATION_NEEDS_FOOTER}</p>
+      <p className="text-xl text-center max-w-[1400px] mx-auto italic" style={{ color: mutedText }}>
+        {EDUCATION_NEEDS_FOOTER}
+      </p>
     </SlideFrame>
   );
 
-  // 5. Challenge
+  // ───── 5. CHALLENGE ─────
   if (p.challenge_text) {
     slides.push(
-      <SlideFrame key="challenge" className="bg-gradient-to-br from-[hsl(0,84%,60%)] to-[hsl(271,81%,30%)] text-white items-center text-center">
+      <SlideFrame key="challenge" variant="accent" className="items-center text-center">
         <h2 className="text-5xl font-bold mb-12">Le défi de {p.prospect_name || "votre entreprise"}</h2>
         <p className="text-3xl leading-relaxed max-w-[1200px] font-light">{p.challenge_text}</p>
       </SlideFrame>
     );
   }
 
-  // 6. FinCare definition
+  // ───── 6. FINCARE DEFINITION ─────
   slides.push(
-    <SlideFrame key="fincare" className="bg-white text-gray-900">
-      <h2 className="text-5xl font-bold mb-6 text-center">FinCare, qu'est-ce que c'est ?</h2>
-      <p className="text-2xl text-gray-500 text-center mb-16">Un programme d'éducation financière complet, gratuit et clé en main pour vos collaborateurs</p>
+    <SlideFrame key="fincare" variant="light">
+      <h2 className="text-5xl font-bold mb-6 text-center" style={{ color: "hsl(var(--foreground))" }}>
+        FinCare, qu'est-ce que c'est ?
+      </h2>
+      <p className="text-2xl text-center mb-16" style={{ color: mutedText }}>
+        Un programme d'éducation financière complet, gratuit et clé en main pour vos collaborateurs
+      </p>
       <div className="flex gap-12">
         {FINCARE_PILLARS.map((pillar, i) => (
-          <div key={i} className="flex-1 text-center p-8 bg-gradient-to-b from-blue-50 to-white rounded-3xl border border-blue-100">
+          <div
+            key={i}
+            className="flex-1 text-center p-8 rounded-3xl"
+            style={{
+              background: "hsl(var(--primary) / 0.06)",
+              border: "1px solid hsl(var(--primary) / 0.15)",
+            }}
+          >
             <div className="text-6xl mb-6">{pillar.icon}</div>
-            <h3 className="text-3xl font-bold mb-4">{pillar.title}</h3>
-            <p className="text-xl text-gray-600 leading-relaxed">{pillar.description}</p>
+            <h3 className="text-3xl font-bold mb-4" style={{ color: "hsl(var(--foreground))" }}>{pillar.title}</h3>
+            <p className="text-xl leading-relaxed" style={{ color: mutedText }}>{pillar.description}</p>
           </div>
         ))}
       </div>
     </SlideFrame>
   );
 
-  // 7. Benefits
+  // ───── 7. BENEFITS ─────
   slides.push(
-    <SlideFrame key="benefits" className="bg-gradient-to-br from-[hsl(217,91%,15%)] to-[hsl(271,81%,20%)] text-white">
+    <SlideFrame key="benefits" variant="deep">
       <h2 className="text-5xl font-bold mb-16 text-center">Les 6 bénéfices pour l'entreprise</h2>
       <div className="grid grid-cols-3 gap-8">
         {COMPANY_BENEFITS.map((b, i) => (
           <div key={i} className="bg-white/10 backdrop-blur rounded-3xl p-8 border border-white/10">
-            <div className="w-12 h-12 rounded-full bg-[hsl(38,92%,50%)] text-white flex items-center justify-center text-xl font-bold mb-4">{i + 1}</div>
-            <p className="text-xl leading-snug">{b}</p>
+            <AccentBadge>{i + 1}</AccentBadge>
+            <p className="text-xl leading-snug mt-4">{b}</p>
           </div>
         ))}
       </div>
     </SlideFrame>
   );
 
-  // 8. Modules (placeholder)
+  // ───── 8. MODULES ─────
   slides.push(
-    <SlideFrame key="modules" className="bg-white text-gray-900 items-center text-center">
-      <h2 className="text-5xl font-bold mb-8">Les modules sélectionnés pour {p.prospect_name || "vous"}</h2>
-      <p className="text-2xl text-gray-500">Formation personnalisée selon vos besoins</p>
+    <SlideFrame key="modules" variant="light" className="items-center text-center">
+      <h2 className="text-5xl font-bold mb-8" style={{ color: "hsl(var(--foreground))" }}>
+        Les modules sélectionnés pour {p.prospect_name || "vous"}
+      </h2>
+      <p className="text-2xl" style={{ color: mutedText }}>Formation personnalisée selon vos besoins</p>
       {(p.selected_modules || []).length > 0 ? (
         <div className="grid grid-cols-3 gap-6 mt-12">
           {(p.selected_modules as any[]).map((m: any, i: number) => (
-            <div key={i} className="bg-blue-50 rounded-2xl p-6 text-left border border-blue-100">
-              <p className="font-bold text-xl">{m.title || m.name || `Module ${i + 1}`}</p>
+            <div
+              key={i}
+              className="rounded-2xl p-6 text-left"
+              style={{
+                background: "hsl(var(--primary) / 0.06)",
+                border: "1px solid hsl(var(--primary) / 0.15)",
+              }}
+            >
+              <p className="font-bold text-xl" style={{ color: "hsl(var(--foreground))" }}>
+                {m.title || m.name || `Module ${i + 1}`}
+              </p>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-xl text-gray-400 mt-8">Modules à définir selon vos priorités</p>
+        <p className="text-xl mt-8" style={{ color: mutedText }}>Modules à définir selon vos priorités</p>
       )}
     </SlideFrame>
   );
 
-  // 9. How it works
+  // ───── 9. HOW IT WORKS ─────
   slides.push(
-    <SlideFrame key="how" className="bg-gradient-to-br from-gray-50 to-white text-gray-900">
-      <h2 className="text-5xl font-bold mb-16 text-center">Comment ça fonctionne</h2>
+    <SlideFrame key="how" variant="subtle">
+      <h2 className="text-5xl font-bold mb-16 text-center" style={{ color: "hsl(var(--foreground))" }}>
+        Comment ça fonctionne
+      </h2>
       <div className="flex gap-4 items-start">
         {HOW_IT_WORKS.map((step, i) => (
           <div key={i} className="flex-1 text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[hsl(217,91%,60%)] to-[hsl(271,81%,56%)] text-white flex items-center justify-center text-2xl font-bold mx-auto mb-6">{step.step}</div>
-            <h3 className="text-xl font-bold mb-3">{step.title}</h3>
-            <p className="text-base text-gray-600 leading-relaxed">{step.description}</p>
-            {i < HOW_IT_WORKS.length - 1 && <div className="hidden" />}
+            <NumberCircle n={step.step} />
+            <h3 className="text-xl font-bold mb-3" style={{ color: "hsl(var(--foreground))" }}>{step.title}</h3>
+            <p className="text-base leading-relaxed" style={{ color: mutedText }}>{step.description}</p>
           </div>
         ))}
       </div>
     </SlideFrame>
   );
 
-  // 10. Employee advantages
+  // ───── 10. EMPLOYEE ADVANTAGES ─────
   slides.push(
-    <SlideFrame key="advantages" className="bg-white text-gray-900">
-      <h2 className="text-5xl font-bold mb-12 text-center">Des avantages supplémentaires pour vos salariés</h2>
+    <SlideFrame key="advantages" variant="light">
+      <h2 className="text-5xl font-bold mb-12 text-center" style={{ color: "hsl(var(--foreground))" }}>
+        Des avantages supplémentaires pour vos salariés
+      </h2>
       <div className="grid grid-cols-3 gap-6">
         {EMPLOYEE_ADVANTAGES.map((a, i) => (
-          <div key={i} className={`rounded-2xl p-8 border ${i < 3 ? "border-blue-200 bg-blue-50" : "border-amber-200 bg-amber-50"}`}>
-            <h3 className="text-xl font-bold mb-3">{a.title}</h3>
-            <p className="text-base text-gray-600 leading-relaxed">{a.description}</p>
+          <div
+            key={i}
+            className="rounded-2xl p-8"
+            style={{
+              background: i < 3 ? "hsl(var(--primary) / 0.06)" : "hsl(var(--accent) / 0.08)",
+              border: `1px solid ${i < 3 ? "hsl(var(--primary) / 0.15)" : "hsl(var(--accent) / 0.2)"}`,
+            }}
+          >
+            <h3 className="text-xl font-bold mb-3" style={{ color: "hsl(var(--foreground))" }}>{a.title}</h3>
+            <p className="text-base leading-relaxed" style={{ color: mutedText }}>{a.description}</p>
           </div>
         ))}
       </div>
     </SlideFrame>
   );
 
-  // 11. Key figures
+  // ───── 11. KEY FIGURES ─────
   const selectedFigures = KEY_FIGURES.filter(f => (p.selected_key_figures || []).includes(f.id));
   if (selectedFigures.length > 0) {
     slides.push(
-      <SlideFrame key="figures" className="bg-gradient-to-br from-[hsl(217,91%,15%)] to-[hsl(271,81%,20%)] text-white items-center text-center">
+      <SlideFrame key="figures" variant="deep" className="items-center text-center">
         <h2 className="text-5xl font-bold mb-16">Nos chiffres clés</h2>
         <div className="flex gap-16 justify-center">
           {selectedFigures.map(f => (
             <div key={f.id}>
-              <div className="text-7xl font-black text-[hsl(38,92%,50%)] mb-4">{f.value}</div>
-              <p className="text-2xl text-white/70">{f.label}</p>
+              <div className="text-7xl font-black mb-4" style={{ color: accentColor }}>{f.value}</div>
+              <p className="text-2xl opacity-70">{f.label}</p>
             </div>
           ))}
         </div>
@@ -215,41 +335,55 @@ export function PresentationViewer({ presentation }: Props) {
     );
   }
 
-  // 12. Client logos
+  // ───── 12. CLIENT LOGOS ─────
   const selectedLogos = CLIENT_LOGOS_BANK.filter(l => (p.selected_client_logos || []).includes(l.id));
   if (selectedLogos.length > 0) {
     slides.push(
-      <SlideFrame key="logos" className="bg-gray-50 text-gray-900 items-center text-center">
-        <h2 className="text-5xl font-bold mb-16">Ils nous font confiance</h2>
+      <SlideFrame key="logos" variant="subtle" className="items-center text-center">
+        <h2 className="text-5xl font-bold mb-16" style={{ color: "hsl(var(--foreground))" }}>
+          Ils nous font confiance
+        </h2>
         <div className="flex flex-wrap gap-8 justify-center max-w-[1400px]">
           {selectedLogos.map(l => (
-            <div key={l.id} className="bg-white rounded-2xl shadow-md px-10 py-6 text-2xl font-semibold text-gray-700 border">{l.name}</div>
+            <div
+              key={l.id}
+              className="rounded-2xl shadow-md px-10 py-6 text-2xl font-semibold"
+              style={{
+                background: "hsl(var(--card))",
+                color: "hsl(var(--card-foreground))",
+                border: "1px solid hsl(var(--border))",
+              }}
+            >
+              {l.name}
+            </div>
           ))}
         </div>
       </SlideFrame>
     );
   }
 
-  // 13. Testimonials
-  const selectedTestimonials = TESTIMONIALS.filter(t => (p.selected_testimonials || []).includes(t.id));
-  selectedTestimonials.forEach(t => {
+  // ───── 13. TESTIMONIALS ─────
+  const selectedTestimonialsList = TESTIMONIALS.filter(t => (p.selected_testimonials || []).includes(t.id));
+  selectedTestimonialsList.forEach(t => {
     slides.push(
-      <SlideFrame key={`testi-${t.id}`} className="bg-white text-gray-900 items-center">
+      <SlideFrame key={`testi-${t.id}`} variant="light" className="items-center">
         <div className="max-w-[1400px] mx-auto text-center">
-          <div className="text-8xl text-[hsl(217,91%,60%)] mb-8">"</div>
-          <blockquote className="text-3xl leading-relaxed italic mb-12">{t.verbatim}</blockquote>
-          <div className="text-2xl font-bold">{t.name}</div>
-          <div className="text-xl text-gray-500">{t.role} — {t.company}</div>
-          {t.figures && <div className="text-lg text-[hsl(217,91%,60%)] mt-4">{t.figures}</div>}
-          <div className="text-base text-gray-400 mt-4">{t.context}</div>
+          <div className="text-8xl mb-8" style={{ color: primaryColor }}>"</div>
+          <blockquote className="text-3xl leading-relaxed italic mb-12" style={{ color: "hsl(var(--foreground))" }}>
+            {t.verbatim}
+          </blockquote>
+          <div className="text-2xl font-bold" style={{ color: "hsl(var(--foreground))" }}>{t.name}</div>
+          <div className="text-xl" style={{ color: mutedText }}>{t.role} — {t.company}</div>
+          {t.figures && <div className="text-lg mt-4" style={{ color: primaryColor }}>{t.figures}</div>}
+          <div className="text-base mt-4" style={{ color: mutedText }}>{t.context}</div>
         </div>
       </SlideFrame>
     );
   });
 
-  // 14. Perlib
+  // ───── 14. PERLIB ─────
   slides.push(
-    <SlideFrame key="perlib" className="bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+    <SlideFrame key="perlib" variant="deep">
       <h2 className="text-4xl font-bold mb-8 text-center max-w-[1400px] mx-auto">{PERLIB_INFO.headline}</h2>
       <div className="flex gap-8 justify-center mb-12">
         {PERLIB_INFO.keyFacts.map((f, i) => (
@@ -257,8 +391,8 @@ export function PresentationViewer({ presentation }: Props) {
         ))}
       </div>
       <div className="text-center">
-        <p className="text-2xl font-semibold text-[hsl(38,92%,50%)] mb-2">{PERLIB_INFO.label}</p>
-        <p className="text-lg text-white/60">{PERLIB_INFO.subLabel}</p>
+        <p className="text-2xl font-semibold mb-2" style={{ color: accentColor }}>{PERLIB_INFO.label}</p>
+        <p className="text-lg opacity-60">{PERLIB_INFO.subLabel}</p>
         <div className="flex gap-4 justify-center mt-8">
           {PERLIB_INFO.badges.map((b, i) => (
             <span key={i} className="bg-white/10 border border-white/20 rounded-full px-6 py-2 text-sm">{b}</span>
@@ -268,33 +402,40 @@ export function PresentationViewer({ presentation }: Props) {
     </SlideFrame>
   );
 
-  // 15. Business model
+  // ───── 15. BUSINESS MODEL ─────
   slides.push(
-    <SlideFrame key="model" className="bg-white text-gray-900">
-      <h2 className="text-5xl font-bold mb-12 text-center text-[hsl(217,91%,60%)]">{BUSINESS_MODEL.title}</h2>
+    <SlideFrame key="model" variant="light">
+      <h2 className="text-5xl font-bold mb-12 text-center" style={{ color: primaryColor }}>
+        {BUSINESS_MODEL.title}
+      </h2>
       <div className="space-y-8 max-w-[1400px] mx-auto">
         {BUSINESS_MODEL.paragraphs.map((para, i) => (
-          <p key={i} className="text-2xl leading-relaxed text-gray-700">{para}</p>
+          <p key={i} className="text-2xl leading-relaxed" style={{ color: mutedText }}>{para}</p>
         ))}
       </div>
     </SlideFrame>
   );
 
-  // 16. Contact
+  // ───── 16. CONTACT ─────
   slides.push(
-    <SlideFrame key="contact" className="bg-gradient-to-br from-[hsl(217,91%,15%)] to-[hsl(271,81%,20%)] text-white items-center text-center">
+    <SlideFrame key="contact" variant="deep" className="items-center text-center">
       <h2 className="text-5xl font-bold mb-12">Vous souhaitez avoir plus d'informations sur FinCare ?</h2>
-      <p className="text-3xl text-white/70 mb-16">Prenons rendez-vous.</p>
+      <p className="text-3xl opacity-70 mb-16">Prenons rendez-vous.</p>
       <div className="bg-white/10 backdrop-blur rounded-3xl p-12 border border-white/10">
         <p className="text-3xl font-bold">{p.contact_name}</p>
-        <p className="text-xl text-white/70 mb-6">{p.contact_role}</p>
+        <p className="text-xl opacity-70 mb-6">{p.contact_role}</p>
         <div className="flex gap-8 justify-center text-xl">
           <span>{p.contact_phone}</span>
           <span>{p.contact_email}</span>
         </div>
         {p.contact_booking_url && (
-          <a href={p.contact_booking_url} target="_blank" rel="noopener noreferrer"
-            className="inline-block mt-8 px-12 py-4 bg-[hsl(38,92%,50%)] text-white rounded-full text-xl font-bold hover:opacity-90 transition">
+          <a
+            href={p.contact_booking_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-8 px-12 py-4 rounded-full text-xl font-bold hover:opacity-90 transition"
+            style={{ background: accentColor, color: "white" }}
+          >
             Prendre rendez-vous →
           </a>
         )}
@@ -302,14 +443,18 @@ export function PresentationViewer({ presentation }: Props) {
     </SlideFrame>
   );
 
-  // 17. Legal
+  // ───── 17. LEGAL ─────
   slides.push(
-    <SlideFrame key="legal" className="bg-gray-950 text-gray-500 items-center justify-end pb-16 text-center">
-      <p className="text-base max-w-[1400px] leading-relaxed">{LEGAL_FOOTER}</p>
+    <SlideFrame key="legal" variant="light" className="items-center justify-end pb-16 text-center">
+      <p className="text-base max-w-[1400px] leading-relaxed" style={{ color: mutedText, background: "hsl(var(--muted))", padding: "2rem", borderRadius: "1rem" }}>
+        {LEGAL_FOOTER}
+      </p>
     </SlideFrame>
   );
 
   const totalSlides = slides.length;
+
+
 
   const goTo = useCallback((idx: number) => {
     setCurrentSlide(Math.max(0, Math.min(idx, totalSlides - 1)));
@@ -367,7 +512,7 @@ export function PresentationViewer({ presentation }: Props) {
   }, []);
 
   return (
-    <div className="h-screen bg-gray-950 flex flex-col">
+    <div className="h-screen flex flex-col" style={{ background: "hsl(var(--foreground))" }}>
       {/* Slide viewport */}
       <div ref={containerRef} className="flex-1 relative overflow-hidden flex items-center justify-center min-h-0">
         <div className="relative" style={{ width: 1920 * scale, height: 1080 * scale }}>
@@ -385,7 +530,7 @@ export function PresentationViewer({ presentation }: Props) {
       </div>
 
       {/* Controls */}
-      <div className="bg-gray-900 border-t border-gray-800 px-6 py-3 flex items-center justify-between text-white shrink-0">
+      <div className="px-6 py-3 flex items-center justify-between shrink-0" style={{ background: "hsl(var(--foreground) / 0.95)", color: "hsl(var(--background))" }}>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => goTo(currentSlide - 1)} disabled={currentSlide === 0} className="text-white hover:text-white hover:bg-white/10">
             <ChevronLeft className="h-5 w-5" />
@@ -403,9 +548,14 @@ export function PresentationViewer({ presentation }: Props) {
       </div>
 
       {/* Progress bar */}
-      <div className="h-1 bg-gray-800 shrink-0">
-        <div className="h-full bg-gradient-to-r from-[hsl(217,91%,60%)] to-[hsl(38,92%,50%)] transition-all duration-300"
-          style={{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }} />
+      <div className="h-1 shrink-0" style={{ background: "hsl(var(--foreground) / 0.8)" }}>
+        <div
+          className="h-full transition-all duration-300"
+          style={{
+            width: `${((currentSlide + 1) / totalSlides) * 100}%`,
+            background: "var(--gradient-hero)",
+          }}
+        />
       </div>
     </div>
   );
