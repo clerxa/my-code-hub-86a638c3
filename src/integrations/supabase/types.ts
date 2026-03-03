@@ -4457,6 +4457,78 @@ export type Database = {
           },
         ]
       }
+      prospect_presentations: {
+        Row: {
+          challenge_text: string | null
+          contact_booking_url: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          contact_role: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          prospect_logo_url: string | null
+          prospect_name: string
+          prospect_sector: string | null
+          selected_client_logos: string[] | null
+          selected_key_figures: string[] | null
+          selected_modules: Json | null
+          selected_stats: string[] | null
+          selected_testimonials: string[] | null
+          share_token: string | null
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          challenge_text?: string | null
+          contact_booking_url?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contact_role?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          prospect_logo_url?: string | null
+          prospect_name?: string
+          prospect_sector?: string | null
+          selected_client_logos?: string[] | null
+          selected_key_figures?: string[] | null
+          selected_modules?: Json | null
+          selected_stats?: string[] | null
+          selected_testimonials?: string[] | null
+          share_token?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          challenge_text?: string | null
+          contact_booking_url?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contact_role?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          prospect_logo_url?: string | null
+          prospect_name?: string
+          prospect_sector?: string | null
+          selected_client_logos?: string[] | null
+          selected_key_figures?: string[] | null
+          selected_modules?: Json | null
+          selected_stats?: string[] | null
+          selected_testimonials?: string[] | null
+          share_token?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       recommendation_rules: {
         Row: {
           condition_config: Json | null
