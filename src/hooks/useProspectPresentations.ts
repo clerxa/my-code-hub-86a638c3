@@ -14,6 +14,7 @@ export interface ProspectPresentation {
   selected_testimonials: string[];
   selected_modules: any[];
   challenge_text: string | null;
+  challenge_bullets: string[];
   contact_name: string;
   contact_role: string;
   contact_phone: string;
