@@ -4457,8 +4457,42 @@ export type Database = {
           },
         ]
       }
+      prospect_employee_questions: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          icon: string
+          id: string
+          is_active: boolean | null
+          tech_highlight: boolean | null
+          text: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          icon?: string
+          id?: string
+          is_active?: boolean | null
+          tech_highlight?: boolean | null
+          text: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          icon?: string
+          id?: string
+          is_active?: boolean | null
+          tech_highlight?: boolean | null
+          text?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       prospect_presentations: {
         Row: {
+          challenge_bullets: Json | null
           challenge_text: string | null
           contact_booking_url: string | null
           contact_email: string | null
@@ -4482,6 +4516,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          challenge_bullets?: Json | null
           challenge_text?: string | null
           contact_booking_url?: string | null
           contact_email?: string | null
@@ -4505,6 +4540,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          challenge_bullets?: Json | null
           challenge_text?: string | null
           contact_booking_url?: string | null
           contact_email?: string | null

@@ -5,9 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Save, Eye } from "lucide-react";
+import { ArrowLeft, Save, Eye, Plus, Trash2 } from "lucide-react";
 import { useProspectPresentation, useUpdatePresentation, type ProspectPresentation } from "@/hooks/useProspectPresentations";
-import { PRESENTATION_STATS, KEY_FIGURES, CLIENT_LOGOS_BANK, TESTIMONIALS } from "@/data/presentationContent";
+import { PRESENTATION_STATS, KEY_FIGURES, TESTIMONIALS } from "@/data/presentationContent";
+import { useAllModules } from "@/hooks/useAllModules";
+import { useClientLogos } from "@/hooks/useClientLogos";
 import {
   Select,
   SelectContent,
@@ -24,6 +26,8 @@ interface Props {
 export function ProspectPresentationForm({ presentationId, onBack }: Props) {
   const { data: presentation, isLoading } = useProspectPresentation(presentationId);
   const updateMutation = useUpdatePresentation();
+  const { data: allModules } = useAllModules();
+  const { data: clientLogos } = useClientLogos();
   const [form, setForm] = useState<Partial<ProspectPresentation>>({});
 
   useEffect(() => {
@@ -43,11 +47,31 @@ export function ProspectPresentationForm({ presentationId, onBack }: Props) {
     updateMutation.mutate(form as any);
   };
 
+  // Challenge bullets helpers
+  const challengeBullets = (form.challenge_bullets || []) as string[];
+  const addBullet = () => update("challenge_bullets", [...challengeBullets, ""]);
+  const updateBullet = (i: number, val: string) => {
+    const next = [...challengeBullets];
+    next[i] = val;
+    update("challenge_bullets", next);
+  };
+  const removeBullet = (i: number) => update("challenge_bullets", challengeBullets.filter((_, idx) => idx !== i));
+
+  // Module toggle
+  const selectedModules = (form.selected_modules || []) as any[];
+  const toggleModule = (mod: any) => {
+    const exists = selectedModules.find((m: any) => m.id === mod.id);
+    if (exists) {
+      update("selected_modules", selectedModules.filter((m: any) => m.id !== mod.id));
+    } else {
+      update("selected_modules", [...selectedModules, { id: mod.id, title: mod.title, description: mod.description }]);
+    }
+  };
+
   if (isLoading) return <div className="animate-pulse p-8"><div className="h-6 bg-muted rounded w-48 mb-4" /><div className="h-4 bg-muted rounded w-full" /></div>;
 
   const selectedStats = form.selected_stats || [];
   const selectedKeyFigures = form.selected_key_figures || [];
-  const selectedLogos = form.selected_client_logos || [];
   const selectedTestimonials = form.selected_testimonials || [];
 
   return (
@@ -71,7 +95,7 @@ export function ProspectPresentationForm({ presentationId, onBack }: Props) {
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div>
             <Label>Titre de la présentation</Label>
-            <Input value={form.title || ""} onChange={e => update("title", e.target.value)} placeholder="Présentation FinCare pour..." />
+            <Input value={form.title || ""} onChange={e => update("title", e.target.value)} placeholder="Présentation MyFinCare pour..." />
           </div>
           <div>
             <Label>Nom du prospect</Label>
@@ -117,16 +141,75 @@ export function ProspectPresentationForm({ presentationId, onBack }: Props) {
         </CardContent>
       </Card>
 
-      {/* Challenge Text */}
+      {/* Challenge Text + Bullets */}
       <Card>
         <CardHeader><CardTitle>Le défi de {form.prospect_name || "[Entreprise]"}</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>Texte introductif</Label>
+            <Textarea
+              value={form.challenge_text || ""}
+              onChange={e => update("challenge_text", e.target.value)}
+              placeholder="Texte personnalisé sur le défi de cette entreprise..."
+              rows={3}
+            />
+          </div>
+          <div>
+            <Label>Points clés (bullet points)</Label>
+            <div className="space-y-2 mt-2">
+              {challengeBullets.map((b, i) => (
+                <div key={i} className="flex gap-2">
+                  <Input
+                    value={b}
+                    onChange={e => updateBullet(i, e.target.value)}
+                    placeholder={`Point ${i + 1}...`}
+                  />
+                  <Button variant="ghost" size="icon" onClick={() => removeBullet(i)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+              <Button variant="outline" size="sm" onClick={addBullet}>
+                <Plus className="h-3 w-3 mr-1" /> Ajouter un point
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Modules Selection from DB */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Modules sélectionnés pour {form.prospect_name || "[Entreprise]"}</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {selectedModules.length} module{selectedModules.length > 1 ? "s" : ""} sélectionné{selectedModules.length > 1 ? "s" : ""}
+          </p>
+        </CardHeader>
         <CardContent>
-          <Textarea
-            value={form.challenge_text || ""}
-            onChange={e => update("challenge_text", e.target.value)}
-            placeholder="Texte personnalisé sur le défi de cette entreprise..."
-            rows={4}
-          />
+          <div className="grid gap-2 sm:grid-cols-2 max-h-[400px] overflow-y-auto">
+            {(allModules || []).map(mod => {
+              const isSelected = selectedModules.some((m: any) => m.id === mod.id);
+              return (
+                <div
+                  key={mod.id}
+                  className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border ${
+                    isSelected ? "bg-primary/10 border-primary/30" : "bg-card border-border hover:bg-muted/50"
+                  }`}
+                  onClick={() => toggleModule(mod)}
+                >
+                  <Checkbox checked={isSelected} onCheckedChange={() => toggleModule(mod)} />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{mod.title}</p>
+                    {mod.theme && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {Array.isArray(mod.theme) ? mod.theme.join(", ") : mod.theme}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
 
@@ -150,34 +233,29 @@ export function ProspectPresentationForm({ presentationId, onBack }: Props) {
         </CardContent>
       </Card>
 
-      {/* Client Logos */}
+      {/* Client Logos — from DB, info banner */}
       <Card>
-        <CardHeader><CardTitle>Logos clients — "Ils nous font confiance"</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Logos clients — "Ils nous font confiance"</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Les logos sont récupérés automatiquement depuis le CMS (table client_logos). 
+            {clientLogos ? ` ${clientLogos.length} logos actifs.` : ""}
+          </p>
+        </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground mb-3">Tech & Digital</p>
-          <div className="grid gap-2 sm:grid-cols-3 mb-4">
-            {CLIENT_LOGOS_BANK.filter(l => l.category === "tech").map(logo => (
-              <label key={logo.id} className="flex items-center gap-2 cursor-pointer">
-                <Checkbox
-                  checked={selectedLogos.includes(logo.id)}
-                  onCheckedChange={() => toggleArrayItem("selected_client_logos", logo.id)}
-                />
-                <span className="text-sm">{logo.name}</span>
-              </label>
+          <div className="flex flex-wrap gap-3">
+            {(clientLogos || []).map(logo => (
+              <div key={logo.id} className="flex items-center gap-2 bg-muted rounded-lg px-3 py-2">
+                <img src={logo.logo_url} alt={logo.name} className="h-6 w-6 object-contain rounded bg-white p-0.5" />
+                <span className="text-sm font-medium">{logo.name}</span>
+              </div>
             ))}
           </div>
-          <p className="text-sm text-muted-foreground mb-3">Autres secteurs</p>
-          <div className="grid gap-2 sm:grid-cols-3">
-            {CLIENT_LOGOS_BANK.filter(l => l.category === "other").map(logo => (
-              <label key={logo.id} className="flex items-center gap-2 cursor-pointer">
-                <Checkbox
-                  checked={selectedLogos.includes(logo.id)}
-                  onCheckedChange={() => toggleArrayItem("selected_client_logos", logo.id)}
-                />
-                <span className="text-sm">{logo.name}</span>
-              </label>
-            ))}
-          </div>
+          {(!clientLogos || clientLogos.length === 0) && (
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              Aucun logo configuré. Ajoutez des logos dans la section CMS &gt; Logos Clients.
+            </p>
+          )}
         </CardContent>
       </Card>
 
