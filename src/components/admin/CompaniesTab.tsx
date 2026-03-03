@@ -1754,16 +1754,27 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
               Sélectionnez les modules disponibles pour cette entreprise
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 pb-4">
-            {modules.map((module) => (
-              <div key={module.id} className="flex items-center space-x-2">
-                <Checkbox
-                  checked={selectedModules.includes(module.id)}
-                  onCheckedChange={() => toggleModule(module.id)}
-                />
-                <Label className="cursor-pointer">{module.title}</Label>
-              </div>
-            ))}
+          <div className="space-y-2 pb-4 max-h-[60vh] overflow-y-auto">
+            {modules.length === 0 ? (
+              <p className="text-muted-foreground text-sm py-4 text-center">Aucun module disponible</p>
+            ) : (
+              modules.map((module) => (
+                <div
+                  key={module.id}
+                  className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 cursor-pointer"
+                  onClick={() => toggleModule(module.id)}
+                >
+                  <Checkbox
+                    id={`module-${module.id}`}
+                    checked={selectedModules.includes(module.id)}
+                    onCheckedChange={() => toggleModule(module.id)}
+                  />
+                  <Label htmlFor={`module-${module.id}`} className="cursor-pointer flex-1">
+                    {module.title}
+                  </Label>
+                </div>
+              ))
+            )}
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setIsModulesDialogOpen(false)}>
