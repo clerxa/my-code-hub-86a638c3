@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Download, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ProspectPresentation } from "@/hooks/useProspectPresentations";
@@ -348,15 +348,44 @@ export function PresentationViewer({ presentation }: Props) {
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.5);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const calc = () => {
+      const rect = el.getBoundingClientRect();
+      const sx = rect.width / 1920;
+      const sy = rect.height / 1080;
+      setScale(Math.min(sx, sy, 1));
+    };
+    calc();
+    const ro = new ResizeObserver(calc);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className="h-screen bg-gray-950 flex flex-col">
       {/* Slide viewport */}
-      <div className="flex-1 relative overflow-hidden flex items-center justify-center">
-        <ScaledSlide>{slides[currentSlide]}</ScaledSlide>
+      <div ref={containerRef} className="flex-1 relative overflow-hidden flex items-center justify-center min-h-0">
+        <div className="relative" style={{ width: 1920 * scale, height: 1080 * scale }}>
+          <div
+            className="absolute left-1/2 top-1/2 origin-center rounded-lg overflow-hidden shadow-2xl"
+            style={{
+              width: 1920,
+              height: 1080,
+              transform: `translate(-50%, -50%) scale(${scale})`,
+            }}
+          >
+            {slides[currentSlide]}
+          </div>
+        </div>
       </div>
 
       {/* Controls */}
-      <div className="bg-gray-900 border-t border-gray-800 px-6 py-3 flex items-center justify-between text-white">
+      <div className="bg-gray-900 border-t border-gray-800 px-6 py-3 flex items-center justify-between text-white shrink-0">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => goTo(currentSlide - 1)} disabled={currentSlide === 0} className="text-white hover:text-white hover:bg-white/10">
             <ChevronLeft className="h-5 w-5" />
@@ -374,40 +403,9 @@ export function PresentationViewer({ presentation }: Props) {
       </div>
 
       {/* Progress bar */}
-      <div className="h-1 bg-gray-800">
+      <div className="h-1 bg-gray-800 shrink-0">
         <div className="h-full bg-gradient-to-r from-[hsl(217,91%,60%)] to-[hsl(38,92%,50%)] transition-all duration-300"
           style={{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }} />
-      </div>
-    </div>
-  );
-}
-
-// Scales 1920x1080 content to fit viewport
-function ScaledSlide({ children }: { children: React.ReactNode }) {
-  const [scale, setScale] = useState(1);
-
-  useEffect(() => {
-    const calc = () => {
-      const sx = window.innerWidth / 1920;
-      const sy = (window.innerHeight - 60) / 1080; // minus controls
-      setScale(Math.min(sx, sy));
-    };
-    calc();
-    window.addEventListener("resize", calc);
-    return () => window.removeEventListener("resize", calc);
-  }, []);
-
-  return (
-    <div className="relative" style={{ width: 1920 * scale, height: 1080 * scale }}>
-      <div
-        className="absolute left-1/2 top-1/2 origin-center rounded-lg overflow-hidden shadow-2xl"
-        style={{
-          width: 1920,
-          height: 1080,
-          transform: `translate(-50%, -50%) scale(${scale})`,
-        }}
-      >
-        {children}
       </div>
     </div>
   );
