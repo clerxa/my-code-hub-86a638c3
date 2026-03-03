@@ -67,6 +67,7 @@ import { AnalyticsDashboardTab } from "@/components/admin/AnalyticsDashboardTab"
 import { IntentionScoringTab } from "@/components/admin/IntentionScoringTab";
 import { IntentionScoreConfigTab } from "@/components/admin/IntentionScoreConfigTab";
 import { FeedbackAdminTab } from "@/components/admin/FeedbackAdminTab";
+import { ProspectPresentationsTab } from "@/components/admin/ProspectPresentationsTab";
 
 import type { UserProfile, Company, Parcours } from "@/types/database";
 import {
@@ -144,6 +145,7 @@ const Admin = () => {
     "analytics": "Analytics & Engagement",
     "scoring": "Scoring d'intention",
     "scoring-config": "Config Scoring",
+    "presentations": "Présentations Prospects",
   };
 
   const getBreadcrumbs = () => {
@@ -433,6 +435,9 @@ const Admin = () => {
                 
                 {/* Feedbacks utilisateurs */}
                 <Route path="feedbacks" element={<FeedbackAdminTab />} />
+                
+                {/* Présentations prospects */}
+                <Route path="presentations" element={<ProspectPresentationsTab />} />
                 
               </Routes>
             </div>

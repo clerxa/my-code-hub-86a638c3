@@ -83,6 +83,7 @@ import TaxDeclarationHelp from "./pages/TaxDeclarationHelp";
 import Diagnostic from "./pages/Diagnostic";
 import Horizon from "./pages/Horizon";
 import EmployeeFeedback from "./pages/EmployeeFeedback";
+import ProspectPresentation from "./pages/ProspectPresentation";
 import { Navigate } from "react-router-dom";
 
 /**
@@ -146,6 +147,7 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogArticle />} />
             <Route path="/lp/:slug" element={<LandingPageDynamic />} />
+            <Route path="/presentation/:token" element={<ProspectPresentation />} />
             
             {/* Routes administrateur - Nécessitent le rôle admin */}
             <Route
