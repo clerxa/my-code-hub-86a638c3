@@ -8,6 +8,7 @@ import { CircularProgress } from "@/components/CircularProgress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { Progress } from "@/components/ui/progress";
+import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
 import {
   ShieldCheck, Clock, ArrowRight, Info, AlertTriangle,
   CheckCircle2, HelpCircle, XCircle, ChevronRight, RotateCcw,
@@ -93,6 +94,19 @@ export default function DecryptezPER() {
   const [customValue, setCustomValue] = useState("");
   const [previousResult, setPreviousResult] = useState<QuizResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const { bookingUrl } = useExpertBookingUrl(companyId);
+
+  useEffect(() => {
+    if (user) {
+      supabase
+        .from("profiles")
+        .select("company_id")
+        .eq("id", user.id)
+        .maybeSingle()
+        .then(({ data }) => setCompanyId(data?.company_id || null));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user) fetchPreviousResult();
@@ -234,7 +248,10 @@ export default function DecryptezPER() {
                   <Button onClick={startQuiz} variant="outline" className="gap-2">
                     <RotateCcw className="h-4 w-4" /> Refaire le quiz
                   </Button>
-                  <Button className="gap-2 bg-gradient-to-r from-accent to-yellow-500 text-accent-foreground hover:opacity-90">
+                  <Button
+                    className="gap-2 bg-gradient-to-r from-accent to-yellow-500 text-accent-foreground hover:opacity-90"
+                    onClick={() => bookingUrl && window.open(bookingUrl, "_blank")}
+                  >
                     <Calendar className="h-4 w-4" /> Prendre rendez-vous directement
                   </Button>
                 </div>
@@ -429,6 +446,7 @@ export default function DecryptezPER() {
             <Button
               size="lg"
               className="bg-accent text-accent-foreground hover:opacity-90 gap-2 text-base shadow-lg"
+              onClick={() => bookingUrl && window.open(bookingUrl, "_blank")}
             >
               <Calendar className="h-5 w-5" />
               Prendre rendez-vous pour décrypter mon PER

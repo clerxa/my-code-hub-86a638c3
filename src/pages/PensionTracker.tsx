@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, ExternalLink, Lock, FolderOpen, ClipboardList, Phone, AlertTriangle, Coins, Shield, TrendingUp, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,109 +7,130 @@ import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { motion, AnimatePresence } from "framer-motion";
-
-const STEPS = [
-  {
-    id: 1,
-    emoji: "🔐",
-    icon: Lock,
-    title: "Connexion à votre compte retraite",
-    content: (
-      <>
-        <p className="text-muted-foreground leading-relaxed">
-          Rendez-vous sur <strong>www.info-retraite.fr</strong> et cliquez sur « J'accède à mon compte retraite ».
-          La connexion se fait via FranceConnect — utilisez votre compte impôts.gouv.fr, Ameli, La Poste ou autre.
-          Aucune création de compte spécifique n'est nécessaire.
-        </p>
-        <div className="mt-4">
-          <Button
-            className="gap-2"
-            onClick={() => window.open("https://www.info-retraite.fr", "_blank")}
-          >
-            Accéder à info-retraite.fr <ExternalLink className="h-4 w-4" />
-          </Button>
-        </div>
-        <p className="mt-3 text-xs text-muted-foreground italic">
-          Disponible aussi sur l'application mobile « Mon compte retraite » — iOS et Android.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: 2,
-    emoji: "📂",
-    icon: FolderOpen,
-    title: "Accéder à la rubrique épargne",
-    content: (
-      <p className="text-muted-foreground leading-relaxed">
-        Une fois connecté, rendez-vous dans la rubrique <strong>« Mon épargne retraite »</strong> puis cliquez sur <strong>« Voir mes contrats »</strong>.
-      </p>
-    ),
-  },
-  {
-    id: 3,
-    emoji: "📋",
-    icon: ClipboardList,
-    title: "Consulter vos contrats",
-    content: (
-      <>
-        <p className="text-muted-foreground leading-relaxed">
-          Le service affiche la liste de tous vos produits d'épargne retraite — individuels ou collectifs — pour lesquels vous êtes identifié comme titulaire, avec une estimation du montant disponible et les coordonnées de l'organisme gestionnaire.
-        </p>
-        <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
-          <p className="text-sm font-medium text-primary">
-            Contrats couverts : PER, PERCO, PERP, Madelin, Article 39, Article 83 — soit l'ensemble des véhicules de retraite supplémentaire individuelle et collective.
-          </p>
-        </div>
-      </>
-    ),
-  },
-  {
-    id: 4,
-    emoji: "📞",
-    icon: Phone,
-    title: "Contacter l'organisme",
-    content: (
-      <>
-        <p className="text-muted-foreground leading-relaxed">
-          Pour faire valoir vos droits ou obtenir plus d'informations, contactez directement l'organisme gestionnaire dont les coordonnées s'affichent pour chaque contrat.
-        </p>
-        <div className="mt-4">
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => window.open("/rdv-expert", "_blank")}
-          >
-            Besoin d'aide pour analyser vos contrats retrouvés ? Consultez un expert Perlib <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </>
-    ),
-  },
-];
-
-const BENEFIT_CARDS = [
-  {
-    icon: Coins,
-    title: "Des sommes parfois significatives",
-    description: "Un PERCO alimenté pendant 3 ans chez un ancien employeur peut représenter plusieurs milliers d'euros. Ces sommes continuent de fructifier — même si vous avez oublié le contrat.",
-  },
-  {
-    icon: Shield,
-    title: "Des droits qui vous appartiennent",
-    description: "Ces contrats sont à votre nom. Changer d'entreprise ne fait pas disparaître vos droits — ils restent disponibles jusqu'à votre retraite, voire avant dans certains cas (achat résidence principale, invalidité...).",
-  },
-  {
-    icon: TrendingUp,
-    title: "Une opportunité d'optimisation",
-    description: "Une fois vos contrats identifiés, un expert Perlib peut vous aider à décider s'il est pertinent de les regrouper, de les transférer vers un PER plus avantageux, ou de les laisser tels quels.",
-  },
-];
+import { useAuth } from "@/components/AuthProvider";
+import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function PensionTracker() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeStep, setActiveStep] = useState<number | null>(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const { bookingUrl } = useExpertBookingUrl(companyId);
+
+  useEffect(() => {
+    if (user) {
+      supabase
+        .from("profiles")
+        .select("company_id")
+        .eq("id", user.id)
+        .maybeSingle()
+        .then(({ data }) => setCompanyId(data?.company_id || null));
+    }
+  }, [user]);
+
+  const openBooking = () => {
+    if (bookingUrl) window.open(bookingUrl, "_blank");
+  };
+
+  const STEPS = [
+    {
+      id: 1,
+      emoji: "🔐",
+      icon: Lock,
+      title: "Connexion à votre compte retraite",
+      content: (
+        <>
+          <p className="text-muted-foreground leading-relaxed">
+            Rendez-vous sur <strong>www.info-retraite.fr</strong> et cliquez sur « J'accède à mon compte retraite ».
+            La connexion se fait via FranceConnect — utilisez votre compte impôts.gouv.fr, Ameli, La Poste ou autre.
+            Aucune création de compte spécifique n'est nécessaire.
+          </p>
+          <div className="mt-4">
+            <Button
+              className="gap-2"
+              onClick={() => window.open("https://www.info-retraite.fr", "_blank")}
+            >
+              Accéder à info-retraite.fr <ExternalLink className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground italic">
+            Disponible aussi sur l'application mobile « Mon compte retraite » — iOS et Android.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: 2,
+      emoji: "📂",
+      icon: FolderOpen,
+      title: "Accéder à la rubrique épargne",
+      content: (
+        <p className="text-muted-foreground leading-relaxed">
+          Une fois connecté, rendez-vous dans la rubrique <strong>« Mon épargne retraite »</strong> puis cliquez sur <strong>« Voir mes contrats »</strong>.
+        </p>
+      ),
+    },
+    {
+      id: 3,
+      emoji: "📋",
+      icon: ClipboardList,
+      title: "Consulter vos contrats",
+      content: (
+        <>
+          <p className="text-muted-foreground leading-relaxed">
+            Le service affiche la liste de tous vos produits d'épargne retraite — individuels ou collectifs — pour lesquels vous êtes identifié comme titulaire, avec une estimation du montant disponible et les coordonnées de l'organisme gestionnaire.
+          </p>
+          <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <p className="text-sm font-medium text-primary">
+              Contrats couverts : PER, PERCO, PERP, Madelin, Article 39, Article 83 — soit l'ensemble des véhicules de retraite supplémentaire individuelle et collective.
+            </p>
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 4,
+      emoji: "📞",
+      icon: Phone,
+      title: "Contacter l'organisme",
+      content: (
+        <>
+          <p className="text-muted-foreground leading-relaxed">
+            Pour faire valoir vos droits ou obtenir plus d'informations, contactez directement l'organisme gestionnaire dont les coordonnées s'affichent pour chaque contrat.
+          </p>
+          <div className="mt-4">
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={openBooking}
+            >
+              Besoin d'aide pour analyser vos contrats retrouvés ? Consultez un expert Perlib <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </>
+      ),
+    },
+  ];
+
+  const BENEFIT_CARDS = [
+    {
+      icon: Coins,
+      title: "Des sommes parfois significatives",
+      description: "Un PERCO alimenté pendant 3 ans chez un ancien employeur peut représenter plusieurs milliers d'euros. Ces sommes continuent de fructifier — même si vous avez oublié le contrat.",
+    },
+    {
+      icon: Shield,
+      title: "Des droits qui vous appartiennent",
+      description: "Ces contrats sont à votre nom. Changer d'entreprise ne fait pas disparaître vos droits — ils restent disponibles jusqu'à votre retraite, voire avant dans certains cas (achat résidence principale, invalidité...).",
+    },
+    {
+      icon: TrendingUp,
+      title: "Une opportunité d'optimisation",
+      description: "Une fois vos contrats identifiés, un expert Perlib peut vous aider à décider s'il est pertinent de les regrouper, de les transférer vers un PER plus avantageux, ou de les laisser tels quels.",
+    },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -189,7 +210,7 @@ export default function PensionTracker() {
 
               {/* Stepper */}
               <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2">
-                {STEPS.map((step, idx) => (
+                {STEPS.map((step) => (
                   <button
                     key={step.id}
                     onClick={() => setActiveStep(activeStep === step.id ? null : step.id)}
@@ -278,7 +299,7 @@ export default function PensionTracker() {
           <Button
             size="lg"
             className="gap-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white shadow-lg hover:shadow-xl transition-all"
-            onClick={() => window.open("/rdv-expert", "_blank")}
+            onClick={openBooking}
           >
             Prendre rendez-vous avec un expert Perlib pour analyser mes contrats <ArrowRight className="h-4 w-4" />
           </Button>
