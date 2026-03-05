@@ -864,6 +864,7 @@ export type Database = {
           has_foreign_employees: boolean | null
           hr_challenges: Json | null
           id: string
+          info_sections_config: Json | null
           internal_communications: Json | null
           internal_initiatives: Json | null
           is_beta: boolean
@@ -902,6 +903,7 @@ export type Database = {
           has_foreign_employees?: boolean | null
           hr_challenges?: Json | null
           id?: string
+          info_sections_config?: Json | null
           internal_communications?: Json | null
           internal_initiatives?: Json | null
           is_beta?: boolean
@@ -940,6 +942,7 @@ export type Database = {
           has_foreign_employees?: boolean | null
           hr_challenges?: Json | null
           id?: string
+          info_sections_config?: Json | null
           internal_communications?: Json | null
           internal_initiatives?: Json | null
           is_beta?: boolean

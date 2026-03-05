@@ -92,6 +92,7 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
     rang: null as number | null,
     ticker: "",
     company_description: "",
+    info_sections_config: { stock_price: true, general_info: true, partnership: true, hr_devices: true, description: true } as Record<string, boolean>,
     referral_typeform_url: "",
     expert_booking_url: "",
     expert_booking_hubspot_embed: "",
@@ -240,6 +241,7 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
         ...formData,
         ticker: formData.ticker || null,
         company_description: formData.company_description || null,
+        info_sections_config: formData.info_sections_config,
         referral_typeform_url: formData.referral_typeform_url || null,
         expert_booking_url: formData.expert_booking_url || null,
         expert_booking_hubspot_embed: formData.expert_booking_hubspot_embed || null,
@@ -407,6 +409,7 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
       rang: (company as any).rang || null,
       ticker: (company as any).ticker || "",
       company_description: (company as any).company_description || "",
+      info_sections_config: (company as any).info_sections_config || { stock_price: true, general_info: true, partnership: true, hr_devices: true, description: true },
       referral_typeform_url: company.referral_typeform_url || "",
       expert_booking_url: company.expert_booking_url || "",
       expert_booking_hubspot_embed: company.expert_booking_hubspot_embed || "",
@@ -454,6 +457,7 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
       rang: null,
       ticker: "",
       company_description: "",
+      info_sections_config: { stock_price: true, general_info: true, partnership: true, hr_devices: true, description: true },
       referral_typeform_url: "",
       expert_booking_url: "",
       expert_booking_hubspot_embed: "",
@@ -844,6 +848,33 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
                           placeholder="Description libre visible par les employés..."
                           rows={4}
                         />
+                      </div>
+
+                      <div className="border-t my-4" />
+
+                      <div className="space-y-3">
+                        <Label className="text-sm font-semibold">Sections visibles sur la page Informations</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            { key: "stock_price", label: "Cours de bourse" },
+                            { key: "general_info", label: "Informations générales" },
+                            { key: "partnership", label: "Détail du partenariat" },
+                            { key: "hr_devices", label: "Dispositifs de rémunération" },
+                            { key: "description", label: "Description libre" },
+                          ].map(({ key, label }) => (
+                            <div key={key} className="flex items-center space-x-2">
+                              <Switch
+                                id={`info-section-${key}`}
+                                checked={formData.info_sections_config[key] !== false}
+                                onCheckedChange={(checked) => setFormData({
+                                  ...formData,
+                                  info_sections_config: { ...formData.info_sections_config, [key]: checked }
+                                })}
+                              />
+                              <Label htmlFor={`info-section-${key}`} className="text-sm cursor-pointer">{label}</Label>
+                            </div>
+                          ))}
+                        </div>
                       </div>
 
                     </TabsContent>
