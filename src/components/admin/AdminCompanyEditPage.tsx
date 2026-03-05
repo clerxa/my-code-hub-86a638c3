@@ -47,6 +47,7 @@ export const AdminCompanyEditPage = () => {
     company_size: null as number | null,
     ticker: "",
     company_description: "",
+    partnership_details: "",
     info_sections_config: { stock_price: true, general_info: true, partnership: true, hr_devices: true, description: true } as Record<string, boolean>,
     compensation_devices: {
       rsu: { enabled: false, qualified: false },
@@ -116,6 +117,7 @@ export const AdminCompanyEditPage = () => {
         company_size: company.company_size || null,
         ticker: company.ticker || "",
         company_description: company.company_description || "",
+        partnership_details: company.partnership_details || "",
         info_sections_config: company.info_sections_config || { stock_price: true, general_info: true, partnership: true, hr_devices: true, description: true },
         compensation_devices: {
           ...defaultCompensation,
@@ -166,6 +168,7 @@ export const AdminCompanyEditPage = () => {
           company_size: formData.company_size,
           ticker: formData.ticker || null,
           company_description: formData.company_description || null,
+          partnership_details: formData.partnership_details || null,
           info_sections_config: formData.info_sections_config,
           compensation_devices: formData.compensation_devices,
           hr_challenges: formData.hr_challenges,
@@ -328,6 +331,11 @@ export const AdminCompanyEditPage = () => {
           </div>
 
           <div className="space-y-2">
+            <Label>Détail du partenariat</Label>
+            <Textarea value={formData.partnership_details} onChange={(e) => setFormData(prev => ({ ...prev, partnership_details: e.target.value }))} placeholder="Détails sur le partenariat, conditions, historique..." rows={3} />
+          </div>
+
+          <div className="space-y-2">
             <Label>Description de l'entreprise</Label>
             <Textarea value={formData.company_description} onChange={(e) => setFormData(prev => ({ ...prev, company_description: e.target.value }))} placeholder="Description visible par les employés..." rows={3} />
           </div>
@@ -368,31 +376,9 @@ export const AdminCompanyEditPage = () => {
           <CardDescription>Plans d'actionnariat et épargne salariale</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-4 border p-4 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <Checkbox id="rsu_enabled" checked={formData.compensation_devices.rsu?.enabled}
-                onCheckedChange={(checked) => setFormData(prev => ({
-                  ...prev,
-                  compensation_devices: { ...prev.compensation_devices, rsu: { ...prev.compensation_devices.rsu, enabled: checked === true } }
-                }))} />
-              <Label htmlFor="rsu_enabled">RSU (Restricted Stock Units)</Label>
-            </div>
-            {formData.compensation_devices.rsu?.enabled && (
-              <div className="ml-6">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="rsu_qualified" checked={formData.compensation_devices.rsu?.qualified}
-                    onCheckedChange={(checked) => setFormData(prev => ({
-                      ...prev,
-                      compensation_devices: { ...prev.compensation_devices, rsu: { ...prev.compensation_devices.rsu, qualified: checked === true } }
-                    }))} />
-                  <Label htmlFor="rsu_qualified">Plan qualifié</Label>
-                </div>
-              </div>
-            )}
-          </div>
-
           <div className="grid grid-cols-2 gap-3">
             {[
+              { key: "rsu", label: "RSU" },
               { key: "espp", label: "ESPP" },
               { key: "stock_options", label: "Stock-Options" },
               { key: "bspce", label: "BSPCE" },
@@ -401,10 +387,13 @@ export const AdminCompanyEditPage = () => {
               { key: "pero", label: "PERO" },
             ].map(({ key, label }) => (
               <div key={key} className="flex items-center space-x-2">
-                <Checkbox id={key} checked={formData.compensation_devices[key]}
+                <Checkbox id={key} checked={key === 'rsu' ? formData.compensation_devices.rsu?.enabled : formData.compensation_devices[key]}
                   onCheckedChange={(checked) => setFormData(prev => ({
                     ...prev,
-                    compensation_devices: { ...prev.compensation_devices, [key]: checked === true }
+                    compensation_devices: {
+                      ...prev.compensation_devices,
+                      [key]: key === 'rsu' ? { enabled: checked === true, qualified: false } : checked === true
+                    }
                   }))} />
                 <Label htmlFor={key}>{label}</Label>
               </div>
@@ -447,6 +436,13 @@ export const AdminCompanyEditPage = () => {
               </div>
             ))}
           </div>
+
+          {(formData.internal_initiatives.financial_education_service || formData.internal_initiatives.internal_webinars || formData.internal_initiatives.pee_perco_rsu_program) && (
+            <div className="space-y-2">
+              <Label>Acteur de l'initiative</Label>
+              <Input value={formData.internal_initiatives.initiative_actor || ''} onChange={(e) => setFormData(prev => ({ ...prev, internal_initiatives: { ...prev.internal_initiatives, initiative_actor: e.target.value } }))} placeholder="Ex: DRH, CSE, Prestataire externe..." />
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
