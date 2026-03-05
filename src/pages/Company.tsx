@@ -1041,100 +1041,96 @@ const Company = () => {
                       Webinars
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-6">
-                    <Tabs defaultValue="upcoming" className="w-full">
-                      <TabsList 
-                        className="grid w-full grid-cols-2 mb-4 sm:mb-6 h-auto p-1"
-                        style={{ 
-                          backgroundColor: `color-mix(in srgb, ${webinarSectionColor} 10%, hsl(var(--muted)))`
-                        }}
-                      >
-                        <TabsTrigger 
-                          value="upcoming" 
-                          className="gap-1 sm:gap-2 data-[state=active]:shadow-sm text-xs sm:text-sm py-2 px-2 sm:px-3 flex-wrap justify-center"
-                          style={{ 
-                            // @ts-ignore
-                            '--tw-shadow-color': webinarSectionColor
-                          }}
-                        >
-                          <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                          <span className="hidden sm:inline">Prochains webinars</span>
-                          <span className="sm:hidden">À venir</span>
-                          {upcomingWebinarsCount > 0 && (
-                            <Badge 
-                              className="ml-1 border text-[10px] sm:text-xs px-1.5 sm:px-2"
-                              style={{ 
-                                backgroundColor: `color-mix(in srgb, ${webinarSectionColor} 15%, transparent)`,
-                                color: webinarSectionColor,
-                                borderColor: `color-mix(in srgb, ${webinarSectionColor} 30%, transparent)`
-                              }}
-                            >
-                              {upcomingWebinarsCount}
-                            </Badge>
-                          )}
-                        </TabsTrigger>
-                        <TabsTrigger 
-                          value="replays" 
-                          className="gap-1 sm:gap-2 data-[state=active]:shadow-sm text-xs sm:text-sm py-2 px-2 sm:px-3"
-                        >
-                          <Video className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                          Replays
-                          {pastWebinars.length > 0 && (
-                            <Badge 
-                              className="ml-1 border text-[10px] sm:text-xs px-1.5 sm:px-2"
-                              style={{ 
-                                backgroundColor: `color-mix(in srgb, ${webinarSectionColor} 15%, transparent)`,
-                                color: webinarSectionColor,
-                                borderColor: `color-mix(in srgb, ${webinarSectionColor} 30%, transparent)`
-                              }}
-                            >
-                              {pastWebinars.length}
-                            </Badge>
-                          )}
-                        </TabsTrigger>
-                      </TabsList>
-                    <TabsContent value="upcoming">
+                  <CardContent className="pt-6 space-y-6">
+                    {/* Upcoming webinars */}
+                    {upcomingWebinarsCount > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: webinarSectionColor }} />
+                          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                            Prochains webinars
+                          </h3>
+                          <Badge 
+                            className="text-xs border"
+                            style={{ 
+                              backgroundColor: `color-mix(in srgb, ${webinarSectionColor} 15%, transparent)`,
+                              color: webinarSectionColor,
+                              borderColor: `color-mix(in srgb, ${webinarSectionColor} 30%, transparent)`
+                            }}
+                          >
+                            {upcomingWebinarsCount}
+                          </Badge>
+                        </div>
+                        <UpcomingWebinars companyId={company.id} showCard={false} />
+                      </div>
+                    )}
+
+                    {upcomingWebinarsCount === 0 && (
                       <UpcomingWebinars companyId={company.id} showCard={false} />
-                    </TabsContent>
-                      <TabsContent value="replays">
-                        {pastWebinars.length > 0 ? (
-                          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {pastWebinars.map((webinar: any) => (
-                              <Card 
-                                key={webinar.id} 
-                                className="hover:shadow-lg transition-all cursor-pointer bg-background group"
-                                style={{ borderLeftWidth: '3px', borderLeftColor: webinarSectionColor }}
-                                onClick={() => webinar.webinar_registration_url && window.open(webinar.webinar_registration_url, '_blank')}
-                              >
-                                <CardHeader>
-                                  <CardTitle className="text-lg">{webinar.title}</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                  {webinar.description && (
-                                    <div className="text-sm text-muted-foreground mb-4 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: webinar.description }} />
-                                  )}
-                                  {webinar.webinar_registration_url && (
-                                    <Button 
-                                      size="sm" 
-                                      className="transition-all group-hover:shadow-md"
-                                      style={{ backgroundColor: webinarSectionColor }} 
-                                      onClick={(e) => { e.stopPropagation(); window.open(webinar.webinar_registration_url, '_blank'); }}
-                                    >
-                                      Voir la rediffusion
-                                      <ExternalLink className="h-4 w-4 ml-2" />
-                                    </Button>
-                                  )}
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-center text-muted-foreground py-8">
-                            Aucune rediffusion disponible pour le moment
-                          </p>
-                        )}
-                      </TabsContent>
-                    </Tabs>
+                    )}
+
+                    {/* Separator */}
+                    {upcomingWebinarsCount > 0 && pastWebinars.length > 0 && (
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-border" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-card px-2 text-muted-foreground">Replays</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Past webinars / Replays */}
+                    {pastWebinars.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-muted-foreground" />
+                          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                            Replays
+                          </h3>
+                          <Badge variant="outline" className="text-xs">
+                            {pastWebinars.length}
+                          </Badge>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 opacity-90">
+                          {pastWebinars.map((webinar: any) => (
+                            <Card 
+                              key={webinar.id} 
+                              className="hover:shadow-lg transition-all cursor-pointer bg-background group"
+                              style={{ borderLeftWidth: '3px', borderLeftColor: webinarSectionColor }}
+                              onClick={() => webinar.webinar_registration_url && window.open(webinar.webinar_registration_url, '_blank')}
+                            >
+                              <CardHeader>
+                                <CardTitle className="text-lg">{webinar.title}</CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                {webinar.description && (
+                                  <div className="text-sm text-muted-foreground mb-4 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: webinar.description }} />
+                                )}
+                                {webinar.webinar_registration_url && (
+                                  <Button 
+                                    size="sm" 
+                                    className="transition-all group-hover:shadow-md"
+                                    style={{ backgroundColor: webinarSectionColor }} 
+                                    onClick={(e) => { e.stopPropagation(); window.open(webinar.webinar_registration_url, '_blank'); }}
+                                  >
+                                    Voir la rediffusion
+                                    <ExternalLink className="h-4 w-4 ml-2" />
+                                  </Button>
+                                )}
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {upcomingWebinarsCount === 0 && pastWebinars.length === 0 && (
+                      <p className="text-center text-muted-foreground py-8">
+                        Aucun webinar disponible pour le moment
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               );
