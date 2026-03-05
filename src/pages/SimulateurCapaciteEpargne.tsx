@@ -249,7 +249,7 @@ const SimulateurCapaciteEpargne = () => {
         <SimulatorHeader
           title="Capacité d'Épargne"
           description="Découvrez votre potentiel de liberté financière"
-          onBack={() => navigate(-1)}
+          onBack={() => navigate('/employee/simulations')}
         />
 
         {hasProfile && step < 3 && (

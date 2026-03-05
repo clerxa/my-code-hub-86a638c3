@@ -64,7 +64,7 @@ export function SimulatorHeader({
   onBack,
   onSave,
   onViewSimulations,
-  backLabel = "Retour",
+  backLabel = "Retour aux simulateurs",
   actions,
   className = "",
 }: SimulatorHeaderProps) {

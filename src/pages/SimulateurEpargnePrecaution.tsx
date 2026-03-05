@@ -811,7 +811,7 @@ const SimulateurEpargnePrecaution = () => {
         showResults={showResults}
         resultsContent={resultsContent}
         onValidate={handleValidate}
-        onBack={() => navigate(-1)}
+        onBack={() => navigate('/employee/simulations')}
         onBackFromResults={() => setShowResults(false)}
       />
 

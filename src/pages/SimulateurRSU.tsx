@@ -85,8 +85,8 @@ const SimulateurRSU = () => {
       case 'editor': setScreen('dashboard'); setEditingPlanId(null); break;
       case 'cession': setScreen('dashboard'); break;
       case 'results': setScreen('cession'); break;
-      case 'dashboard': navigate(-1); break;
-      default: navigate(-1);
+      case 'dashboard': navigate('/employee/simulations'); break;
+      default: navigate('/employee/simulations');
     }
   }, [screen, navigate]);
 
@@ -155,7 +155,7 @@ const SimulateurRSU = () => {
             title={screenTitle}
             description={screen === 'dashboard' ? 'Simulez l\'impact fiscal de la cession de vos RSU multi-plans' : undefined}
             onBack={handleBack}
-            backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour'}
+            backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour aux simulateurs'}
             onViewSimulations={screen === 'dashboard' ? () => navigate('/employee/simulations') : undefined}
           />
         )}
