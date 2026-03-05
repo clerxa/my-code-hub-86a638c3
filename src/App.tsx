@@ -83,6 +83,7 @@ import TaxDeclarationHelp from "./pages/TaxDeclarationHelp";
 import Diagnostic from "./pages/Diagnostic";
 import Horizon from "./pages/Horizon";
 import EmployeeFeedback from "./pages/EmployeeFeedback";
+import PensionTracker from "./pages/PensionTracker";
 import ProspectPresentation from "./pages/ProspectPresentation";
 import { Navigate } from "react-router-dom";
 
@@ -264,6 +265,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <EmployeeFeedback />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/pension-tracker"
+              element={
+                <ProtectedRoute>
+                  <PensionTracker />
                 </ProtectedRoute>
               }
             />

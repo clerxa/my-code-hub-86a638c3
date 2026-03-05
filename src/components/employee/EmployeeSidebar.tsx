@@ -141,6 +141,9 @@ export const EmployeeSidebar = ({
       case "feedback":
         navigate("/employee/feedback");
         break;
+      case "pension-tracker":
+        navigate("/employee/pension-tracker");
+        break;
       case "offers":
         navigate("/employee");
         setTimeout(() => onSectionChange("offers"), 100);
