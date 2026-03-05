@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, ExternalLink, Mail, Video, PlayCircle, CheckCircle2, UserCheck, UserX, XCircle } from "lucide-react";
 import { format } from "date-fns";
@@ -336,49 +335,64 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
           Retrouvez tous vos webinaires passés et à venir
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="upcoming" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4 h-auto">
-            <TabsTrigger value="upcoming" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3">
-              <span className="hidden sm:inline">Mes prochains webinaires</span>
-              <span className="sm:hidden">À venir</span>
-              {upcomingWebinars.length > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] px-1.5 text-xs">
-                  {upcomingWebinars.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="past" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3">
-              <span className="hidden sm:inline">Les webinaires passés</span>
-              <span className="sm:hidden">Passés</span>
-              {pastWebinars.length > 0 && (
-                <Badge variant="outline" className="ml-1 h-5 min-w-[20px] px-1.5 text-xs">
-                  {pastWebinars.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="upcoming" className="space-y-4">
-            {upcomingWebinars.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">
-                Aucun webinaire à venir pour le moment
-              </p>
-            ) : (
-              upcomingWebinars.map((webinar) => renderWebinarCard(webinar, false))
+      <CardContent className="space-y-6">
+        {webinars.length === 0 ? (
+          <p className="text-muted-foreground text-center py-8">
+            Aucun webinaire pour le moment
+          </p>
+        ) : (
+          <>
+            {/* Upcoming Section */}
+            {upcomingWebinars.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                  <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                    Prochains webinaires
+                  </h3>
+                  <Badge variant="secondary" className="text-xs">
+                    {upcomingWebinars.length}
+                  </Badge>
+                </div>
+                <div className="space-y-3">
+                  {upcomingWebinars.map((webinar) => renderWebinarCard(webinar, false))}
+                </div>
+              </div>
             )}
-          </TabsContent>
 
-          <TabsContent value="past" className="space-y-4">
-            {pastWebinars.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">
-                Aucun webinaire passé
-              </p>
-            ) : (
-              pastWebinars.map((webinar) => renderWebinarCard(webinar, true))
+            {/* Separator */}
+            {upcomingWebinars.length > 0 && pastWebinars.length > 0 && (
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">Terminés</span>
+                </div>
+              </div>
             )}
-          </TabsContent>
-        </Tabs>
+
+            {/* Past Section */}
+            {pastWebinars.length > 0 && (
+              <div className="space-y-3">
+                {upcomingWebinars.length === 0 && (
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-muted-foreground" />
+                    <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                      Webinaires passés
+                    </h3>
+                    <Badge variant="outline" className="text-xs">
+                      {pastWebinars.length}
+                    </Badge>
+                  </div>
+                )}
+                <div className="space-y-3 opacity-80">
+                  {pastWebinars.map((webinar) => renderWebinarCard(webinar, true))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </CardContent>
     </Card>
   );
