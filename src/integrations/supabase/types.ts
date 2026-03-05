@@ -4075,6 +4075,33 @@ export type Database = {
         }
         Relationships: []
       }
+      per_quiz_results: {
+        Row: {
+          answers: Json
+          created_at: string
+          id: string
+          score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          score?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          score?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       per_simulations: {
         Row: {
           age_actuel: number

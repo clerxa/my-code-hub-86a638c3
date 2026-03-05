@@ -116,6 +116,9 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
       case "pension-tracker":
         navigate("/employee/pension-tracker");
         break;
+      case "decryptez-per":
+        navigate("/employee/decryptez-per");
+        break;
       case "offers":
         navigate("/employee");
         setTimeout(() => onSectionChange("offers"), 100);

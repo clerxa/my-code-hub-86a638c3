@@ -47,7 +47,8 @@ const defaultEmployeeItems: SidebarMenuItem[] = [
   { id: "company", label: "Mon entreprise", icon: "Building2", order: 13, visible: true },
   { id: "forum", label: "Communauté", icon: "MessageSquareText", order: 14, visible: true },
   { id: "pension-tracker", label: "PensionTracker", icon: "Search", order: 15, visible: true, categoryId: "programme-fincare" },
-  { id: "feedback", label: "Feedback", icon: "MessageSquarePlus", order: 16, visible: true },
+  { id: "decryptez-per", label: "Décryptez votre PER", icon: "FileText", order: 16, visible: true, categoryId: "programme-fincare" },
+  { id: "feedback", label: "Feedback", icon: "MessageSquarePlus", order: 17, visible: true },
 ];
 
 const defaultCompanyItems: SidebarMenuItem[] = [
