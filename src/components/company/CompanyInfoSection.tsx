@@ -109,12 +109,6 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
                     <span className="text-sm text-muted-foreground">Entité partenaire :</span>
                     <Badge style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`, color }}>{partnershipLabels[company.partnership_type!] || company.partnership_type}</Badge>
                   </div>
-                  {company.rang && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Niveau :</span>
-                      <Badge variant="outline">Rang {company.rang}</Badge>
-                    </div>
-                  )}
                 </div>
               )}
               {hasPartnershipDetails && (
@@ -227,63 +221,6 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
         </Card>
       )}
 
-      {/* 3. General Info Card */}
-      {showGeneralInfo && hasGeneralInfo && (
-        <Card className="overflow-hidden" style={{ borderTopColor: color, borderTopWidth: '3px' }}>
-          <CardHeader style={{ backgroundColor: `color-mix(in srgb, ${color} 5%, transparent)` }}>
-            <CardTitle className="flex items-center gap-2">
-              <div className="p-2 rounded-lg" style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)` }}>
-                <Building2 className="h-5 w-5" style={{ color }} />
-              </div>
-              Informations générales
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {company.company_size && (
-                <div className="flex items-start gap-3">
-                  <Users className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Effectif</p>
-                    <p className="font-semibold">{company.company_size.toLocaleString()} collaborateurs</p>
-                  </div>
-                </div>
-              )}
-              {company.employee_locations && company.employee_locations.length > 0 && (
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Localisation</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {company.employee_locations.map((loc, i) => (
-                        <Badge key={i} variant="secondary" className="text-xs">{loc}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-              {company.work_mode && (
-                <div className="flex items-start gap-3">
-                  <Laptop className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Mode de travail</p>
-                    <p className="font-semibold">{workModeLabels[company.work_mode] || company.work_mode}</p>
-                  </div>
-                </div>
-              )}
-              {company.has_foreign_employees && (
-                <div className="flex items-start gap-3">
-                  <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">International</p>
-                    <p className="font-semibold">Présence de salariés étrangers</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* 4. HR Devices */}
       {showHrDevices && hasHrDevices && (
@@ -293,7 +230,7 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
               <div className="p-2 rounded-lg" style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)` }}>
                 <Briefcase className="h-5 w-5" style={{ color }} />
               </div>
-              Dispositifs de rémunération
+              Dispositifs de rémunération disponibles
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
@@ -329,7 +266,7 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
       )}
 
       {/* Empty state */}
-      {!showStockPrice && !(showGeneralInfo && hasGeneralInfo) && !(showPartnership && (hasPartnership || hasPartnershipDetails)) && !(showHrDevices && hasHrDevices) && !(showDescription && hasDescription) && (
+      {!showStockPrice && !(showPartnership && (hasPartnership || hasPartnershipDetails)) && !(showHrDevices && hasHrDevices) && !(showDescription && hasDescription) && (
         <Card>
           <CardContent className="py-12 text-center">
             <Building2 className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
