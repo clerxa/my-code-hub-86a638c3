@@ -84,6 +84,7 @@ import Diagnostic from "./pages/Diagnostic";
 import Horizon from "./pages/Horizon";
 import EmployeeFeedback from "./pages/EmployeeFeedback";
 import PensionTracker from "./pages/PensionTracker";
+import DecryptezPER from "./pages/DecryptezPER";
 import ProspectPresentation from "./pages/ProspectPresentation";
 import { Navigate } from "react-router-dom";
 
@@ -273,6 +274,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <PensionTracker />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/decryptez-per"
+              element={
+                <ProtectedRoute>
+                  <DecryptezPER />
                 </ProtectedRoute>
               }
             />
