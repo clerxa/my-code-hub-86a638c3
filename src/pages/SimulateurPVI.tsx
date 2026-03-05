@@ -92,13 +92,8 @@ const SimulateurPVI: React.FC = () => {
   }, [formData, calculerPVIBackend, calculerPVILocal]);
   
   const handleBack = useCallback(() => {
-    if (showResults) {
-      setShowResults(false);
-      setResult(null);
-    } else {
-      navigate(-1);
-    }
-  }, [showResults, navigate]);
+    navigate('/employee/simulations');
+  }, [navigate]);
   
   const handleSave = useCallback(async () => {
     if (!result || !simulationName.trim()) return;
@@ -121,8 +116,7 @@ const SimulateurPVI: React.FC = () => {
         <SimulatorHeader
           title="Plus-Value Immobilière"
           description="Calculez l'impôt sur la plus-value de votre bien immobilier"
-          onBack={handleBack}
-          backLabel={showResults ? 'Modifier mes informations' : 'Retour'}
+           onBack={handleBack}
           onViewSimulations={() => navigate('/employee/simulations')}
         />
         

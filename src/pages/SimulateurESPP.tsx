@@ -82,8 +82,8 @@ const SimulateurESPP = () => {
       case 'editor': setScreen('dashboard'); setEditingPeriodId(null); break;
       case 'tmi': setScreen('dashboard'); break;
       case 'results': setScreen('tmi'); break;
-      case 'dashboard': navigate(-1); break;
-      default: navigate(-1);
+      case 'dashboard': navigate('/employee/simulations'); break;
+      default: navigate('/employee/simulations');
     }
   }, [screen, navigate]);
 
@@ -152,7 +152,7 @@ const SimulateurESPP = () => {
             title={screenTitle}
             description={screen === 'dashboard' ? "Simulez l'impact fiscal de vos plans d'achat d'actions" : undefined}
             onBack={handleBack}
-            backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour'}
+            backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour aux simulateurs'}
             onViewSimulations={screen === 'dashboard' ? () => navigate('/employee/simulations') : undefined}
           />
         )}

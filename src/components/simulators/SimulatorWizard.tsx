@@ -102,7 +102,7 @@ export function SimulatorWizard({
           <div className="flex items-center justify-between mb-4">
             <Button type="button" variant="ghost" onClick={handlePrevious} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
-              {currentStep === 0 ? "Retour" : "Précédent"}
+              {currentStep === 0 ? "Retour aux simulateurs" : "Précédent"}
             </Button>
             {!showResults && (
               <div className="text-sm text-muted-foreground">

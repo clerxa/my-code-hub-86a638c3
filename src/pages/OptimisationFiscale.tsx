@@ -361,11 +361,11 @@ export default function OptimisationFiscale() {
         <div className="mb-8">
           <Button
             variant="ghost"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/employee/simulations')}
             className="mb-4"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
+            Retour aux simulateurs
           </Button>
 
           <div className="flex items-center justify-between mb-6">
