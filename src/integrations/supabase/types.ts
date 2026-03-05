@@ -872,6 +872,7 @@ export type Database = {
           max_tax_declarations: number | null
           name: string
           niveau_maturite_financiere: string | null
+          partnership_details: string | null
           partnership_type: string | null
           primary_color: string | null
           rang: number | null
@@ -911,6 +912,7 @@ export type Database = {
           max_tax_declarations?: number | null
           name: string
           niveau_maturite_financiere?: string | null
+          partnership_details?: string | null
           partnership_type?: string | null
           primary_color?: string | null
           rang?: number | null
@@ -950,6 +952,7 @@ export type Database = {
           max_tax_declarations?: number | null
           name?: string
           niveau_maturite_financiere?: string | null
+          partnership_details?: string | null
           partnership_type?: string | null
           primary_color?: string | null
           rang?: number | null
