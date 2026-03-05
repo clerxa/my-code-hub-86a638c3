@@ -65,7 +65,7 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
   const compensationDevices = company.compensation_devices as any;
   const activeDevices: string[] = [];
   if (compensationDevices) {
-    if (compensationDevices.rsu?.enabled) activeDevices.push("RSU");
+    if (compensationDevices.rsu?.enabled || compensationDevices.rsu === true) activeDevices.push("RSU");
     if (compensationDevices.espp) activeDevices.push("ESPP");
     if (compensationDevices.stock_options) activeDevices.push("Stock Options");
     if (compensationDevices.bspce) activeDevices.push("BSPCE");
@@ -76,6 +76,7 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
 
   const hasGeneralInfo = company.company_size || (company.employee_locations?.length ?? 0) > 0 || company.work_mode || company.has_foreign_employees;
   const hasPartnership = company.partnership_type && company.partnership_type !== "Aucun";
+  const hasPartnershipDetails = !!(company as any).partnership_details;
   const hasHrDevices = activeDevices.length > 0;
   const hasDescription = !!(company as any).company_description;
 
@@ -89,7 +90,42 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
 
   return (
     <div className="space-y-6">
-      {/* Stock Price Card */}
+      {/* 1. Partnership Details */}
+      {showPartnership && (hasPartnership || hasPartnershipDetails) && (
+        <Card className="overflow-hidden" style={{ borderTopColor: color, borderTopWidth: '3px' }}>
+          <CardHeader style={{ backgroundColor: `color-mix(in srgb, ${color} 5%, transparent)` }}>
+            <CardTitle className="flex items-center gap-2">
+              <div className="p-2 rounded-lg" style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)` }}>
+                <Handshake className="h-5 w-5" style={{ color }} />
+              </div>
+              Détail du partenariat
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              {hasPartnership && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Entité partenaire :</span>
+                    <Badge style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`, color }}>{partnershipLabels[company.partnership_type!] || company.partnership_type}</Badge>
+                  </div>
+                  {company.rang && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Niveau :</span>
+                      <Badge variant="outline">Rang {company.rang}</Badge>
+                    </div>
+                  )}
+                </div>
+              )}
+              {hasPartnershipDetails && (
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{(company as any).partnership_details}</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 2. Stock Price Card */}
       {showStockPrice && (
         <Card className="overflow-hidden" style={{ borderTopColor: color, borderTopWidth: '3px' }}>
           <CardHeader style={{ backgroundColor: `color-mix(in srgb, ${color} 5%, transparent)` }}>
@@ -124,7 +160,6 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
               </div>
             ) : summary?.currentPrice ? (
               <>
-                {/* Price + Change */}
                 <div className="flex items-baseline gap-4 flex-wrap">
                   <span className="text-4xl font-bold tracking-tight" style={{ color }}>
                     {currencySymbol}{summary.currentPrice.toFixed(2)}
@@ -137,25 +172,17 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
                     </div>
                   )}
                 </div>
-
-                {/* Date */}
                 {summary.latestDate && (
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Calendar className="h-3.5 w-3.5" />
-                    <span>
-                      Clôture du {format(new Date(summary.latestDate), "d MMMM yyyy", { locale: fr })}
-                    </span>
+                    <span>Clôture du {format(new Date(summary.latestDate), "d MMMM yyyy", { locale: fr })}</span>
                   </div>
                 )}
-
-                {/* Key Metrics Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {summary.dayHigh !== null && summary.dayLow !== null && (
                     <div className="bg-muted/50 rounded-lg p-3">
                       <p className="text-xs text-muted-foreground mb-1">Fourchette du jour</p>
-                      <p className="font-semibold text-sm">
-                        {currencySymbol}{summary.dayLow.toFixed(2)} – {currencySymbol}{summary.dayHigh.toFixed(2)}
-                      </p>
+                      <p className="font-semibold text-sm">{currencySymbol}{summary.dayLow.toFixed(2)} – {currencySymbol}{summary.dayHigh.toFixed(2)}</p>
                     </div>
                   )}
                   {summary.volume !== null && (
@@ -176,14 +203,10 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
                   {summary.fiftyTwoWeekHigh !== null && summary.fiftyTwoWeekLow !== null && (
                     <div className="bg-muted/50 rounded-lg p-3">
                       <p className="text-xs text-muted-foreground mb-1">52 semaines</p>
-                      <p className="font-semibold text-sm">
-                        {currencySymbol}{summary.fiftyTwoWeekLow.toFixed(2)} – {currencySymbol}{summary.fiftyTwoWeekHigh.toFixed(2)}
-                      </p>
+                      <p className="font-semibold text-sm">{currencySymbol}{summary.fiftyTwoWeekLow.toFixed(2)} – {currencySymbol}{summary.fiftyTwoWeekHigh.toFixed(2)}</p>
                     </div>
                   )}
                 </div>
-
-                {/* 52-week progress bar */}
                 {weekRange !== null && (
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -191,27 +214,20 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
                       <span>Plus haut 52s</span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden relative">
-                      <div 
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ 
-                          width: `${Math.min(100, Math.max(0, weekRange))}%`,
-                          background: `linear-gradient(90deg, ${isPositive ? '#16a34a' : '#ef4444'}, ${color})`
-                        }}
-                      />
+                      <div className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, Math.max(0, weekRange))}%`, background: `linear-gradient(90deg, ${isPositive ? '#16a34a' : '#ef4444'}, ${color})` }} />
                     </div>
                   </div>
                 )}
               </>
             ) : (
-              <p className="text-muted-foreground">
-                {summary?.error || "Cours non disponible pour le moment"}
-              </p>
+              <p className="text-muted-foreground">{summary?.error || "Cours non disponible pour le moment"}</p>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* General Info Card */}
+      {/* 3. General Info Card */}
       {showGeneralInfo && hasGeneralInfo && (
         <Card className="overflow-hidden" style={{ borderTopColor: color, borderTopWidth: '3px' }}>
           <CardHeader style={{ backgroundColor: `color-mix(in srgb, ${color} 5%, transparent)` }}>
@@ -269,35 +285,7 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
         </Card>
       )}
 
-      {/* Partnership Details */}
-      {showPartnership && hasPartnership && (
-        <Card className="overflow-hidden" style={{ borderTopColor: color, borderTopWidth: '3px' }}>
-          <CardHeader style={{ backgroundColor: `color-mix(in srgb, ${color} 5%, transparent)` }}>
-            <CardTitle className="flex items-center gap-2">
-              <div className="p-2 rounded-lg" style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)` }}>
-                <Handshake className="h-5 w-5" style={{ color }} />
-              </div>
-              Détail du partenariat
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Entité partenaire :</span>
-                <Badge style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`, color }}>{partnershipLabels[company.partnership_type!] || company.partnership_type}</Badge>
-              </div>
-              {company.rang && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Niveau de partenariat :</span>
-                  <Badge variant="outline">Rang {company.rang}</Badge>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* HR Devices */}
+      {/* 4. HR Devices */}
       {showHrDevices && hasHrDevices && (
         <Card className="overflow-hidden" style={{ borderTopColor: color, borderTopWidth: '3px' }}>
           <CardHeader style={{ backgroundColor: `color-mix(in srgb, ${color} 5%, transparent)` }}>
@@ -341,7 +329,7 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
       )}
 
       {/* Empty state */}
-      {!showStockPrice && !(showGeneralInfo && hasGeneralInfo) && !(showPartnership && hasPartnership) && !(showHrDevices && hasHrDevices) && !(showDescription && hasDescription) && (
+      {!showStockPrice && !(showGeneralInfo && hasGeneralInfo) && !(showPartnership && (hasPartnership || hasPartnershipDetails)) && !(showHrDevices && hasHrDevices) && !(showDescription && hasDescription) && (
         <Card>
           <CardContent className="py-12 text-center">
             <Building2 className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
