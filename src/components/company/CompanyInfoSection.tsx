@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, TrendingUp, TrendingDown, Minus, Users, Briefcase, Handshake, FileText, Globe, MapPin, Laptop } from "lucide-react";
-import { fetchStockPrice } from "@/hooks/useStockData";
+import { Building2, TrendingUp, TrendingDown, Users, Briefcase, Handshake, FileText, Globe, MapPin, Laptop, BarChart3, Calendar, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { fetchStockSummary, type StockSummary } from "@/hooks/useStockData";
 import type { Company } from "@/types/database";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface InfoSectionsConfig {
   stock_price?: boolean;
@@ -14,31 +16,27 @@ interface InfoSectionsConfig {
 }
 
 interface CompanyInfoSectionProps {
-  company: Company & { cover_url?: string; ticker?: string; company_description?: string; info_sections_config?: InfoSectionsConfig; is_beta?: boolean; signup_slug?: string; banner_url?: string; forum_access_all_discussions?: boolean; max_tax_declarations?: number; tax_declaration_help_enabled?: boolean; tax_permanence_config?: any; canal_communication_autre?: string; niveau_maturite_financiere?: string };
+  company: Company & { cover_url?: string; ticker?: string; company_description?: string; info_sections_config?: InfoSectionsConfig; [key: string]: any };
   primaryColor?: string;
 }
 
-interface StockData {
-  price: number | null;
-  previousClose: number | null;
-  change: number | null;
-  changePercent: number | null;
-  loading: boolean;
-  error?: string;
-}
-
 const defaultConfig: InfoSectionsConfig = {
-  stock_price: true,
-  general_info: true,
-  partnership: true,
-  hr_devices: true,
-  description: true,
+  stock_price: true, general_info: true, partnership: true, hr_devices: true, description: true,
 };
+
+function formatLargeNumber(num: number): string {
+  if (num >= 1e12) return (num / 1e12).toFixed(2) + ' T';
+  if (num >= 1e9) return (num / 1e9).toFixed(2) + ' Md';
+  if (num >= 1e6) return (num / 1e6).toFixed(2) + ' M';
+  if (num >= 1e3) return (num / 1e3).toFixed(1) + ' k';
+  return num.toLocaleString('fr-FR');
+}
 
 export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSectionProps) => {
   const color = primaryColor || 'hsl(var(--primary))';
   const config: InfoSectionsConfig = { ...defaultConfig, ...(company as any).info_sections_config };
-  const [stockData, setStockData] = useState<StockData>({ price: null, previousClose: null, change: null, changePercent: null, loading: false });
+  const [summary, setSummary] = useState<StockSummary | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const showStockPrice = config.stock_price !== false && !!company.ticker;
   const showGeneralInfo = config.general_info !== false;
@@ -48,51 +46,20 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
 
   useEffect(() => {
     if (!company.ticker || !showStockPrice) return;
-    
-    const fetchPrice = async () => {
-      setStockData(prev => ({ ...prev, loading: true }));
-      
-      const today = new Date();
-      const todayStr = today.toISOString().split('T')[0];
-      const result = await fetchStockPrice(company.ticker!, todayStr);
-      
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
-      const prevResult = await fetchStockPrice(company.ticker!, yesterdayStr);
-      
-      const currentPrice = result.price;
-      const prevPrice = prevResult.price;
-      const change = currentPrice && prevPrice ? currentPrice - prevPrice : null;
-      const changePercent = change && prevPrice ? (change / prevPrice) * 100 : null;
-      
-      setStockData({
-        price: currentPrice,
-        previousClose: prevPrice,
-        change,
-        changePercent,
-        loading: false,
-        error: result.error
-      });
-    };
-    
-    fetchPrice();
+    setLoading(true);
+    fetchStockSummary(company.ticker!).then(data => {
+      setSummary(data);
+      setLoading(false);
+    });
   }, [company.ticker, showStockPrice]);
 
   const workModeLabels: Record<string, string> = {
-    "presentiel": "Présentiel",
-    "hybride": "Hybride",
-    "full_remote": "Full Remote"
+    "presentiel": "Présentiel", "hybride": "Hybride", "full_remote": "Full Remote"
   };
-
   const partnershipLabels: Record<string, string> = {
-    "CSE": "Comité Social et Économique",
-    "Département RH": "Département des Ressources Humaines",
-    "Département Communication": "Département Communication",
-    "Département RSE": "Département RSE",
-    "Département Financier": "Département Financier",
-    "Autre": "Autre",
-    "Aucun": "Aucun partenariat"
+    "CSE": "Comité Social et Économique", "Département RH": "Département des Ressources Humaines",
+    "Département Communication": "Département Communication", "Département RSE": "Département RSE",
+    "Département Financier": "Département Financier", "Autre": "Autre", "Aucun": "Aucun partenariat"
   };
 
   const compensationDevices = company.compensation_devices as any;
@@ -107,11 +74,18 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
     if (compensationDevices.pero) activeDevices.push("PERO");
   }
 
-  // Check if there's any content to show
   const hasGeneralInfo = company.company_size || (company.employee_locations?.length ?? 0) > 0 || company.work_mode || company.has_foreign_employees;
   const hasPartnership = company.partnership_type && company.partnership_type !== "Aucun";
   const hasHrDevices = activeDevices.length > 0;
   const hasDescription = !!(company as any).company_description;
+
+  const isPositive = (summary?.change ?? 0) >= 0;
+  const currencySymbol = summary?.currency === 'EUR' ? '€' : summary?.currency === 'GBP' ? '£' : '$';
+
+  // 52-week progress
+  const weekRange = summary?.fiftyTwoWeekHigh && summary?.fiftyTwoWeekLow && summary?.currentPrice
+    ? ((summary.currentPrice - summary.fiftyTwoWeekLow) / (summary.fiftyTwoWeekHigh - summary.fiftyTwoWeekLow)) * 100
+    : null;
 
   return (
     <div className="space-y-6">
@@ -123,37 +97,114 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
               <div className="p-2 rounded-lg" style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)` }}>
                 <TrendingUp className="h-5 w-5" style={{ color }} />
               </div>
-              Cours de bourse
-              <Badge variant="outline" className="ml-auto font-mono text-xs">
-                {company.ticker}
-              </Badge>
+              <div className="flex flex-col">
+                <span>Cours de bourse</span>
+                {summary?.shortName && summary.shortName !== company.ticker && (
+                  <span className="text-xs font-normal text-muted-foreground">{summary.shortName}</span>
+                )}
+              </div>
+              <div className="ml-auto flex items-center gap-2">
+                {summary?.exchangeName && (
+                  <Badge variant="secondary" className="text-xs">{summary.exchangeName}</Badge>
+                )}
+                <Badge variant="outline" className="font-mono text-xs">{company.ticker}</Badge>
+              </div>
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-6">
-            {stockData.loading ? (
-              <div className="flex items-center gap-3 animate-pulse">
-                <div className="h-10 w-32 bg-muted rounded" />
-                <div className="h-6 w-24 bg-muted rounded" />
+          <CardContent className="pt-6 space-y-5">
+            {loading ? (
+              <div className="space-y-4 animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-36 bg-muted rounded" />
+                  <div className="h-8 w-28 bg-muted rounded" />
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[1,2,3,4].map(i => <div key={i} className="h-16 bg-muted rounded-lg" />)}
+                </div>
               </div>
-            ) : stockData.price ? (
-              <div className="flex items-center gap-4 flex-wrap">
-                <span className="text-4xl font-bold" style={{ color }}>
-                  ${stockData.price.toFixed(2)}
-                </span>
-                {stockData.change !== null && stockData.changePercent !== null && (
-                  <div className={`flex items-center gap-1 text-lg font-medium ${stockData.change >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    {stockData.change >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
-                    <span>{stockData.change >= 0 ? '+' : ''}{stockData.change.toFixed(2)}</span>
-                    <span className="text-sm">({stockData.changePercent >= 0 ? '+' : ''}{stockData.changePercent.toFixed(2)}%)</span>
+            ) : summary?.currentPrice ? (
+              <>
+                {/* Price + Change */}
+                <div className="flex items-baseline gap-4 flex-wrap">
+                  <span className="text-4xl font-bold tracking-tight" style={{ color }}>
+                    {currencySymbol}{summary.currentPrice.toFixed(2)}
+                  </span>
+                  {summary.change !== null && summary.changePercent !== null && (
+                    <div className={`flex items-center gap-1.5 text-lg font-semibold ${isPositive ? 'text-green-600' : 'text-red-500'}`}>
+                      {isPositive ? <ArrowUpRight className="h-5 w-5" /> : <ArrowDownRight className="h-5 w-5" />}
+                      <span>{isPositive ? '+' : ''}{summary.change.toFixed(2)}</span>
+                      <span className="text-sm font-medium opacity-80">({isPositive ? '+' : ''}{summary.changePercent.toFixed(2)}%)</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Date */}
+                {summary.latestDate && (
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Calendar className="h-3.5 w-3.5" />
+                    <span>
+                      Clôture du {format(new Date(summary.latestDate), "d MMMM yyyy", { locale: fr })}
+                    </span>
                   </div>
                 )}
-                <span className="text-sm text-muted-foreground ml-auto">
-                  Dernière mise à jour
-                </span>
-              </div>
+
+                {/* Key Metrics Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {summary.dayHigh !== null && summary.dayLow !== null && (
+                    <div className="bg-muted/50 rounded-lg p-3">
+                      <p className="text-xs text-muted-foreground mb-1">Fourchette du jour</p>
+                      <p className="font-semibold text-sm">
+                        {currencySymbol}{summary.dayLow.toFixed(2)} – {currencySymbol}{summary.dayHigh.toFixed(2)}
+                      </p>
+                    </div>
+                  )}
+                  {summary.volume !== null && (
+                    <div className="bg-muted/50 rounded-lg p-3">
+                      <p className="text-xs text-muted-foreground mb-1">Volume</p>
+                      <p className="font-semibold text-sm flex items-center gap-1">
+                        <BarChart3 className="h-3.5 w-3.5 text-muted-foreground" />
+                        {formatLargeNumber(summary.volume)}
+                      </p>
+                    </div>
+                  )}
+                  {summary.previousClose !== null && (
+                    <div className="bg-muted/50 rounded-lg p-3">
+                      <p className="text-xs text-muted-foreground mb-1">Clôture précédente</p>
+                      <p className="font-semibold text-sm">{currencySymbol}{summary.previousClose.toFixed(2)}</p>
+                    </div>
+                  )}
+                  {summary.fiftyTwoWeekHigh !== null && summary.fiftyTwoWeekLow !== null && (
+                    <div className="bg-muted/50 rounded-lg p-3">
+                      <p className="text-xs text-muted-foreground mb-1">52 semaines</p>
+                      <p className="font-semibold text-sm">
+                        {currencySymbol}{summary.fiftyTwoWeekLow.toFixed(2)} – {currencySymbol}{summary.fiftyTwoWeekHigh.toFixed(2)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 52-week progress bar */}
+                {weekRange !== null && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Plus bas 52s</span>
+                      <span>Plus haut 52s</span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden relative">
+                      <div 
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ 
+                          width: `${Math.min(100, Math.max(0, weekRange))}%`,
+                          background: `linear-gradient(90deg, ${isPositive ? '#16a34a' : '#ef4444'}, ${color})`
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <p className="text-muted-foreground">
-                {stockData.error || "Cours non disponible pour le moment"}
+                {summary?.error || "Cours non disponible pour le moment"}
               </p>
             )}
           </CardContent>
