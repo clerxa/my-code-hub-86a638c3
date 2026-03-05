@@ -28,6 +28,7 @@ import { useResponsiveBanner } from "@/hooks/useResponsiveBanner";
 import { setBookingReferrer } from "@/hooks/useBookingReferrer";
 
 import { InviteColleagueBlock } from "@/components/company/InviteColleagueBlock";
+import { CompanyInfoSection } from "@/components/company/CompanyInfoSection";
 import { CompanySidebar } from "@/components/company/CompanySidebar";
 import { MobileCompanyNav } from "@/components/company/MobileCompanyNav";
 import { DedicatedAdvisors } from "@/components/company/DedicatedAdvisors";
@@ -52,7 +53,7 @@ const Company = () => {
     id: string;
   }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeSection, setActiveSection] = useState(searchParams.get("section") || "webinars");
+  const [activeSection, setActiveSection] = useState(searchParams.get("section") || "informations");
   const [upcomingWebinarsCount, setUpcomingWebinarsCount] = useState(0);
   const [pastWebinars, setPastWebinars] = useState<any[]>([]);
   const navigate = useNavigate();
@@ -1161,6 +1162,9 @@ const Company = () => {
             )}
             {activeSection === "communication-kit" && isCompanyContact && (
               <CommunicationKitTab preselectedCompanyId={id} />
+            )}
+            {activeSection === "informations" && company && (
+              <CompanyInfoSection company={company as any} primaryColor={company.primary_color} />
             )}
           </div>
         </div>

@@ -90,6 +90,8 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
     primary_color: "#3b82f6",
     secondary_color: "#8b5cf6",
     rang: null as number | null,
+    ticker: "",
+    company_description: "",
     referral_typeform_url: "",
     expert_booking_url: "",
     expert_booking_hubspot_embed: "",
@@ -236,6 +238,8 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
     try {
       const dataToSave = {
         ...formData,
+        ticker: formData.ticker || null,
+        company_description: formData.company_description || null,
         referral_typeform_url: formData.referral_typeform_url || null,
         expert_booking_url: formData.expert_booking_url || null,
         expert_booking_hubspot_embed: formData.expert_booking_hubspot_embed || null,
@@ -401,6 +405,8 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
       primary_color: company.primary_color,
       secondary_color: company.secondary_color,
       rang: (company as any).rang || null,
+      ticker: (company as any).ticker || "",
+      company_description: (company as any).company_description || "",
       referral_typeform_url: company.referral_typeform_url || "",
       expert_booking_url: company.expert_booking_url || "",
       expert_booking_hubspot_embed: company.expert_booking_hubspot_embed || "",
@@ -446,6 +452,8 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
       primary_color: "#3b82f6",
       secondary_color: "#8b5cf6",
       rang: null,
+      ticker: "",
+      company_description: "",
       referral_typeform_url: "",
       expert_booking_url: "",
       expert_booking_hubspot_embed: "",
@@ -811,6 +819,31 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
                             onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
                           />
                         </div>
+                      </div>
+
+                      <div className="border-t my-4" />
+
+                      <div className="space-y-2">
+                        <Label htmlFor="ticker">Ticker boursier</Label>
+                        <Input
+                          id="ticker"
+                          value={formData.ticker}
+                          onChange={(e) => setFormData({ ...formData, ticker: e.target.value.toUpperCase() })}
+                          placeholder="Ex: AAPL, MSFT, CRM..."
+                          className="font-mono"
+                        />
+                        <p className="text-xs text-muted-foreground">Si l'entreprise est cotée en bourse, renseigner le symbole pour afficher le cours sur la page entreprise.</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="company_description">Description de l'entreprise</Label>
+                        <Textarea
+                          id="company_description"
+                          value={formData.company_description}
+                          onChange={(e) => setFormData({ ...formData, company_description: e.target.value })}
+                          placeholder="Description libre visible par les employés..."
+                          rows={4}
+                        />
                       </div>
 
                     </TabsContent>
