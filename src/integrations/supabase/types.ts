@@ -849,6 +849,7 @@ export type Database = {
         Row: {
           banner_url: string | null
           canal_communication_autre: string | null
+          company_description: string | null
           company_size: number | null
           compensation_devices: Json | null
           cover_url: string | null
@@ -879,12 +880,14 @@ export type Database = {
           simulators_config: Json | null
           tax_declaration_help_enabled: boolean | null
           tax_permanence_config: Json | null
+          ticker: string | null
           webinar_replays: Json | null
           work_mode: string | null
         }
         Insert: {
           banner_url?: string | null
           canal_communication_autre?: string | null
+          company_description?: string | null
           company_size?: number | null
           compensation_devices?: Json | null
           cover_url?: string | null
@@ -915,12 +918,14 @@ export type Database = {
           simulators_config?: Json | null
           tax_declaration_help_enabled?: boolean | null
           tax_permanence_config?: Json | null
+          ticker?: string | null
           webinar_replays?: Json | null
           work_mode?: string | null
         }
         Update: {
           banner_url?: string | null
           canal_communication_autre?: string | null
+          company_description?: string | null
           company_size?: number | null
           compensation_devices?: Json | null
           cover_url?: string | null
@@ -951,6 +956,7 @@ export type Database = {
           simulators_config?: Json | null
           tax_declaration_help_enabled?: boolean | null
           tax_permanence_config?: Json | null
+          ticker?: string | null
           webinar_replays?: Json | null
           work_mode?: string | null
         }
