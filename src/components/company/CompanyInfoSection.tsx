@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Building2, TrendingUp, TrendingDown, Minus, Users, Briefcase, Handshake, FileText, Globe, MapPin, Laptop } from "lucide-react";
 import { fetchStockPrice } from "@/hooks/useStockData";
 import type { Company } from "@/types/database";
 
+interface InfoSectionsConfig {
+  stock_price?: boolean;
+  general_info?: boolean;
+  partnership?: boolean;
+  hr_devices?: boolean;
+  description?: boolean;
+}
+
 interface CompanyInfoSectionProps {
-  company: Company & { cover_url?: string; ticker?: string; company_description?: string; is_beta?: boolean; signup_slug?: string; banner_url?: string; forum_access_all_discussions?: boolean; max_tax_declarations?: number; tax_declaration_help_enabled?: boolean; tax_permanence_config?: any; canal_communication_autre?: string; niveau_maturite_financiere?: string };
+  company: Company & { cover_url?: string; ticker?: string; company_description?: string; info_sections_config?: InfoSectionsConfig; is_beta?: boolean; signup_slug?: string; banner_url?: string; forum_access_all_discussions?: boolean; max_tax_declarations?: number; tax_declaration_help_enabled?: boolean; tax_permanence_config?: any; canal_communication_autre?: string; niveau_maturite_financiere?: string };
   primaryColor?: string;
 }
 
@@ -20,23 +27,35 @@ interface StockData {
   error?: string;
 }
 
+const defaultConfig: InfoSectionsConfig = {
+  stock_price: true,
+  general_info: true,
+  partnership: true,
+  hr_devices: true,
+  description: true,
+};
+
 export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSectionProps) => {
   const color = primaryColor || 'hsl(var(--primary))';
+  const config: InfoSectionsConfig = { ...defaultConfig, ...(company as any).info_sections_config };
   const [stockData, setStockData] = useState<StockData>({ price: null, previousClose: null, change: null, changePercent: null, loading: false });
 
+  const showStockPrice = config.stock_price !== false && !!company.ticker;
+  const showGeneralInfo = config.general_info !== false;
+  const showPartnership = config.partnership !== false;
+  const showHrDevices = config.hr_devices !== false;
+  const showDescription = config.description !== false;
+
   useEffect(() => {
-    if (!company.ticker) return;
+    if (!company.ticker || !showStockPrice) return;
     
     const fetchPrice = async () => {
       setStockData(prev => ({ ...prev, loading: true }));
       
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
-      
-      // Fetch today's price
       const result = await fetchStockPrice(company.ticker!, todayStr);
       
-      // Fetch yesterday for comparison
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().split('T')[0];
@@ -58,7 +77,13 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
     };
     
     fetchPrice();
-  }, [company.ticker]);
+  }, [company.ticker, showStockPrice]);
+
+  const workModeLabels: Record<string, string> = {
+    "presentiel": "Présentiel",
+    "hybride": "Hybride",
+    "full_remote": "Full Remote"
+  };
 
   const partnershipLabels: Record<string, string> = {
     "CSE": "Comité Social et Économique",
@@ -68,12 +93,6 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
     "Département Financier": "Département Financier",
     "Autre": "Autre",
     "Aucun": "Aucun partenariat"
-  };
-
-  const workModeLabels: Record<string, string> = {
-    "presentiel": "Présentiel",
-    "hybride": "Hybride",
-    "full_remote": "Full Remote"
   };
 
   const compensationDevices = company.compensation_devices as any;
@@ -88,10 +107,16 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
     if (compensationDevices.pero) activeDevices.push("PERO");
   }
 
+  // Check if there's any content to show
+  const hasGeneralInfo = company.company_size || (company.employee_locations?.length ?? 0) > 0 || company.work_mode || company.has_foreign_employees;
+  const hasPartnership = company.partnership_type && company.partnership_type !== "Aucun";
+  const hasHrDevices = activeDevices.length > 0;
+  const hasDescription = !!(company as any).company_description;
+
   return (
     <div className="space-y-6">
       {/* Stock Price Card */}
-      {company.ticker && (
+      {showStockPrice && (
         <Card className="overflow-hidden" style={{ borderTopColor: color, borderTopWidth: '3px' }}>
           <CardHeader style={{ backgroundColor: `color-mix(in srgb, ${color} 5%, transparent)` }}>
             <CardTitle className="flex items-center gap-2">
@@ -117,7 +142,7 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
                 </span>
                 {stockData.change !== null && stockData.changePercent !== null && (
                   <div className={`flex items-center gap-1 text-lg font-medium ${stockData.change >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    {stockData.change >= 0 ? <TrendingUp className="h-5 w-5" /> : stockData.change < 0 ? <TrendingDown className="h-5 w-5" /> : <Minus className="h-5 w-5" />}
+                    {stockData.change >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
                     <span>{stockData.change >= 0 ? '+' : ''}{stockData.change.toFixed(2)}</span>
                     <span className="text-sm">({stockData.changePercent >= 0 ? '+' : ''}{stockData.changePercent.toFixed(2)}%)</span>
                   </div>
@@ -136,63 +161,65 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
       )}
 
       {/* General Info Card */}
-      <Card className="overflow-hidden" style={{ borderTopColor: color, borderTopWidth: '3px' }}>
-        <CardHeader style={{ backgroundColor: `color-mix(in srgb, ${color} 5%, transparent)` }}>
-          <CardTitle className="flex items-center gap-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)` }}>
-              <Building2 className="h-5 w-5" style={{ color }} />
-            </div>
-            Informations générales
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="grid gap-4 sm:grid-cols-2">
-            {company.company_size && (
-              <div className="flex items-start gap-3">
-                <Users className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Effectif</p>
-                  <p className="font-semibold">{company.company_size.toLocaleString()} collaborateurs</p>
-                </div>
+      {showGeneralInfo && hasGeneralInfo && (
+        <Card className="overflow-hidden" style={{ borderTopColor: color, borderTopWidth: '3px' }}>
+          <CardHeader style={{ backgroundColor: `color-mix(in srgb, ${color} 5%, transparent)` }}>
+            <CardTitle className="flex items-center gap-2">
+              <div className="p-2 rounded-lg" style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)` }}>
+                <Building2 className="h-5 w-5" style={{ color }} />
               </div>
-            )}
-            {company.employee_locations && company.employee_locations.length > 0 && (
-              <div className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Localisation</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {company.employee_locations.map((loc, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">{loc}</Badge>
-                    ))}
+              Informations générales
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {company.company_size && (
+                <div className="flex items-start gap-3">
+                  <Users className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Effectif</p>
+                    <p className="font-semibold">{company.company_size.toLocaleString()} collaborateurs</p>
                   </div>
                 </div>
-              </div>
-            )}
-            {company.work_mode && (
-              <div className="flex items-start gap-3">
-                <Laptop className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Mode de travail</p>
-                  <p className="font-semibold">{workModeLabels[company.work_mode] || company.work_mode}</p>
+              )}
+              {company.employee_locations && company.employee_locations.length > 0 && (
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Localisation</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {company.employee_locations.map((loc, i) => (
+                        <Badge key={i} variant="secondary" className="text-xs">{loc}</Badge>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
-            {company.has_foreign_employees && (
-              <div className="flex items-start gap-3">
-                <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">International</p>
-                  <p className="font-semibold">Présence de salariés étrangers</p>
+              )}
+              {company.work_mode && (
+                <div className="flex items-start gap-3">
+                  <Laptop className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Mode de travail</p>
+                    <p className="font-semibold">{workModeLabels[company.work_mode] || company.work_mode}</p>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              )}
+              {company.has_foreign_employees && (
+                <div className="flex items-start gap-3">
+                  <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">International</p>
+                    <p className="font-semibold">Présence de salariés étrangers</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Partnership Details */}
-      {company.partnership_type && company.partnership_type !== "Aucun" && (
+      {showPartnership && hasPartnership && (
         <Card className="overflow-hidden" style={{ borderTopColor: color, borderTopWidth: '3px' }}>
           <CardHeader style={{ backgroundColor: `color-mix(in srgb, ${color} 5%, transparent)` }}>
             <CardTitle className="flex items-center gap-2">
@@ -206,7 +233,7 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Entité partenaire :</span>
-                <Badge style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`, color }}>{partnershipLabels[company.partnership_type] || company.partnership_type}</Badge>
+                <Badge style={{ backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`, color }}>{partnershipLabels[company.partnership_type!] || company.partnership_type}</Badge>
               </div>
               {company.rang && (
                 <div className="flex items-center gap-2">
@@ -220,7 +247,7 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
       )}
 
       {/* HR Devices */}
-      {activeDevices.length > 0 && (
+      {showHrDevices && hasHrDevices && (
         <Card className="overflow-hidden" style={{ borderTopColor: color, borderTopWidth: '3px' }}>
           <CardHeader style={{ backgroundColor: `color-mix(in srgb, ${color} 5%, transparent)` }}>
             <CardTitle className="flex items-center gap-2">
@@ -246,7 +273,7 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
       )}
 
       {/* Free Description */}
-      {(company as any).company_description && (
+      {showDescription && hasDescription && (
         <Card className="overflow-hidden" style={{ borderTopColor: color, borderTopWidth: '3px' }}>
           <CardHeader style={{ backgroundColor: `color-mix(in srgb, ${color} 5%, transparent)` }}>
             <CardTitle className="flex items-center gap-2">
@@ -258,6 +285,16 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
           </CardHeader>
           <CardContent className="pt-6">
             <p className="text-muted-foreground whitespace-pre-line">{(company as any).company_description}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty state */}
+      {!showStockPrice && !(showGeneralInfo && hasGeneralInfo) && !(showPartnership && hasPartnership) && !(showHrDevices && hasHrDevices) && !(showDescription && hasDescription) && (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Building2 className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-muted-foreground">Aucune information disponible pour le moment</p>
           </CardContent>
         </Card>
       )}
