@@ -59,6 +59,36 @@ export async function fetchStockPricesBatch(
   }
 }
 
+export interface StockSummary {
+  ticker: string;
+  shortName: string;
+  currency: string;
+  exchangeName: string;
+  currentPrice: number | null;
+  previousClose: number | null;
+  change: number | null;
+  changePercent: number | null;
+  latestDate: string | null;
+  dayHigh: number | null;
+  dayLow: number | null;
+  volume: number | null;
+  fiftyTwoWeekHigh: number | null;
+  fiftyTwoWeekLow: number | null;
+  regularMarketTime: string | null;
+  error?: string;
+}
+
+export async function fetchStockSummary(ticker: string): Promise<StockSummary | null> {
+  if (!ticker) return null;
+  try {
+    const data = await callStockData({ action: 'stock_summary', ticker });
+    if (data.error) return null;
+    return data as StockSummary;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchFxRate(
   date: string
 ): Promise<{ rate: number | null; isBusinessDay: boolean; error?: string }> {

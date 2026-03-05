@@ -134,6 +134,80 @@ Deno.serve(async (req) => {
       }
     }
 
+    // --- Stock summary (rich quote data) via Yahoo Finance ---
+    if (action === 'stock_summary') {
+      const { ticker } = params;
+      if (!ticker) {
+        return new Response(JSON.stringify({ error: 'Missing ticker' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      try {
+        const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=5d&includePrePost=false`;
+        console.log('[stock_summary] Fetching:', url);
+        
+        const res = await fetch(url, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        });
+        
+        if (!res.ok) throw new Error(`Yahoo HTTP ${res.status}`);
+        const data = await res.json();
+        const result = data?.chart?.result?.[0];
+        if (!result) throw new Error('No chart data');
+        
+        const meta = result.meta || {};
+        const timestamps = result.timestamp || [];
+        const closes = result.indicators?.quote?.[0]?.close || [];
+        const volumes = result.indicators?.quote?.[0]?.volume || [];
+        const highs = result.indicators?.quote?.[0]?.high || [];
+        const lows = result.indicators?.quote?.[0]?.low || [];
+        
+        // Get latest valid data point
+        let latestIdx = closes.length - 1;
+        while (latestIdx >= 0 && closes[latestIdx] == null) latestIdx--;
+        
+        const currentPrice = latestIdx >= 0 ? closes[latestIdx] : null;
+        const latestDate = latestIdx >= 0 ? new Date(timestamps[latestIdx] * 1000).toISOString().split('T')[0] : null;
+        const latestVolume = latestIdx >= 0 ? volumes[latestIdx] : null;
+        const latestHigh = latestIdx >= 0 ? highs[latestIdx] : null;
+        const latestLow = latestIdx >= 0 ? lows[latestIdx] : null;
+        
+        // Previous close for change calculation
+        let prevIdx = latestIdx - 1;
+        while (prevIdx >= 0 && closes[prevIdx] == null) prevIdx--;
+        const previousClose = prevIdx >= 0 ? closes[prevIdx] : meta.chartPreviousClose ?? null;
+        
+        const change = currentPrice && previousClose ? currentPrice - previousClose : null;
+        const changePercent = change && previousClose ? (change / previousClose) * 100 : null;
+        
+        // 52-week range from meta
+        const fiftyTwoWeekHigh = meta.fiftyTwoWeekHigh ?? null;
+        const fiftyTwoWeekLow = meta.fiftyTwoWeekLow ?? null;
+
+        const summary = {
+          ticker: meta.symbol || ticker,
+          shortName: meta.shortName || meta.longName || ticker,
+          currency: meta.currency || 'USD',
+          exchangeName: meta.exchangeName || meta.fullExchangeName || '',
+          currentPrice,
+          previousClose,
+          change,
+          changePercent,
+          latestDate,
+          dayHigh: latestHigh,
+          dayLow: latestLow,
+          volume: latestVolume,
+          fiftyTwoWeekHigh,
+          fiftyTwoWeekLow,
+          regularMarketTime: meta.regularMarketTime ? new Date(meta.regularMarketTime * 1000).toISOString() : null,
+        };
+        
+        console.log('[stock_summary] Success for', ticker);
+        return new Response(JSON.stringify(summary), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      } catch (e) {
+        console.log('[stock_summary] Error:', e.message);
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    }
+
     // --- FX rate via Frankfurter (BCE) ---
     if (action === 'fx_rate') {
       const { date } = params;
