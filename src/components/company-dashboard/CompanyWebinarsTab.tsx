@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, Users, TrendingUp, Video, Clock } from "lucide-react";
+import { Users, TrendingUp, Video, Clock } from "lucide-react";
 import { format, isPast } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -137,7 +137,7 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
         </Card>
       </div>
 
-      {/* Webinars Table */}
+      {/* Webinars List */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -155,71 +155,150 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
               <p>Aucun webinar associé à cette entreprise</p>
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Webinar</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Durée</TableHead>
-                    <TableHead>Inscrits</TableHead>
-                    <TableHead>Participants</TableHead>
-                    <TableHead>Taux</TableHead>
-                    <TableHead>Statut</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {webinars.map((webinar) => {
-                    const isUpcoming = webinar.webinar_date && !isPast(new Date(webinar.webinar_date));
-                    const rate = getParticipationRate(
-                      webinar.total_registrations,
-                      webinar.total_participants
-                    );
+            <div className="space-y-6">
+              {/* Upcoming webinars */}
+              {webinars.filter(w => w.webinar_date && !isPast(new Date(w.webinar_date))).length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                    <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                      Prochains webinars
+                    </h3>
+                    <Badge variant="secondary" className="text-xs">
+                      {webinars.filter(w => w.webinar_date && !isPast(new Date(w.webinar_date))).length}
+                    </Badge>
+                  </div>
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Webinar</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Durée</TableHead>
+                          <TableHead>Inscrits</TableHead>
+                          <TableHead>Taux</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {webinars
+                          .filter(w => w.webinar_date && !isPast(new Date(w.webinar_date)))
+                          .map((webinar) => (
+                            <TableRow key={webinar.id}>
+                              <TableCell className="font-medium">{webinar.title}</TableCell>
+                              <TableCell>
+                                {webinar.webinar_date
+                                  ? format(new Date(webinar.webinar_date), "PPp", { locale: fr })
+                                  : "-"}
+                              </TableCell>
+                              <TableCell>
+                                {webinar.duration ? (
+                                  <div className="flex items-center gap-1 text-muted-foreground">
+                                    <Clock className="h-3 w-3" />
+                                    {webinar.duration}
+                                  </div>
+                                ) : "-"}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-col gap-0.5">
+                                  <Badge variant="secondary">{webinar.total_registrations}</Badge>
+                                  <span className="text-xs text-muted-foreground">
+                                    {webinar.internal_registrations} membres, {webinar.external_registrations} externes
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">
+                                  {getParticipationRate(webinar.total_registrations, webinar.total_participants)}%
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
 
-                    return (
-                      <TableRow key={webinar.id}>
-                        <TableCell className="font-medium">{webinar.title}</TableCell>
-                        <TableCell>
-                          {webinar.webinar_date
-                            ? format(new Date(webinar.webinar_date), "PPp", { locale: fr })
-                            : "-"}
-                        </TableCell>
-                        <TableCell>
-                          {webinar.duration ? (
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <Clock className="h-3 w-3" />
-                              {webinar.duration}
-                            </div>
-                          ) : (
-                            "-"
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col gap-0.5">
-                            <Badge variant="secondary">{webinar.total_registrations}</Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {webinar.internal_registrations} membres, {webinar.external_registrations} externes
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="default">{webinar.total_participants}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={rate >= 50 ? "default" : "outline"}>{rate}%</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {isUpcoming ? (
-                            <Badge className="bg-blue-500">À venir</Badge>
-                          ) : (
-                            <Badge variant="outline">Passé</Badge>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              {/* Separator */}
+              {webinars.filter(w => w.webinar_date && !isPast(new Date(w.webinar_date))).length > 0 &&
+               webinars.filter(w => !w.webinar_date || isPast(new Date(w.webinar_date))).length > 0 && (
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">Terminés</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Past webinars */}
+              {webinars.filter(w => !w.webinar_date || isPast(new Date(w.webinar_date))).length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-muted-foreground" />
+                    <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
+                      Webinars passés
+                    </h3>
+                    <Badge variant="outline" className="text-xs">
+                      {webinars.filter(w => !w.webinar_date || isPast(new Date(w.webinar_date))).length}
+                    </Badge>
+                  </div>
+                  <div className="rounded-md border opacity-80">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Webinar</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Durée</TableHead>
+                          <TableHead>Inscrits</TableHead>
+                          <TableHead>Participants</TableHead>
+                          <TableHead>Taux</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {webinars
+                          .filter(w => !w.webinar_date || isPast(new Date(w.webinar_date)))
+                          .map((webinar) => {
+                            const rate = getParticipationRate(webinar.total_registrations, webinar.total_participants);
+                            return (
+                              <TableRow key={webinar.id}>
+                                <TableCell className="font-medium">{webinar.title}</TableCell>
+                                <TableCell>
+                                  {webinar.webinar_date
+                                    ? format(new Date(webinar.webinar_date), "PPp", { locale: fr })
+                                    : "-"}
+                                </TableCell>
+                                <TableCell>
+                                  {webinar.duration ? (
+                                    <div className="flex items-center gap-1 text-muted-foreground">
+                                      <Clock className="h-3 w-3" />
+                                      {webinar.duration}
+                                    </div>
+                                  ) : "-"}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex flex-col gap-0.5">
+                                    <Badge variant="secondary">{webinar.total_registrations}</Badge>
+                                    <span className="text-xs text-muted-foreground">
+                                      {webinar.internal_registrations} membres, {webinar.external_registrations} externes
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="default">{webinar.total_participants}</Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={rate >= 50 ? "default" : "outline"}>{rate}%</Badge>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
