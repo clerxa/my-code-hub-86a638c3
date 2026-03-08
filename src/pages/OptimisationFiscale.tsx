@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { setBookingReferrer } from "@/hooks/useBookingReferrer";
 import { Header } from "@/components/Header";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Save, User, CheckCircle, Loader2 } from "lucide-react";
 import { OptimisationFiscaleSimulation } from "@/types/optimisation-fiscale";
+import { OptimisationIntroScreen } from "@/components/optimisation/OptimisationIntroScreen";
 import { SituationFiscaleStep } from "@/components/optimisation/SituationFiscaleStep";
 import { DispositifsStep } from "@/components/optimisation/DispositifsStep";
 import { MontantsStep } from "@/components/optimisation/MontantsStep";
@@ -31,6 +32,7 @@ const STEPS = [
 export default function OptimisationFiscale() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [showIntro, setShowIntro] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const { calculerImpotFinal, calculerPlafondPERTotal } = useOptimisationFiscaleCalculations();
   const { getPrefillData, hasProfile, isLoading: profileLoading } = useFinancialProfilePrefill();
@@ -147,6 +149,7 @@ export default function OptimisationFiscale() {
     onDataLoaded: (data, name) => {
       restoreSimulationData(data);
       if (name) setSimulationName(name);
+      setShowIntro(false); // Skip intro when loading from history
     },
   });
 
@@ -338,6 +341,11 @@ export default function OptimisationFiscale() {
       />
       
       <main className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Intro screen */}
+        {showIntro && !isFromHistory ? (
+          <OptimisationIntroScreen onStart={() => setShowIntro(false)} />
+        ) : (
+        <>
         {/* Bandeau simulation chargée */}
         {isFromHistory && loadedSimulationName && (
           <div className="bg-primary/10 border border-primary/20 rounded-lg mb-6 p-3 flex items-center justify-between">
@@ -431,6 +439,8 @@ export default function OptimisationFiscale() {
             </Button>
           )}
         </div>
+        </>
+        )}
       </main>
 
       <SaveSimulationDialog
