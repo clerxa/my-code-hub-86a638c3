@@ -2,10 +2,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { OptimisationFiscaleSimulation } from "@/types/optimisation-fiscale";
 import { DISPOSITIFS, getDispositifIcon } from "@/lib/dispositifs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, HelpCircle, Info, Lightbulb } from "lucide-react";
 import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
 
 interface MontantsStepProps {
@@ -13,9 +14,34 @@ interface MontantsStepProps {
   onChange: (data: Partial<OptimisationFiscaleSimulation>) => void;
 }
 
+function FieldTooltip({ content }: { content: string }) {
+  return (
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help inline-block ml-1" />
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs text-xs">
+          {content}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+function ExempleChiffre({ text }: { text: string }) {
+  return (
+    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/10 mt-2">
+      <Lightbulb className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+      <p className="text-xs text-muted-foreground">{text}</p>
+    </div>
+  );
+}
+
 export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
   const fiscalRules = useFiscalRules();
   const dispositifsSelectionnes = data.dispositifs_selectionnes || [];
+  const tmi = data.tmi || 30;
 
   const renderDispositifForm = (dispositifId: string) => {
     const dispositif = DISPOSITIFS.find((d) => d.id === dispositifId);
@@ -36,7 +62,10 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="montant_per">Montant à verser (€)</Label>
+                <Label htmlFor="montant_per">
+                  Montant à verser (€)
+                  <FieldTooltip content="Le PER est une déduction : le montant versé est retiré de votre revenu imposable. L'économie réelle dépend de votre TMI. Attention : l'épargne sera bloquée jusqu'à la retraite (sauf cas de déblocage anticipé)." />
+                </Label>
                 <Input
                   id="montant_per"
                   type="number"
@@ -49,8 +78,16 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   Plafond PER disponible : <strong>{(data.plafond_per_total || 0).toLocaleString('fr-FR')} €</strong>
+                  {(data.montant_per || 0) > (data.plafond_per_total || 0) && (
+                    <span className="text-destructive ml-1">
+                      — Vous dépassez votre plafond de {((data.montant_per || 0) - (data.plafond_per_total || 0)).toLocaleString('fr-FR')} €
+                    </span>
+                  )}
                 </AlertDescription>
               </Alert>
+              <ExempleChiffre 
+                text={`Avec votre TMI à ${tmi} %, un versement de ${(data.montant_per || 5000).toLocaleString('fr-FR')} € vous ferait économiser environ ${Math.round((data.montant_per || 5000) * tmi / 100).toLocaleString('fr-FR')} € d'impôt.`}
+              />
             </CardContent>
           </Card>
         );
@@ -68,7 +105,13 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor={`montant_${dispositifId}`}>Montant des dons (€)</Label>
+                <Label htmlFor={`montant_${dispositifId}`}>
+                  Montant des dons (€)
+                  <FieldTooltip content={dispositifId === 'dons_75' 
+                    ? "Dons aux associations d'aide aux personnes en difficulté (Restos du Cœur, Secours populaire…). Les dons au-delà de 1 000 € basculent automatiquement en réduction à 66 %. Hors plafond des niches fiscales." 
+                    : "Dons aux associations d'intérêt général, fondations, partis politiques… Plafonnés à 20 % du revenu imposable."
+                  } />
+                </Label>
                 <Input
                   id={`montant_${dispositifId}`}
                   type="number"
@@ -87,10 +130,16 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Les dons supérieurs à 1000€ basculeront automatiquement en réduction à 66%
+                    Les dons supérieurs à 1 000 € basculeront automatiquement en réduction à 66 %
                   </AlertDescription>
                 </Alert>
               )}
+              <ExempleChiffre 
+                text={dispositifId === 'dons_75' 
+                  ? `Un don de ${(data.dons_75_montant || 500).toLocaleString('fr-FR')} € vous ferait économiser ${Math.round(Math.min(data.dons_75_montant || 500, 1000) * 0.75).toLocaleString('fr-FR')} € d'impôt (75 % jusqu'à 1 000 €). Avantage : hors plafond des niches fiscales.`
+                  : `Un don de ${(data.dons_66_montant || 1000).toLocaleString('fr-FR')} € vous ferait économiser ${Math.round((data.dons_66_montant || 1000) * 0.66).toLocaleString('fr-FR')} € d'impôt.`
+                }
+              />
             </CardContent>
           </Card>
         );
@@ -107,7 +156,10 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="montant_aide_domicile">Montant annuel (€)</Label>
+                <Label htmlFor="montant_aide_domicile">
+                  Montant annuel (€)
+                  <FieldTooltip content="Somme des dépenses pour l'emploi d'un salarié à domicile : ménage, garde d'enfants, jardinage, cours particuliers… Incluez les charges patronales." />
+                </Label>
                 <Input
                   id="montant_aide_domicile"
                   type="number"
@@ -119,9 +171,12 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Crédit d'impôt : 50% des dépenses, plafonné à 6000€ (soit 3000€ de crédit maximum)
+                  Crédit d'impôt : 50 % des dépenses, plafonné à 6 000 € de dépenses (soit 3 000 € de crédit maximum)
                 </AlertDescription>
               </Alert>
+              <ExempleChiffre 
+                text={`Pour ${(data.montant_aide_domicile || 4000).toLocaleString('fr-FR')} € de dépenses, vous récupérez ${Math.min(Math.round((data.montant_aide_domicile || 4000) * 0.5), 3000).toLocaleString('fr-FR')} € — même si vous n'êtes pas imposable (c'est un crédit d'impôt remboursable).`}
+              />
             </CardContent>
           </Card>
         );
@@ -138,7 +193,10 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="montant_garde_enfant">Montant annuel (€)</Label>
+                <Label htmlFor="montant_garde_enfant">
+                  Montant annuel (€)
+                  <FieldTooltip content="Frais de garde hors domicile : crèche, assistante maternelle, garderie périscolaire. Pour les enfants de moins de 6 ans au 1er janvier de l'année d'imposition." />
+                </Label>
                 <Input
                   id="montant_garde_enfant"
                   type="number"
@@ -150,9 +208,12 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Crédit d'impôt : 50% des dépenses, plafonné à 3500€ par enfant
+                  Crédit d'impôt : 50 % des dépenses, plafonné à 3 500 € par enfant
                 </AlertDescription>
               </Alert>
+              <ExempleChiffre
+                text={`Pour ${(data.montant_garde_enfant || 3000).toLocaleString('fr-FR')} € de frais de garde, vous récupérez ${Math.min(Math.round((data.montant_garde_enfant || 3000) * 0.5), 1750).toLocaleString('fr-FR')} € par enfant (crédit d'impôt remboursable).`}
+              />
             </CardContent>
           </Card>
         );
@@ -171,7 +232,13 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor={`prix_${dispositifId}`}>Prix d'achat (€)</Label>
+                <Label htmlFor={`prix_${dispositifId}`}>
+                  Prix d'achat (€)
+                  <FieldTooltip content={isPinelOM 
+                    ? "Prix d'achat du bien neuf en Outre-mer. Plafonné à 300 000 € et 5 500 €/m². La réduction est majorée mais entre dans le plafond OM de 18 000 €."
+                    : "Prix d'achat du bien neuf en métropole. Plafonné à 300 000 € et 5 500 €/m². L'engagement locatif doit respecter des plafonds de loyer et de ressources du locataire."
+                  } />
+                </Label>
                 <Input
                   id={`prix_${dispositifId}`}
                   type="number"
@@ -222,6 +289,18 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
                   </div>
                 </div>
               </div>
+              {(() => {
+                const prix = isPinelOM ? (data.prix_pinel_om || 250000) : (data.prix_pinel || 250000);
+                const tauxP = isPinelOM ? (data.taux_pinel_om || 23) : (data.taux_pinel || 9);
+                const dureeP = isPinelOM ? (data.duree_pinel_om || 6) : (data.duree_pinel || 6);
+                const reductionTotale = Math.round(prix * tauxP / 100);
+                const reductionAnnuelle = Math.round(reductionTotale / dureeP);
+                return (
+                  <ExempleChiffre
+                    text={`Pour un bien à ${prix.toLocaleString('fr-FR')} € sur ${dureeP} ans : réduction totale de ${reductionTotale.toLocaleString('fr-FR')} €, soit ${reductionAnnuelle.toLocaleString('fr-FR')} €/an déduits de votre impôt.`}
+                  />
+                );
+              })()}
             </CardContent>
           </Card>
         );
@@ -239,7 +318,10 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="montant_girardin">Montant investi (€)</Label>
+                <Label htmlFor="montant_girardin">
+                  Montant investi (€)
+                  <FieldTooltip content="Investissement à fonds perdus dans du matériel industriel en Outre-mer. La réduction dépasse le montant investi (jusqu'à 125 %). L'avantage est immédiat (dès l'année de souscription) mais le capital investi n'est pas récupérable." />
+                </Label>
                 <Input
                   id="montant_girardin"
                   type="number"
@@ -274,6 +356,9 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
                   Réduction d'impôt : {tauxGirardin}% du montant investi (soit {((data.montant_girardin || 0) * tauxGirardin / 100).toLocaleString('fr-FR')} €)
                 </AlertDescription>
               </Alert>
+              <ExempleChiffre
+                text={`Pour ${(data.montant_girardin || 10000).toLocaleString('fr-FR')} € investis au T1 : réduction de ${Math.round((data.montant_girardin || 10000) * tauxGirardin / 100).toLocaleString('fr-FR')} €. Attention : le capital investi est perdu — seule la réduction d'impôt constitue le gain.`}
+              />
             </CardContent>
           </Card>
         );
@@ -290,7 +375,10 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="montant_pme">Montant investi (€)</Label>
+                <Label htmlFor="montant_pme">
+                  Montant investi (€)
+                  <FieldTooltip content="Investissement au capital de PME non cotées, FCPI ou FIP. Le capital est bloqué 5 à 8 ans. La réduction est de 18 %, plafonnée à 50 000 € (célibataire) ou 100 000 € (couple)." />
+                </Label>
                 <Input
                   id="montant_pme"
                   type="number"
@@ -302,9 +390,12 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Réduction d'impôt : 18% du montant investi (soit {((data.montant_pme || 0) * 0.18).toLocaleString('fr-FR')} €)
+                  Réduction d'impôt : 18 % du montant investi (soit {((data.montant_pme || 0) * 0.18).toLocaleString('fr-FR')} €)
                 </AlertDescription>
               </Alert>
+              <ExempleChiffre
+                text={`Pour ${(data.montant_pme || 10000).toLocaleString('fr-FR')} € investis : ${Math.round((data.montant_pme || 10000) * 0.18).toLocaleString('fr-FR')} € de réduction d'impôt. Le capital reste investi dans l'entreprise 5 à 8 ans avec un risque de perte.`}
+              />
             </CardContent>
           </Card>
         );
@@ -321,7 +412,10 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="montant_esus">Montant investi (€)</Label>
+                <Label htmlFor="montant_esus">
+                  Montant investi (€)
+                  <FieldTooltip content="Investissement dans des Entreprises Solidaires d'Utilité Sociale (label ESUS). La réduction est de 18 %, avec un plafond spécifique de 13 000 € indépendant du plafond global des niches." />
+                </Label>
                 <Input
                   id="montant_esus"
                   type="number"
@@ -333,9 +427,12 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Réduction d'impôt : 18% du montant investi, plafonné à 13 000€
+                  Réduction d'impôt : 18 % du montant investi, plafonné à 13 000 €
                 </AlertDescription>
               </Alert>
+              <ExempleChiffre
+                text={`Pour ${(data.montant_esus || 10000).toLocaleString('fr-FR')} € investis : ${Math.round((data.montant_esus || 10000) * 0.18).toLocaleString('fr-FR')} € de réduction. Avantage : plafond indépendant du plafond global de 10 000 €.`}
+              />
             </CardContent>
           </Card>
         );
@@ -360,7 +457,8 @@ export const MontantsStep = ({ data, onChange }: MontantsStepProps) => {
           <div className="mb-6">
             <h3 className="text-lg font-semibold">Saisissez les montants pour chaque dispositif</h3>
             <p className="text-sm text-muted-foreground">
-              Renseignez les montants que vous envisagez d'investir ou de dépenser
+              Renseignez les montants que vous envisagez d'investir ou de dépenser. Les exemples chiffrés sont calculés 
+              avec votre TMI de {tmi} %.
             </p>
           </div>
           {dispositifsSelectionnes.map(renderDispositifForm)}
