@@ -135,9 +135,6 @@ export default function PensionTracker() {
     <EmployeeLayout activeSection="pension-tracker">
       <div className="max-w-4xl mx-auto space-y-10">
         {/* Back button */}
-        <Button variant="ghost" className="gap-2 text-muted-foreground" onClick={() => navigate("/employee")}>
-          <ArrowLeft className="h-4 w-4" /> Retour au tableau de bord
-        </Button>
 
         {/* Hero section */}
         <motion.div
