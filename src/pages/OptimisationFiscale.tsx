@@ -439,6 +439,8 @@ export default function OptimisationFiscale() {
             </Button>
           )}
         </div>
+        </>
+        )}
       </main>
 
       <SaveSimulationDialog
