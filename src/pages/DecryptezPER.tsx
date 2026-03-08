@@ -383,6 +383,8 @@ export default function DecryptezPER() {
   const scoreMessage = getScoreMessage(totalScore);
 
   return (
+
+  return (
     <div className="max-w-3xl mx-auto space-y-10 py-8 px-4">
       {/* Score */}
       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="text-center space-y-6">
@@ -468,5 +470,12 @@ export default function DecryptezPER() {
         </Button>
       </div>
     </div>
+  );
+  };
+
+  return (
+    <EmployeeLayout activeSection="decryptez-per">
+      {renderContent()}
+    </EmployeeLayout>
   );
 }
