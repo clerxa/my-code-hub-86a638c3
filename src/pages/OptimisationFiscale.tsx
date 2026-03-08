@@ -149,6 +149,7 @@ export default function OptimisationFiscale() {
     onDataLoaded: (data, name) => {
       restoreSimulationData(data);
       if (name) setSimulationName(name);
+      setShowIntro(false); // Skip intro when loading from history
     },
   });
 
