@@ -341,6 +341,11 @@ export default function OptimisationFiscale() {
       />
       
       <main className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Intro screen */}
+        {showIntro && !isFromHistory ? (
+          <OptimisationIntroScreen onStart={() => setShowIntro(false)} />
+        ) : (
+        <>
         {/* Bandeau simulation chargée */}
         {isFromHistory && loadedSimulationName && (
           <div className="bg-primary/10 border border-primary/20 rounded-lg mb-6 p-3 flex items-center justify-between">
