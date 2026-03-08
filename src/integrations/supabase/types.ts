@@ -521,6 +521,63 @@ export type Database = {
           },
         ]
       }
+      bspce_simulations: {
+        Row: {
+          anciennete_mois: number | null
+          created_at: string
+          date_cession: string | null
+          date_entree_societe: string
+          gain_brut: number | null
+          gain_net_bareme: number | null
+          gain_net_pfu: number | null
+          id: string
+          mode: string
+          nb_bspce: number
+          nom_simulation: string | null
+          prix_cession: number | null
+          prix_exercice: number
+          regime_applicable: string | null
+          tmi: number
+          user_id: string
+        }
+        Insert: {
+          anciennete_mois?: number | null
+          created_at?: string
+          date_cession?: string | null
+          date_entree_societe: string
+          gain_brut?: number | null
+          gain_net_bareme?: number | null
+          gain_net_pfu?: number | null
+          id?: string
+          mode: string
+          nb_bspce: number
+          nom_simulation?: string | null
+          prix_cession?: number | null
+          prix_exercice: number
+          regime_applicable?: string | null
+          tmi?: number
+          user_id: string
+        }
+        Update: {
+          anciennete_mois?: number | null
+          created_at?: string
+          date_cession?: string | null
+          date_entree_societe?: string
+          gain_brut?: number | null
+          gain_net_bareme?: number | null
+          gain_net_pfu?: number | null
+          id?: string
+          mode?: string
+          nb_bspce?: number
+          nom_simulation?: string | null
+          prix_cession?: number | null
+          prix_exercice?: number
+          regime_applicable?: string | null
+          tmi?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       capacite_emprunt_simulations: {
         Row: {
           allocations_chomage: number
