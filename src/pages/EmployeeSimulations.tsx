@@ -239,7 +239,9 @@ export default function EmployeeSimulations() {
                 </CardContent>
               </Card>
             ) : categories && categories.length > 0 ? (
-              categories.map((category) => (
+              categories
+                .filter((category) => getSimulatorsForCategory(category.id).length > 0)
+                .map((category) => (
                 <CategorySection
                   key={category.id}
                   name={category.name}
