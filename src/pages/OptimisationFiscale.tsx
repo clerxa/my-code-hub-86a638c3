@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { setBookingReferrer } from "@/hooks/useBookingReferrer";
 import { Header } from "@/components/Header";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Save, User, CheckCircle, Loader2 } from "lucide-react";
 import { OptimisationFiscaleSimulation } from "@/types/optimisation-fiscale";
+import { OptimisationIntroScreen } from "@/components/optimisation/OptimisationIntroScreen";
 import { SituationFiscaleStep } from "@/components/optimisation/SituationFiscaleStep";
 import { DispositifsStep } from "@/components/optimisation/DispositifsStep";
 import { MontantsStep } from "@/components/optimisation/MontantsStep";
