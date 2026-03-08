@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { Progress } from "@/components/ui/progress";
 import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { EmployeeLayout } from "@/components/employee/EmployeeLayout";
 import {
   ShieldCheck, Clock, ArrowRight, Info, AlertTriangle,
   CheckCircle2, HelpCircle, XCircle, ChevronRight, RotateCcw,
@@ -189,6 +190,7 @@ export default function DecryptezPER() {
     setShowPedagogical(false);
   };
 
+  const renderContent = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
