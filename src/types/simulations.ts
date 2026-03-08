@@ -333,6 +333,21 @@ export const RSUDataSchema = z.object({
   }),
 });
 
+export const BSPCEDataSchema = z.object({
+  mode: z.enum(['simulation', 'fiscal']),
+  nb_bspce: z.number(),
+  prix_exercice: z.number(),
+  prix_cession: z.number().nullable(),
+  date_entree_societe: z.string(),
+  date_cession: z.string().nullable(),
+  tmi: z.number(),
+  anciennete_mois: z.number().nullable(),
+  regime_applicable: z.enum(['pfu', 'bareme']).nullable(),
+  gain_brut: z.number().nullable(),
+  gain_net_pfu: z.number().nullable(),
+  gain_net_bareme: z.number().nullable(),
+});
+
 // ============================================
 // Types de simulation supportés
 // ============================================
@@ -372,6 +387,7 @@ export const SimulationDataSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('pvi'), data: PVIDataSchema }),
   z.object({ type: z.literal('gestion_pilotee'), data: GestionPiloteeDataSchema }),
   z.object({ type: z.literal('rsu'), data: RSUDataSchema }),
+  z.object({ type: z.literal('bspce'), data: BSPCEDataSchema }),
 ]);
 
 // ============================================
