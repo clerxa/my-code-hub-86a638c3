@@ -12,7 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { searchSymbols, fetchStockPricesBatch, fetchFxRate, type SymbolSearchResult } from '@/hooks/useStockData';
+import { searchSymbols, fetchStockPricesBatch, fetchFxRate, fetchStockSummary, type SymbolSearchResult } from '@/hooks/useStockData';
+import { useCompanyTicker } from '@/hooks/useCompanyTicker';
 import type { ESPPPeriod } from '@/types/esppNew';
 import { computeIntermediaire } from '@/utils/esppCalculations';
 
@@ -55,6 +56,8 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
   const [data, setData] = useState<ESPPPeriod>(period || createEmptyPeriod());
   const [rabaisInput, setRabaisInput] = useState(String(data.taux_rabais || ''));
   const isUSD = data.entreprise_devise === 'USD';
+  const { ticker: companyTicker, companyName: companyNameFromDb, loading: tickerLoading } = useCompanyTicker();
+  const isCompanyLocked = !!companyTicker;
 
   // ─── Recherche entreprise ───
   const [searchQuery, setSearchQuery] = useState(period?.entreprise_nom || '');
@@ -64,6 +67,26 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
   const [confirmed, setConfirmed] = useState(!!period?.entreprise_ticker);
   const searchTimeout = useRef<NodeJS.Timeout>();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Auto-resolve company from user's company ticker
+  useEffect(() => {
+    if (!tickerLoading && companyTicker && !confirmed && !period) {
+      fetchStockSummary(companyTicker).then(summary => {
+        if (summary) {
+          const name = companyNameFromDb || summary.shortName || companyTicker;
+          const currency = summary.currency || 'USD';
+          setData(prev => ({
+            ...prev,
+            entreprise_nom: name,
+            entreprise_ticker: companyTicker,
+            entreprise_devise: currency === 'USD' ? 'USD' : 'EUR',
+          }));
+          setSearchQuery(name);
+          setConfirmed(true);
+        }
+      });
+    }
+  }, [tickerLoading, companyTicker, companyNameFromDb, confirmed, period]);
 
   useEffect(() => {
     if (!searchQuery || searchQuery.length < 2 || confirmed) {
@@ -213,9 +236,11 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
               <div className="mt-2 flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                 <CheckCircle2 className="h-4 w-4" />
                 <span>{data.entreprise_nom} ({data.entreprise_ticker}) · {data.entreprise_devise}</span>
-                <button onClick={resetSearch} className="ml-auto text-xs text-muted-foreground underline">
-                  Changer
-                </button>
+                {!isCompanyLocked && (
+                  <button onClick={resetSearch} className="ml-auto text-xs text-muted-foreground underline">
+                    Changer
+                  </button>
+                )}
               </div>
             )}
             {showDropdown && !confirmed && (

@@ -19,7 +19,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { RSUPlan, RSURegime, RSUDevise, VestingLine } from '@/types/rsu';
 import { REGIME_LABELS } from '@/types/rsu';
-import { searchSymbols, fetchStockPricesBatch, fetchFxRate, type SymbolSearchResult } from '@/hooks/useStockData';
+import { searchSymbols, fetchStockPricesBatch, fetchFxRate, fetchStockSummary, type SymbolSearchResult } from '@/hooks/useStockData';
+import { useCompanyTicker } from '@/hooks/useCompanyTicker';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -85,12 +86,14 @@ function CompanySearch({
   onSelect,
   onReset,
   selected,
+  locked = false,
 }: {
   value: string;
   ticker?: string;
   onSelect: (name: string, ticker: string, currency: string, exchange: string, country: string) => void;
   onReset: () => void;
   selected: SelectedCompany | null;
+  locked?: boolean;
 }) {
   const [query, setQuery] = useState(value);
   const [results, setResults] = useState<SymbolSearchResult[]>([]);
@@ -173,13 +176,15 @@ function CompanySearch({
             </div>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={handleSearchAgain}
-          className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
-        >
-          Ce n'est pas la bonne entreprise ? Recherchez à nouveau
-        </button>
+        {!locked && (
+          <button
+            type="button"
+            onClick={handleSearchAgain}
+            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+          >
+            Ce n'est pas la bonne entreprise ? Recherchez à nouveau
+          </button>
+        )}
       </div>
     );
   }
@@ -346,6 +351,8 @@ function VestingRow({
 // --- Main Editor ---
 export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
   const isEditing = !!plan;
+  const { ticker: companyTicker, companyName: companyNameFromDb, loading: tickerLoading } = useCompanyTicker();
+  const isCompanyLocked = !!companyTicker;
 
   const [ticker, setTicker] = useState(plan?.ticker ?? '');
   const [entrepriseNom, setEntrepriseNom] = useState(plan?.entreprise_nom ?? '');
@@ -369,6 +376,24 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
       ? { name: plan.entreprise_nom, ticker: plan.ticker, exchange: '', currency: plan.devise, country: '' }
       : null
   );
+
+  // Auto-resolve company from user's company ticker
+  useEffect(() => {
+    if (!tickerLoading && companyTicker && !selectedCompany && !plan) {
+      fetchStockSummary(companyTicker).then(summary => {
+        if (summary) {
+          const name = companyNameFromDb || summary.shortName || companyTicker;
+          const currency = summary.currency || 'USD';
+          const exchange = summary.exchangeName || '';
+          setEntrepriseNom(name);
+          setTicker(companyTicker);
+          setSelectedCompany({ name, ticker: companyTicker, exchange, currency, country: '' });
+          if (currency === 'USD') { setDevise('USD'); setDeviseAutoSet(true); }
+          else if (currency === 'EUR') { setDevise('EUR'); setDeviseAutoSet(true); }
+        }
+      });
+    }
+  }, [tickerLoading, companyTicker, companyNameFromDb, selectedCompany, plan]);
 
   const isCustom = frequency === 'custom';
 
@@ -584,6 +609,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
               onSelect={handleCompanySelect}
               onReset={handleCompanyReset}
               selected={selectedCompany}
+              locked={isCompanyLocked}
             />
           </div>
 
