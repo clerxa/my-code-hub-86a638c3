@@ -105,6 +105,7 @@ export default function VegaPage() {
   const routeToType: Record<string, string> = {
     '/simulateur-rsu': 'rsu',
     '/simulateur-espp': 'espp',
+    '/simulateur-bspce': 'bspce',
   };
 
   const visibleSimulators = simulators?.filter(s => s.visibility_status !== 'hidden') || [];
