@@ -4,8 +4,7 @@ import { ArrowLeft, ArrowRight, ExternalLink, Lock, FolderOpen, ClipboardList, P
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { EmployeeLayout } from "@/components/employee/EmployeeLayout";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/AuthProvider";
 import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
@@ -133,13 +132,9 @@ export default function PensionTracker() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Header />
-      <main className="flex-1 container max-w-4xl mx-auto px-4 py-8 space-y-10">
+    <EmployeeLayout activeSection="pension-tracker">
+      <div className="max-w-4xl mx-auto space-y-10">
         {/* Back button */}
-        <Button variant="ghost" className="gap-2 text-muted-foreground" onClick={() => navigate("/employee")}>
-          <ArrowLeft className="h-4 w-4" /> Retour au tableau de bord
-        </Button>
 
         {/* Hero section */}
         <motion.div
@@ -307,8 +302,7 @@ export default function PensionTracker() {
             Gratuit, sans engagement. Nos experts analysent vos contrats retrouvés et vous conseillent sur la meilleure stratégie.
           </p>
         </motion.section>
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </EmployeeLayout>
   );
 }
