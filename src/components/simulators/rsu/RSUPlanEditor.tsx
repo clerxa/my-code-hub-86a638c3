@@ -351,6 +351,8 @@ function VestingRow({
 // --- Main Editor ---
 export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
   const isEditing = !!plan;
+  const { ticker: companyTicker, companyName: companyNameFromDb, loading: tickerLoading } = useCompanyTicker();
+  const isCompanyLocked = !!companyTicker;
 
   const [ticker, setTicker] = useState(plan?.ticker ?? '');
   const [entrepriseNom, setEntrepriseNom] = useState(plan?.entreprise_nom ?? '');
@@ -374,6 +376,24 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
       ? { name: plan.entreprise_nom, ticker: plan.ticker, exchange: '', currency: plan.devise, country: '' }
       : null
   );
+
+  // Auto-resolve company from user's company ticker
+  useEffect(() => {
+    if (!tickerLoading && companyTicker && !selectedCompany && !plan) {
+      fetchStockSummary(companyTicker).then(summary => {
+        if (summary) {
+          const name = companyNameFromDb || summary.shortName || companyTicker;
+          const currency = summary.currency || 'USD';
+          const exchange = summary.exchangeName || '';
+          setEntrepriseNom(name);
+          setTicker(companyTicker);
+          setSelectedCompany({ name, ticker: companyTicker, exchange, currency, country: '' });
+          if (currency === 'USD') { setDevise('USD'); setDeviseAutoSet(true); }
+          else if (currency === 'EUR') { setDevise('EUR'); setDeviseAutoSet(true); }
+        }
+      });
+    }
+  }, [tickerLoading, companyTicker, companyNameFromDb, selectedCompany, plan]);
 
   const isCustom = frequency === 'custom';
 
@@ -589,6 +609,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
               onSelect={handleCompanySelect}
               onReset={handleCompanyReset}
               selected={selectedCompany}
+              locked={isCompanyLocked}
             />
           </div>
 
