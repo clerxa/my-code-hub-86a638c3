@@ -417,6 +417,7 @@ export const SIMULATION_TYPE_LABELS: Record<SimulationType, string> = {
   pvi: 'Plus-Value Immo',
   gestion_pilotee: 'Gestion Pilotée',
   rsu: 'RSU',
+  bspce: 'BSPCE',
 };
 
 export const SIMULATION_TYPE_URLS: Record<SimulationType, { edit: string; view: string }> = {
@@ -432,4 +433,5 @@ export const SIMULATION_TYPE_URLS: Record<SimulationType, { edit: string; view: 
   pvi: { edit: '/simulateur-pvi', view: '/simulateur-pvi' },
   gestion_pilotee: { edit: '/simulateur-gestion-pilotee', view: '/simulateur-gestion-pilotee' },
   rsu: { edit: '/simulateur-rsu', view: '/simulateur-rsu' },
+  bspce: { edit: '/simulateur-bspce', view: '/simulateur-bspce' },
 };
