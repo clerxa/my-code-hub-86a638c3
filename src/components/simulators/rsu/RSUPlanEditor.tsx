@@ -86,12 +86,14 @@ function CompanySearch({
   onSelect,
   onReset,
   selected,
+  locked = false,
 }: {
   value: string;
   ticker?: string;
   onSelect: (name: string, ticker: string, currency: string, exchange: string, country: string) => void;
   onReset: () => void;
   selected: SelectedCompany | null;
+  locked?: boolean;
 }) {
   const [query, setQuery] = useState(value);
   const [results, setResults] = useState<SymbolSearchResult[]>([]);
@@ -174,13 +176,15 @@ function CompanySearch({
             </div>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={handleSearchAgain}
-          className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
-        >
-          Ce n'est pas la bonne entreprise ? Recherchez à nouveau
-        </button>
+        {!locked && (
+          <button
+            type="button"
+            onClick={handleSearchAgain}
+            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+          >
+            Ce n'est pas la bonne entreprise ? Recherchez à nouveau
+          </button>
+        )}
       </div>
     );
   }
