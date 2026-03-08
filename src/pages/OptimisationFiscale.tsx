@@ -32,6 +32,7 @@ const STEPS = [
 export default function OptimisationFiscale() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [showIntro, setShowIntro] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const { calculerImpotFinal, calculerPlafondPERTotal } = useOptimisationFiscaleCalculations();
   const { getPrefillData, hasProfile, isLoading: profileLoading } = useFinancialProfilePrefill();
