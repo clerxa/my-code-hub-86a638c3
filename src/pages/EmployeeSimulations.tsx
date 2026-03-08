@@ -84,6 +84,7 @@ export default function EmployeeSimulations() {
         .from('simulators')
         .select('*')
         .eq('is_active', true)
+        .eq('vega_eligible', false)
         .order('order_num');
       if (error) throw error;
       return data as Simulator[];
@@ -238,7 +239,9 @@ export default function EmployeeSimulations() {
                 </CardContent>
               </Card>
             ) : categories && categories.length > 0 ? (
-              categories.map((category) => (
+              categories
+                .filter((category) => getSimulatorsForCategory(category.id).length > 0)
+                .map((category) => (
                 <CategorySection
                   key={category.id}
                   name={category.name}
