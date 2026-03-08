@@ -84,6 +84,7 @@ export default function EmployeeSimulations() {
         .from('simulators')
         .select('*')
         .eq('is_active', true)
+        .eq('vega_eligible', false)
         .order('order_num');
       if (error) throw error;
       return data as Simulator[];
