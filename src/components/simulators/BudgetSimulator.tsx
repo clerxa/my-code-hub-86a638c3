@@ -143,7 +143,7 @@ export function BudgetSimulator() {
                   <label className="text-sm text-foreground">Autres revenus</label>
                   <span className="font-mono text-primary font-bold">{fmt(autres)}</span>
                 </div>
-                <input type="range" min={0} max1001005000} step={50} value={autres} onChange={(e) => setAutres(Number(e.target.value))} className="w-full accent-primary" />
+                <input type="range" min={0} max={100000} step={50} value={autres} onChange={(e) => setAutres(Number(e.target.value))} className="w-full accent-primary" />
               </div>
             </div>
             <div className="flex justify-between items-center border-t border-border/40 pt-4">
