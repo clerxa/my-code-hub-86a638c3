@@ -35,13 +35,14 @@ export default function BudgetPage() {
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mx-auto">
             <PiggyBank className="h-4 w-4" />
-            Module Budget
+            Module Zenith
           </div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            <span className="hero-gradient">BUDGET</span>
+            <span className="hero-gradient">ZENITH</span>
+            <span className="block text-lg md:text-xl font-normal text-muted-foreground mt-2">by FinCare</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-            Simulez et équilibrez votre budget mensuel
+            Prenez de la hauteur sur vos finances
           </p>
         </motion.div>
 
