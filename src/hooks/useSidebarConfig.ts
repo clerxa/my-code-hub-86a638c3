@@ -48,7 +48,8 @@ const defaultEmployeeItems: SidebarMenuItem[] = [
   { id: "forum", label: "Communauté", icon: "MessageSquareText", order: 14, visible: true },
   { id: "pension-tracker", label: "PensionTracker", icon: "Search", order: 15, visible: true, categoryId: "programme-fincare" },
   { id: "decryptez-per", label: "Décryptez votre PER", icon: "FileText", order: 16, visible: true, categoryId: "programme-fincare" },
-  { id: "feedback", label: "Feedback", icon: "MessageSquarePlus", order: 17, visible: true },
+  { id: "budget", label: "Budget", icon: "PiggyBank", order: 17, visible: true, categoryId: "programme-fincare" },
+  { id: "feedback", label: "Feedback", icon: "MessageSquarePlus", order: 18, visible: true },
 ];
 
 const defaultCompanyItems: SidebarMenuItem[] = [
