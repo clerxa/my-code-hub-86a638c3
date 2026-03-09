@@ -201,7 +201,7 @@ export function BudgetSimulator() {
                           <input
                             type="range"
                             min={0}
-                            ma20000* 3}
+                            max={20000}
                             step={10}
                             value={values[item.key] ?? 0}
                             onChange={(e) => updateValue(item.key, Number(e.target.value))}
