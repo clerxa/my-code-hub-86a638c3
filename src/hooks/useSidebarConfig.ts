@@ -67,7 +67,7 @@ const iconMap: Record<string, LucideIcon> = {
   User, UserCircle, TrendingUp, GraduationCap, Calculator, Trophy,
   Calendar, Video, Users, Building2, UserCheck, Settings, MessageSquareText,
   Circle, Lock, Home, FileText, Bell, Mail, Star, Heart, Bookmark, Wallet,
-  HelpCircle, Contact, Gift, Compass, MessageSquarePlus, Info, Search,
+  HelpCircle, Contact, Gift, Compass, MessageSquarePlus, Info, Search, PiggyBank,
 };
 
 export const getIconComponent = (iconName: string): LucideIcon => {

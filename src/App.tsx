@@ -280,6 +280,14 @@ const App = () => (
               }
             />
             <Route
+              path="/employee/budget"
+              element={
+                <ProtectedRoute>
+                  <BudgetPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/employee/decryptez-per"
               element={
                 <ProtectedRoute>
