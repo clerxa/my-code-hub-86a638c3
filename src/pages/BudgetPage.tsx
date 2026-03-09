@@ -109,7 +109,7 @@ export default function BudgetPage() {
         >
           <div className="rounded-xl bg-muted/30 p-5 text-center">
             <p className="text-xs text-muted-foreground leading-relaxed">
-              <strong>Budget</strong> est un simulateur pédagogique. Les résultats sont indicatifs et ne constituent pas un conseil financier personnalisé.
+              <strong>Zenith by FinCare</strong> est un simulateur pédagogique. Les résultats sont indicatifs et ne constituent pas un conseil financier personnalisé.
             </p>
           </div>
         </motion.div>
