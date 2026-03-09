@@ -85,6 +85,7 @@ import Diagnostic from "./pages/Diagnostic";
 import Horizon from "./pages/Horizon";
 import EmployeeFeedback from "./pages/EmployeeFeedback";
 import PensionTracker from "./pages/PensionTracker";
+import BudgetPage from "./pages/BudgetPage";
 import DecryptezPER from "./pages/DecryptezPER";
 import ProspectPresentation from "./pages/ProspectPresentation";
 import { Navigate } from "react-router-dom";
