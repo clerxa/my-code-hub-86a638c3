@@ -77,9 +77,9 @@ export const EmployeeSidebar = ({
     setAppointmentCount(count || 0);
   };
 
-  // Note: "simulations" removed - users now have 10 free simulations before being limited
   // "company" and "forum" (Communauté) are locked for non-partner users
-  const lockedItems = ["progression", "company", "forum", "vega", "horizon"];
+  // "vega", "horizon", "budget" (Zenith) are also locked for non-partner users
+  const lockedItems = ["progression", "company", "forum", "vega", "horizon", "budget"];
 
   // State for locked dialogs
   const [showCompanyLockedDialog, setShowCompanyLockedDialog] = useState(false);
