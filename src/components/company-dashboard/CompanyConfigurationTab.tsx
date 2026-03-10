@@ -118,20 +118,6 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
       pero: false,
       autres: { enabled: false, description: "" }
     },
-    hr_challenges: {
-      comments: "",
-      financial_anxiety: false,
-      understanding_gaps: false,
-      tax_optimization_interest: false,
-      recurring_declaration_errors: false
-    },
-    internal_initiatives: {
-      financial_education_service: false,
-      internal_webinars: false,
-      pee_perco_rsu_program: false,
-      satisfaction_level: "",
-      missing_elements: ""
-    },
     internal_communications: {
       channels: [],
       employee_engagement_level: "",
