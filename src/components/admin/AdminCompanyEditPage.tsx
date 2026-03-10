@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { ArrowLeft, Save, X, Building2 } from "lucide-react";
+import { ArrowLeft, Save, X, Building2, Link, Copy, Check } from "lucide-react";
 import { ImageUpload } from "./ImageUpload";
 import { TaxPermanenceConfigEditor } from "./TaxPermanenceConfigEditor";
 import type { TaxPermanenceConfig } from "@/types/tax-declaration";
@@ -35,6 +35,7 @@ export const AdminCompanyEditPage = () => {
     nom: '', email: '', telephone: '', role_contact: '', photo_url: ''
   });
   const [newEmailDomain, setNewEmailDomain] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -46,6 +47,7 @@ export const AdminCompanyEditPage = () => {
     email_domains: [] as string[],
     company_size: null as number | null,
     ticker: "",
+    signup_slug: "",
     company_description: "",
     partnership_details: "",
     info_sections_config: { stock_price: true, general_info: true, partnership: true, hr_devices: true, description: true } as Record<string, boolean>,
@@ -116,6 +118,7 @@ export const AdminCompanyEditPage = () => {
         email_domains: company.email_domains || [],
         company_size: company.company_size || null,
         ticker: company.ticker || "",
+        signup_slug: company.signup_slug || "",
         company_description: company.company_description || "",
         partnership_details: company.partnership_details || "",
         info_sections_config: company.info_sections_config || { stock_price: true, general_info: true, partnership: true, hr_devices: true, description: true },
@@ -311,9 +314,38 @@ export const AdminCompanyEditPage = () => {
                 </div>
               ))}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+           </div>
+
+           {formData.signup_slug && (
+             <div className="space-y-2">
+               <Label className="flex items-center gap-1">
+                 <Link className="h-4 w-4" />
+                 Lien d'inscription
+               </Label>
+               <div className="flex gap-2">
+                 <Input
+                   readOnly
+                   value={`https://myfincare.fr/join/${formData.signup_slug}`}
+                   className="font-mono text-sm bg-muted"
+                 />
+                 <Button
+                   type="button"
+                   variant="outline"
+                   size="icon"
+                   onClick={() => {
+                     navigator.clipboard.writeText(`https://myfincare.fr/join/${formData.signup_slug}`);
+                     setCopied(true);
+                     toast.success("Lien copié !");
+                     setTimeout(() => setCopied(false), 2000);
+                   }}
+                 >
+                   {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                 </Button>
+               </div>
+             </div>
+           )}
+         </CardContent>
+       </Card>
 
       {/* Page Informations */}
       <Card>
