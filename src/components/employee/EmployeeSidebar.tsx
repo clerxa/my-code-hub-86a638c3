@@ -180,6 +180,8 @@ export const EmployeeSidebar = ({
       if (hiddenItems.includes(item.id)) return false;
       // Hide ranking items if disabled
       if (rankingItems.includes(item.id) && !enablePointsRanking) return false;
+      // Hide VEGA if no equity devices configured
+      if (item.id === "vega" && !hasEquityDevices) return false;
       return true;
     });
   };
