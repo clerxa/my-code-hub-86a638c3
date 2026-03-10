@@ -8,6 +8,7 @@ import { OnboardingGuide } from "@/components/employee/OnboardingGuide";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { hasActivePartnership } from "@/lib/partnership";
+import { hasEquityDevices as hasEquityDevicesFn } from "@/lib/equityDevices";
 
 interface EmployeeLayoutProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [hasPartnership, setHasPartnership] = useState(false);
   const [primaryColor, setPrimaryColor] = useState<string | undefined>(undefined);
+  const [hasEquityDevicesState, setHasEquityDevicesState] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
@@ -37,12 +39,13 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
         
         const { data: company } = await supabase
           .from("companies")
-          .select("partnership_type, primary_color")
+          .select("partnership_type, primary_color, compensation_devices")
           .eq("id", profile.company_id)
           .maybeSingle();
         
         setHasPartnership(hasActivePartnership(company?.partnership_type));
         setPrimaryColor(company?.primary_color || undefined);
+        setHasEquityDevicesState(hasEquityDevicesFn(company?.compensation_devices));
       }
     };
 
@@ -73,6 +76,7 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
             companyId={companyId}
             hasPartnership={hasPartnership}
             primaryColor={primaryColor}
+            hasEquityDevices={hasEquityDevicesState}
           />
         </div>
       </div>
@@ -88,6 +92,7 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
               hasPartnership={hasPartnership}
               primaryColor={primaryColor}
               onShowGuide={() => setShowGuide(true)}
+              hasEquityDevices={hasEquityDevicesState}
             />
           </div>
           <div className="flex-1 min-w-0">

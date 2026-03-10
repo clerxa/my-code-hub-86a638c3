@@ -31,9 +31,10 @@ interface MobileEmployeeNavProps {
   webinarCount?: number;
   enablePointsRanking?: boolean;
   primaryColor?: string;
+  hasEquityDevices?: boolean;
 }
 
-export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, hasPartnership, webinarCount = 0, enablePointsRanking = false, primaryColor }: MobileEmployeeNavProps) => {
+export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, hasPartnership, webinarCount = 0, enablePointsRanking = false, primaryColor, hasEquityDevices = false }: MobileEmployeeNavProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -156,6 +157,8 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
       if (item.id === "help") return false;
       // Hide ranking items if disabled
       if (rankingItems.includes(item.id) && !enablePointsRanking) return false;
+      // Hide VEGA if no equity devices configured
+      if (item.id === "vega" && !hasEquityDevices) return false;
       return true;
     });
   };

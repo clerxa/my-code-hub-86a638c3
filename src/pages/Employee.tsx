@@ -32,6 +32,7 @@ import ProfileBanner from "@/components/employee/ProfileBanner";
 import type { ProfileWithCompanyId, Company } from "@/types/database";
 import { InvitationsTracker } from "@/components/employee/InvitationsTracker";
 import { hasActivePartnership } from "@/lib/partnership";
+import { hasEquityDevices as hasEquityDevicesFn } from "@/lib/equityDevices";
 import { EmployeeSidebar } from "@/components/employee/EmployeeSidebar";
 import { MobileEmployeeNav } from "@/components/employee/MobileEmployeeNav";
 import { StatsDashboard } from "@/components/employee/StatsDashboard";
@@ -836,6 +837,7 @@ export default function Employee() {
             webinarCount={upcomingWebinarCount}
             enablePointsRanking={company?.enable_points_ranking || false}
             primaryColor={company?.primary_color || undefined}
+            hasEquityDevices={hasEquityDevicesFn(company?.compensation_devices)}
           />
         </div>
       </div>
@@ -853,6 +855,7 @@ export default function Employee() {
               enablePointsRanking={company?.enable_points_ranking || false}
               primaryColor={company?.primary_color || undefined}
               onShowGuide={() => setShowGuide(true)}
+              hasEquityDevices={hasEquityDevicesFn(company?.compensation_devices)}
             />
           </div>
 
