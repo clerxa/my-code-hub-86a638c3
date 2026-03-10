@@ -31,9 +31,10 @@ interface MobileEmployeeNavProps {
   webinarCount?: number;
   enablePointsRanking?: boolean;
   primaryColor?: string;
+  hasEquityDevices?: boolean;
 }
 
-export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, hasPartnership, webinarCount = 0, enablePointsRanking = false, primaryColor }: MobileEmployeeNavProps) => {
+export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, hasPartnership, webinarCount = 0, enablePointsRanking = false, primaryColor, hasEquityDevices = false }: MobileEmployeeNavProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
