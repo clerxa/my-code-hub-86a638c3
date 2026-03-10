@@ -157,8 +157,8 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
       if (item.id === "help") return false;
       // Hide ranking items if disabled
       if (rankingItems.includes(item.id) && !enablePointsRanking) return false;
-      // Hide VEGA if no equity devices configured
-      if (item.id === "vega" && !hasEquityDevices) return false;
+      // Hide VEGA only if user has partnership but no equity devices configured
+      if (item.id === "vega" && !hasEquityDevices && hasPartnership) return false;
       return true;
     });
   };
