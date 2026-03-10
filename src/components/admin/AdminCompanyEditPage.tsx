@@ -35,6 +35,7 @@ export const AdminCompanyEditPage = () => {
     nom: '', email: '', telephone: '', role_contact: '', photo_url: ''
   });
   const [newEmailDomain, setNewEmailDomain] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
