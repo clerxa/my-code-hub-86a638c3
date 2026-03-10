@@ -25,10 +25,7 @@ import {
   UserCircle,
   DollarSign,
   HeartHandshake,
-  Info,
-  Link,
-  Copy,
-  Check
+  Info
 } from "lucide-react";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
