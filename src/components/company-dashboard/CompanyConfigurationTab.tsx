@@ -421,7 +421,8 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
                     ))}
                   </div>
                 </div>
-
+                </div>
+              </CardContent>
             </Card>
 
             <Card>
