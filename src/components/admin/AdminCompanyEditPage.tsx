@@ -118,6 +118,7 @@ export const AdminCompanyEditPage = () => {
         email_domains: company.email_domains || [],
         company_size: company.company_size || null,
         ticker: company.ticker || "",
+        signup_slug: company.signup_slug || "",
         company_description: company.company_description || "",
         partnership_details: company.partnership_details || "",
         info_sections_config: company.info_sections_config || { stock_price: true, general_info: true, partnership: true, hr_devices: true, description: true },
