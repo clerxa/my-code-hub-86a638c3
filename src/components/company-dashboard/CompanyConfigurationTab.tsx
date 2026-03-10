@@ -126,6 +126,7 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
       espp: false,
       stock_options: false,
       bspce: false,
+      aga: false,
       pee: false,
       perco: false,
       pero: false,
