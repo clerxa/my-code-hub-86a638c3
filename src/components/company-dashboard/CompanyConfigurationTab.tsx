@@ -79,20 +79,6 @@ interface FormData {
     pero: boolean;
     autres: { enabled: boolean; description: string };
   };
-  hr_challenges: {
-    comments: string;
-    financial_anxiety: boolean;
-    understanding_gaps: boolean;
-    tax_optimization_interest: boolean;
-    recurring_declaration_errors: boolean;
-  };
-  internal_initiatives: {
-    financial_education_service: boolean;
-    internal_webinars: boolean;
-    pee_perco_rsu_program: boolean;
-    satisfaction_level: string;
-    missing_elements: string;
-  };
   internal_communications: {
     channels: string[];
     employee_engagement_level: string;
@@ -132,20 +118,6 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
       pero: false,
       autres: { enabled: false, description: "" }
     },
-    hr_challenges: {
-      comments: "",
-      financial_anxiety: false,
-      understanding_gaps: false,
-      tax_optimization_interest: false,
-      recurring_declaration_errors: false
-    },
-    internal_initiatives: {
-      financial_education_service: false,
-      internal_webinars: false,
-      pee_perco_rsu_program: false,
-      satisfaction_level: "",
-      missing_elements: ""
-    },
     internal_communications: {
       channels: [],
       employee_engagement_level: "",
@@ -179,22 +151,6 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
         autres: { enabled: false, description: "" }
       };
       
-      const defaultHrChallenges = {
-        comments: "",
-        financial_anxiety: false,
-        understanding_gaps: false,
-        tax_optimization_interest: false,
-        recurring_declaration_errors: false
-      };
-      
-      const defaultInitiatives = {
-        financial_education_service: false,
-        internal_webinars: false,
-        pee_perco_rsu_program: false,
-        satisfaction_level: "",
-        missing_elements: ""
-      };
-      
       const defaultCommunications = {
         channels: [],
         employee_engagement_level: "",
@@ -202,8 +158,6 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
       };
 
       const companyCompensation = data.compensation_devices as any;
-      const companyHrChallenges = data.hr_challenges as any;
-      const companyInitiatives = data.internal_initiatives as any;
       const companyCommunications = data.internal_communications as any;
 
       setFormData({
@@ -227,18 +181,6 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
             ...defaultCompensation.autres,
             ...(companyCompensation?.autres || {})
           }
-        },
-        hr_challenges: {
-          ...defaultHrChallenges,
-          comments: companyHrChallenges?.salary_frustrations || companyHrChallenges?.comments || "",
-          financial_anxiety: companyHrChallenges?.financial_anxiety || false,
-          understanding_gaps: companyHrChallenges?.understanding_gaps || false,
-          tax_optimization_interest: companyHrChallenges?.tax_optimization_interest || false,
-          recurring_declaration_errors: companyHrChallenges?.recurring_declaration_errors || false
-        },
-        internal_initiatives: {
-          ...defaultInitiatives,
-          ...(companyInitiatives || {})
         },
         internal_communications: {
           ...defaultCommunications,
@@ -287,11 +229,6 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
           company_size: formData.company_size,
           has_foreign_employees: formData.has_foreign_employees,
           compensation_devices: formData.compensation_devices,
-          hr_challenges: {
-            ...formData.hr_challenges,
-            salary_frustrations: formData.hr_challenges.comments
-          },
-          internal_initiatives: formData.internal_initiatives,
           internal_communications: formData.internal_communications
         })
         .eq("id", companyId);
@@ -728,131 +665,7 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
 
         {/* HR Tab */}
         <TabsContent value="hr" className="space-y-4 mt-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <HeartHandshake className="h-5 w-5 text-destructive" />
-                  Défis RH identifiés
-                </CardTitle>
-                <CardDescription className="flex items-center">
-                  Problématiques rencontrées avec vos employés
-                  <InfoTooltip content="Ces informations permettent de personnaliser les parcours proposés à vos salariés." />
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[
-                  { key: 'financial_anxiety', label: 'Anxiété financière des salariés' },
-                  { key: 'understanding_gaps', label: 'Manque de compréhension des dispositifs' },
-                  { key: 'tax_optimization_interest', label: 'Intérêt pour l\'optimisation fiscale' },
-                  { key: 'recurring_declaration_errors', label: 'Erreurs de déclarations récurrentes' },
-                ].map((challenge) => (
-                  <div key={challenge.key} className="flex items-center space-x-3 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
-                    <Checkbox
-                      id={challenge.key}
-                      checked={(formData.hr_challenges as any)[challenge.key]}
-                      onCheckedChange={(checked) => setFormData({
-                        ...formData,
-                        hr_challenges: { 
-                          ...formData.hr_challenges, 
-                          [challenge.key]: checked === true 
-                        }
-                      })}
-                    />
-                    <Label htmlFor={challenge.key} className="cursor-pointer flex-1">
-                      {challenge.label}
-                    </Label>
-                  </div>
-                ))}
-
-                <div className="space-y-2 pt-2">
-                  <Label>Commentaires</Label>
-                  <Textarea
-                    value={formData.hr_challenges.comments}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      hr_challenges: { ...formData.hr_challenges, comments: e.target.value }
-                    })}
-                    placeholder="Champ libre pour vos remarques..."
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Initiatives internes
-                </CardTitle>
-                <CardDescription className="flex items-center">
-                  Dispositifs déjà mis en place
-                  <InfoTooltip content="Avez-vous déjà mis en place des dispositifs sur l'éducation financière des salariés au sens large ?" />
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[
-                  { key: 'financial_education_service', label: 'Service d\'éducation financière' },
-                  { key: 'internal_webinars', label: 'Webinaires internes' },
-                  { key: 'pee_perco_rsu_program', label: 'Programme PEE/PERCO/RSU' },
-                ].map((initiative) => (
-                  <div key={initiative.key} className="flex items-center space-x-3 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
-                    <Checkbox
-                      id={initiative.key}
-                      checked={(formData.internal_initiatives as any)[initiative.key]}
-                      onCheckedChange={(checked) => setFormData({
-                        ...formData,
-                        internal_initiatives: { 
-                          ...formData.internal_initiatives, 
-                          [initiative.key]: checked === true 
-                        }
-                      })}
-                    />
-                    <Label htmlFor={initiative.key} className="cursor-pointer flex-1">
-                      {initiative.label}
-                    </Label>
-                  </div>
-                ))}
-
-                <div className="space-y-2 pt-2">
-                  <Label className="flex items-center">
-                    Niveau de satisfaction des dispositifs (hors MyFinCare)
-                    <InfoTooltip content="Évaluez la satisfaction globale vis-à-vis des dispositifs d'éducation financière déjà en place dans votre entreprise." />
-                  </Label>
-                  <Select
-                    value={formData.internal_initiatives.satisfaction_level}
-                    onValueChange={(value) => setFormData({
-                      ...formData,
-                      internal_initiatives: { ...formData.internal_initiatives, satisfaction_level: value }
-                    })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="high">Élevé</SelectItem>
-                      <SelectItem value="medium">Moyen</SelectItem>
-                      <SelectItem value="low">Faible</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Éléments manquants</Label>
-                  <Textarea
-                    value={formData.internal_initiatives.missing_elements}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      internal_initiatives: { ...formData.internal_initiatives, missing_elements: e.target.value }
-                    })}
-                    placeholder="Ce qui manque aujourd'hui..."
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <p className="text-muted-foreground text-sm">Aucun champ RH à configurer pour le moment.</p>
         </TabsContent>
 
         {/* Contacts Tab */}
