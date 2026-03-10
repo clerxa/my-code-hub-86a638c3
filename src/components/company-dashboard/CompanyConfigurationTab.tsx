@@ -87,6 +87,7 @@ interface FormData {
     employee_engagement_level: string;
     communication_capacity: string;
   };
+  signup_slug: string;
 }
 
 export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabProps) {
