@@ -24,7 +24,7 @@ export const useVideoTracking = (
     isValidated: false,
   });
   
-  const trackingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const trackingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastSaveRef = useRef<number>(0);
 
   // Load validation settings

@@ -110,7 +110,7 @@ export const VideoModule = ({
       script.src = 'https://player.vimeo.com/api/player.js';
       document.body.appendChild(script);
 
-      let vimeoTrackingInterval: NodeJS.Timeout | null = null;
+      let vimeoTrackingInterval: ReturnType<typeof setInterval> | null = null;
 
       script.onload = () => {
         // @ts-ignore

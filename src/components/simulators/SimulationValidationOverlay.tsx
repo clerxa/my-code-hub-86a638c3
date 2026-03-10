@@ -42,7 +42,7 @@ export function SimulationValidationOverlay({
     }
 
     let totalElapsed = 0;
-    const timers: NodeJS.Timeout[] = [];
+    const timers: ReturnType<typeof setTimeout>[] = [];
 
     // Progress through each step
     STEPS.forEach((step, index) => {
