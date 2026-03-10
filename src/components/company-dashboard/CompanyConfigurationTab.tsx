@@ -422,36 +422,6 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
                   </div>
                 </div>
 
-                {formData.signup_slug && (
-                  <div className="space-y-2">
-                    <Label className="flex items-center">
-                      <Link className="h-4 w-4 mr-1" />
-                      Lien d'inscription
-                      <InfoTooltip content="Partagez ce lien avec vos collaborateurs pour qu'ils puissent s'inscrire directement sur la plateforme." />
-                    </Label>
-                    <div className="flex gap-2">
-                      <Input
-                        readOnly
-                        value={`https://myfincare.fr/join/${formData.signup_slug}`}
-                        className="font-mono text-sm bg-muted"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => {
-                          navigator.clipboard.writeText(`https://myfincare.fr/join/${formData.signup_slug}`);
-                          setCopied(true);
-                          toast.success("Lien copié !");
-                          setTimeout(() => setCopied(false), 2000);
-                        }}
-                      >
-                        {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
             </Card>
 
             <Card>
