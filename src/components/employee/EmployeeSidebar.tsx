@@ -21,6 +21,7 @@ interface EmployeeSidebarProps {
   enablePointsRanking?: boolean;
   primaryColor?: string;
   onShowGuide?: () => void;
+  hasEquityDevices?: boolean;
 }
 
 export const EmployeeSidebar = ({
