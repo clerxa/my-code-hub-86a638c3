@@ -76,6 +76,7 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
             companyId={companyId}
             hasPartnership={hasPartnership}
             primaryColor={primaryColor}
+            hasEquityDevices={hasEquityDevicesState}
           />
         </div>
       </div>
