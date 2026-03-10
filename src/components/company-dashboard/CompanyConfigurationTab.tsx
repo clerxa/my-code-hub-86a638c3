@@ -73,6 +73,7 @@ interface FormData {
     espp: boolean;
     stock_options: boolean;
     bspce: boolean;
+    aga: boolean;
     pee: boolean;
     perco: boolean;
     pero: boolean;
