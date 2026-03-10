@@ -25,7 +25,10 @@ import {
   UserCircle,
   DollarSign,
   HeartHandshake,
-  Info
+  Info,
+  Link,
+  Copy,
+  Check
 } from "lucide-react";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
@@ -84,6 +87,7 @@ interface FormData {
     employee_engagement_level: string;
     communication_capacity: string;
   };
+  signup_slug: string;
 }
 
 export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabProps) {
@@ -92,6 +96,7 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
   const [newEmailDomain, setNewEmailDomain] = useState("");
   const [contacts, setContacts] = useState<CompanyContact[]>([]);
   const [newContact, setNewContact] = useState({ nom: '', email: '', telephone: '', role_contact: '' });
+  const [copied, setCopied] = useState(false);
   
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -105,6 +110,7 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
     expert_booking_url: "",
     expert_booking_hubspot_embed: "",
     enable_points_ranking: false,
+    signup_slug: "",
     company_size: null,
     has_foreign_employees: false,
     compensation_devices: {
@@ -172,6 +178,7 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
         expert_booking_url: data.expert_booking_url || "",
         expert_booking_hubspot_embed: data.expert_booking_hubspot_embed || "",
         enable_points_ranking: data.enable_points_ranking || false,
+        signup_slug: data.signup_slug || "",
         company_size: data.company_size || null,
         has_foreign_employees: data.has_foreign_employees || false,
         compensation_devices: {
@@ -418,6 +425,36 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
                     ))}
                   </div>
                 </div>
+
+                {formData.signup_slug && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center">
+                      <Link className="h-4 w-4 mr-1" />
+                      Lien d'inscription
+                      <InfoTooltip content="Partagez ce lien avec vos collaborateurs pour qu'ils puissent s'inscrire directement sur la plateforme." />
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        readOnly
+                        value={`https://myfincare.fr/join/${formData.signup_slug}`}
+                        className="font-mono text-sm bg-muted"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`https://myfincare.fr/join/${formData.signup_slug}`);
+                          setCopied(true);
+                          toast.success("Lien copié !");
+                          setTimeout(() => setCopied(false), 2000);
+                        }}
+                      >
+                        {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
