@@ -65,7 +65,7 @@ export function ESPPPeriodEditor({ period, onSave, onCancel }: ESPPPeriodEditorP
   const [searching, setSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [confirmed, setConfirmed] = useState(!!period?.entreprise_ticker);
-  const searchTimeout = useRef<NodeJS.Timeout>();
+  const searchTimeout = useRef<ReturnType<typeof setTimeout>>();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Auto-resolve company from user's company ticker
