@@ -92,6 +92,7 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
               hasPartnership={hasPartnership}
               primaryColor={primaryColor}
               onShowGuide={() => setShowGuide(true)}
+              hasEquityDevices={hasEquityDevicesState}
             />
           </div>
           <div className="flex-1 min-w-0">
