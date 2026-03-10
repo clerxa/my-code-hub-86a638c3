@@ -75,8 +75,8 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
       return;
     }
 
-    // Vega & Horizon locked for non-partner users
-    if ((itemId === "vega" || itemId === "horizon") && isLocked) {
+    // Vega, Horizon & Budget (Zenith) locked for non-partner users
+    if (["vega", "horizon", "budget"].includes(itemId) && isLocked) {
       setOpen(false);
       navigate("/proposer-partenariat");
       return;
