@@ -47,6 +47,7 @@ export const AdminCompanyEditPage = () => {
     email_domains: [] as string[],
     company_size: null as number | null,
     ticker: "",
+    signup_slug: "",
     company_description: "",
     partnership_details: "",
     info_sections_config: { stock_price: true, general_info: true, partnership: true, hr_devices: true, description: true } as Record<string, boolean>,
