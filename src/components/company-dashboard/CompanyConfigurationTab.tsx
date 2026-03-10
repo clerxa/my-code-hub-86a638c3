@@ -182,18 +182,6 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
             ...(companyCompensation?.autres || {})
           }
         },
-        hr_challenges: {
-          ...defaultHrChallenges,
-          comments: companyHrChallenges?.salary_frustrations || companyHrChallenges?.comments || "",
-          financial_anxiety: companyHrChallenges?.financial_anxiety || false,
-          understanding_gaps: companyHrChallenges?.understanding_gaps || false,
-          tax_optimization_interest: companyHrChallenges?.tax_optimization_interest || false,
-          recurring_declaration_errors: companyHrChallenges?.recurring_declaration_errors || false
-        },
-        internal_initiatives: {
-          ...defaultInitiatives,
-          ...(companyInitiatives || {})
-        },
         internal_communications: {
           ...defaultCommunications,
           ...(companyCommunications || {})
