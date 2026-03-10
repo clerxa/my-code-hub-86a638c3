@@ -63,8 +63,8 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
     setAppointmentCount(count || 0);
   };
 
-  // Keep mobile consistent with sidebar: lock company + community (forum) for non-partner users
-  const lockedItems = ["progression", "company", "forum", "vega", "horizon"];
+  // Keep mobile consistent with sidebar: lock company + community (forum) + vega/horizon/budget for non-partner users
+  const lockedItems = ["progression", "company", "forum", "vega", "horizon", "budget"];
   
   const handleItemClick = (itemId: string) => {
     const isLocked = lockedItems.includes(itemId) && !hasPartnership;
@@ -75,8 +75,8 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
       return;
     }
 
-    // Vega & Horizon locked for non-partner users
-    if ((itemId === "vega" || itemId === "horizon") && isLocked) {
+    // Vega, Horizon & Budget (Zenith) locked for non-partner users
+    if (["vega", "horizon", "budget"].includes(itemId) && isLocked) {
       setOpen(false);
       navigate("/proposer-partenariat");
       return;
@@ -157,8 +157,8 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
       if (item.id === "help") return false;
       // Hide ranking items if disabled
       if (rankingItems.includes(item.id) && !enablePointsRanking) return false;
-      // Hide VEGA if no equity devices configured
-      if (item.id === "vega" && !hasEquityDevices) return false;
+      // Hide VEGA only if user has partnership but no equity devices configured
+      if (item.id === "vega" && !hasEquityDevices && hasPartnership) return false;
       return true;
     });
   };

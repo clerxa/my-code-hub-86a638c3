@@ -77,9 +77,9 @@ export const EmployeeSidebar = ({
     setAppointmentCount(count || 0);
   };
 
-  // Note: "simulations" removed - users now have 10 free simulations before being limited
   // "company" and "forum" (Communauté) are locked for non-partner users
-  const lockedItems = ["progression", "company", "forum", "vega", "horizon"];
+  // "vega", "horizon", "budget" (Zenith) are also locked for non-partner users
+  const lockedItems = ["progression", "company", "forum", "vega", "horizon", "budget"];
 
   // State for locked dialogs
   const [showCompanyLockedDialog, setShowCompanyLockedDialog] = useState(false);
@@ -101,8 +101,8 @@ export const EmployeeSidebar = ({
       return;
     }
 
-    // Vega & Horizon locked for non-partner users
-    if ((itemId === "vega" || itemId === "horizon") && isLocked) {
+    // Vega, Horizon & Budget (Zenith) locked for non-partner users
+    if (["vega", "horizon", "budget"].includes(itemId) && isLocked) {
       navigate("/proposer-partenariat");
       return;
     }
@@ -180,8 +180,8 @@ export const EmployeeSidebar = ({
       if (hiddenItems.includes(item.id)) return false;
       // Hide ranking items if disabled
       if (rankingItems.includes(item.id) && !enablePointsRanking) return false;
-      // Hide VEGA if no equity devices configured
-      if (item.id === "vega" && !hasEquityDevices) return false;
+      // Hide VEGA only if user has partnership but no equity devices configured
+      if (item.id === "vega" && !hasEquityDevices && hasPartnership) return false;
       return true;
     });
   };

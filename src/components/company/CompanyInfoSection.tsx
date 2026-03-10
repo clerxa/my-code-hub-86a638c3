@@ -69,6 +69,7 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
     if (compensationDevices.espp) activeDevices.push("ESPP");
     if (compensationDevices.stock_options) activeDevices.push("Stock Options");
     if (compensationDevices.bspce) activeDevices.push("BSPCE");
+    if (compensationDevices.aga) activeDevices.push("AGA");
     if (compensationDevices.pee) activeDevices.push("PEE");
     if (compensationDevices.perco) activeDevices.push("PERCO");
     if (compensationDevices.pero) activeDevices.push("PERO");

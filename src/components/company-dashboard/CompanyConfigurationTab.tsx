@@ -73,6 +73,7 @@ interface FormData {
     espp: boolean;
     stock_options: boolean;
     bspce: boolean;
+    aga: boolean;
     pee: boolean;
     perco: boolean;
     pero: boolean;
@@ -125,6 +126,7 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
       espp: false,
       stock_options: false,
       bspce: false,
+      aga: false,
       pee: false,
       perco: false,
       pero: false,
@@ -666,6 +668,7 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
                   { key: 'espp', label: 'ESPP (Plan d\'achat d\'actions)' },
                   { key: 'stock_options', label: 'Stock Options' },
                   { key: 'bspce', label: 'BSPCE' },
+                  { key: 'aga', label: 'AGA (Attribution Gratuite d\'Actions)' },
                   { key: 'pee', label: 'PEE (Plan Épargne Entreprise)' },
                   { key: 'perco', label: 'PERCO' },
                   { key: 'pero', label: 'PERO' },
