@@ -8,6 +8,7 @@ import { OnboardingGuide } from "@/components/employee/OnboardingGuide";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { hasActivePartnership } from "@/lib/partnership";
+import { hasEquityDevices as hasEquityDevicesFn } from "@/lib/equityDevices";
 
 interface EmployeeLayoutProps {
   children: ReactNode;
