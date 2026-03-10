@@ -79,20 +79,6 @@ interface FormData {
     pero: boolean;
     autres: { enabled: boolean; description: string };
   };
-  hr_challenges: {
-    comments: string;
-    financial_anxiety: boolean;
-    understanding_gaps: boolean;
-    tax_optimization_interest: boolean;
-    recurring_declaration_errors: boolean;
-  };
-  internal_initiatives: {
-    financial_education_service: boolean;
-    internal_webinars: boolean;
-    pee_perco_rsu_program: boolean;
-    satisfaction_level: string;
-    missing_elements: string;
-  };
   internal_communications: {
     channels: string[];
     employee_engagement_level: string;
