@@ -854,6 +854,7 @@ export default function Employee() {
               enablePointsRanking={company?.enable_points_ranking || false}
               primaryColor={company?.primary_color || undefined}
               onShowGuide={() => setShowGuide(true)}
+              hasEquityDevices={hasEquityDevicesFn(company?.compensation_devices)}
             />
           </div>
 
