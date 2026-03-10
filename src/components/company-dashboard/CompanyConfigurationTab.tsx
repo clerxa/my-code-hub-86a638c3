@@ -177,6 +177,7 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
         expert_booking_url: data.expert_booking_url || "",
         expert_booking_hubspot_embed: data.expert_booking_hubspot_embed || "",
         enable_points_ranking: data.enable_points_ranking || false,
+        signup_slug: data.signup_slug || "",
         company_size: data.company_size || null,
         has_foreign_employees: data.has_foreign_employees || false,
         compensation_devices: {
