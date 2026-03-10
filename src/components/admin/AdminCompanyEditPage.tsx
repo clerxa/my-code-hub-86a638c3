@@ -382,6 +382,7 @@ export const AdminCompanyEditPage = () => {
               { key: "espp", label: "ESPP" },
               { key: "stock_options", label: "Stock-Options" },
               { key: "bspce", label: "BSPCE" },
+              { key: "aga", label: "AGA" },
               { key: "pee", label: "PEE" },
               { key: "perco", label: "PERCO" },
               { key: "pero", label: "PERO" },
@@ -398,17 +399,6 @@ export const AdminCompanyEditPage = () => {
                 <Label htmlFor={key}>{label}</Label>
               </div>
             ))}
-          </div>
-
-          <Separator />
-          
-          <div className="flex items-center space-x-2">
-            <Checkbox id="financial_anxiety" checked={formData.hr_challenges.financial_anxiety}
-              onCheckedChange={(checked) => setFormData(prev => ({
-                ...prev,
-                hr_challenges: { ...prev.hr_challenges, financial_anxiety: checked === true }
-              }))} />
-            <Label htmlFor="financial_anxiety">Présence d'anxiété financière chez les salariés</Label>
           </div>
         </CardContent>
       </Card>
