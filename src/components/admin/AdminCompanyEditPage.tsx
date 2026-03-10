@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { ArrowLeft, Save, X, Building2 } from "lucide-react";
+import { ArrowLeft, Save, X, Building2, Link, Copy, Check } from "lucide-react";
 import { ImageUpload } from "./ImageUpload";
 import { TaxPermanenceConfigEditor } from "./TaxPermanenceConfigEditor";
 import type { TaxPermanenceConfig } from "@/types/tax-declaration";
