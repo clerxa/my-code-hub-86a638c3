@@ -63,8 +63,8 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
     setAppointmentCount(count || 0);
   };
 
-  // Keep mobile consistent with sidebar: lock company + community (forum) for non-partner users
-  const lockedItems = ["progression", "company", "forum", "vega", "horizon"];
+  // Keep mobile consistent with sidebar: lock company + community (forum) + vega/horizon/budget for non-partner users
+  const lockedItems = ["progression", "company", "forum", "vega", "horizon", "budget"];
   
   const handleItemClick = (itemId: string) => {
     const isLocked = lockedItems.includes(itemId) && !hasPartnership;
