@@ -668,6 +668,7 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
                   { key: 'espp', label: 'ESPP (Plan d\'achat d\'actions)' },
                   { key: 'stock_options', label: 'Stock Options' },
                   { key: 'bspce', label: 'BSPCE' },
+                  { key: 'aga', label: 'AGA (Attribution Gratuite d\'Actions)' },
                   { key: 'pee', label: 'PEE (Plan Épargne Entreprise)' },
                   { key: 'perco', label: 'PERCO' },
                   { key: 'pero', label: 'PERO' },
