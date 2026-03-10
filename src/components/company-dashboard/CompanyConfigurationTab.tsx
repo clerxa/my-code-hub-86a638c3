@@ -106,7 +106,7 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
     expert_booking_url: "",
     expert_booking_hubspot_embed: "",
     enable_points_ranking: false,
-    signup_slug: "",
+    
     company_size: null,
     has_foreign_employees: false,
     compensation_devices: {
