@@ -33,6 +33,7 @@ export const EmployeeSidebar = ({
   enablePointsRanking = false,
   primaryColor,
   onShowGuide,
+  hasEquityDevices = false,
 }: EmployeeSidebarProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
