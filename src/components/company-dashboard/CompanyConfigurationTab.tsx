@@ -229,11 +229,6 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
           company_size: formData.company_size,
           has_foreign_employees: formData.has_foreign_employees,
           compensation_devices: formData.compensation_devices,
-          hr_challenges: {
-            ...formData.hr_challenges,
-            salary_frustrations: formData.hr_challenges.comments
-          },
-          internal_initiatives: formData.internal_initiatives,
           internal_communications: formData.internal_communications
         })
         .eq("id", companyId);
