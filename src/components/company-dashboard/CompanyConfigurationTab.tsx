@@ -151,22 +151,6 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
         autres: { enabled: false, description: "" }
       };
       
-      const defaultHrChallenges = {
-        comments: "",
-        financial_anxiety: false,
-        understanding_gaps: false,
-        tax_optimization_interest: false,
-        recurring_declaration_errors: false
-      };
-      
-      const defaultInitiatives = {
-        financial_education_service: false,
-        internal_webinars: false,
-        pee_perco_rsu_program: false,
-        satisfaction_level: "",
-        missing_elements: ""
-      };
-      
       const defaultCommunications = {
         channels: [],
         employee_engagement_level: "",
@@ -174,8 +158,6 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
       };
 
       const companyCompensation = data.compensation_devices as any;
-      const companyHrChallenges = data.hr_challenges as any;
-      const companyInitiatives = data.internal_initiatives as any;
       const companyCommunications = data.internal_communications as any;
 
       setFormData({
