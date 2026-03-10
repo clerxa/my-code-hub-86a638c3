@@ -92,7 +92,7 @@ export function CompanyConfigurationTab({ companyId }: CompanyConfigurationTabPr
   const [newEmailDomain, setNewEmailDomain] = useState("");
   const [contacts, setContacts] = useState<CompanyContact[]>([]);
   const [newContact, setNewContact] = useState({ nom: '', email: '', telephone: '', role_contact: '' });
-  const [copied, setCopied] = useState(false);
+  
   
   const [formData, setFormData] = useState<FormData>({
     name: "",
