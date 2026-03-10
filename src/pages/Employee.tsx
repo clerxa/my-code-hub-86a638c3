@@ -836,6 +836,7 @@ export default function Employee() {
             webinarCount={upcomingWebinarCount}
             enablePointsRanking={company?.enable_points_ranking || false}
             primaryColor={company?.primary_color || undefined}
+            hasEquityDevices={hasEquityDevicesFn(company?.compensation_devices)}
           />
         </div>
       </div>
