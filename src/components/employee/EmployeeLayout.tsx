@@ -21,6 +21,7 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [hasPartnership, setHasPartnership] = useState(false);
   const [primaryColor, setPrimaryColor] = useState<string | undefined>(undefined);
+  const [hasEquityDevicesState, setHasEquityDevicesState] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
@@ -38,12 +39,13 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
         
         const { data: company } = await supabase
           .from("companies")
-          .select("partnership_type, primary_color")
+          .select("partnership_type, primary_color, compensation_devices")
           .eq("id", profile.company_id)
           .maybeSingle();
         
         setHasPartnership(hasActivePartnership(company?.partnership_type));
         setPrimaryColor(company?.primary_color || undefined);
+        setHasEquityDevicesState(hasEquityDevicesFn(company?.compensation_devices));
       }
     };
 
