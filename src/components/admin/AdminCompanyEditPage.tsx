@@ -382,6 +382,7 @@ export const AdminCompanyEditPage = () => {
               { key: "espp", label: "ESPP" },
               { key: "stock_options", label: "Stock-Options" },
               { key: "bspce", label: "BSPCE" },
+              { key: "aga", label: "AGA" },
               { key: "pee", label: "PEE" },
               { key: "perco", label: "PERCO" },
               { key: "pero", label: "PERO" },
@@ -399,87 +400,16 @@ export const AdminCompanyEditPage = () => {
               </div>
             ))}
           </div>
-
-          <Separator />
-          
-          <div className="flex items-center space-x-2">
-            <Checkbox id="financial_anxiety" checked={formData.hr_challenges.financial_anxiety}
-              onCheckedChange={(checked) => setFormData(prev => ({
-                ...prev,
-                hr_challenges: { ...prev.hr_challenges, financial_anxiety: checked === true }
-              }))} />
-            <Label htmlFor="financial_anxiety">Présence d'anxiété financière chez les salariés</Label>
-          </div>
         </CardContent>
       </Card>
 
-      {/* Initiatives & Communication */}
+      {/* Communication */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Initiatives & Communication</CardTitle>
-          <CardDescription>Initiatives internes et canaux de communication</CardDescription>
+          <CardTitle className="text-lg">Communication</CardTitle>
+          <CardDescription>Canaux de communication internes</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { key: "financial_education_service", label: "Service d'éducation financière" },
-              { key: "internal_webinars", label: "Webinars internes" },
-              { key: "pee_perco_rsu_program", label: "Programme PEE/PERCO/RSU" },
-            ].map(({ key, label }) => (
-              <div key={key} className="flex items-center space-x-2">
-                <Checkbox id={key} checked={formData.internal_initiatives[key]}
-                  onCheckedChange={(checked) => setFormData(prev => ({
-                    ...prev,
-                    internal_initiatives: { ...prev.internal_initiatives, [key]: checked === true }
-                  }))} />
-                <Label htmlFor={key}>{label}</Label>
-              </div>
-            ))}
-          </div>
-
-          {(formData.internal_initiatives.financial_education_service || formData.internal_initiatives.internal_webinars || formData.internal_initiatives.pee_perco_rsu_program) && (
-            <div className="space-y-2">
-              <Label>Acteur de l'initiative</Label>
-              <Input value={formData.internal_initiatives.initiative_actor || ''} onChange={(e) => setFormData(prev => ({ ...prev, internal_initiatives: { ...prev.internal_initiatives, initiative_actor: e.target.value } }))} placeholder="Ex: DRH, CSE, Prestataire externe..." />
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Niveau de satisfaction</Label>
-              <Select value={formData.internal_initiatives.satisfaction_level || ''} onValueChange={(v) => setFormData(prev => ({ ...prev, internal_initiatives: { ...prev.internal_initiatives, satisfaction_level: v } }))}>
-                <SelectTrigger className="bg-background"><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="très_insatisfait">Très insatisfait</SelectItem>
-                  <SelectItem value="insatisfait">Insatisfait</SelectItem>
-                  <SelectItem value="neutre">Neutre</SelectItem>
-                  <SelectItem value="satisfait">Satisfait</SelectItem>
-                  <SelectItem value="très_satisfait">Très satisfait</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Niveau d'engagement</Label>
-              <Select value={formData.internal_communications.employee_engagement_level || ''} onValueChange={(v) => setFormData(prev => ({ ...prev, internal_communications: { ...prev.internal_communications, employee_engagement_level: v } }))}>
-                <SelectTrigger className="bg-background"><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="très_faible">Très faible</SelectItem>
-                  <SelectItem value="faible">Faible</SelectItem>
-                  <SelectItem value="moyen">Moyen</SelectItem>
-                  <SelectItem value="élevé">Élevé</SelectItem>
-                  <SelectItem value="très_élevé">Très élevé</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Ce qui manque aujourd'hui</Label>
-            <Textarea value={formData.internal_initiatives.missing_elements} onChange={(e) => setFormData(prev => ({ ...prev, internal_initiatives: { ...prev.internal_initiatives, missing_elements: e.target.value } }))} placeholder="Ex: Formations fiscalité, accompagnement personnalisé..." rows={3} />
-          </div>
-
-          <Separator />
-
           <div className="space-y-2">
             <Label>Canaux de communication</Label>
             <div className="flex flex-wrap gap-3">
