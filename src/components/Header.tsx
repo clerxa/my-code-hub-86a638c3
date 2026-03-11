@@ -123,6 +123,17 @@ export const Header = () => {
       setIsAdmin(true);
     }
   };
+  const checkCompanyContactStatus = async () => {
+    if (!user?.email) return;
+    const { data, error } = await supabase
+      .from("company_contacts")
+      .select("id, company_id")
+      .eq("email", user.email)
+      .maybeSingle();
+    if (!error && data) {
+      setIsCompanyContact(true);
+    }
+  };
   const handleSignOut = async () => {
     try {
       await signOut();
