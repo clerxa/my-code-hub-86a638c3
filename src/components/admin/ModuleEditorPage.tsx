@@ -252,11 +252,8 @@ export const ModuleEditorPage = () => {
         type: formData.type,
         points: formData.points, // Keep for legacy, but not used for quiz
         order_num: isEditing ? undefined : orderNum,
-        webinar_date: toISOWithTimezone(formData.webinar_date),
         content_url: formData.type === "video" ? (formData.video_url || null) : (formData.content_url || null),
-        webinar_registration_url: formData.webinar_registration_url || null,
         webinar_image_url: formData.webinar_image_url || null,
-        livestorm_session_id: formData.livestorm_session_id || null,
         appointment_calendar_url: formData.appointment_calendar_url || null,
         embed_code: formData.type === "video" ? (formData.video_embed || null) : (formData.embed_code || null),
         quiz_questions: formData.quiz_questions as any,
