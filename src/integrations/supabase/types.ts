@@ -6227,6 +6227,38 @@ export type Database = {
         }
         Relationships: []
       }
+      webinar_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          module_id: number
+          registration_url: string | null
+          session_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          module_id: number
+          registration_url?: string | null
+          session_date: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          module_id?: number
+          registration_url?: string | null
+          session_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webinar_sessions_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
