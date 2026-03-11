@@ -28,11 +28,17 @@ import { CompanyTaxHelpTab } from "@/components/company-dashboard/CompanyTaxHelp
 const CompanyDashboard = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [companyName, setCompanyName] = useState("");
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "dashboard");
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
   const [hasTaxHelpEnabled, setHasTaxHelpEnabled] = useState(false);
 
   useEffect(() => {
