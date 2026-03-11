@@ -140,7 +140,9 @@ export const ModulesTab = ({
   const [activeTypeTab, setActiveTypeTab] = useState<string>("all");
   const [simulators, setSimulators] = useState<Simulator[]>([]);
 
-  // Fetch simulators for simulator module type
+  const [webinarSessions, setWebinarSessions] = useState<WebinarSessionRow[]>([]);
+
+  // Fetch simulators and webinar sessions
   useEffect(() => {
     const fetchSimulators = async () => {
       const { data, error } = await supabase
@@ -154,6 +156,25 @@ export const ModulesTab = ({
     };
     fetchSimulators();
   }, []);
+
+  useEffect(() => {
+    const fetchWebinarSessions = async () => {
+      const webinarModuleIds = modules.filter(m => m.type === 'webinar').map(m => m.id);
+      if (webinarModuleIds.length === 0) {
+        setWebinarSessions([]);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('webinar_sessions')
+        .select('id, session_date, registration_url, livestorm_session_id, module_id')
+        .in('module_id', webinarModuleIds)
+        .order('session_date', { ascending: true });
+      if (!error && data) {
+        setWebinarSessions(data);
+      }
+    };
+    fetchWebinarSessions();
+  }, [modules]);
 
   const moduleTypes = [
     { value: "all", label: "Tous", count: modules.length },
