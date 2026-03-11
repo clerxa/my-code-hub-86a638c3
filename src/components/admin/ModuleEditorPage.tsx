@@ -619,6 +619,25 @@ export const ModuleEditorPage = () => {
               <CardHeader>
                 <CardTitle>Configuration du webinaire</CardTitle>
               </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Catégorie du webinaire</Label>
+                  <Select value={formData.webinar_category} onValueChange={value => setFormData({ ...formData, webinar_category: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="parcours_fincare">📋 Parcours FinCare (obligatoire)</SelectItem>
+                      <SelectItem value="a_la_demande">📦 À la demande (catalogue)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {formData.webinar_category === "parcours_fincare" 
+                      ? "Ce webinaire sera pré-chargé automatiquement dans le dashboard de toutes les entreprises."
+                      : "Ce webinaire apparaîtra dans le catalogue pour que les entreprises puissent le sélectionner."}
+                  </p>
+                </div>
+              </CardContent>
               <CardContent>
                 <ImageUpload
                   label="Visuel du webinar"
