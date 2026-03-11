@@ -617,11 +617,17 @@ export const ModuleEditorPage = () => {
                 <CardTitle>Configuration du webinaire</CardTitle>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="sessions" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 mb-4">
+                <ImageUpload
+                  label="Visuel du webinar"
+                  value={formData.webinar_image_url || ""}
+                  onChange={(url) => setFormData({ ...formData, webinar_image_url: url })}
+                  bucketName="landing-images"
+                />
+
+                <Tabs defaultValue="sessions" className="w-full mt-4">
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
                     <TabsTrigger value="sessions">📅 Sessions</TabsTrigger>
                     <TabsTrigger value="attribution">🏢 Attribution</TabsTrigger>
-                    <TabsTrigger value="advanced">⚙️ Avancé</TabsTrigger>
                   </TabsList>
 
                   {/* Onglet Sessions */}
@@ -643,55 +649,6 @@ export const ModuleEditorPage = () => {
                       moduleId={isEditing && moduleId ? parseInt(moduleId) : null}
                       onAssignmentChange={(companyIds) => setFormData({ ...formData, assigned_companies: companyIds })}
                     />
-                  </TabsContent>
-
-                  {/* Onglet Avancé */}
-                  <TabsContent value="advanced" className="mt-0 space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="webinar_date">Date principale (legacy)</Label>
-                      <Input 
-                        id="webinar_date" 
-                        type="datetime-local" 
-                        value={formData.webinar_date} 
-                        onChange={e => setFormData({ ...formData, webinar_date: e.target.value })} 
-                      />
-                      <p className="text-xs text-muted-foreground">Utilisée si aucune session n'est configurée.</p>
-                    </div>
-                    <ImageUpload
-                      label="Visuel du webinar"
-                      value={formData.webinar_image_url || ""}
-                      onChange={(url) => setFormData({ ...formData, webinar_image_url: url })}
-                      bucketName="landing-images"
-                    />
-                    <div className="space-y-2">
-                      <Label htmlFor="livestorm_session_id">ID Session Livestorm</Label>
-                      <Input 
-                        id="livestorm_session_id" 
-                        value={formData.livestorm_session_id} 
-                        onChange={e => setFormData({ ...formData, livestorm_session_id: e.target.value })} 
-                        placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="webinar_registration_url">Lien d'inscription (legacy)</Label>
-                      <Input 
-                        id="webinar_registration_url" 
-                        type="url" 
-                        value={formData.webinar_registration_url} 
-                        onChange={e => setFormData({ ...formData, webinar_registration_url: e.target.value })} 
-                        placeholder="https://..." 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="embed_code">Code d'intégration HTML (iframe Livestorm)</Label>
-                      <Textarea 
-                        id="embed_code" 
-                        value={formData.embed_code} 
-                        onChange={e => setFormData({ ...formData, embed_code: e.target.value })} 
-                        placeholder='<iframe width="100%" height="480" frameborder="0" src="https://app.livestorm.co/..."></iframe>'
-                        rows={4}
-                      />
-                    </div>
                   </TabsContent>
                 </Tabs>
               </CardContent>
