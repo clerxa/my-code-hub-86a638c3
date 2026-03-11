@@ -339,6 +339,9 @@ export const ModulesTab = ({
       const { error: companyModulesError } = await supabase.from("company_modules").delete().eq("module_id", id);
       if (companyModulesError) throw companyModulesError;
 
+      const { error: parcoursModulesError } = await supabase.from("parcours_modules").delete().eq("module_id", id);
+      if (parcoursModulesError) throw parcoursModulesError;
+
       const { error } = await supabase.from("modules").delete().eq("id", id);
       if (error) throw error;
       toast.success("Module supprimé");
