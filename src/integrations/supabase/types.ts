@@ -6231,6 +6231,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          livestorm_session_id: string | null
           module_id: number
           registration_url: string | null
           session_date: string
@@ -6238,6 +6239,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          livestorm_session_id?: string | null
           module_id: number
           registration_url?: string | null
           session_date: string
@@ -6245,6 +6247,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          livestorm_session_id?: string | null
           module_id?: number
           registration_url?: string | null
           session_date?: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.webinar_sessions ADD COLUMN livestorm_session_id text DEFAULT NULL;
