@@ -29,6 +29,7 @@ interface Company {
   name: string;
   partnership_type: string | null;
   rang: number | null;
+  signup_slug: string | null;
 }
 
 interface CompanyContact {
