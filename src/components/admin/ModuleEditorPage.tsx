@@ -221,6 +221,7 @@ export const ModuleEditorPage = () => {
             themes: module.theme || [],
             simulator_id: contentData.simulator_id || "",
             is_optional: module.is_optional || false,
+            webinar_category: (module as any).webinar_category || "a_la_demande",
             assigned_companies: [],
             slides_data: contentData.slides_data || { slides: [], transition: 'fade' }
           });
