@@ -1,32 +1,6 @@
 // Templates prédéfinis pour les kits de communication
 // Variables disponibles : ${moduleTitle}, ${moduleDescription}, ${webinarDate}, ${webinar_registration_url}, 
-// ${companyName}, ${partnershipType}, ${contactName}, ${bookingUrl}, ${signature}, ${signupUrl}, ${customDate}
-
-// Bloc CTA inscription app - réutilisé dans tous les templates
-const signupCtaEmail = `\${signupUrl ? \`
-
-🚀 Pas encore sur myfincare ? Rejoignez l'aventure !
-Accédez gratuitement à tous nos outils, simulateurs et formations pour prendre en main vos finances personnelles. Vos collègues y sont déjà !
-👉 Créez votre compte en 30 secondes : \${signupUrl}
-\` : ""}`;
-
-const signupCtaIntranet = `\${signupUrl ? \`
-### 🚀 Pas encore inscrit(e) sur myfincare ?
-
-**Rejoignez vos collègues sur la plateforme !** Accédez gratuitement à tous nos outils, simulateurs et formations pour prendre en main vos finances personnelles. L'inscription prend 30 secondes.
-
-👉 [Créez votre compte maintenant](\${signupUrl})
-\` : ""}`;
-
-const signupCtaSlack = `\${signupUrl ? \`
-🚀 *Pas encore sur myfincare ?* Rejoignez vos collègues ! Accédez gratuitement à tous nos outils et formations pour vos finances perso 💰
-👉 <\${signupUrl}|Créez votre compte en 30 secondes>
-\` : ""}`;
-
-const signupCtaTeams = `\${signupUrl ? \`
-🚀 **Pas encore sur myfincare ?** Rejoignez vos collègues ! Accédez gratuitement à tous nos outils et formations pour vos finances perso 💰
-👉 [Créez votre compte en 30 secondes](\${signupUrl})
-\` : ""}`;
+// ${companyName}, ${partnershipType}, ${contactName}, ${bookingUrl}, ${signupCta}, ${signature}
 
 // Templates par défaut pour chaque type et échéance
 const defaultTemplates: Record<string, Record<string, string>> = {
@@ -57,7 +31,7 @@ Nous avons le plaisir de vous annoncer un webinar exclusif organisé par \${comp
 \${webinar_registration_url}
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-${signupCtaEmail}
+\${signupCta}
 \${contactName ? \`Pour toute question, contactez \${contactName}.\` : ""}
 
 À très bientôt !
@@ -90,7 +64,7 @@ Nous sommes ravis de vous annoncer un webinar exclusif organisé par \${companyN
 \${webinar_registration_url}
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-${signupCtaEmail}
+\${signupCta}
 \${contactName ? \`Pour toute question, contactez \${contactName}.\` : ""}
 
 À très bientôt !
@@ -124,7 +98,7 @@ Les places se remplissent rapidement. Ne manquez pas cette opportunité d'enrich
 \${webinar_registration_url}
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-${signupCtaEmail}
+\${signupCta}
 \${contactName ? \`Questions ? Contactez \${contactName}.\` : ""}
 
 À bientôt !
@@ -160,7 +134,7 @@ Ne laissez pas passer cette occasion unique de booster vos compétences financi�
 \${webinar_registration_url}
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-${signupCtaEmail}
+\${signupCta}
 \${contactName ? \`Questions de dernière minute ? \${contactName} est là pour vous.\` : ""}
 
 À très vite !
@@ -193,7 +167,7 @@ Vous hésitez encore ? Voici pourquoi vous ne devez pas manquer cet événement 
 \${webinar_registration_url}
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-${signupCtaEmail}
+\${signupCta}
 \${contactName ? \`Dernier délai pour vos questions : \${contactName}\` : ""}
 
 À demain !
@@ -222,7 +196,7 @@ Vous êtes inscrit(e) ? Parfait ! Voici le lien de connexion :
 💡 Astuce : Installez l'application si vous participez depuis votre mobile pour une meilleure expérience.
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-${signupCtaEmail}
+\${signupCta}
 \${contactName ? \`Problème technique ? Contactez rapidement \${contactName}.\` : ""}
 
 À tout de suite !
@@ -247,7 +221,7 @@ Nous vous rappelons le prochain webinar organisé par \${companyName} :
 \${webinar_registration_url}
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-${signupCtaEmail}
+\${signupCta}
 \${contactName ? \`Contact : \${contactName}\` : ""}
 
 \${signature}`,
@@ -290,7 +264,7 @@ Ce webinar vous permettra de :
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-${signupCtaIntranet}
+\${signupCta}
 \${contactName ? \`### 📞 Contact\\n\\nPour toute question, contactez \${contactName}.\` : ""}
 
 ---
@@ -332,7 +306,7 @@ Ce webinar vous permettra de :
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-${signupCtaIntranet}
+\${signupCta}
 \${contactName ? \`### 📞 Contact\\n\\nPour toute question, contactez \${contactName}.\` : ""}
 
 ---
@@ -371,7 +345,7 @@ Les places se remplissent rapidement ! Voici ce que vous allez gagner en partici
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-${signupCtaIntranet}
+\${signupCta}
 \${contactName ? \`### 📞 Questions ?\\n\\nContactez \${contactName} pour plus d'informations.\` : ""}
 
 ---
@@ -409,7 +383,7 @@ Les inscriptions touchent à leur fin ! Ne manquez pas cette opportunité unique
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-${signupCtaIntranet}
+\${signupCta}
 \${contactName ? \`### 📞 Dernières questions ?\\n\\n\${contactName} est à votre disposition.\` : ""}
 
 ---
@@ -454,7 +428,7 @@ Préparez-vous pour demain :
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-${signupCtaIntranet}
+\${signupCta}
 \${contactName ? \`### 📞 Urgence ?\\n\\nContactez \${contactName} avant ce soir.\` : ""}
 
 ---
@@ -495,7 +469,7 @@ ${signupCtaIntranet}
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-${signupCtaIntranet}
+\${signupCta}
 ---
 \${signature}`,
 
@@ -519,14 +493,14 @@ ${signupCtaIntranet}
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 [Prenez rendez-vous avec un conseiller](\${bookingUrl})
-${signupCtaIntranet}
+\${signupCta}
 \${contactName ? \`### 📞 Contact\\n\\n\${contactName}\` : ""}
 
 ---
 \${signature}`,
   },
 
-  slack: {
+  message: {
     "j-30": `📅 **Webinar exclusif : \${moduleTitle}**
 
 🗓️ *Dans 1 mois : \${webinarDate}*
@@ -545,8 +519,8 @@ ${signupCtaIntranet}
 👉 *Inscrivez-vous maintenant !*
 📹 \${webinar_registration_url}
 
-🎯 Besoin d'un conseiller ? <\${bookingUrl}|Prenez rendez-vous ici>
-${signupCtaSlack}
+🎯 Besoin d'un conseiller ? Prenez rendez-vous ici : \${bookingUrl}
+\${signupCta}
 \${contactName ? \`💬 Questions ? → \${contactName}\` : ""}
 
 \${signature}`,
@@ -571,8 +545,8 @@ ${signupCtaSlack}
 👉 *Inscrivez-vous maintenant !*
 📹 \${webinar_registration_url}
 
-🎯 Besoin d'un conseiller ? <\${bookingUrl}|Prenez rendez-vous ici>
-${signupCtaSlack}
+🎯 Besoin d'un conseiller ? Prenez rendez-vous ici : \${bookingUrl}
+\${signupCta}
 \${contactName ? \`💬 Questions ? → \${contactName}\` : ""}
 
 \${signature}`,
@@ -595,8 +569,8 @@ ${signupCtaSlack}
 👉 *Réservez votre place maintenant !*
 📹 \${webinar_registration_url}
 
-🎯 Besoin d'un conseiller ? <\${bookingUrl}|Prenez rendez-vous ici>
-${signupCtaSlack}
+🎯 Besoin d'un conseiller ? Prenez rendez-vous ici : \${bookingUrl}
+\${signupCta}
 \${contactName ? \`💬 \${contactName}\` : ""}
 
 \${signature}`,
@@ -619,8 +593,8 @@ ${signupCtaSlack}
 ⚡ *Inscrivez-vous MAINTENANT !*
 📹 \${webinar_registration_url}
 
-🎯 Besoin d'un conseiller ? <\${bookingUrl}|Prenez rendez-vous ici>
-${signupCtaSlack}
+🎯 Besoin d'un conseiller ? Prenez rendez-vous ici : \${bookingUrl}
+\${signupCta}
 \${contactName ? \`💬 \${contactName}\` : ""}
 
 \${signature}`,
@@ -641,8 +615,8 @@ ${signupCtaSlack}
 ⏰ *Inscriptions closes ce soir !*
 📹 \${webinar_registration_url}
 
-🎯 Besoin d'un conseiller ? <\${bookingUrl}|Prenez rendez-vous ici>
-${signupCtaSlack}
+🎯 Besoin d'un conseiller ? Prenez rendez-vous ici : \${bookingUrl}
+\${signupCta}
 👉 Réservez maintenant !
 
 \${contactName ? \`💬 \${contactName}\` : ""}
@@ -665,8 +639,8 @@ ${signupCtaSlack}
 
 💡 Astuce : Installez l'app sur mobile
 
-🎯 Besoin d'un conseiller ? <\${bookingUrl}|Prenez rendez-vous ici>
-${signupCtaSlack}
+🎯 Besoin d'un conseiller ? Prenez rendez-vous ici : \${bookingUrl}
+\${signupCta}
 \${contactName ? \`💬 Problème ? → \${contactName}\` : ""}
 
 👉 *À tout de suite !*
@@ -681,170 +655,8 @@ ${signupCtaSlack}
 
 📹 \${webinar_registration_url}
 
-🎯 <\${bookingUrl}|Prenez rendez-vous avec un conseiller>
-${signupCtaSlack}
-\${contactName ? \`💬 \${contactName}\` : ""}
-
-\${signature}`,
-  },
-
-  teams: {
-    "j-30": `📅 **Webinar exclusif : \${moduleTitle}**
-
-🗓️ *Dans 1 mois : \${webinarDate}*
-
-🎯 **\${moduleDescription}**
-
-✨ Au programme :
-• Développement de compétences financières
-• Q&A en direct avec des experts
-• Points bonus dans votre parcours
-
-\${partnershipType ? \`🤝 Partenariat \${partnershipType}\` : ""}
-
-⚠️ Places limitées !
-
-👉 *Inscrivez-vous maintenant !*
-📹 \${webinar_registration_url}
-
-🎯 Besoin d'un conseiller ? [Prenez rendez-vous ici](\${bookingUrl})
-${signupCtaTeams}
-\${contactName ? \`💬 Questions ? → \${contactName}\` : ""}
-
-\${signature}`,
-
-    "j-14": `📅 **Webinar exclusif : \${moduleTitle}**
-
-🎯 **\${moduleDescription}**
-
-📍 *\${webinarDate}*
-⏱️ Durée : 1h
-
-✨ Au programme :
-• Développement de compétences financières
-• Q&A en direct avec des experts
-• Points bonus dans votre parcours
-• Conseils pratiques immédiatement applicables
-
-\${partnershipType ? \`🤝 Partenariat \${partnershipType}\` : ""}
-
-⚠️ Places limitées !
-
-👉 *Inscrivez-vous maintenant !*
-📹 \${webinar_registration_url}
-
-🎯 Besoin d'un conseiller ? [Prenez rendez-vous ici](\${bookingUrl})
-${signupCtaTeams}
-\${contactName ? \`💬 Questions ? → \${contactName}\` : ""}
-
-\${signature}`,
-
-    "j-7": `⏰ **Plus qu'une semaine !**
-
-📅 Webinar : *\${moduleTitle}*
-🗓️ \${webinarDate}
-
-🎯 \${moduleDescription}
-
-🔥 Les places partent vite !
-
-✅ Pourquoi participer :
-• Formation d'experts
-• Échanges en direct
-• Progression dans votre parcours
-• Conseils personnalisés
-
-👉 *Réservez votre place maintenant !*
-📹 \${webinar_registration_url}
-
-🎯 Besoin d'un conseiller ? [Prenez rendez-vous ici](\${bookingUrl})
-${signupCtaTeams}
-\${contactName ? \`💬 \${contactName}\` : ""}
-
-\${signature}`,
-
-    "j-3": `🚨 **J-3 - Dernières places !**
-
-⏰ *\${moduleTitle}*
-📅 \${webinarDate}
-
-🎯 \${moduleDescription}
-
-🔥 **Attention : Places limitées !**
-
-✨ Ne manquez pas :
-• Expertise de qualité
-• Session interactive
-• Points bonus
-• Conseils pratiques
-
-⚡ *Inscrivez-vous MAINTENANT !*
-📹 \${webinar_registration_url}
-
-🎯 Besoin d'un conseiller ? [Prenez rendez-vous ici](\${bookingUrl})
-${signupCtaTeams}
-\${contactName ? \`💬 \${contactName}\` : ""}
-
-\${signature}`,
-
-    "j-1": `⚡ **DEMAIN !**
-
-🔥 Webinar : *\${moduleTitle}*
-📅 \${webinarDate}
-
-🎯 \${moduleDescription}
-
-🚨 **Dernière chance de s'inscrire !**
-
-✅ 1h pour transformer votre rapport à l'argent
-💡 Conseils pratiques applicables immédiatement
-🏆 Points bonus
-
-⏰ *Inscriptions closes ce soir !*
-📹 \${webinar_registration_url}
-
-🎯 Besoin d'un conseiller ? [Prenez rendez-vous ici](\${bookingUrl})
-${signupCtaTeams}
-👉 Réservez maintenant !
-
-\${contactName ? \`💬 \${contactName}\` : ""}
-
-\${signature}`,
-
-    "jour-j": `🔴 **C'EST AUJOURD'HUI !**
-
-🎯 *\${moduleTitle}*
-⏰ \${webinarDate}
-
-\${moduleDescription}
-
-🔗 **Inscrit(e) ? Connectez-vous maintenant !**
-👉 \${webinar_registration_url}
-
-⚠️ Important :
-• Connexion 5 min avant
-• Préparez vos questions
-
-💡 Astuce : Installez l'app sur mobile
-
-🎯 Besoin d'un conseiller ? [Prenez rendez-vous ici](\${bookingUrl})
-${signupCtaTeams}
-\${contactName ? \`💬 Problème ? → \${contactName}\` : ""}
-
-👉 *À tout de suite !*
-
-\${signature}`,
-
-    "today": `📅 **Webinar : \${moduleTitle}**
-
-🗓️ *\${daysUntilWebinar}* - \${webinarDate}
-
-🎯 \${moduleDescription}
-
-📹 \${webinar_registration_url}
-
-🎯 [Prenez rendez-vous avec un conseiller](\${bookingUrl})
-${signupCtaTeams}
+🎯 Prenez rendez-vous avec un conseiller : \${bookingUrl}
+\${signupCta}
 \${contactName ? \`💬 \${contactName}\` : ""}
 
 \${signature}`,
@@ -860,7 +672,6 @@ export const getTemplate = (type: string, deadline: string, variables: Record<st
   
   // Replace all variables
   Object.entries(variables).forEach(([key, value]) => {
-    // Handle template literals with conditions
     const regex = new RegExp(`\\$\\{${key}\\}`, 'g');
     template = template.replace(regex, value || '');
   });
@@ -869,7 +680,6 @@ export const getTemplate = (type: string, deadline: string, variables: Record<st
   template = template.replace(/\$\{(\w+)\s*\?\s*`([^`]*)`\s*:\s*"([^"]*)"\}/g, (match, varName, trueValue, falseValue) => {
     const value = variables[varName];
     if (value && value.trim() !== '') {
-      // Replace the variable inside the true value
       return trueValue.replace(new RegExp(`\\$\\{${varName}\\}`, 'g'), value);
     }
     return falseValue;
@@ -926,7 +736,7 @@ const formatToHtml = (text: string): string => {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     
-    // Ligne vide - ajouter un espace
+    // Ligne vide
     if (line === "") {
       flushList();
       continue;
@@ -959,22 +769,16 @@ const formatToHtml = (text: string): string => {
       .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
       .replace(/\*(.+?)\*/g, "<em>$1</em>");
     
-    // Convertir les URLs en liens cliquables
+    // Handle markdown links [text](url) BEFORE converting raw URLs
     formattedLine = formattedLine.replace(
-      /(https?:\/\/[^\s<]+)/g,
-      '<a href="$1" target="_blank" class="text-primary underline hover:text-primary/80">$1</a>'
-    );
-
-    // Handle markdown links [text](url)
-    formattedLine = formattedLine.replace(
-      /\[([^\]]+)\]\(([^)]+)\)/g,
+      /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
       '<a href="$2" target="_blank" class="text-primary underline hover:text-primary/80">$1</a>'
     );
 
-    // Handle Slack-style links <url|text>
+    // Convertir les URLs en liens cliquables (only URLs not already in href)
     formattedLine = formattedLine.replace(
-      /<([^|>]+)\|([^>]+)>/g,
-      '<a href="$1" target="_blank" class="text-primary underline hover:text-primary/80">$2</a>'
+      /(?<!href=")(https?:\/\/[^\s<"]+)/g,
+      '<a href="$1" target="_blank" class="text-primary underline hover:text-primary/80">$1</a>'
     );
     
     // Titres markdown (# ## ###)
@@ -985,13 +789,10 @@ const formatToHtml = (text: string): string => {
     } else if (line.startsWith("# ")) {
       html += `<h2 class="font-bold text-xl mt-6 mb-3">${formattedLine.replace(/^#\s*/, "")}</h2>`;
     } else if (line.startsWith("OBJET :")) {
-      // Ligne d'objet d'email - mettre en gras
       html += `<p class="font-bold text-lg mb-4">${formattedLine}</p>`;
     } else if (line.startsWith("---")) {
-      // Séparateur
       html += `<hr class="my-4 border-border"/>`;
     } else {
-      // Paragraphe normal
       html += `<p class="mb-3">${formattedLine}</p>`;
     }
   }
