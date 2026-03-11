@@ -713,7 +713,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
             return (
               <Card key={deadline}>
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg">{getDeadlineLabel(deadline, selectedModule)}</CardTitle>
+                  <CardTitle className="text-lg">{getDeadlineLabel(deadline)}</CardTitle>
                   <Button
                     variant="outline"
                     size="sm"
