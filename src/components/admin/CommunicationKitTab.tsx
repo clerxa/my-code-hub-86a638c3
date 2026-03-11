@@ -402,6 +402,9 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
       year: "numeric",
     });
 
+    const signupSlug = company?.signup_slug;
+    const signupUrl = signupSlug ? `https://myfincare.fr/join/${signupSlug}` : "";
+
     const variables = {
       moduleTitle: module.title,
       moduleDescription: module.description,
@@ -411,6 +414,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
       partnershipType: customFields.partnershipType,
       contactName: customFields.contactName,
       bookingUrl: bookingUrl,
+      signupUrl: signupUrl,
       signature: generateSignature(),
       todayDate: todayFormatted,
       daysUntilWebinar: daysInfo.label,
