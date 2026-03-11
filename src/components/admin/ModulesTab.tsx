@@ -588,7 +588,7 @@ export const ModulesTab = ({
                       <TableHead className="w-16 text-center">Lié</TableHead>
                     )}
                     {(activeTypeTab === "webinar" || activeTypeTab === "all") && (
-                      <TableHead><SortButton field="webinar_date">Date du webinar</SortButton></TableHead>
+                      <TableHead>Date session</TableHead>
                     )}
                     <TableHead><SortButton field="theme">Thème</SortButton></TableHead>
                     <TableHead><SortButton field="estimated_time">Durée (min)</SortButton></TableHead>
@@ -597,55 +597,51 @@ export const ModulesTab = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedModules.map(module => (
-                    <TableRow key={module.id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedModuleIds.includes(module.id)}
-                          onCheckedChange={() => toggleModuleSelection(module.id)}
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{module.title}</TableCell>
-                      {activeTypeTab === "all" && (
-                        <TableCell>
-                          <span className="text-xs px-2 py-1 rounded-full bg-secondary/20 text-secondary-foreground">
-                            {module.type}
-                          </span>
-                        </TableCell>
-                      )}
-                      {(activeTypeTab === "webinar" || activeTypeTab === "all") && (
-                        <TableCell className="text-center">
-                          {module.type === "webinar" ? (
-                            <span
-                              className={`inline-block h-3 w-3 rounded-full ${
-                                module.livestorm_session_id
-                                  ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
-                                  : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
-                              }`}
-                              title={
-                                module.livestorm_session_id
-                                  ? `Connecté: ${module.livestorm_session_id}`
-                                  : "Non connecté à Livestorm"
-                              }
+                  {sortedModules.map(module => {
+                    const moduleSessions = module.type === "webinar" 
+                      ? webinarSessions.filter(s => s.module_id === module.id)
+                      : [];
+                    const hasNoSessions = module.type === "webinar" && moduleSessions.length === 0;
+
+                    // For non-webinar modules or webinars without sessions, render a single row
+                    if (module.type !== "webinar" || hasNoSessions) {
+                      return (
+                        <TableRow key={module.id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedModuleIds.includes(module.id)}
+                              onCheckedChange={() => toggleModuleSelection(module.id)}
                             />
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
+                          </TableCell>
+                          <TableCell className="font-medium">{module.title}</TableCell>
+                          {activeTypeTab === "all" && (
+                            <TableCell>
+                              <span className="text-xs px-2 py-1 rounded-full bg-secondary/20 text-secondary-foreground">
+                                {module.type}
+                              </span>
+                            </TableCell>
                           )}
-                        </TableCell>
-                      )}
-                      {(activeTypeTab === "webinar" || activeTypeTab === "all") && (
-                        <TableCell>
-                          {module.type === "webinar" && module.webinar_date ? (
-                            <span className="text-sm">
-                              {format(new Date(module.webinar_date), "dd MMM yyyy 'à' HH:mm", { locale: fr })}
-                            </span>
-                          ) : module.type === "webinar" ? (
-                            <span className="text-xs text-muted-foreground italic">Non définie</span>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
+                          {(activeTypeTab === "webinar" || activeTypeTab === "all") && (
+                            <TableCell className="text-center">
+                              {module.type === "webinar" ? (
+                                <span
+                                  className="inline-block h-3 w-3 rounded-full bg-muted"
+                                  title="Aucune session configurée"
+                                />
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
                           )}
-                        </TableCell>
-                      )}
+                          {(activeTypeTab === "webinar" || activeTypeTab === "all") && (
+                            <TableCell>
+                              {module.type === "webinar" ? (
+                                <span className="text-xs text-muted-foreground italic">Aucune session</span>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                          )}
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {module.theme && module.theme.length > 0 ? (
