@@ -43,20 +43,35 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
   const [webinars, setWebinars] = useState<CatalogWebinar[]>([]);
   const [showProposalForm, setShowProposalForm] = useState(false);
   const [proposalSending, setProposalSending] = useState(false);
+  const [companyName, setCompanyName] = useState("");
   const [proposalData, setProposalData] = useState({
     theme_title: "",
     theme_description: "",
     contact_name: "",
     contact_email: "",
+    company_name: "",
   });
 
   useEffect(() => {
     fetchCatalogWebinars();
+    fetchCompanyName();
   }, [companyId]);
 
   useEffect(() => {
     if (user) fetchUserInfo();
   }, [user]);
+
+  const fetchCompanyName = async () => {
+    const { data } = await supabase
+      .from("companies")
+      .select("name")
+      .eq("id", companyId)
+      .single();
+    if (data) {
+      setCompanyName(data.name);
+      setProposalData(prev => ({ ...prev, company_name: data.name }));
+    }
+  };
 
   const fetchUserInfo = async () => {
     if (!user) return;
@@ -134,6 +149,7 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
             theme_description: proposalData.theme_description,
             contact_name: proposalData.contact_name,
             contact_email: proposalData.contact_email,
+            company_name: proposalData.company_name,
             company_id: companyId,
           },
         },
@@ -260,6 +276,16 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="company_name">Entreprise</Label>
+              <Input
+                id="company_name"
+                value={proposalData.company_name}
+                onChange={(e) => setProposalData(prev => ({ ...prev, company_name: e.target.value }))}
+                readOnly
+                className="bg-muted/50"
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="theme_title">Titre du thème *</Label>
               <Input

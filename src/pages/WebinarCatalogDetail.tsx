@@ -113,7 +113,7 @@ const WebinarCatalogDetail = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate(`/company/${companyId}/dashboard`)}
+              onClick={() => navigate(`/company/${companyId}/dashboard?tab=webinars`)}
               className="mb-6"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
