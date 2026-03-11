@@ -309,8 +309,10 @@ export function BudgetSimulator() {
             {score === 3
               ? "Félicitations ! Votre budget respecte parfaitement la règle 50/30/20."
               : score === 2
-              ? "Presque ! Un dernier ajustement et vous y êtes."
-              : "Des optimisations sont possibles — consultez les détails ci-dessous."}
+              ? `Presque ! Vos besoins représentent ${Math.round(pctByCat.incompressibles)}%, vos envies ${Math.round(pctByCat.compressibles)}% et votre épargne ${Math.round(pctByCat.epargne)}%. Un dernier ajustement et vous y êtes.`
+              : score === 1
+              ? `Vos besoins pèsent ${Math.round(pctByCat.incompressibles)}% (cible 50%), vos envies ${Math.round(pctByCat.compressibles)}% (cible 30%) et votre épargne ${Math.round(pctByCat.epargne)}% (cible 20%). Deux catégories nécessitent un rééquilibrage.`
+              : `Vos besoins représentent ${Math.round(pctByCat.incompressibles)}%, vos envies ${Math.round(pctByCat.compressibles)}% et votre épargne ${Math.round(pctByCat.epargne)}%. Votre budget s'éloigne significativement de la règle 50/30/20 — des ajustements sont nécessaires.`}
           </p>
         </div>
 
