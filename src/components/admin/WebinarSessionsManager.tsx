@@ -131,6 +131,7 @@ export function WebinarSessionsManager({ moduleId }: WebinarSessionsManagerProps
           module_id: moduleId,
           session_date: isoDate,
           registration_url: session.registration_url || null,
+          livestorm_session_id: session.livestorm_session_id || null,
         })
         .select("id")
         .single();
