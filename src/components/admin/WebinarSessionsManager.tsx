@@ -50,7 +50,7 @@ export function WebinarSessionsManager({ moduleId }: WebinarSessionsManagerProps
     setLoading(true);
     const { data, error } = await supabase
       .from("webinar_sessions")
-      .select("id, session_date, registration_url")
+      .select("id, session_date, registration_url, livestorm_session_id")
       .eq("module_id", moduleId)
       .order("session_date", { ascending: true });
 
