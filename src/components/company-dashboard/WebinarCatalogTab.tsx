@@ -54,6 +54,7 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
 
   useEffect(() => {
     fetchCatalogWebinars();
+    fetchCompanyName();
   }, [companyId]);
 
   useEffect(() => {
