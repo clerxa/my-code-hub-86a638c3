@@ -1279,6 +1279,55 @@ export type Database = {
           },
         ]
       }
+      company_webinar_selections: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          module_id: number
+          selected_by: string | null
+          session_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          module_id: number
+          selected_by?: string | null
+          session_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          module_id?: number
+          selected_by?: string | null
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_webinar_selections_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_webinar_selections_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_webinar_selections_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "webinar_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_webinars: {
         Row: {
           company_id: string
