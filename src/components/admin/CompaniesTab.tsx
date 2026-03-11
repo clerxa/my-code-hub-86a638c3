@@ -111,10 +111,19 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
     </div>
   );
 
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  };
+
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await (supabase as any).from("companies").insert([createFormData]);
+      const signup_slug = generateSlug(createFormData.name);
+      const { error } = await (supabase as any).from("companies").insert([{ ...createFormData, signup_slug }]);
       if (error) throw error;
       toast.success("Entreprise créée");
       setIsCreateDialogOpen(false);
@@ -125,6 +134,24 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
       toast.error("Erreur lors de la création");
     }
   };
+
+  // Auto-generate signup_slug for companies that don't have one
+  const generateMissingSlugs = async () => {
+    const missing = companies.filter((c) => !(c as any).signup_slug);
+    if (missing.length === 0) return;
+    for (const company of missing) {
+      const slug = generateSlug(company.name);
+      await supabase.from("companies").update({ signup_slug: slug } as any).eq("id", company.id);
+    }
+    if (missing.length > 0) {
+      toast.success(`${missing.length} lien(s) d'inscription généré(s)`);
+      onRefresh();
+    }
+  };
+
+  useEffect(() => {
+    if (companies.length > 0) generateMissingSlugs();
+  }, [companies]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer cette entreprise ?")) return;
