@@ -32,12 +32,14 @@ interface WebinarItem {
   // Available sessions (for obligatory not yet selected)
   available_sessions: WebinarSession[];
   is_session_locked: boolean;
+  is_exclusive: boolean;
 }
 
 export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [webinars, setWebinars] = useState<WebinarItem[]>([]);
+  const [companyName, setCompanyName] = useState("");
 
   useEffect(() => {
     fetchWebinars();
@@ -46,8 +48,8 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
   const fetchWebinars = async () => {
     setLoading(true);
     try {
-      // Fetch in parallel: obligatory webinars, selections, and sessions
-      const [obligatoryResult, selectionsResult] = await Promise.all([
+      // Fetch in parallel: obligatory webinars, selections, company-specific assignments, company name, and total companies count
+      const [obligatoryResult, selectionsResult, companyWebinarsResult, companyResult, { count: totalCompanies }] = await Promise.all([
         supabase
           .from("modules")
           .select("id, title, duration, webinar_category")
@@ -62,28 +64,64 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
             webinar_sessions(id, session_date, registration_url)
           `)
           .eq("company_id", companyId),
+        supabase
+          .from("company_webinars")
+          .select("module_id, company_id"),
+        supabase
+          .from("companies")
+          .select("name")
+          .eq("id", companyId)
+          .single(),
+        supabase
+          .from("companies")
+          .select("id", { count: "exact", head: true }),
       ]);
 
       if (obligatoryResult.error) throw obligatoryResult.error;
       if (selectionsResult.error) throw selectionsResult.error;
+      if (companyWebinarsResult.error) throw companyWebinarsResult.error;
+
+      if (companyResult.data) setCompanyName(companyResult.data.name);
 
       const obligatoryModules = obligatoryResult.data || [];
       const selections = selectionsResult.data || [];
+      const allCompanyWebinars = companyWebinarsResult.data || [];
+
+      // Count how many companies each module is assigned to
+      const moduleCompanyCount: Record<number, number> = {};
+      allCompanyWebinars.forEach(row => {
+        moduleCompanyCount[row.module_id] = (moduleCompanyCount[row.module_id] || 0) + 1;
+      });
+
+      // Get module IDs assigned to THIS company
+      const thisCompanyModuleIds = allCompanyWebinars
+        .filter(row => row.company_id === companyId)
+        .map(row => row.module_id);
 
       // Build a map of selected module_ids
       const selectedModuleIds = new Set(selections.map((s: any) => s.module_id));
+      const obligatoryModuleIds = new Set(obligatoryModules.map(m => m.id));
+
+      // Find "à la demande" modules assigned to this company that aren't already selected or obligatory
+      const unselectedOnDemandIds = thisCompanyModuleIds.filter(
+        id => !selectedModuleIds.has(id) && !obligatoryModuleIds.has(id)
+      );
 
       // Fetch sessions for obligatory modules that are NOT yet selected
       const unselectedObligatoryIds = obligatoryModules
         .filter(m => !selectedModuleIds.has(m.id))
         .map(m => m.id);
 
+      // Fetch unselected module details and sessions in parallel
+      const allUnselectedIds = [...unselectedObligatoryIds, ...unselectedOnDemandIds];
       let sessionsByModule: Record<number, WebinarSession[]> = {};
-      if (unselectedObligatoryIds.length > 0) {
+      let onDemandModulesMap: Record<number, { title: string; duration: string | null }> = {};
+
+      if (allUnselectedIds.length > 0) {
         const { data: sessionsData } = await supabase
           .from("webinar_sessions")
           .select("id, session_date, registration_url, module_id")
-          .in("module_id", unselectedObligatoryIds)
+          .in("module_id", allUnselectedIds)
           .order("session_date", { ascending: true });
 
         (sessionsData || []).forEach(s => {
@@ -95,6 +133,20 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
           });
         });
       }
+      if (unselectedOnDemandIds.length > 0) {
+        const { data: modulesData } = await supabase
+          .from("modules")
+          .select("id, title, duration, webinar_category")
+          .in("id", unselectedOnDemandIds)
+          .eq("type", "webinar")
+          .eq("webinar_category", "a_la_demande");
+
+        (modulesData || []).forEach(m => {
+          onDemandModulesMap[m.id] = { title: m.title, duration: m.duration };
+        });
+      }
+
+
 
       const items: WebinarItem[] = [];
 
@@ -111,6 +163,7 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
             selected_session_url: (selection as any).webinar_sessions?.registration_url || null,
             available_sessions: [],
             is_session_locked: true,
+            is_exclusive: false,
           });
         } else {
           items.push({
@@ -122,14 +175,17 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
             selected_session_url: null,
             available_sessions: sessionsByModule[mod.id] || [],
             is_session_locked: false,
+            is_exclusive: false,
           });
         }
       }
 
-      // Add on-demand selected webinars (not already in obligatory)
+      // Add on-demand selected webinars (from selections, not already in obligatory)
       for (const sel of selections) {
         const s = sel as any;
-        if (!obligatoryModules.some(m => m.id === s.module_id)) {
+        if (!obligatoryModuleIds.has(s.module_id)) {
+          const count = moduleCompanyCount[s.module_id] || 0;
+          const isExclusive = count < (totalCompanies || 0);
           items.push({
             module_id: s.module_id,
             module_title: s.modules?.title || "Webinar",
@@ -139,8 +195,28 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
             selected_session_url: s.webinar_sessions?.registration_url || null,
             available_sessions: [],
             is_session_locked: true,
+            is_exclusive: isExclusive,
           });
         }
+      }
+
+      // Add on-demand modules assigned to this company but NOT yet selected
+      for (const moduleId of unselectedOnDemandIds) {
+        const modInfo = onDemandModulesMap[moduleId];
+        if (!modInfo) continue; // Not a valid a_la_demande webinar
+        const count = moduleCompanyCount[moduleId] || 0;
+        const isExclusive = count < (totalCompanies || 0);
+        items.push({
+          module_id: moduleId,
+          module_title: modInfo.title,
+          module_duration: modInfo.duration,
+          category: "a_la_demande",
+          selected_session_date: null,
+          selected_session_url: null,
+          available_sessions: sessionsByModule[moduleId] || [],
+          is_session_locked: false,
+          is_exclusive: isExclusive,
+        });
       }
 
       // Sort: obligatory first, then by date
@@ -170,13 +246,20 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
   const renderWebinarRow = (webinar: WebinarItem) => (
     <TableRow key={`${webinar.category}-${webinar.module_id}`}>
       <TableCell>
-        <div className="flex items-center gap-2">
-          <span className="font-medium">{webinar.module_title}</span>
-          {webinar.category === "parcours_fincare" && (
-            <Badge variant="default" className="text-[10px] px-1.5 py-0">
-              <Star className="h-2.5 w-2.5 mr-0.5" />
-              FinCare
-            </Badge>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{webinar.module_title}</span>
+            {webinar.category === "parcours_fincare" && (
+              <Badge variant="default" className="text-[10px] px-1.5 py-0">
+                <Star className="h-2.5 w-2.5 mr-0.5" />
+                FinCare
+              </Badge>
+            )}
+          </div>
+          {webinar.is_exclusive && (
+            <span className="text-xs text-primary font-medium">
+              ✨ Webinar exclusif pour {companyName}
+            </span>
           )}
         </div>
       </TableCell>
