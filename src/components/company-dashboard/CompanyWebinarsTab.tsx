@@ -146,12 +146,8 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
           onDemandModulesMap[m.id] = { title: m.title, duration: m.duration };
         });
       }
-                onDemandModulesMap[m.id] = { title: m.title, duration: m.duration };
-              });
-            })
-        );
-      }
-      await Promise.all(fetchPromises);
+
+
 
       const items: WebinarItem[] = [];
 
