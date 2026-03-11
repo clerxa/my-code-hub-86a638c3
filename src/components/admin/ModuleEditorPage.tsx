@@ -675,6 +675,9 @@ export const ModuleEditorPage = () => {
                     rows={4}
                   />
                 </div>
+                <div className="border-t pt-4">
+                  <WebinarSessionsManager moduleId={isEditing && moduleId ? parseInt(moduleId) : null} />
+                </div>
                 <WebinarCompanyAssignment 
                   moduleId={isEditing && moduleId ? parseInt(moduleId) : null}
                   onAssignmentChange={(companyIds) => setFormData({ ...formData, assigned_companies: companyIds })}
