@@ -56,6 +56,7 @@ export const Header = () => {
     if (user) {
       loadProfile();
       checkAdminStatus();
+      checkCompanyContactStatus();
     }
   }, [user]);
   useEffect(() => {
