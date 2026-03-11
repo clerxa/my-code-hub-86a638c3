@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,11 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Video, Calendar, Clock, ExternalLink, Tag, Lightbulb, Send, Loader2 } from "lucide-react";
+import { Video, Calendar, Clock, Tag, Lightbulb, Send, Loader2, GraduationCap, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { useAuth } from "@/components/AuthProvider";
+import DOMPurify from "dompurify";
 
 interface CatalogWebinar {
   id: number;
@@ -28,11 +30,17 @@ interface WebinarCatalogTabProps {
   companyId: string;
 }
 
+function stripHtml(html: string): string {
+  return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] })
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
+}
+
 export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [webinars, setWebinars] = useState<CatalogWebinar[]>([]);
-  const [selectedWebinar, setSelectedWebinar] = useState<CatalogWebinar | null>(null);
   const [showProposalForm, setShowProposalForm] = useState(false);
   const [proposalSending, setProposalSending] = useState(false);
   const [proposalData, setProposalData] = useState({
@@ -47,9 +55,7 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
   }, [companyId]);
 
   useEffect(() => {
-    if (user) {
-      fetchUserInfo();
-    }
+    if (user) fetchUserInfo();
   }, [user]);
 
   const fetchUserInfo = async () => {
@@ -71,19 +77,16 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
   const fetchCatalogWebinars = async () => {
     setLoading(true);
     try {
-      // Get all companies count
       const { count: totalCompanies } = await supabase
         .from("companies")
         .select("id", { count: "exact", head: true });
 
-      // Get webinar modules assigned to ALL companies
       const { data: allWebinarModules, error: cwError } = await supabase
         .from("company_webinars")
         .select("module_id, company_id");
 
       if (cwError) throw cwError;
 
-      // Group by module_id and find those assigned to all companies
       const moduleCompanyCount: Record<number, number> = {};
       (allWebinarModules || []).forEach(row => {
         moduleCompanyCount[row.module_id] = (moduleCompanyCount[row.module_id] || 0) + 1;
@@ -99,7 +102,6 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
         return;
       }
 
-      // Fetch module details
       const { data: modules, error: modError } = await supabase
         .from("modules")
         .select("id, title, description, theme, webinar_date, webinar_registration_url, webinar_image_url, duration, type")
@@ -108,7 +110,6 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
         .order("webinar_date", { ascending: true, nullsFirst: false });
 
       if (modError) throw modError;
-
       setWebinars((modules || []) as CatalogWebinar[]);
     } catch (error) {
       console.error("Error fetching catalog webinars:", error);
@@ -123,7 +124,6 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
       toast.error("Veuillez indiquer un titre de thème");
       return;
     }
-
     setProposalSending(true);
     try {
       const { error } = await supabase.functions.invoke("send-partnership-email", {
@@ -138,9 +138,7 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
           },
         },
       });
-
       if (error) throw error;
-
       toast.success("Votre proposition de thème a bien été envoyée !");
       setShowProposalForm(false);
       setProposalData(prev => ({ ...prev, theme_title: "", theme_description: "" }));
@@ -162,18 +160,25 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Catalogue de webinars</h3>
-          <p className="text-sm text-muted-foreground">
-            Webinars disponibles pour toutes les entreprises partenaires
-          </p>
+      {/* Pedagogy header */}
+      <div className="rounded-xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 border p-6 space-y-3">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="h-6 w-6 text-primary" />
+              <h3 className="text-lg font-semibold">Catalogue de webinars</h3>
+            </div>
+            <p className="text-sm text-muted-foreground max-w-xl">
+              Proposez ces webinars à vos collaborateurs en quelques clics. 
+              Chaque session est conçue par des experts pour accompagner vos salariés 
+              dans leur éducation financière — sans effort logistique de votre part.
+            </p>
+          </div>
+          <Button onClick={() => setShowProposalForm(true)} variant="outline" className="gap-2 shrink-0">
+            <Lightbulb className="h-4 w-4" />
+            Proposer un thème
+          </Button>
         </div>
-        <Button onClick={() => setShowProposalForm(true)} variant="outline" className="gap-2">
-          <Lightbulb className="h-4 w-4" />
-          Proposer un thème
-        </Button>
       </div>
 
       {/* Webinar grid */}
@@ -189,21 +194,23 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
           {webinars.map((webinar) => (
             <Card
               key={webinar.id}
-              className="cursor-pointer hover:shadow-md transition-shadow border-border/60"
-              onClick={() => setSelectedWebinar(webinar)}
+              className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30 group border-border/60"
+              onClick={() => navigate(`/company/${companyId}/dashboard/webinar/${webinar.id}`)}
             >
               {webinar.webinar_image_url && (
                 <div className="aspect-video overflow-hidden rounded-t-lg">
                   <img
                     src={webinar.webinar_image_url}
                     alt={webinar.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
               )}
               <CardHeader className="pb-2">
                 <CardTitle className="text-base line-clamp-2">{webinar.title}</CardTitle>
-                <CardDescription className="line-clamp-2">{webinar.description}</CardDescription>
+                <CardDescription className="line-clamp-2">
+                  {stripHtml(webinar.description)}
+                </CardDescription>
               </CardHeader>
               <CardContent className="pt-0 space-y-2">
                 {webinar.webinar_date && (
@@ -221,93 +228,24 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
                 {webinar.theme && webinar.theme.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {webinar.theme.slice(0, 3).map((t, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">
-                        {t}
-                      </Badge>
+                      <Badge key={i} variant="secondary" className="text-xs">{t}</Badge>
                     ))}
                     {webinar.theme.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{webinar.theme.length - 3}
-                      </Badge>
+                      <Badge variant="outline" className="text-xs">+{webinar.theme.length - 3}</Badge>
                     )}
                   </div>
                 )}
+                <div className="pt-1">
+                  <span className="text-xs text-primary font-medium flex items-center gap-1 group-hover:underline">
+                    Voir le détail & proposer
+                    <ArrowRight className="h-3 w-3" />
+                  </span>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
-
-      {/* Webinar detail dialog */}
-      <Dialog open={!!selectedWebinar} onOpenChange={() => setSelectedWebinar(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Video className="h-5 w-5 text-primary" />
-              {selectedWebinar?.title}
-            </DialogTitle>
-            <DialogDescription>Détail du webinar</DialogDescription>
-          </DialogHeader>
-
-          {selectedWebinar && (
-            <div className="space-y-4">
-              {selectedWebinar.webinar_image_url && (
-                <div className="aspect-video overflow-hidden rounded-lg">
-                  <img
-                    src={selectedWebinar.webinar_image_url}
-                    alt={selectedWebinar.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-
-              <div>
-                <h4 className="text-sm font-medium mb-1">Description</h4>
-                <p className="text-sm text-muted-foreground">{selectedWebinar.description}</p>
-              </div>
-
-              {selectedWebinar.webinar_date && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    {format(new Date(selectedWebinar.webinar_date), "PPPP 'à' HH:mm", { locale: fr })}
-                  </span>
-                </div>
-              )}
-
-              {selectedWebinar.duration && (
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{selectedWebinar.duration}</span>
-                </div>
-              )}
-
-              {selectedWebinar.theme && selectedWebinar.theme.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <Tag className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Thèmes</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedWebinar.theme.map((t, i) => (
-                      <Badge key={i} variant="secondary">{t}</Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectedWebinar.webinar_registration_url && (
-                <Button asChild className="w-full gap-2">
-                  <a href={selectedWebinar.webinar_registration_url} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4" />
-                    S'inscrire au webinar
-                  </a>
-                </Button>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Theme proposal dialog */}
       <Dialog open={showProposalForm} onOpenChange={setShowProposalForm}>
@@ -321,7 +259,6 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
               Soumettez une idée de thème pour un prochain webinar
             </DialogDescription>
           </DialogHeader>
-
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="theme_title">Titre du thème *</Label>
@@ -333,7 +270,6 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
                 maxLength={200}
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="theme_description">Description / Motivation</Label>
               <Textarea
@@ -345,7 +281,6 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
                 rows={4}
               />
             </div>
-
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="contact_name">Votre nom</Label>
@@ -365,17 +300,12 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
                 />
               </div>
             </div>
-
             <Button
               onClick={handleSendProposal}
               disabled={proposalSending || !proposalData.theme_title.trim()}
               className="w-full gap-2"
             >
-              {proposalSending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
+              {proposalSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               {proposalSending ? "Envoi en cours..." : "Envoyer ma proposition"}
             </Button>
           </div>
