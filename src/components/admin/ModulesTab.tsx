@@ -46,6 +46,15 @@ interface Simulator {
   route: string;
   is_active: boolean;
 }
+
+interface WebinarSessionRow {
+  id: string;
+  session_date: string;
+  registration_url: string | null;
+  livestorm_session_id: string | null;
+  module_id: number;
+}
+
 interface Module {
   id: number;
   order_num: number;
@@ -54,10 +63,7 @@ interface Module {
   description: string;
   points: number;
   content_url?: string;
-  webinar_date?: string;
-  webinar_registration_url?: string;
   webinar_image_url?: string;
-  livestorm_session_id?: string;
   quiz_questions?: any[];
   appointment_calendar_url?: string;
   content_type?: string;
@@ -134,7 +140,9 @@ export const ModulesTab = ({
   const [activeTypeTab, setActiveTypeTab] = useState<string>("all");
   const [simulators, setSimulators] = useState<Simulator[]>([]);
 
-  // Fetch simulators for simulator module type
+  const [webinarSessions, setWebinarSessions] = useState<WebinarSessionRow[]>([]);
+
+  // Fetch simulators and webinar sessions
   useEffect(() => {
     const fetchSimulators = async () => {
       const { data, error } = await supabase
@@ -148,6 +156,25 @@ export const ModulesTab = ({
     };
     fetchSimulators();
   }, []);
+
+  useEffect(() => {
+    const fetchWebinarSessions = async () => {
+      const webinarModuleIds = modules.filter(m => m.type === 'webinar').map(m => m.id);
+      if (webinarModuleIds.length === 0) {
+        setWebinarSessions([]);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('webinar_sessions')
+        .select('id, session_date, registration_url, livestorm_session_id, module_id')
+        .in('module_id', webinarModuleIds)
+        .order('session_date', { ascending: true });
+      if (!error && data) {
+        setWebinarSessions(data);
+      }
+    };
+    fetchWebinarSessions();
+  }, [modules]);
 
   const moduleTypes = [
     { value: "all", label: "Tous", count: modules.length },
@@ -260,12 +287,8 @@ export const ModulesTab = ({
         type: formData.type,
         points: calculatedPoints,
         order_num: orderNum,
-        // Convert datetime-local to ISO with proper timezone handling
-        webinar_date: toISOWithTimezone(formData.webinar_date),
         content_url: formData.type === "video" ? (formData.video_url || null) : (formData.content_url || null),
-        webinar_registration_url: formData.webinar_registration_url || null,
         webinar_image_url: formData.webinar_image_url || null,
-        livestorm_session_id: formData.livestorm_session_id || null,
         appointment_calendar_url: formData.appointment_calendar_url || null,
         embed_code: formData.type === "video" ? (formData.video_embed || null) : (formData.embed_code || null),
         quiz_questions: formData.quiz_questions as any,
@@ -328,12 +351,8 @@ export const ModulesTab = ({
         ...moduleData,
         title: `${module.title} - Copie`,
         order_num: newOrderNum,
-        // Ensure null values for optional fields
-        webinar_date: moduleData.webinar_date || null,
         content_url: moduleData.content_url || null,
-        webinar_registration_url: moduleData.webinar_registration_url || null,
         webinar_image_url: moduleData.webinar_image_url || null,
-        livestorm_session_id: null, // Don't copy the session ID when cloning
         appointment_calendar_url: moduleData.appointment_calendar_url || null,
         embed_code: moduleData.embed_code || null,
         content_data: moduleData.content_data || null,
@@ -569,7 +588,7 @@ export const ModulesTab = ({
                       <TableHead className="w-16 text-center">Lié</TableHead>
                     )}
                     {(activeTypeTab === "webinar" || activeTypeTab === "all") && (
-                      <TableHead><SortButton field="webinar_date">Date du webinar</SortButton></TableHead>
+                      <TableHead>Date session</TableHead>
                     )}
                     <TableHead><SortButton field="theme">Thème</SortButton></TableHead>
                     <TableHead><SortButton field="estimated_time">Durée (min)</SortButton></TableHead>
@@ -578,93 +597,145 @@ export const ModulesTab = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedModules.map(module => (
-                    <TableRow key={module.id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedModuleIds.includes(module.id)}
-                          onCheckedChange={() => toggleModuleSelection(module.id)}
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{module.title}</TableCell>
-                      {activeTypeTab === "all" && (
+                  {sortedModules.map(module => {
+                    const moduleSessions = module.type === "webinar" 
+                      ? webinarSessions.filter(s => s.module_id === module.id)
+                      : [];
+                    const hasNoSessions = module.type === "webinar" && moduleSessions.length === 0;
+
+                    // For non-webinar modules or webinars without sessions: single row
+                    if (module.type !== "webinar" || hasNoSessions) {
+                      return (
+                        <TableRow key={module.id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedModuleIds.includes(module.id)}
+                              onCheckedChange={() => toggleModuleSelection(module.id)}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">{module.title}</TableCell>
+                          {activeTypeTab === "all" && (
+                            <TableCell>
+                              <span className="text-xs px-2 py-1 rounded-full bg-secondary/20 text-secondary-foreground">
+                                {module.type}
+                              </span>
+                            </TableCell>
+                          )}
+                          {(activeTypeTab === "webinar" || activeTypeTab === "all") && (
+                            <TableCell className="text-center">
+                              {module.type === "webinar" ? (
+                                <span className="inline-block h-3 w-3 rounded-full bg-muted" title="Aucune session configurée" />
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                          )}
+                          {(activeTypeTab === "webinar" || activeTypeTab === "all") && (
+                            <TableCell>
+                              {module.type === "webinar" ? (
+                                <span className="text-xs text-muted-foreground italic">Aucune session</span>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {module.theme && module.theme.length > 0 ? (
+                                module.theme.map((t, idx) => (
+                                  <span key={idx} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">{t}</span>
+                                ))
+                              ) : (
+                                <span className="text-xs px-2 py-1 rounded-full bg-muted">Non assigné</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>{module.estimated_time || 15}</TableCell>
+                          <TableCell>{module.points}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => { setPreviewModule(module); setIsPreviewOpen(true); }} title="Prévisualiser"><Eye className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => openEditDialog(module)} title="Modifier"><Edit className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleCloneModule(module)} title="Cloner"><Copy className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDeleteModule(module.id)} title="Supprimer"><Trash2 className="h-4 w-4" /></Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }
+
+                    // Webinar with sessions: one row per session
+                    return moduleSessions.map((session, sIdx) => (
+                      <TableRow key={`${module.id}-session-${session.id}`} className={sIdx > 0 ? "border-t border-dashed" : ""}>
                         <TableCell>
-                          <span className="text-xs px-2 py-1 rounded-full bg-secondary/20 text-secondary-foreground">
-                            {module.type}
+                          {sIdx === 0 && (
+                            <Checkbox
+                              checked={selectedModuleIds.includes(module.id)}
+                              onCheckedChange={() => toggleModuleSelection(module.id)}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {sIdx === 0 ? module.title : (
+                            <span className="text-muted-foreground pl-4">↳ session {sIdx + 1}</span>
+                          )}
+                        </TableCell>
+                        {activeTypeTab === "all" && (
+                          <TableCell>
+                            {sIdx === 0 && (
+                              <span className="text-xs px-2 py-1 rounded-full bg-secondary/20 text-secondary-foreground">
+                                {module.type}
+                              </span>
+                            )}
+                          </TableCell>
+                        )}
+                        <TableCell className="text-center">
+                          <span
+                            className={`inline-block h-3 w-3 rounded-full ${
+                              session.livestorm_session_id
+                                ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
+                                : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
+                            }`}
+                            title={
+                              session.livestorm_session_id
+                                ? `Connecté: ${session.livestorm_session_id}`
+                                : "Non connecté à Livestorm"
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">
+                            {format(new Date(session.session_date), "dd MMM yyyy 'à' HH:mm", { locale: fr })}
                           </span>
                         </TableCell>
-                      )}
-                      {(activeTypeTab === "webinar" || activeTypeTab === "all") && (
-                        <TableCell className="text-center">
-                          {module.type === "webinar" ? (
-                            <span
-                              className={`inline-block h-3 w-3 rounded-full ${
-                                module.livestorm_session_id
-                                  ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
-                                  : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
-                              }`}
-                              title={
-                                module.livestorm_session_id
-                                  ? `Connecté: ${module.livestorm_session_id}`
-                                  : "Non connecté à Livestorm"
-                              }
-                            />
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      )}
-                      {(activeTypeTab === "webinar" || activeTypeTab === "all") && (
-                        <TableCell>
-                          {module.type === "webinar" && module.webinar_date ? (
-                            <span className="text-sm">
-                              {format(new Date(module.webinar_date), "dd MMM yyyy 'à' HH:mm", { locale: fr })}
-                            </span>
-                          ) : module.type === "webinar" ? (
-                            <span className="text-xs text-muted-foreground italic">Non définie</span>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      )}
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {module.theme && module.theme.length > 0 ? (
-                            module.theme.map((t, idx) => (
-                              <span key={idx} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
-                                {t}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-xs px-2 py-1 rounded-full bg-muted">
-                              Non assigné
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>{module.estimated_time || 15}</TableCell>
-                      <TableCell>{module.points}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => {
-                            setPreviewModule(module);
-                            setIsPreviewOpen(true);
-                          }} title="Prévisualiser">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(module)} title="Modifier">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleCloneModule(module)} title="Cloner">
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteModule(module.id)} title="Supprimer">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        {sIdx === 0 ? (
+                          <>
+                            <TableCell rowSpan={moduleSessions.length}>
+                              <div className="flex flex-wrap gap-1">
+                                {module.theme && module.theme.length > 0 ? (
+                                  module.theme.map((t, idx) => (
+                                    <span key={idx} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">{t}</span>
+                                  ))
+                                ) : (
+                                  <span className="text-xs px-2 py-1 rounded-full bg-muted">Non assigné</span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell rowSpan={moduleSessions.length}>{module.estimated_time || 15}</TableCell>
+                            <TableCell rowSpan={moduleSessions.length}>{module.points}</TableCell>
+                            <TableCell rowSpan={moduleSessions.length}>
+                              <div className="flex gap-1">
+                                <Button variant="ghost" size="icon" onClick={() => { setPreviewModule(module); setIsPreviewOpen(true); }} title="Prévisualiser"><Eye className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="icon" onClick={() => openEditDialog(module)} title="Modifier"><Edit className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleCloneModule(module)} title="Cloner"><Copy className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleDeleteModule(module.id)} title="Supprimer"><Trash2 className="h-4 w-4" /></Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        ) : null}
+                      </TableRow>
+                    ));
+                  })}
                 </TableBody>
               </Table>
             ) : (
