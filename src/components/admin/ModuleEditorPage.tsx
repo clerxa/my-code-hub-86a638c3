@@ -630,58 +630,84 @@ export const ModuleEditorPage = () => {
               <CardHeader>
                 <CardTitle>Configuration du webinaire</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="webinar_date">Date et heure du webinar</Label>
-                  <Input 
-                    id="webinar_date" 
-                    type="datetime-local" 
-                    value={formData.webinar_date} 
-                    onChange={e => setFormData({ ...formData, webinar_date: e.target.value })} 
-                  />
-                </div>
-                <ImageUpload
-                  label="Visuel du webinar"
-                  value={formData.webinar_image_url || ""}
-                  onChange={(url) => setFormData({ ...formData, webinar_image_url: url })}
-                  bucketName="landing-images"
-                />
-                <div className="space-y-2">
-                  <Label htmlFor="livestorm_session_id">ID Session Livestorm</Label>
-                  <Input 
-                    id="livestorm_session_id" 
-                    value={formData.livestorm_session_id} 
-                    onChange={e => setFormData({ ...formData, livestorm_session_id: e.target.value })} 
-                    placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="webinar_registration_url">Lien d'inscription</Label>
-                  <Input 
-                    id="webinar_registration_url" 
-                    type="url" 
-                    value={formData.webinar_registration_url} 
-                    onChange={e => setFormData({ ...formData, webinar_registration_url: e.target.value })} 
-                    placeholder="https://..." 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="embed_code">Code d'intégration HTML (iframe Livestorm)</Label>
-                  <Textarea 
-                    id="embed_code" 
-                    value={formData.embed_code} 
-                    onChange={e => setFormData({ ...formData, embed_code: e.target.value })} 
-                    placeholder='<iframe width="100%" height="480" frameborder="0" src="https://app.livestorm.co/..."></iframe>'
-                    rows={4}
-                  />
-                </div>
-                <div className="border-t pt-4">
-                  <WebinarSessionsManager moduleId={isEditing && moduleId ? parseInt(moduleId) : null} />
-                </div>
-                <WebinarCompanyAssignment 
-                  moduleId={isEditing && moduleId ? parseInt(moduleId) : null}
-                  onAssignmentChange={(companyIds) => setFormData({ ...formData, assigned_companies: companyIds })}
-                />
+              <CardContent>
+                <Tabs defaultValue="sessions" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 mb-4">
+                    <TabsTrigger value="sessions">📅 Sessions</TabsTrigger>
+                    <TabsTrigger value="attribution">🏢 Attribution</TabsTrigger>
+                    <TabsTrigger value="advanced">⚙️ Avancé</TabsTrigger>
+                  </TabsList>
+
+                  {/* Onglet Sessions */}
+                  <TabsContent value="sessions" className="mt-0 space-y-4">
+                    <div className="text-sm text-muted-foreground mb-2">
+                      Ajoutez les dates et les liens d'inscription Livestorm pour chaque session de ce webinaire.
+                    </div>
+                    <WebinarSessionsManager moduleId={isEditing && moduleId ? parseInt(moduleId) : null} />
+                  </TabsContent>
+
+                  {/* Onglet Attribution */}
+                  <TabsContent value="attribution" className="mt-0 space-y-4">
+                    <div className="text-sm text-muted-foreground mb-2">
+                      <strong>Générique :</strong> ne sélectionnez aucune entreprise → le webinaire sera visible par toutes.
+                      <br />
+                      <strong>Spécifique :</strong> cochez les entreprises concernées.
+                    </div>
+                    <WebinarCompanyAssignment 
+                      moduleId={isEditing && moduleId ? parseInt(moduleId) : null}
+                      onAssignmentChange={(companyIds) => setFormData({ ...formData, assigned_companies: companyIds })}
+                    />
+                  </TabsContent>
+
+                  {/* Onglet Avancé */}
+                  <TabsContent value="advanced" className="mt-0 space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="webinar_date">Date principale (legacy)</Label>
+                      <Input 
+                        id="webinar_date" 
+                        type="datetime-local" 
+                        value={formData.webinar_date} 
+                        onChange={e => setFormData({ ...formData, webinar_date: e.target.value })} 
+                      />
+                      <p className="text-xs text-muted-foreground">Utilisée si aucune session n'est configurée.</p>
+                    </div>
+                    <ImageUpload
+                      label="Visuel du webinar"
+                      value={formData.webinar_image_url || ""}
+                      onChange={(url) => setFormData({ ...formData, webinar_image_url: url })}
+                      bucketName="landing-images"
+                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="livestorm_session_id">ID Session Livestorm</Label>
+                      <Input 
+                        id="livestorm_session_id" 
+                        value={formData.livestorm_session_id} 
+                        onChange={e => setFormData({ ...formData, livestorm_session_id: e.target.value })} 
+                        placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="webinar_registration_url">Lien d'inscription (legacy)</Label>
+                      <Input 
+                        id="webinar_registration_url" 
+                        type="url" 
+                        value={formData.webinar_registration_url} 
+                        onChange={e => setFormData({ ...formData, webinar_registration_url: e.target.value })} 
+                        placeholder="https://..." 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="embed_code">Code d'intégration HTML (iframe Livestorm)</Label>
+                      <Textarea 
+                        id="embed_code" 
+                        value={formData.embed_code} 
+                        onChange={e => setFormData({ ...formData, embed_code: e.target.value })} 
+                        placeholder='<iframe width="100%" height="480" frameborder="0" src="https://app.livestorm.co/..."></iframe>'
+                        rows={4}
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           )}
