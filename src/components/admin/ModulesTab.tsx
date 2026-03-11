@@ -46,6 +46,15 @@ interface Simulator {
   route: string;
   is_active: boolean;
 }
+
+interface WebinarSessionRow {
+  id: string;
+  session_date: string;
+  registration_url: string | null;
+  livestorm_session_id: string | null;
+  module_id: number;
+}
+
 interface Module {
   id: number;
   order_num: number;
@@ -54,10 +63,7 @@ interface Module {
   description: string;
   points: number;
   content_url?: string;
-  webinar_date?: string;
-  webinar_registration_url?: string;
   webinar_image_url?: string;
-  livestorm_session_id?: string;
   quiz_questions?: any[];
   appointment_calendar_url?: string;
   content_type?: string;
