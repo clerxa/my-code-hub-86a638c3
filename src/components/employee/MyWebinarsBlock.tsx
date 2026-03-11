@@ -10,12 +10,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { CommunicationKitTab } from "@/components/admin/CommunicationKitTab";
 import { useAuth } from "@/components/AuthProvider";
 
-interface Webinar {
-  id: number;
+interface ValidatedWebinar {
+  module_id: number;
   title: string;
   description: string;
-  webinar_date: string;
-  webinar_registration_url: string | null;
+  session_date: string;
+  registration_url: string | null;
   duration: string | null;
 }
 
@@ -34,7 +34,7 @@ interface MyWebinarsBlockProps {
 
 export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinarsBlockProps) => {
   const { user } = useAuth();
-  const [webinars, setWebinars] = useState<Webinar[]>([]);
+  const [webinars, setWebinars] = useState<ValidatedWebinar[]>([]);
   const [registrations, setRegistrations] = useState<Map<number, WebinarRegistration>>(new Map());
   const [loading, setLoading] = useState(true);
   const [isContactEntreprise, setIsContactEntreprise] = useState(false);
@@ -42,8 +42,8 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
   const [resolvedCompanyId, setResolvedCompanyId] = useState<string | undefined>(companyId);
 
   const now = new Date();
-  const upcomingWebinars = webinars.filter(w => new Date(w.webinar_date) >= now);
-  const pastWebinars = webinars.filter(w => new Date(w.webinar_date) < now);
+  const upcomingWebinars = webinars.filter(w => new Date(w.session_date) >= now);
+  const pastWebinars = webinars.filter(w => new Date(w.session_date) < now);
 
   useEffect(() => {
     fetchWebinars();
@@ -56,14 +56,12 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
 
   const checkUserRole = async () => {
     if (!user) return;
-
     try {
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
         .maybeSingle();
-
       setIsContactEntreprise(roleData?.role === "contact_entreprise" || roleData?.role === "admin");
     } catch (error) {
       console.error("Error checking user role:", error);
@@ -79,7 +77,6 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
           setLoading(false);
           return;
         }
-
         const { data: profile } = await supabase
           .from("profiles")
           .select("company_id")
@@ -90,62 +87,52 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
           setLoading(false);
           return;
         }
-
         targetCompanyId = profile.company_id;
         setResolvedCompanyId(targetCompanyId);
       }
 
-      const { data: parcoursCompanies } = await supabase
-        .from("parcours_companies")
-        .select("parcours_id")
+      // Fetch validated webinar selections for this company (locked by contact entreprise)
+      const { data: selections, error: selError } = await supabase
+        .from("company_webinar_selections")
+        .select(`
+          module_id,
+          modules(id, title, description, duration),
+          webinar_sessions(id, session_date, registration_url)
+        `)
         .eq("company_id", targetCompanyId);
 
-      if (!parcoursCompanies || parcoursCompanies.length === 0) {
-        setWebinars([]);
-        setLoading(false);
-        return;
+      if (selError) throw selError;
+
+      const items: ValidatedWebinar[] = [];
+      for (const sel of (selections || [])) {
+        const s = sel as any;
+        if (!s.webinar_sessions?.session_date) continue;
+        items.push({
+          module_id: s.module_id,
+          title: s.modules?.title || "Webinar",
+          description: s.modules?.description || "",
+          session_date: s.webinar_sessions.session_date,
+          registration_url: s.webinar_sessions.registration_url || null,
+          duration: s.modules?.duration || null,
+        });
       }
 
-      const parcoursIds = parcoursCompanies.map(pc => pc.parcours_id);
+      // Sort by date
+      items.sort((a, b) => new Date(a.session_date).getTime() - new Date(b.session_date).getTime());
+      setWebinars(items);
 
-      const { data: parcoursModules } = await supabase
-        .from("parcours_modules")
-        .select("module_id")
-        .in("parcours_id", parcoursIds);
-
-      if (!parcoursModules || parcoursModules.length === 0) {
-        setWebinars([]);
-        setLoading(false);
-        return;
-      }
-
-      const moduleIds = parcoursModules.map(pm => pm.module_id);
-
-      const { data, error } = await supabase
-        .from("modules")
-        .select("id, title, description, webinar_date, webinar_registration_url, duration")
-        .eq("type", "webinar")
-        .in("id", moduleIds)
-        .not("webinar_date", "is", null)
-        .order("webinar_date", { ascending: true });
-
-      if (error) throw error;
-      setWebinars(data || []);
-
-      // Fetch user's registrations for these webinars
-      if (user && data && data.length > 0) {
-        const webinarModuleIds = data.map(w => w.id);
+      // Fetch user's registrations
+      if (user && items.length > 0) {
+        const moduleIds = items.map(w => w.module_id);
         const { data: regData } = await supabase
           .from("webinar_registrations")
           .select("module_id, registered_at, joined_at, completed_at, registration_status")
           .eq("user_id", user.id)
-          .in("module_id", webinarModuleIds);
+          .in("module_id", moduleIds);
 
         if (regData) {
           const regMap = new Map<number, WebinarRegistration>();
-          regData.forEach(reg => {
-            regMap.set(reg.module_id, reg);
-          });
+          regData.forEach(reg => regMap.set(reg.module_id, reg));
           setRegistrations(regMap);
         }
       }
@@ -156,8 +143,8 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
     }
   };
 
-  const getRegistrationBadge = (webinar: Webinar) => {
-    const registration = registrations.get(webinar.id);
+  const getRegistrationBadge = (webinar: ValidatedWebinar) => {
+    const registration = registrations.get(webinar.module_id);
     
     if (!registration) {
       return (
@@ -178,7 +165,7 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
     }
 
     if (registration.registered_at) {
-      const isPast = new Date(webinar.webinar_date) < now;
+      const isPast = new Date(webinar.session_date) < now;
       if (isPast) {
         return (
           <Badge variant="destructive" className="shrink-0">
@@ -198,12 +185,12 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
     return null;
   };
 
-  const renderWebinarCard = (webinar: Webinar, isPast: boolean) => {
-    const registration = registrations.get(webinar.id);
+  const renderWebinarCard = (webinar: ValidatedWebinar, isPast: boolean) => {
+    const registration = registrations.get(webinar.module_id);
     
     return (
       <div
-        key={webinar.id}
+        key={`${webinar.module_id}-${webinar.session_date}`}
         className="border rounded-lg p-4 space-y-3 hover:border-primary/50 transition-colors"
       >
         <div className="flex items-start justify-between gap-2">
@@ -233,15 +220,11 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
         <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Calendar className="h-4 w-4" />
-            <span>
-              {format(new Date(webinar.webinar_date), "d MMMM yyyy", { locale: fr })}
-            </span>
+            <span>{format(new Date(webinar.session_date), "d MMMM yyyy", { locale: fr })}</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span>
-              {format(new Date(webinar.webinar_date), "HH:mm", { locale: fr })}
-            </span>
+            <span>{format(new Date(webinar.session_date), "HH:mm", { locale: fr })}</span>
           </div>
           {webinar.duration && (
             <div className="flex items-center gap-1">
@@ -251,29 +234,24 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
           )}
         </div>
 
-        {/* Registration/participation info */}
         {registration && (
           <div className="text-xs text-muted-foreground bg-muted/50 rounded-md p-2 space-y-1">
             {registration.registered_at && (
-              <p>
-                📝 Inscrit le {format(new Date(registration.registered_at), "d MMMM yyyy à HH:mm", { locale: fr })}
-              </p>
+              <p>📝 Inscrit le {format(new Date(registration.registered_at), "d MMMM yyyy à HH:mm", { locale: fr })}</p>
             )}
             {registration.joined_at && (
-              <p>
-                ✅ A rejoint le webinaire le {format(new Date(registration.joined_at), "d MMMM yyyy à HH:mm", { locale: fr })}
-              </p>
+              <p>✅ A rejoint le webinaire le {format(new Date(registration.joined_at), "d MMMM yyyy à HH:mm", { locale: fr })}</p>
             )}
           </div>
         )}
 
         <div className="flex gap-2">
-          {webinar.webinar_registration_url && (
+          {webinar.registration_url && (
             <Button
               variant="outline"
               size="sm"
               className="flex-1"
-              onClick={() => window.open(webinar.webinar_registration_url!, "_blank")}
+              onClick={() => window.open(webinar.registration_url!, "_blank")}
             >
               <ExternalLink className="h-4 w-4 mr-2" />
               {isPast ? "Voir le replay" : (registration?.registered_at ? "Accéder au webinaire" : "S'inscrire")}
@@ -287,7 +265,7 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
                   variant="outline"
                   size="sm"
                   className="flex-1"
-                  onClick={() => setSelectedWebinarId(webinar.id)}
+                  onClick={() => setSelectedWebinarId(webinar.module_id)}
                 >
                   <Mail className="h-4 w-4 mr-2" />
                   Kit Communication
@@ -297,7 +275,7 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
                 <DialogHeader>
                   <DialogTitle>Kit de Communication - {webinar.title}</DialogTitle>
                 </DialogHeader>
-                <CommunicationKitTab preselectedModuleId={webinar.id} preselectedCompanyId={resolvedCompanyId} />
+                <CommunicationKitTab preselectedModuleId={webinar.module_id} preselectedCompanyId={resolvedCompanyId} />
               </DialogContent>
             </Dialog>
           )}
@@ -332,17 +310,16 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
           Mes webinaires
         </CardTitle>
         <CardDescription>
-          Retrouvez tous vos webinaires passés et à venir
+          Retrouvez tous vos webinaires validés par votre entreprise
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {webinars.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">
-            Aucun webinaire pour le moment
+            Aucun webinaire validé pour le moment
           </p>
         ) : (
           <>
-            {/* Upcoming Section */}
             {upcomingWebinars.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -360,7 +337,6 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
               </div>
             )}
 
-            {/* Separator */}
             {upcomingWebinars.length > 0 && pastWebinars.length > 0 && (
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -372,7 +348,6 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
               </div>
             )}
 
-            {/* Past Section */}
             {pastWebinars.length > 0 && (
               <div className="space-y-3">
                 {upcomingWebinars.length === 0 && (
