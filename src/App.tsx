@@ -330,6 +330,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/company/:id/dashboard/webinar/:webinarId"
+              element={
+                <ProtectedRoute requireCompanyContact={true}>
+                  <WebinarCatalogDetail />
+                </ProtectedRoute>
+              }
+            />
             {/* Redirect legacy settings route to dashboard */}
             <Route
               path="/company/:id/settings"
