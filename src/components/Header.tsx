@@ -203,6 +203,11 @@ export const Header = () => {
               <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden lg:inline">Accès Backoffice</span>
             </Button>}
+
+          {isCompanyContact && !isAdmin && company && <Button size="sm" onClick={() => navigate(`/company/${company.id}/dashboard`)} className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3" variant="default">
+              <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden lg:inline">Accès Dashboard</span>
+            </Button>}
           
           <Button
             variant="outline"
