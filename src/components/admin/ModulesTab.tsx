@@ -326,9 +326,17 @@ export const ModulesTab = ({
   const handleDeleteModule = async (id: number) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer ce module ?")) return;
     try {
-      const {
-        error
-      } = await supabase.from("modules").delete().eq("id", id);
+      // Delete related records first to avoid foreign key constraint violations
+      const { error: sessionsError } = await supabase.from("webinar_sessions").delete().eq("module_id", id);
+      if (sessionsError) throw sessionsError;
+
+      const { error: companyWebinarsError } = await supabase.from("company_webinars").delete().eq("module_id", id);
+      if (companyWebinarsError) throw companyWebinarsError;
+
+      const { error: appointmentFormsError } = await supabase.from("appointment_forms").delete().eq("module_id", id);
+      if (appointmentFormsError) throw appointmentFormsError;
+
+      const { error } = await supabase.from("modules").delete().eq("id", id);
       if (error) throw error;
       toast.success("Module supprimé");
       onRefresh();
