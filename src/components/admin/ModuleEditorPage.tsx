@@ -19,6 +19,7 @@ import { QuizEditor } from "./QuizEditor";
 import { FormationContentEditor } from "./FormationContentEditor";
 import { ImageUpload } from "./ImageUpload";
 import { WebinarCompanyAssignment } from "./WebinarCompanyAssignment";
+import { WebinarSessionsManager } from "./WebinarSessionsManager";
 import { ModulePreviewDialog } from "./ModulePreviewDialog";
 import { SlidesData, SLIDE_TEMPLATES, applyTemplate } from "@/types/slides";
 
