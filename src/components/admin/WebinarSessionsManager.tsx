@@ -13,6 +13,7 @@ interface WebinarSession {
   id?: string;
   session_date: string;
   registration_url: string;
+  livestorm_session_id: string;
   isNew?: boolean;
 }
 
@@ -49,7 +50,7 @@ export function WebinarSessionsManager({ moduleId }: WebinarSessionsManagerProps
     setLoading(true);
     const { data, error } = await supabase
       .from("webinar_sessions")
-      .select("id, session_date, registration_url")
+      .select("id, session_date, registration_url, livestorm_session_id")
       .eq("module_id", moduleId)
       .order("session_date", { ascending: true });
 
@@ -59,6 +60,7 @@ export function WebinarSessionsManager({ moduleId }: WebinarSessionsManagerProps
           id: s.id,
           session_date: toDatetimeLocal(s.session_date),
           registration_url: s.registration_url || "",
+          livestorm_session_id: s.livestorm_session_id || "",
         }))
       );
     }
@@ -68,7 +70,7 @@ export function WebinarSessionsManager({ moduleId }: WebinarSessionsManagerProps
   const addSession = () => {
     setSessions((prev) => [
       ...prev,
-      { session_date: "", registration_url: "", isNew: true },
+      { session_date: "", registration_url: "", livestorm_session_id: "", isNew: true },
     ]);
   };
 
@@ -114,6 +116,7 @@ export function WebinarSessionsManager({ moduleId }: WebinarSessionsManagerProps
         .update({
           session_date: isoDate,
           registration_url: session.registration_url || null,
+          livestorm_session_id: session.livestorm_session_id || null,
         })
         .eq("id", session.id);
       if (error) {
@@ -128,6 +131,7 @@ export function WebinarSessionsManager({ moduleId }: WebinarSessionsManagerProps
           module_id: moduleId,
           session_date: isoDate,
           registration_url: session.registration_url || null,
+          livestorm_session_id: session.livestorm_session_id || null,
         })
         .select("id")
         .single();
@@ -187,12 +191,22 @@ export function WebinarSessionsManager({ moduleId }: WebinarSessionsManagerProps
                 <Label className="text-xs">Lien d'inscription</Label>
                 <Input
                   type="url"
-                  placeholder="https://..."
+                  placeholder="https://app.livestorm.co/..."
                   value={session.registration_url}
                   onChange={(e) => updateSession(index, "registration_url", e.target.value)}
                   className="h-8 text-sm"
                 />
               </div>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">ID Session Livestorm</Label>
+              <Input
+                type="text"
+                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                value={session.livestorm_session_id}
+                onChange={(e) => updateSession(index, "livestorm_session_id", e.target.value)}
+                className="h-8 text-sm font-mono"
+              />
             </div>
             <div className="flex items-center gap-2 justify-end">
               <Button
