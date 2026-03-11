@@ -373,9 +373,12 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
 
     const company = companies.find((c) => c.id === effectiveCompanyId);
     const bookingUrl = getBookingUrlForCompany(company);
+    const session = getSelectedSession();
+    const sessionDate = session?.session_date || null;
+    const sessionUrl = session?.registration_url || "";
 
-    const formattedDate = module.webinar_date
-      ? new Date(module.webinar_date).toLocaleDateString("fr-FR", {
+    const formattedDate = sessionDate
+      ? new Date(sessionDate).toLocaleDateString("fr-FR", {
           weekday: "long",
           year: "numeric",
           month: "long",
@@ -386,7 +389,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
       : "Date à confirmer";
 
     // Calculate days until webinar for "today" option
-    const daysInfo = calculateDaysUntilWebinar(module.webinar_date);
+    const daysInfo = calculateDaysUntilWebinar(sessionDate);
     const todayFormatted = new Date().toLocaleDateString("fr-FR", {
       weekday: "long",
       day: "numeric",
@@ -398,7 +401,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
       moduleTitle: module.title,
       moduleDescription: module.description,
       webinarDate: formattedDate,
-      webinar_registration_url: (module as any).webinar_registration_url || "",
+      webinar_registration_url: sessionUrl,
       companyName: customFields.companyName,
       partnershipType: customFields.partnershipType,
       contactName: customFields.contactName,
