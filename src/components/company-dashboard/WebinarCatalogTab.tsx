@@ -61,6 +61,18 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
     if (user) fetchUserInfo();
   }, [user]);
 
+  const fetchCompanyName = async () => {
+    const { data } = await supabase
+      .from("companies")
+      .select("name")
+      .eq("id", companyId)
+      .single();
+    if (data) {
+      setCompanyName(data.name);
+      setProposalData(prev => ({ ...prev, company_name: data.name }));
+    }
+  };
+
   const fetchUserInfo = async () => {
     if (!user) return;
     const { data } = await supabase
