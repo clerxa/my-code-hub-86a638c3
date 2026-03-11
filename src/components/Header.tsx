@@ -42,6 +42,7 @@ export const Header = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isCompanyContact, setIsCompanyContact] = useState(false);
   const [showPartnershipDialog, setShowPartnershipDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [showCommunityLockedDialog, setShowCommunityLockedDialog] = useState(false);
@@ -55,6 +56,7 @@ export const Header = () => {
     if (user) {
       loadProfile();
       checkAdminStatus();
+      checkCompanyContactStatus();
     }
   }, [user]);
   useEffect(() => {
@@ -119,6 +121,17 @@ export const Header = () => {
     } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
     if (!error && data?.role === "admin") {
       setIsAdmin(true);
+    }
+  };
+  const checkCompanyContactStatus = async () => {
+    if (!user?.email) return;
+    const { data, error } = await supabase
+      .from("company_contacts")
+      .select("id, company_id")
+      .eq("email", user.email)
+      .maybeSingle();
+    if (!error && data) {
+      setIsCompanyContact(true);
     }
   };
   const handleSignOut = async () => {
@@ -189,6 +202,11 @@ export const Header = () => {
           {isAdmin && <Button size="sm" onClick={() => navigate("/admin")} className="gap-1 sm:gap-2 bg-red-600 hover:bg-red-700 text-white h-8 sm:h-9 px-2 sm:px-3">
               <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden lg:inline">Accès Backoffice</span>
+            </Button>}
+
+          {isCompanyContact && !isAdmin && company && <Button size="sm" onClick={() => navigate(`/company/${company.id}/dashboard`)} className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3" variant="default">
+              <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden lg:inline">Accès Dashboard</span>
             </Button>}
           
           <Button
