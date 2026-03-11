@@ -118,36 +118,34 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
       let sessionsByModule: Record<number, WebinarSession[]> = {};
       let onDemandModulesMap: Record<number, { title: string; duration: string | null }> = {};
 
-      const fetchPromises: Promise<any>[] = [];
       if (allUnselectedIds.length > 0) {
-        fetchPromises.push(
-          supabase
-            .from("webinar_sessions")
-            .select("id, session_date, registration_url, module_id")
-            .in("module_id", allUnselectedIds)
-            .order("session_date", { ascending: true })
-            .then(({ data }) => {
-              (data || []).forEach(s => {
-                if (!sessionsByModule[s.module_id]) sessionsByModule[s.module_id] = [];
-                sessionsByModule[s.module_id].push({
-                  id: s.id,
-                  session_date: s.session_date,
-                  registration_url: s.registration_url,
-                });
-              });
-            })
-        );
+        const { data: sessionsData } = await supabase
+          .from("webinar_sessions")
+          .select("id, session_date, registration_url, module_id")
+          .in("module_id", allUnselectedIds)
+          .order("session_date", { ascending: true });
+
+        (sessionsData || []).forEach(s => {
+          if (!sessionsByModule[s.module_id]) sessionsByModule[s.module_id] = [];
+          sessionsByModule[s.module_id].push({
+            id: s.id,
+            session_date: s.session_date,
+            registration_url: s.registration_url,
+          });
+        });
       }
       if (unselectedOnDemandIds.length > 0) {
-        fetchPromises.push(
-          supabase
-            .from("modules")
-            .select("id, title, duration, webinar_category")
-            .in("id", unselectedOnDemandIds)
-            .eq("type", "webinar")
-            .eq("webinar_category", "a_la_demande")
-            .then(({ data }) => {
-              (data || []).forEach(m => {
+        const { data: modulesData } = await supabase
+          .from("modules")
+          .select("id, title, duration, webinar_category")
+          .in("id", unselectedOnDemandIds)
+          .eq("type", "webinar")
+          .eq("webinar_category", "a_la_demande");
+
+        (modulesData || []).forEach(m => {
+          onDemandModulesMap[m.id] = { title: m.title, duration: m.duration };
+        });
+      }
                 onDemandModulesMap[m.id] = { title: m.title, duration: m.duration };
               });
             })
