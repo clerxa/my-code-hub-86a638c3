@@ -545,8 +545,8 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
             </div>
           )}
 
-          {/* Sélection de l'entreprise - masqué pour les contacts entreprise */}
-          {!companyId && (
+          {/* Sélection de l'entreprise - masqué quand pré-rempli (contact entreprise ou catalogue) */}
+          {!companyId && !preselectedCompanyId && (
             <div className="space-y-2">
               <Label htmlFor="company">Entreprise *</Label>
               <Select value={selectedCompany} onValueChange={setSelectedCompany}>
