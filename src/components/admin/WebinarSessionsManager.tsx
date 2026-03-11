@@ -191,12 +191,22 @@ export function WebinarSessionsManager({ moduleId }: WebinarSessionsManagerProps
                 <Label className="text-xs">Lien d'inscription</Label>
                 <Input
                   type="url"
-                  placeholder="https://..."
+                  placeholder="https://app.livestorm.co/..."
                   value={session.registration_url}
                   onChange={(e) => updateSession(index, "registration_url", e.target.value)}
                   className="h-8 text-sm"
                 />
               </div>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">ID Session Livestorm</Label>
+              <Input
+                type="text"
+                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                value={session.livestorm_session_id}
+                onChange={(e) => updateSession(index, "livestorm_session_id", e.target.value)}
+                className="h-8 text-sm font-mono"
+              />
             </div>
             <div className="flex items-center gap-2 justify-end">
               <Button
