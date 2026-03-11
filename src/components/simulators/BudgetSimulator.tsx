@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -8,7 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import {
   Wallet, ShoppingCart, PiggyBank, ArrowRight, ArrowLeft,
-  CheckCircle2, AlertTriangle, TrendingUp, RotateCcw, Info,
+  CheckCircle2, AlertTriangle, TrendingUp, RotateCcw, Info, UserCircle,
 } from "lucide-react";
 import {
   Tooltip,
@@ -16,6 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useFinancialProfilePrefill } from "@/hooks/useFinancialProfilePrefill";
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
@@ -33,45 +34,46 @@ const STEPS_CONFIG = [
     key: "incompressibles" as const,
     label: "Vos besoins",
     icon: ShoppingCart,
-    description: "Ce sont les dépenses que vous ne pouvez pas supprimer : logement, transport, assurances… L'objectif est de les maintenir sous 50 % de vos revenus.",
+    description: "Ce sont les dépenses mensuelles que vous ne pouvez pas supprimer : logement, transport, assurances… L'objectif est de les maintenir sous 50 % de vos revenus.",
     targetPct: 50,
   },
   {
     key: "compressibles" as const,
     label: "Vos envies",
     icon: ShoppingCart,
-    description: "Les dépenses sur lesquelles vous avez un levier : alimentation, loisirs, shopping… Visez 30 % maximum de vos revenus.",
+    description: "Les dépenses mensuelles sur lesquelles vous avez un levier : alimentation, loisirs, shopping… Visez 30 % maximum de vos revenus.",
     targetPct: 30,
   },
   {
     key: "epargne" as const,
     label: "Votre épargne",
     icon: PiggyBank,
-    description: "L'épargne n'est pas ce qui reste — c'est ce que vous décidez de mettre de côté. Visez au moins 20 % de vos revenus.",
+    description: "L'épargne mensuelle n'est pas ce qui reste — c'est ce que vous décidez de mettre de côté. Visez au moins 20 % de vos revenus.",
     targetPct: 20,
   },
 ];
 
+// profileKey maps to fields in the financial profile for auto-prefill
 const EXPENSE_ITEMS = {
   incompressibles: [
-    { key: "logement", label: "Logement", emoji: "🏠", defaultVal: 800, tooltip: "Loyer ou mensualité de crédit immobilier" },
-    { key: "impots", label: "Impôts & prélèvements", emoji: "📋", defaultVal: 200, tooltip: "Impôts non prélevés à la source, taxe foncière mensuelle…" },
-    { key: "credit", label: "Remboursement crédit", emoji: "💳", defaultVal: 150, tooltip: "Crédits conso, auto, étudiant…" },
-    { key: "transport", label: "Transport fixe", emoji: "🚌", defaultVal: 150, tooltip: "Abonnement transport, essence, leasing…" },
-    { key: "assurances", label: "Assurances", emoji: "🛡️", defaultVal: 100, tooltip: "Habitation, auto, santé complémentaire…" },
-    { key: "abonnements", label: "Abonnements", emoji: "📱", defaultVal: 100, tooltip: "Téléphone, internet, streaming…" },
+    { key: "logement", label: "Logement", emoji: "🏠", defaultVal: 800, max: 10000, tooltip: "Loyer ou mensualité de crédit immobilier (mensuel)", profileKey: "loyer" },
+    { key: "impots", label: "Impôts & prélèvements", emoji: "📋", defaultVal: 200, max: 5000, tooltip: "Impôts non prélevés à la source, taxe foncière… (mensuel)", profileKey: null },
+    { key: "credit", label: "Remboursement crédit", emoji: "💳", defaultVal: 150, max: 5000, tooltip: "Crédits conso, auto, étudiant… (mensuel)", profileKey: "credit_immobilier" },
+    { key: "transport", label: "Transport fixe", emoji: "🚌", defaultVal: 150, max: 3000, tooltip: "Abonnement transport, essence, leasing… (mensuel)", profileKey: "transport_commun" },
+    { key: "assurances", label: "Assurances", emoji: "🛡️", defaultVal: 100, max: 3000, tooltip: "Habitation, auto, santé complémentaire… (mensuel)", profileKey: "assurance_habitation" },
+    { key: "abonnements", label: "Abonnements", emoji: "📱", defaultVal: 100, max: 2000, tooltip: "Téléphone, internet, streaming… (mensuel)", profileKey: "abonnements" },
   ],
   compressibles: [
-    { key: "alimentation", label: "Alimentation", emoji: "🛒", defaultVal: 400, tooltip: "Courses, cantine, livraisons…" },
-    { key: "loisirs", label: "Loisirs & sorties", emoji: "🎭", defaultVal: 200, tooltip: "Restaurants, cinéma, sport, voyages…" },
-    { key: "shopping", label: "Shopping", emoji: "👜", defaultVal: 150, tooltip: "Vêtements, équipement, déco…" },
-    { key: "divers", label: "Divers", emoji: "📦", defaultVal: 100, tooltip: "Cadeaux, imprévus…" },
-    { key: "sante", label: "Santé", emoji: "💊", defaultVal: 50, tooltip: "Pharmacie, consultations non remboursées…" },
+    { key: "alimentation", label: "Alimentation", emoji: "🛒", defaultVal: 400, max: 5000, tooltip: "Courses, cantine, livraisons… (mensuel)", profileKey: null },
+    { key: "loisirs", label: "Loisirs & sorties", emoji: "🎭", defaultVal: 200, max: 5000, tooltip: "Restaurants, cinéma, sport, voyages… (mensuel)", profileKey: null },
+    { key: "shopping", label: "Shopping", emoji: "👜", defaultVal: 150, max: 5000, tooltip: "Vêtements, équipement, déco… (mensuel)", profileKey: null },
+    { key: "divers", label: "Divers", emoji: "📦", defaultVal: 100, max: 3000, tooltip: "Cadeaux, imprévus… (mensuel)", profileKey: "autres" },
+    { key: "sante", label: "Santé", emoji: "💊", defaultVal: 50, max: 3000, tooltip: "Pharmacie, consultations non remboursées… (mensuel)", profileKey: null },
   ],
   epargne: [
-    { key: "ep_precaution", label: "Épargne de précaution", emoji: "🏦", defaultVal: 200, tooltip: "Livret A, LDDS — votre matelas de sécurité" },
-    { key: "ep_projets", label: "Épargne projets", emoji: "🎯", defaultVal: 200, tooltip: "Vacances, apport immobilier, achat important…" },
-    { key: "investissement", label: "Investissement long terme", emoji: "📈", defaultVal: 200, tooltip: "PEA, assurance-vie, SCPI…" },
+    { key: "ep_precaution", label: "Épargne de précaution", emoji: "🏦", defaultVal: 200, max: 10000, tooltip: "Livret A, LDDS — votre matelas de sécurité (mensuel)", profileKey: null },
+    { key: "ep_projets", label: "Épargne projets", emoji: "🎯", defaultVal: 200, max: 10000, tooltip: "Vacances, apport immobilier, achat important… (mensuel)", profileKey: null },
+    { key: "investissement", label: "Investissement long terme", emoji: "📈", defaultVal: 200, max: 10000, tooltip: "PEA, assurance-vie, SCPI… (mensuel)", profileKey: null },
   ],
 };
 
@@ -80,7 +82,7 @@ type StepKey = "revenus" | "incompressibles" | "compressibles" | "epargne";
 const fmt = (n: number) => n.toLocaleString("fr-FR") + " €";
 
 /* ------------------------------------------------------------------ */
-/*  Slider item                                                        */
+/*  Slider item with manual input (no max cap on manual entry)         */
 /* ------------------------------------------------------------------ */
 
 function BudgetSliderItem({
@@ -92,6 +94,7 @@ function BudgetSliderItem({
   step,
   colorClass,
   onChange,
+  fromProfile,
 }: {
   emoji: string;
   label: string;
@@ -101,6 +104,7 @@ function BudgetSliderItem({
   step: number;
   colorClass: string;
   onChange: (v: number) => void;
+  fromProfile?: boolean;
 }) {
   return (
     <div className="space-y-2 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
@@ -112,6 +116,20 @@ function BudgetSliderItem({
                 <span>{emoji}</span>
                 <span>{label}</span>
                 <Info className="h-3 w-3 text-muted-foreground/50" />
+                {fromProfile && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex items-center gap-1 text-[10px] text-primary bg-primary/10 rounded-full px-1.5 py-0.5 font-medium">
+                          <UserCircle className="h-3 w-3" /> Profil
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[220px] text-xs">
+                        Valeur importée depuis votre profil financier
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
               </label>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[220px] text-xs">
@@ -123,20 +141,22 @@ function BudgetSliderItem({
           <Input
             type="number"
             min={0}
-            max={max}
             step={step}
             value={value}
-            onChange={(e) => onChange(Math.max(0, Math.min(max, Number(e.target.value))))}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              onChange(Math.max(0, v));
+            }}
             className={`w-24 text-right font-mono text-sm h-8 ${colorClass}`}
           />
-          <span className="text-xs text-muted-foreground">€</span>
+          <span className="text-xs text-muted-foreground">€/mois</span>
         </div>
       </div>
       <Slider
         min={0}
         max={max}
         step={step}
-        value={[value]}
+        value={[Math.min(value, max)]}
         onValueChange={([v]) => onChange(v)}
         className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4"
       />
@@ -159,6 +179,68 @@ export function BudgetSimulator() {
     );
     return v;
   });
+
+  // Track which fields came from the financial profile
+  const [profileFields, setProfileFields] = useState<Set<string>>(new Set());
+
+  // Financial profile prefill
+  const { getPrefillData, hasProfile, isLoading: isProfileLoading } = useFinancialProfilePrefill();
+  const [profileApplied, setProfileApplied] = useState(false);
+
+  useEffect(() => {
+    if (!isProfileLoading && hasProfile && !profileApplied) {
+      const data = getPrefillData();
+      const filledFields = new Set<string>();
+
+      // Revenus
+      if (data.revenuMensuelNet > 0) {
+        setSalaire(data.revenuMensuelNet);
+        filledFields.add("salaire");
+      }
+
+      // Autres revenus = revenus locatifs (annuels → mensuels) + autres revenus mensuels
+      const autresRevenus = Math.round((data.revenusLocatifs || 0) / 12) + (data.autresRevenus || 0);
+      if (autresRevenus > 0) {
+        setAutres(autresRevenus);
+        filledFields.add("autres");
+      }
+
+      // Map detailed charges from profile
+      const chargesMap: Record<string, number> = {
+        logement: data.chargesDetailees.loyer || data.loyerActuel || 0,
+        credit: (data.chargesDetailees.credit_immobilier || 0) + (data.chargesDetailees.credit_consommation || 0),
+        transport: (data.chargesDetailees.transport_commun || 0) + (data.chargesDetailees.lld_loa_auto || 0),
+        assurances: (data.chargesDetailees.assurance_habitation || 0) + (data.chargesDetailees.assurance_auto || 0),
+        abonnements: (data.chargesDetailees.abonnements || 0) + (data.chargesDetailees.internet || 0) + (data.chargesDetailees.mobile || 0),
+        divers: data.chargesDetailees.autres || 0,
+      };
+
+      setValues((prev) => {
+        const updated = { ...prev };
+        for (const [key, val] of Object.entries(chargesMap)) {
+          if (val > 0) {
+            updated[key] = val;
+            filledFields.add(key);
+          }
+        }
+        // Épargne
+        if (data.capaciteEpargneMensuelle > 0) {
+          // Distribute evenly across 3 savings buckets
+          const perBucket = Math.round(data.capaciteEpargneMensuelle / 3);
+          updated.ep_precaution = perBucket;
+          updated.ep_projets = perBucket;
+          updated.investissement = data.capaciteEpargneMensuelle - 2 * perBucket;
+          filledFields.add("ep_precaution");
+          filledFields.add("ep_projets");
+          filledFields.add("investissement");
+        }
+        return updated;
+      });
+
+      setProfileFields(filledFields);
+      setProfileApplied(true);
+    }
+  }, [isProfileLoading, hasProfile, profileApplied, getPrefillData]);
 
   const revenus = salaire + autres;
   const totalByCategory = useMemo(() => ({
@@ -185,30 +267,53 @@ export function BudgetSimulator() {
   const canGoPrev = currentStep > 0;
 
   /* ---------------------------------------------------------------- */
+  /*  Profile prefill banner                                           */
+  /* ---------------------------------------------------------------- */
+
+  const renderProfileBanner = () => {
+    if (profileFields.size === 0) return null;
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20"
+      >
+        <UserCircle className="h-4 w-4 text-primary shrink-0" />
+        <p className="text-xs text-primary">
+          Certaines données ont été pré-remplies depuis votre profil financier. Vous pouvez les ajuster librement.
+        </p>
+      </motion.div>
+    );
+  };
+
+  /* ---------------------------------------------------------------- */
   /*  Step renderers                                                   */
   /* ---------------------------------------------------------------- */
 
   const renderRevenus = () => (
     <div className="space-y-6">
+      {renderProfileBanner()}
       <BudgetSliderItem
         emoji="💰"
         label="Salaire net mensuel"
-        tooltip="Votre salaire net après prélèvement à la source"
+        tooltip="Votre salaire net après prélèvement à la source (mensuel)"
         value={salaire}
         max={100000}
         step={50}
         colorClass="text-primary"
         onChange={setSalaire}
+        fromProfile={profileFields.has("salaire")}
       />
       <BudgetSliderItem
         emoji="💎"
-        label="Autres revenus"
-        tooltip="Revenus locatifs, placements, pensions, freelance…"
+        label="Autres revenus mensuels"
+        tooltip="Revenus locatifs, placements, pensions, freelance… (mensuel)"
         value={autres}
-        max={500000}
+        max={100000}
         step={50}
         colorClass="text-primary"
         onChange={setAutres}
+        fromProfile={profileFields.has("autres")}
       />
       <div className="flex justify-between items-center border-t border-border/40 pt-4 px-3">
         <span className="text-sm text-muted-foreground">Total revenus mensuels</span>
@@ -246,8 +351,8 @@ export function BudgetSimulator() {
           </div>
           <Progress value={Math.min(pct, 100)} className="h-2.5" />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{fmt(total)} alloués</span>
-            <span>Cible : {fmt(Math.round(revenus * target / 100))}</span>
+            <span>{fmt(total)} / mois</span>
+            <span>Cible : {fmt(Math.round(revenus * target / 100))} / mois</span>
           </div>
         </div>
 
@@ -260,10 +365,11 @@ export function BudgetSimulator() {
               label={item.label}
               tooltip={item.tooltip}
               value={values[item.key] ?? 0}
-              max={20000}
+              max={item.max}
               step={10}
               colorClass={colorClass}
               onChange={(v) => updateValue(item.key, v)}
+              fromProfile={profileFields.has(item.key)}
             />
           ))}
         </div>
@@ -348,7 +454,7 @@ export function BudgetSimulator() {
         {/* Solde */}
         <Card className={`${solde >= 0 ? "border-green-500/30" : "border-destructive/30"}`}>
           <CardContent className="pt-5 pb-5 text-center space-y-2">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Solde disponible</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Solde disponible mensuel</p>
             <p className={`text-3xl font-bold font-mono ${solde >= 0 ? "text-green-400" : "text-destructive"}`}>
               {solde > 0 ? "+" : ""}{fmt(solde)}
             </p>
