@@ -195,7 +195,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
   const fetchData = async () => {
     try {
       // Fetch companies with rang
-      const companiesRes = await supabase.from("companies").select("id, name, partnership_type, rang").order("name");
+      const companiesRes = await supabase.from("companies").select("id, name, partnership_type, rang, signup_slug").order("name");
       if (companiesRes.error) throw companiesRes.error;
       setCompanies(companiesRes.data || []);
 
