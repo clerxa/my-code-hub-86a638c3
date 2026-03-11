@@ -39,12 +39,11 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [webinars, setWebinars] = useState<WebinarItem[]>([]);
+  const [companyName, setCompanyName] = useState("");
 
   useEffect(() => {
     fetchWebinars();
   }, [companyId]);
-
-  const [companyName, setCompanyName] = useState("");
 
   const fetchWebinars = async () => {
     setLoading(true);
