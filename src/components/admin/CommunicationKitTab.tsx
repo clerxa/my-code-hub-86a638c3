@@ -13,9 +13,15 @@ interface Module {
   id: number;
   title: string;
   description: string;
-  webinar_date: string | null;
-  webinar_registration_url: string | null;
   type: string;
+}
+
+interface WebinarSession {
+  id: string;
+  session_date: string;
+  registration_url: string | null;
+  livestorm_session_id: string | null;
+  module_id: number;
 }
 
 interface Company {
