@@ -9,21 +9,26 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Video, Calendar, Clock, Tag, Lightbulb, Send, Loader2, GraduationCap, ArrowRight } from "lucide-react";
-import { format } from "date-fns";
+import { format, isPast } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { useAuth } from "@/components/AuthProvider";
 import DOMPurify from "dompurify";
+
+interface WebinarSession {
+  id: string;
+  session_date: string;
+  registration_url: string | null;
+}
 
 interface CatalogWebinar {
   id: number;
   title: string;
   description: string;
   theme: string[] | null;
-  webinar_date: string | null;
-  webinar_registration_url: string | null;
   webinar_image_url: string | null;
   duration: string | null;
+  sessions: WebinarSession[];
 }
 
 interface WebinarCatalogTabProps {
@@ -117,15 +122,46 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
         return;
       }
 
-      const { data: modules, error: modError } = await supabase
-        .from("modules")
-        .select("id, title, description, theme, webinar_date, webinar_registration_url, webinar_image_url, duration, type")
-        .in("id", genericModuleIds)
-        .eq("type", "webinar")
-        .order("webinar_date", { ascending: true, nullsFirst: false });
+      // Fetch modules and sessions in parallel
+      const [modulesResult, sessionsResult] = await Promise.all([
+        supabase
+          .from("modules")
+          .select("id, title, description, theme, webinar_image_url, duration, type")
+          .in("id", genericModuleIds)
+          .eq("type", "webinar")
+          .order("title"),
+        supabase
+          .from("webinar_sessions")
+          .select("id, session_date, registration_url, module_id")
+          .in("module_id", genericModuleIds)
+          .order("session_date", { ascending: true }),
+      ]);
 
-      if (modError) throw modError;
-      setWebinars((modules || []) as CatalogWebinar[]);
+      if (modulesResult.error) throw modulesResult.error;
+      if (sessionsResult.error) throw sessionsResult.error;
+
+      // Group sessions by module_id
+      const sessionsByModule: Record<number, WebinarSession[]> = {};
+      (sessionsResult.data || []).forEach(s => {
+        if (!sessionsByModule[s.module_id]) sessionsByModule[s.module_id] = [];
+        sessionsByModule[s.module_id].push({
+          id: s.id,
+          session_date: s.session_date,
+          registration_url: s.registration_url,
+        });
+      });
+
+      const webinarsWithSessions: CatalogWebinar[] = (modulesResult.data || []).map(m => ({
+        id: m.id,
+        title: m.title,
+        description: m.description || "",
+        theme: m.theme as string[] | null,
+        webinar_image_url: m.webinar_image_url,
+        duration: m.duration,
+        sessions: sessionsByModule[m.id] || [],
+      }));
+
+      setWebinars(webinarsWithSessions);
     } catch (error) {
       console.error("Error fetching catalog webinars:", error);
       setWebinars([]);
@@ -164,6 +200,14 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
     } finally {
       setProposalSending(false);
     }
+  };
+
+  const getNextSession = (sessions: WebinarSession[]) => {
+    return sessions.find(s => !isPast(new Date(s.session_date)));
+  };
+
+  const getUpcomingSessionsCount = (sessions: WebinarSession[]) => {
+    return sessions.filter(s => !isPast(new Date(s.session_date))).length;
   };
 
   if (loading) {
@@ -207,59 +251,87 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {webinars.map((webinar) => (
-            <Card
-              key={webinar.id}
-              className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30 group border-border/60"
-              onClick={() => navigate(`/company/${companyId}/dashboard/webinar/${webinar.id}`)}
-            >
-              {webinar.webinar_image_url && (
-                <div className="aspect-video overflow-hidden rounded-t-lg">
-                  <img
-                    src={webinar.webinar_image_url}
-                    alt={webinar.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-              )}
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base line-clamp-2">{webinar.title}</CardTitle>
-                <CardDescription className="line-clamp-2">
-                  {stripHtml(webinar.description)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-2">
-                {webinar.webinar_date && (
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Calendar className="h-3.5 w-3.5" />
-                    {format(new Date(webinar.webinar_date), "PPP", { locale: fr })}
+          {webinars.map((webinar) => {
+            const nextSession = getNextSession(webinar.sessions);
+            const upcomingCount = getUpcomingSessionsCount(webinar.sessions);
+
+            return (
+              <Card
+                key={webinar.id}
+                className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30 group border-border/60"
+                onClick={() => navigate(`/company/${companyId}/dashboard/webinar/${webinar.id}`)}
+              >
+                {webinar.webinar_image_url && (
+                  <div className="aspect-video overflow-hidden rounded-t-lg">
+                    <img
+                      src={webinar.webinar_image_url}
+                      alt={webinar.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   </div>
                 )}
-                {webinar.duration && (
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" />
-                    {webinar.duration}
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base line-clamp-2">{webinar.title}</CardTitle>
+                  <CardDescription className="line-clamp-2">
+                    {stripHtml(webinar.description)}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-2">
+                  {/* Sessions info */}
+                  {nextSession ? (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5" />
+                        <span>Prochaine session : </span>
+                        <span className="font-medium text-foreground">
+                          {format(new Date(nextSession.session_date), "PPP 'à' HH'h'mm", { locale: fr })}
+                        </span>
+                      </div>
+                      {upcomingCount > 1 && (
+                        <div className="flex items-center gap-1.5 text-xs text-primary">
+                          <span className="inline-block w-3.5" />
+                          <span>{upcomingCount} sessions à venir</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : webinar.sessions.length > 0 ? (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground opacity-60">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>Aucune session à venir</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground opacity-60">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>Dates à définir</span>
+                    </div>
+                  )}
+
+                  {webinar.duration && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5" />
+                      {webinar.duration}
+                    </div>
+                  )}
+                  {webinar.theme && webinar.theme.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {webinar.theme.slice(0, 3).map((t, i) => (
+                        <Badge key={i} variant="secondary" className="text-xs">{t}</Badge>
+                      ))}
+                      {webinar.theme.length > 3 && (
+                        <Badge variant="outline" className="text-xs">+{webinar.theme.length - 3}</Badge>
+                      )}
+                    </div>
+                  )}
+                  <div className="pt-1">
+                    <span className="text-xs text-primary font-medium flex items-center gap-1 group-hover:underline">
+                      Voir le détail & proposer
+                      <ArrowRight className="h-3 w-3" />
+                    </span>
                   </div>
-                )}
-                {webinar.theme && webinar.theme.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {webinar.theme.slice(0, 3).map((t, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">{t}</Badge>
-                    ))}
-                    {webinar.theme.length > 3 && (
-                      <Badge variant="outline" className="text-xs">+{webinar.theme.length - 3}</Badge>
-                    )}
-                  </div>
-                )}
-                <div className="pt-1">
-                  <span className="text-xs text-primary font-medium flex items-center gap-1 group-hover:underline">
-                    Voir le détail & proposer
-                    <ArrowRight className="h-3 w-3" />
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
