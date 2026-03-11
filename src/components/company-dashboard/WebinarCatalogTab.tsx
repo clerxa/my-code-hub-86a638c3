@@ -29,6 +29,7 @@ interface CatalogWebinar {
   webinar_image_url: string | null;
   duration: string | null;
   sessions: WebinarSession[];
+  is_exclusive: boolean;
 }
 
 interface WebinarCatalogTabProps {
