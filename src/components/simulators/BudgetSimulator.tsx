@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   Wallet, ShoppingCart, PiggyBank, ArrowRight, ArrowLeft,
   CheckCircle2, AlertTriangle, TrendingUp, RotateCcw, Info, UserCircle,
+  Calendar,
 } from "lucide-react";
 import {
   Tooltip,
@@ -17,6 +18,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useFinancialProfilePrefill } from "@/hooks/useFinancialProfilePrefill";
+import { SimulationValidationOverlay } from "@/components/simulators/SimulationValidationOverlay";
+import { useAuth } from "@/components/AuthProvider";
+import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
@@ -53,27 +59,26 @@ const STEPS_CONFIG = [
   },
 ];
 
-// profileKey maps to fields in the financial profile for auto-prefill
 const EXPENSE_ITEMS = {
   incompressibles: [
-    { key: "logement", label: "Logement", emoji: "🏠", defaultVal: 800, max: 10000, tooltip: "Loyer ou mensualité de crédit immobilier (mensuel)", profileKey: "loyer" },
-    { key: "impots", label: "Impôts & prélèvements", emoji: "📋", defaultVal: 200, max: 5000, tooltip: "Impôts non prélevés à la source, taxe foncière… (mensuel)", profileKey: null },
-    { key: "credit", label: "Remboursement crédit", emoji: "💳", defaultVal: 150, max: 5000, tooltip: "Crédits conso, auto, étudiant… (mensuel)", profileKey: "credit_immobilier" },
-    { key: "transport", label: "Transport fixe", emoji: "🚌", defaultVal: 150, max: 3000, tooltip: "Abonnement transport, essence, leasing… (mensuel)", profileKey: "transport_commun" },
-    { key: "assurances", label: "Assurances", emoji: "🛡️", defaultVal: 100, max: 3000, tooltip: "Habitation, auto, santé complémentaire… (mensuel)", profileKey: "assurance_habitation" },
-    { key: "abonnements", label: "Abonnements", emoji: "📱", defaultVal: 100, max: 2000, tooltip: "Téléphone, internet, streaming… (mensuel)", profileKey: "abonnements" },
+    { key: "logement", label: "Logement", emoji: "🏠", defaultVal: 800, max: 10000, tooltip: "Loyer ou mensualité de crédit immobilier (mensuel)" },
+    { key: "impots", label: "Impôts & prélèvements", emoji: "📋", defaultVal: 200, max: 5000, tooltip: "Impôts non prélevés à la source, taxe foncière… (mensuel)" },
+    { key: "credit", label: "Remboursement crédit", emoji: "💳", defaultVal: 150, max: 5000, tooltip: "Crédits conso, auto, étudiant… (mensuel)" },
+    { key: "transport", label: "Transport fixe", emoji: "🚌", defaultVal: 150, max: 3000, tooltip: "Abonnement transport, essence, leasing… (mensuel)" },
+    { key: "assurances", label: "Assurances", emoji: "🛡️", defaultVal: 100, max: 3000, tooltip: "Habitation, auto, santé complémentaire… (mensuel)" },
+    { key: "abonnements", label: "Abonnements", emoji: "📱", defaultVal: 100, max: 2000, tooltip: "Téléphone, internet, streaming… (mensuel)" },
   ],
   compressibles: [
-    { key: "alimentation", label: "Alimentation", emoji: "🛒", defaultVal: 400, max: 5000, tooltip: "Courses, cantine, livraisons… (mensuel)", profileKey: null },
-    { key: "loisirs", label: "Loisirs & sorties", emoji: "🎭", defaultVal: 200, max: 5000, tooltip: "Restaurants, cinéma, sport, voyages… (mensuel)", profileKey: null },
-    { key: "shopping", label: "Shopping", emoji: "👜", defaultVal: 150, max: 5000, tooltip: "Vêtements, équipement, déco… (mensuel)", profileKey: null },
-    { key: "divers", label: "Divers", emoji: "📦", defaultVal: 100, max: 3000, tooltip: "Cadeaux, imprévus… (mensuel)", profileKey: "autres" },
-    { key: "sante", label: "Santé", emoji: "💊", defaultVal: 50, max: 3000, tooltip: "Pharmacie, consultations non remboursées… (mensuel)", profileKey: null },
+    { key: "alimentation", label: "Alimentation", emoji: "🛒", defaultVal: 400, max: 5000, tooltip: "Courses, cantine, livraisons… (mensuel)" },
+    { key: "loisirs", label: "Loisirs & sorties", emoji: "🎭", defaultVal: 200, max: 5000, tooltip: "Restaurants, cinéma, sport, voyages… (mensuel)" },
+    { key: "shopping", label: "Shopping", emoji: "👜", defaultVal: 150, max: 5000, tooltip: "Vêtements, équipement, déco… (mensuel)" },
+    { key: "divers", label: "Divers", emoji: "📦", defaultVal: 100, max: 3000, tooltip: "Cadeaux, imprévus… (mensuel)" },
+    { key: "sante", label: "Santé", emoji: "💊", defaultVal: 50, max: 3000, tooltip: "Pharmacie, consultations non remboursées… (mensuel)" },
   ],
   epargne: [
-    { key: "ep_precaution", label: "Épargne de précaution", emoji: "🏦", defaultVal: 200, max: 10000, tooltip: "Livret A, LDDS — votre matelas de sécurité (mensuel)", profileKey: null },
-    { key: "ep_projets", label: "Épargne projets", emoji: "🎯", defaultVal: 200, max: 10000, tooltip: "Vacances, apport immobilier, achat important… (mensuel)", profileKey: null },
-    { key: "investissement", label: "Investissement long terme", emoji: "📈", defaultVal: 200, max: 10000, tooltip: "PEA, assurance-vie, SCPI… (mensuel)", profileKey: null },
+    { key: "ep_precaution", label: "Épargne de précaution", emoji: "🏦", defaultVal: 200, max: 10000, tooltip: "Livret A, LDDS — votre matelas de sécurité (mensuel)" },
+    { key: "ep_projets", label: "Épargne projets", emoji: "🎯", defaultVal: 200, max: 10000, tooltip: "Vacances, apport immobilier, achat important… (mensuel)" },
+    { key: "investissement", label: "Investissement long terme", emoji: "📈", defaultVal: 200, max: 10000, tooltip: "PEA, assurance-vie, SCPI… (mensuel)" },
   ],
 };
 
@@ -82,7 +87,7 @@ type StepKey = "revenus" | "incompressibles" | "compressibles" | "epargne";
 const fmt = (n: number) => n.toLocaleString("fr-FR") + " €";
 
 /* ------------------------------------------------------------------ */
-/*  Slider item with manual input (no max cap on manual entry)         */
+/*  Slider item                                                        */
 /* ------------------------------------------------------------------ */
 
 function BudgetSliderItem({
@@ -95,6 +100,7 @@ function BudgetSliderItem({
   colorClass,
   onChange,
   fromProfile,
+  profileSource,
 }: {
   emoji: string;
   label: string;
@@ -105,6 +111,7 @@ function BudgetSliderItem({
   colorClass: string;
   onChange: (v: number) => void;
   fromProfile?: boolean;
+  profileSource?: string;
 }) {
   return (
     <div className="space-y-2 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
@@ -124,8 +131,8 @@ function BudgetSliderItem({
                           <UserCircle className="h-3 w-3" /> Profil
                         </span>
                       </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-[220px] text-xs">
-                        Valeur importée depuis votre profil financier
+                      <TooltipContent side="top" className="max-w-[250px] text-xs">
+                        {profileSource || "Valeur importée depuis votre profil financier"}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -169,6 +176,8 @@ function BudgetSliderItem({
 /* ------------------------------------------------------------------ */
 
 export function BudgetSimulator() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [salaire, setSalaire] = useState(2600);
   const [autres, setAutres] = useState(400);
@@ -180,8 +189,23 @@ export function BudgetSimulator() {
     return v;
   });
 
-  // Track which fields came from the financial profile
-  const [profileFields, setProfileFields] = useState<Set<string>>(new Set());
+  // Track which fields came from the financial profile + source explanation
+  const [profileFields, setProfileFields] = useState<Map<string, string>>(new Map());
+
+  // Validation overlay state
+  const [showValidation, setShowValidation] = useState(false);
+  const [validationComplete, setValidationComplete] = useState(false);
+
+  // Expert booking
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const { bookingUrl } = useExpertBookingUrl(companyId);
+
+  useEffect(() => {
+    if (user) {
+      supabase.from("profiles").select("company_id").eq("id", user.id).maybeSingle()
+        .then(({ data }) => { if (data?.company_id) setCompanyId(data.company_id); });
+    }
+  }, [user]);
 
   // Financial profile prefill
   const { getPrefillData, hasProfile, isLoading: isProfileLoading } = useFinancialProfilePrefill();
@@ -190,54 +214,80 @@ export function BudgetSimulator() {
   useEffect(() => {
     if (!isProfileLoading && hasProfile && !profileApplied) {
       const data = getPrefillData();
-      const filledFields = new Set<string>();
+      const filledMap = new Map<string, string>();
 
-      // Revenus
-      if (data.revenuMensuelNet > 0) {
+      // Revenus: priorité au revenu fiscal annuel → mensualiser, sinon revenu mensuel net
+      if (data.revenuFiscalAnnuel > 0) {
+        const mensuel = Math.round(data.revenuFiscalAnnuel / 12);
+        setSalaire(mensuel);
+        filledMap.set("salaire", `Revenu fiscal annuel (${data.revenuFiscalAnnuel.toLocaleString("fr-FR")} €) ÷ 12`);
+      } else if (data.revenuMensuelNet > 0) {
         setSalaire(data.revenuMensuelNet);
-        filledFields.add("salaire");
+        filledMap.set("salaire", "Salaire net mensuel du profil financier");
       }
 
       // Autres revenus = revenus locatifs (annuels → mensuels) + autres revenus mensuels
-      const autresRevenus = Math.round((data.revenusLocatifs || 0) / 12) + (data.autresRevenus || 0);
+      const locatifsMensuel = Math.round((data.revenusLocatifs || 0) / 12);
+      const autresRevenus = locatifsMensuel + (data.autresRevenus || 0);
       if (autresRevenus > 0) {
         setAutres(autresRevenus);
-        filledFields.add("autres");
+        const parts = [];
+        if (locatifsMensuel > 0) parts.push(`Revenus locatifs (${(data.revenusLocatifs || 0).toLocaleString("fr-FR")} €/an ÷ 12)`);
+        if (data.autresRevenus > 0) parts.push(`Autres revenus mensuels (${data.autresRevenus.toLocaleString("fr-FR")} €)`);
+        filledMap.set("autres", parts.join(" + "));
       }
 
       // Map detailed charges from profile
-      const chargesMap: Record<string, number> = {
-        logement: data.chargesDetailees.loyer || data.loyerActuel || 0,
-        credit: (data.chargesDetailees.credit_immobilier || 0) + (data.chargesDetailees.credit_consommation || 0),
-        transport: (data.chargesDetailees.transport_commun || 0) + (data.chargesDetailees.lld_loa_auto || 0),
-        assurances: (data.chargesDetailees.assurance_habitation || 0) + (data.chargesDetailees.assurance_auto || 0),
-        abonnements: (data.chargesDetailees.abonnements || 0) + (data.chargesDetailees.internet || 0) + (data.chargesDetailees.mobile || 0),
-        divers: data.chargesDetailees.autres || 0,
+      const chargesMap: Record<string, { value: number; source: string }> = {
+        logement: {
+          value: data.chargesDetailees.loyer || data.loyerActuel || 0,
+          source: "Loyer / crédit immobilier du profil financier",
+        },
+        credit: {
+          value: (data.chargesDetailees.credit_immobilier || 0) + (data.chargesDetailees.credit_consommation || 0),
+          source: "Crédits immobilier + consommation du profil",
+        },
+        transport: {
+          value: (data.chargesDetailees.transport_commun || 0) + (data.chargesDetailees.lld_loa_auto || 0),
+          source: "Transport en commun + LOA/LLD auto du profil",
+        },
+        assurances: {
+          value: (data.chargesDetailees.assurance_habitation || 0) + (data.chargesDetailees.assurance_auto || 0),
+          source: "Assurance habitation + auto du profil",
+        },
+        abonnements: {
+          value: (data.chargesDetailees.abonnements || 0) + (data.chargesDetailees.internet || 0) + (data.chargesDetailees.mobile || 0),
+          source: "Abonnements + internet + mobile du profil",
+        },
+        divers: {
+          value: data.chargesDetailees.autres || 0,
+          source: "Autres charges du profil financier",
+        },
       };
 
       setValues((prev) => {
         const updated = { ...prev };
-        for (const [key, val] of Object.entries(chargesMap)) {
-          if (val > 0) {
-            updated[key] = val;
-            filledFields.add(key);
+        for (const [key, { value, source }] of Object.entries(chargesMap)) {
+          if (value > 0) {
+            updated[key] = value;
+            filledMap.set(key, source);
           }
         }
-        // Épargne
+        // Épargne — source: capacité d'épargne mensuelle du profil financier
         if (data.capaciteEpargneMensuelle > 0) {
-          // Distribute evenly across 3 savings buckets
           const perBucket = Math.round(data.capaciteEpargneMensuelle / 3);
           updated.ep_precaution = perBucket;
           updated.ep_projets = perBucket;
           updated.investissement = data.capaciteEpargneMensuelle - 2 * perBucket;
-          filledFields.add("ep_precaution");
-          filledFields.add("ep_projets");
-          filledFields.add("investissement");
+          const epSource = `Capacité d'épargne mensuelle (${data.capaciteEpargneMensuelle.toLocaleString("fr-FR")} €) répartie en 3 postes`;
+          filledMap.set("ep_precaution", epSource);
+          filledMap.set("ep_projets", epSource);
+          filledMap.set("investissement", epSource);
         }
         return updated;
       });
 
-      setProfileFields(filledFields);
+      setProfileFields(filledMap);
       setProfileApplied(true);
     }
   }, [isProfileLoading, hasProfile, profileApplied, getPrefillData]);
@@ -261,10 +311,23 @@ export function BudgetSimulator() {
   }, []);
 
   const stepConfig = STEPS_CONFIG[currentStep];
-  const isResults = currentStep === STEPS_CONFIG.length;
+  // Steps: 0-3 = input steps, 4 = validation overlay, 5 = results
+  const isValidationStep = currentStep === STEPS_CONFIG.length && !validationComplete;
+  const isResults = currentStep === STEPS_CONFIG.length && validationComplete;
 
   const canGoNext = currentStep < STEPS_CONFIG.length;
-  const canGoPrev = currentStep > 0;
+  const canGoPrev = currentStep > 0 && !isResults;
+
+  // Handle transition to results: trigger validation overlay
+  const handleGoToResults = () => {
+    setCurrentStep(STEPS_CONFIG.length);
+    setShowValidation(true);
+  };
+
+  const handleValidationComplete = () => {
+    setShowValidation(false);
+    setValidationComplete(true);
+  };
 
   /* ---------------------------------------------------------------- */
   /*  Profile prefill banner                                           */
@@ -303,6 +366,7 @@ export function BudgetSimulator() {
         colorClass="text-primary"
         onChange={setSalaire}
         fromProfile={profileFields.has("salaire")}
+        profileSource={profileFields.get("salaire")}
       />
       <BudgetSliderItem
         emoji="💎"
@@ -314,6 +378,7 @@ export function BudgetSimulator() {
         colorClass="text-primary"
         onChange={setAutres}
         fromProfile={profileFields.has("autres")}
+        profileSource={profileFields.get("autres")}
       />
       <div className="flex justify-between items-center border-t border-border/40 pt-4 px-3">
         <span className="text-sm text-muted-foreground">Total revenus mensuels</span>
@@ -332,6 +397,20 @@ export function BudgetSimulator() {
 
     return (
       <div className="space-y-4">
+        {/* Source info for épargne */}
+        {catKey === "epargne" && profileFields.has("ep_precaution") && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20"
+          >
+            <UserCircle className="h-4 w-4 text-primary shrink-0" />
+            <p className="text-xs text-primary">
+              Vos postes d'épargne sont pré-remplis à partir de votre <strong>capacité d'épargne mensuelle</strong> déclarée dans votre profil financier, répartie équitablement entre les 3 postes.
+            </p>
+          </motion.div>
+        )}
+
         {/* Live gauge */}
         <div className="rounded-lg bg-muted/30 p-4 space-y-3">
           <div className="flex items-center justify-between">
@@ -370,6 +449,7 @@ export function BudgetSimulator() {
               colorClass={colorClass}
               onChange={(v) => updateValue(item.key, v)}
               fromProfile={profileFields.has(item.key)}
+              profileSource={profileFields.get(item.key)}
             />
           ))}
         </div>
@@ -476,9 +556,42 @@ export function BudgetSimulator() {
           </CardContent>
         </Card>
 
+        {/* CTA Expert */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-accent/5">
+            <CardContent className="pt-5 pb-5 text-center space-y-3">
+              <Calendar className="h-8 w-8 text-primary mx-auto" />
+              <h3 className="text-base font-semibold text-foreground">Envie d'optimiser votre budget ?</h3>
+              <p className="text-sm text-muted-foreground">
+                Un expert FinCare peut vous accompagner pour rééquilibrer vos finances et construire une stratégie d'épargne adaptée à votre situation.
+              </p>
+              <Button
+                className="gap-2"
+                onClick={() => {
+                  if (bookingUrl) {
+                    window.open(bookingUrl, "_blank");
+                  } else {
+                    navigate("/employee/expert-booking");
+                  }
+                }}
+              >
+                <Calendar className="h-4 w-4" />
+                Échanger avec un expert
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Reset */}
         <div className="flex justify-center">
-          <Button variant="outline" className="gap-2" onClick={() => setCurrentStep(0)}>
+          <Button variant="outline" className="gap-2" onClick={() => {
+            setCurrentStep(0);
+            setValidationComplete(false);
+          }}>
             <RotateCcw className="h-4 w-4" /> Recommencer la simulation
           </Button>
         </div>
@@ -492,8 +605,16 @@ export function BudgetSimulator() {
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
+      {/* Validation Overlay */}
+      <SimulationValidationOverlay
+        isValidating={showValidation}
+        onComplete={handleValidationComplete}
+        simulatorName="ZENITH by FinCare"
+        simulatorId="zenith-budget"
+      />
+
       {/* Step indicator */}
-      {!isResults && (
+      {!isValidationStep && !isResults && (
         <div className="flex items-center justify-between px-2">
           {STEPS_CONFIG.map((s, i) => (
             <div key={s.key} className="flex items-center gap-0 flex-1 last:flex-none">
@@ -531,54 +652,56 @@ export function BudgetSimulator() {
       )}
 
       {/* Content */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentStep}
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -30 }}
-          transition={{ duration: 0.25 }}
-        >
-          <Card className="bg-card/60 border-border/40 backdrop-blur-sm">
-            <CardContent className="pt-6 space-y-5">
-              {!isResults && (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <stepConfig.icon className="h-5 w-5 text-primary" />
+      {!isValidationStep && (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={isResults ? "results" : currentStep}
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -30 }}
+            transition={{ duration: 0.25 }}
+          >
+            <Card className="bg-card/60 border-border/40 backdrop-blur-sm">
+              <CardContent className="pt-6 space-y-5">
+                {!isResults && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <stepConfig.icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-bold text-foreground">{stepConfig.label}</h2>
+                        <p className="text-xs text-muted-foreground">{stepConfig.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {isResults && (
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                      <TrendingUp className="h-5 w-5 text-accent" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold text-foreground">{stepConfig.label}</h2>
-                      <p className="text-xs text-muted-foreground">{stepConfig.description}</p>
+                      <h2 className="text-lg font-bold text-foreground">Votre bilan Zenith</h2>
+                      <p className="text-xs text-muted-foreground">Résultat de votre simulation budget 50/30/20</p>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {isResults && (
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                    <TrendingUp className="h-5 w-5 text-accent" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-foreground">Votre bilan Zenith</h2>
-                    <p className="text-xs text-muted-foreground">Résultat de votre simulation budget 50/30/20</p>
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 0 && renderRevenus()}
-              {currentStep === 1 && renderCategory("incompressibles")}
-              {currentStep === 2 && renderCategory("compressibles")}
-              {currentStep === 3 && renderCategory("epargne")}
-              {isResults && renderResults()}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </AnimatePresence>
+                {currentStep === 0 && renderRevenus()}
+                {currentStep === 1 && renderCategory("incompressibles")}
+                {currentStep === 2 && renderCategory("compressibles")}
+                {currentStep === 3 && renderCategory("epargne")}
+                {isResults && renderResults()}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
+      )}
 
       {/* Navigation */}
-      {!isResults && (
+      {!isResults && !isValidationStep && (
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
@@ -590,7 +713,13 @@ export function BudgetSimulator() {
           </Button>
 
           <Button
-            onClick={() => setCurrentStep((p) => p + 1)}
+            onClick={() => {
+              if (currentStep === STEPS_CONFIG.length - 1) {
+                handleGoToResults();
+              } else {
+                setCurrentStep((p) => p + 1);
+              }
+            }}
             disabled={!canGoNext}
             className="gap-2"
           >
