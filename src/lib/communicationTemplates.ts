@@ -1,6 +1,32 @@
 // Templates prédéfinis pour les kits de communication
 // Variables disponibles : ${moduleTitle}, ${moduleDescription}, ${webinarDate}, ${webinar_registration_url}, 
-// ${companyName}, ${partnershipType}, ${contactName}, ${bookingUrl}, ${signature}, ${customDate}
+// ${companyName}, ${partnershipType}, ${contactName}, ${bookingUrl}, ${signature}, ${signupUrl}, ${customDate}
+
+// Bloc CTA inscription app - réutilisé dans tous les templates
+const signupCtaEmail = `\${signupUrl ? \`
+
+🚀 Pas encore sur myfincare ? Rejoignez l'aventure !
+Accédez gratuitement à tous nos outils, simulateurs et formations pour prendre en main vos finances personnelles. Vos collègues y sont déjà !
+👉 Créez votre compte en 30 secondes : \${signupUrl}
+\` : ""}`;
+
+const signupCtaIntranet = `\${signupUrl ? \`
+### 🚀 Pas encore inscrit(e) sur myfincare ?
+
+**Rejoignez vos collègues sur la plateforme !** Accédez gratuitement à tous nos outils, simulateurs et formations pour prendre en main vos finances personnelles. L'inscription prend 30 secondes.
+
+👉 [Créez votre compte maintenant](\${signupUrl})
+\` : ""}`;
+
+const signupCtaSlack = `\${signupUrl ? \`
+🚀 *Pas encore sur myfincare ?* Rejoignez vos collègues ! Accédez gratuitement à tous nos outils et formations pour vos finances perso 💰
+👉 <\${signupUrl}|Créez votre compte en 30 secondes>
+\` : ""}`;
+
+const signupCtaTeams = `\${signupUrl ? \`
+🚀 **Pas encore sur myfincare ?** Rejoignez vos collègues ! Accédez gratuitement à tous nos outils et formations pour vos finances perso 💰
+👉 [Créez votre compte en 30 secondes](\${signupUrl})
+\` : ""}`;
 
 // Templates par défaut pour chaque type et échéance
 const defaultTemplates: Record<string, Record<string, string>> = {
@@ -31,7 +57,7 @@ Nous avons le plaisir de vous annoncer un webinar exclusif organisé par \${comp
 \${webinar_registration_url}
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-
+${signupCtaEmail}
 \${contactName ? \`Pour toute question, contactez \${contactName}.\` : ""}
 
 À très bientôt !
@@ -64,7 +90,7 @@ Nous sommes ravis de vous annoncer un webinar exclusif organisé par \${companyN
 \${webinar_registration_url}
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-
+${signupCtaEmail}
 \${contactName ? \`Pour toute question, contactez \${contactName}.\` : ""}
 
 À très bientôt !
@@ -98,7 +124,7 @@ Les places se remplissent rapidement. Ne manquez pas cette opportunité d'enrich
 \${webinar_registration_url}
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-
+${signupCtaEmail}
 \${contactName ? \`Questions ? Contactez \${contactName}.\` : ""}
 
 À bientôt !
@@ -134,7 +160,7 @@ Ne laissez pas passer cette occasion unique de booster vos compétences financi�
 \${webinar_registration_url}
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-
+${signupCtaEmail}
 \${contactName ? \`Questions de dernière minute ? \${contactName} est là pour vous.\` : ""}
 
 À très vite !
@@ -167,7 +193,7 @@ Vous hésitez encore ? Voici pourquoi vous ne devez pas manquer cet événement 
 \${webinar_registration_url}
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-
+${signupCtaEmail}
 \${contactName ? \`Dernier délai pour vos questions : \${contactName}\` : ""}
 
 À demain !
@@ -196,7 +222,7 @@ Vous êtes inscrit(e) ? Parfait ! Voici le lien de connexion :
 💡 Astuce : Installez l'application si vous participez depuis votre mobile pour une meilleure expérience.
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-
+${signupCtaEmail}
 \${contactName ? \`Problème technique ? Contactez rapidement \${contactName}.\` : ""}
 
 À tout de suite !
@@ -221,7 +247,7 @@ Nous vous rappelons le prochain webinar organisé par \${companyName} :
 \${webinar_registration_url}
 
 🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
-
+${signupCtaEmail}
 \${contactName ? \`Contact : \${contactName}\` : ""}
 
 \${signature}`,
@@ -264,7 +290,7 @@ Ce webinar vous permettra de :
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-
+${signupCtaIntranet}
 \${contactName ? \`### 📞 Contact\\n\\nPour toute question, contactez \${contactName}.\` : ""}
 
 ---
@@ -306,7 +332,7 @@ Ce webinar vous permettra de :
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-
+${signupCtaIntranet}
 \${contactName ? \`### 📞 Contact\\n\\nPour toute question, contactez \${contactName}.\` : ""}
 
 ---
@@ -345,7 +371,7 @@ Les places se remplissent rapidement ! Voici ce que vous allez gagner en partici
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-
+${signupCtaIntranet}
 \${contactName ? \`### 📞 Questions ?\\n\\nContactez \${contactName} pour plus d'informations.\` : ""}
 
 ---
@@ -383,7 +409,7 @@ Les inscriptions touchent à leur fin ! Ne manquez pas cette opportunité unique
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-
+${signupCtaIntranet}
 \${contactName ? \`### 📞 Dernières questions ?\\n\\n\${contactName} est à votre disposition.\` : ""}
 
 ---
@@ -428,7 +454,7 @@ Préparez-vous pour demain :
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-
+${signupCtaIntranet}
 \${contactName ? \`### 📞 Urgence ?\\n\\nContactez \${contactName} avant ce soir.\` : ""}
 
 ---
@@ -469,7 +495,7 @@ Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous di
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-
+${signupCtaIntranet}
 ---
 \${signature}`,
 
@@ -493,7 +519,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
 [Prenez rendez-vous avec un conseiller](\${bookingUrl})
-
+${signupCtaIntranet}
 \${contactName ? \`### 📞 Contact\\n\\n\${contactName}\` : ""}
 
 ---
@@ -520,7 +546,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 📹 \${webinar_registration_url}
 
 🎯 Besoin d'un conseiller ? <\${bookingUrl}|Prenez rendez-vous ici>
-
+${signupCtaSlack}
 \${contactName ? \`💬 Questions ? → \${contactName}\` : ""}
 
 \${signature}`,
@@ -546,7 +572,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 📹 \${webinar_registration_url}
 
 🎯 Besoin d'un conseiller ? <\${bookingUrl}|Prenez rendez-vous ici>
-
+${signupCtaSlack}
 \${contactName ? \`💬 Questions ? → \${contactName}\` : ""}
 
 \${signature}`,
@@ -570,7 +596,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 📹 \${webinar_registration_url}
 
 🎯 Besoin d'un conseiller ? <\${bookingUrl}|Prenez rendez-vous ici>
-
+${signupCtaSlack}
 \${contactName ? \`💬 \${contactName}\` : ""}
 
 \${signature}`,
@@ -594,7 +620,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 📹 \${webinar_registration_url}
 
 🎯 Besoin d'un conseiller ? <\${bookingUrl}|Prenez rendez-vous ici>
-
+${signupCtaSlack}
 \${contactName ? \`💬 \${contactName}\` : ""}
 
 \${signature}`,
@@ -616,7 +642,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 📹 \${webinar_registration_url}
 
 🎯 Besoin d'un conseiller ? <\${bookingUrl}|Prenez rendez-vous ici>
-
+${signupCtaSlack}
 👉 Réservez maintenant !
 
 \${contactName ? \`💬 \${contactName}\` : ""}
@@ -640,7 +666,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 💡 Astuce : Installez l'app sur mobile
 
 🎯 Besoin d'un conseiller ? <\${bookingUrl}|Prenez rendez-vous ici>
-
+${signupCtaSlack}
 \${contactName ? \`💬 Problème ? → \${contactName}\` : ""}
 
 👉 *À tout de suite !*
@@ -656,7 +682,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 📹 \${webinar_registration_url}
 
 🎯 <\${bookingUrl}|Prenez rendez-vous avec un conseiller>
-
+${signupCtaSlack}
 \${contactName ? \`💬 \${contactName}\` : ""}
 
 \${signature}`,
@@ -682,7 +708,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 📹 \${webinar_registration_url}
 
 🎯 Besoin d'un conseiller ? [Prenez rendez-vous ici](\${bookingUrl})
-
+${signupCtaTeams}
 \${contactName ? \`💬 Questions ? → \${contactName}\` : ""}
 
 \${signature}`,
@@ -708,7 +734,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 📹 \${webinar_registration_url}
 
 🎯 Besoin d'un conseiller ? [Prenez rendez-vous ici](\${bookingUrl})
-
+${signupCtaTeams}
 \${contactName ? \`💬 Questions ? → \${contactName}\` : ""}
 
 \${signature}`,
@@ -732,7 +758,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 📹 \${webinar_registration_url}
 
 🎯 Besoin d'un conseiller ? [Prenez rendez-vous ici](\${bookingUrl})
-
+${signupCtaTeams}
 \${contactName ? \`💬 \${contactName}\` : ""}
 
 \${signature}`,
@@ -756,7 +782,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 📹 \${webinar_registration_url}
 
 🎯 Besoin d'un conseiller ? [Prenez rendez-vous ici](\${bookingUrl})
-
+${signupCtaTeams}
 \${contactName ? \`💬 \${contactName}\` : ""}
 
 \${signature}`,
@@ -778,7 +804,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 📹 \${webinar_registration_url}
 
 🎯 Besoin d'un conseiller ? [Prenez rendez-vous ici](\${bookingUrl})
-
+${signupCtaTeams}
 👉 Réservez maintenant !
 
 \${contactName ? \`💬 \${contactName}\` : ""}
@@ -802,7 +828,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 💡 Astuce : Installez l'app sur mobile
 
 🎯 Besoin d'un conseiller ? [Prenez rendez-vous ici](\${bookingUrl})
-
+${signupCtaTeams}
 \${contactName ? \`💬 Problème ? → \${contactName}\` : ""}
 
 👉 *À tout de suite !*
@@ -818,7 +844,7 @@ Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cli
 📹 \${webinar_registration_url}
 
 🎯 [Prenez rendez-vous avec un conseiller](\${bookingUrl})
-
+${signupCtaTeams}
 \${contactName ? \`💬 \${contactName}\` : ""}
 
 \${signature}`,
