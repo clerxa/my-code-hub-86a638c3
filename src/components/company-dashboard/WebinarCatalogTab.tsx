@@ -43,11 +43,13 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
   const [webinars, setWebinars] = useState<CatalogWebinar[]>([]);
   const [showProposalForm, setShowProposalForm] = useState(false);
   const [proposalSending, setProposalSending] = useState(false);
+  const [companyName, setCompanyName] = useState("");
   const [proposalData, setProposalData] = useState({
     theme_title: "",
     theme_description: "",
     contact_name: "",
     contact_email: "",
+    company_name: "",
   });
 
   useEffect(() => {
