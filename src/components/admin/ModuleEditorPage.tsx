@@ -136,6 +136,7 @@ export const ModuleEditorPage = () => {
     themes: [] as string[],
     simulator_id: "",
     is_optional: false,
+    webinar_category: "a_la_demande" as string,
     assigned_companies: [] as string[],
     slides_data: { slides: [], transition: 'fade' } as SlidesData
   });
@@ -220,6 +221,7 @@ export const ModuleEditorPage = () => {
             themes: module.theme || [],
             simulator_id: contentData.simulator_id || "",
             is_optional: module.is_optional || false,
+            webinar_category: (module as any).webinar_category || "a_la_demande",
             assigned_companies: [],
             slides_data: contentData.slides_data || { slides: [], transition: 'fade' }
           });
@@ -266,7 +268,8 @@ export const ModuleEditorPage = () => {
         pedagogical_objectives: formData.pedagogical_objectives.length > 0 ? formData.pedagogical_objectives : null,
         key_takeaways: formData.key_takeaways.length > 0 ? formData.key_takeaways : null,
         theme: formData.themes.length > 0 ? formData.themes : null,
-        is_optional: formData.is_optional
+        is_optional: formData.is_optional,
+        webinar_category: formData.type === "webinar" ? formData.webinar_category : null
       };
 
       if (isEditing && moduleId) {
@@ -616,6 +619,25 @@ export const ModuleEditorPage = () => {
               <CardHeader>
                 <CardTitle>Configuration du webinaire</CardTitle>
               </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Catégorie du webinaire</Label>
+                  <Select value={formData.webinar_category} onValueChange={value => setFormData({ ...formData, webinar_category: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="parcours_fincare">📋 Parcours FinCare (obligatoire)</SelectItem>
+                      <SelectItem value="a_la_demande">📦 À la demande (catalogue)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {formData.webinar_category === "parcours_fincare" 
+                      ? "Ce webinaire sera pré-chargé automatiquement dans le dashboard de toutes les entreprises."
+                      : "Ce webinaire apparaîtra dans le catalogue pour que les entreprises puissent le sélectionner."}
+                  </p>
+                </div>
+              </CardContent>
               <CardContent>
                 <ImageUpload
                   label="Visuel du webinar"

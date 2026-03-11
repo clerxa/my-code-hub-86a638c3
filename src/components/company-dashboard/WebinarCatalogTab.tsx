@@ -126,9 +126,10 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
       const [modulesResult, sessionsResult] = await Promise.all([
         supabase
           .from("modules")
-          .select("id, title, description, theme, webinar_image_url, duration, type")
+          .select("id, title, description, theme, webinar_image_url, duration, type, webinar_category")
           .in("id", genericModuleIds)
           .eq("type", "webinar")
+          .eq("webinar_category", "a_la_demande")
           .order("title"),
         supabase
           .from("webinar_sessions")

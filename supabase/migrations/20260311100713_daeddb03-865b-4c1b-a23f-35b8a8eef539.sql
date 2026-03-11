@@ -1,0 +1,2 @@
+ALTER TABLE public.modules ADD COLUMN IF NOT EXISTS webinar_category text DEFAULT 'a_la_demande';
+COMMENT ON COLUMN public.modules.webinar_category IS 'parcours_fincare or a_la_demande - only relevant for type=webinar';
