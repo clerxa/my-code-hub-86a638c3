@@ -7,6 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { CommunicationKitTab } from "@/components/admin/CommunicationKitTab";
 import {
   ArrowLeft,
@@ -24,11 +34,13 @@ import {
   Loader2,
   Lightbulb,
   ChevronRight,
+  Lock,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import DOMPurify from "dompurify";
+import { useAuth } from "@/components/AuthProvider";
 
 interface WebinarDetail {
   id: number;
@@ -55,6 +67,7 @@ function stripHtmlAndFormat(html: string): string {
 const WebinarCatalogDetail = () => {
   const { id: companyId, webinarId } = useParams<{ id: string; webinarId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [webinar, setWebinar] = useState<WebinarDetail | null>(null);
   const [sessions, setSessions] = useState<WebinarSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,10 +77,19 @@ const WebinarCatalogDetail = () => {
   // Workflow state: "info" → "select-date" → "kit"
   const [workflowStep, setWorkflowStep] = useState<"info" | "select-date" | "kit">("info");
   const [selectedSession, setSelectedSession] = useState<WebinarSession | null>(null);
+  const [sessionLocked, setSessionLocked] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Confirmation dialog
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [pendingDateItem, setPendingDateItem] = useState<{ id: string; date: string; url: string | null } | null>(null);
 
   useEffect(() => {
-    if (webinarId) fetchWebinar();
-  }, [webinarId]);
+    if (webinarId && companyId) {
+      fetchWebinar();
+      fetchExistingSelection();
+    }
+  }, [webinarId, companyId]);
 
   const fetchWebinar = async () => {
     setLoading(true);
@@ -87,6 +109,23 @@ const WebinarCatalogDetail = () => {
     if (!moduleRes.error && moduleRes.data) setWebinar(moduleRes.data as WebinarDetail);
     if (!sessionsRes.error && sessionsRes.data) setSessions(sessionsRes.data);
     setLoading(false);
+  };
+
+  const fetchExistingSelection = async () => {
+    if (!companyId || !webinarId) return;
+    const { data } = await supabase
+      .from("company_webinar_selections")
+      .select("session_id, webinar_sessions(id, session_date, registration_url)")
+      .eq("company_id", companyId)
+      .eq("module_id", Number(webinarId))
+      .single();
+
+    if (data && data.webinar_sessions) {
+      const session = data.webinar_sessions as unknown as WebinarSession;
+      setSelectedSession(session);
+      setSessionLocked(true);
+      setWorkflowStep("kit");
+    }
   };
 
   // Build a combined list of all available dates (sessions table + legacy webinar_date)
@@ -129,9 +168,56 @@ const WebinarCatalogDetail = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSelectDate = (dateItem: { id: string; date: string; url: string | null }) => {
-    setSelectedSession({ id: dateItem.id, session_date: dateItem.date, registration_url: dateItem.url });
-    setWorkflowStep("kit");
+  // Show confirmation dialog instead of directly selecting
+  const handleDateClick = (dateItem: { id: string; date: string; url: string | null }) => {
+    setPendingDateItem(dateItem);
+    setConfirmDialogOpen(true);
+  };
+
+  // Confirm and persist the selection
+  const handleConfirmSelection = async () => {
+    if (!pendingDateItem || !companyId || !webinarId) return;
+
+    // Legacy dates can't be persisted (no session_id in webinar_sessions)
+    if (pendingDateItem.id === "legacy") {
+      setSelectedSession({ id: pendingDateItem.id, session_date: pendingDateItem.date, registration_url: pendingDateItem.url });
+      setSessionLocked(true);
+      setWorkflowStep("kit");
+      setConfirmDialogOpen(false);
+      setPendingDateItem(null);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("company_webinar_selections")
+        .insert({
+          company_id: companyId,
+          module_id: Number(webinarId),
+          session_id: pendingDateItem.id,
+          selected_by: user?.id,
+        });
+
+      if (error) throw error;
+
+      setSelectedSession({ id: pendingDateItem.id, session_date: pendingDateItem.date, registration_url: pendingDateItem.url });
+      setSessionLocked(true);
+      setWorkflowStep("kit");
+      toast.success("Session confirmée ! Vous pouvez maintenant communiquer à vos équipes.");
+    } catch (error: any) {
+      console.error("Error saving selection:", error);
+      if (error?.code === "23505") {
+        toast.error("Une session a déjà été sélectionnée pour ce webinar.");
+        fetchExistingSelection();
+      } else {
+        toast.error("Erreur lors de la sauvegarde de votre choix.");
+      }
+    } finally {
+      setSaving(false);
+      setConfirmDialogOpen(false);
+      setPendingDateItem(null);
+    }
   };
 
   if (loading) {
@@ -318,7 +404,7 @@ const WebinarCatalogDetail = () => {
                         <Button
                           onClick={() => {
                             if (allDates.length === 1) {
-                              handleSelectDate(allDates[0]);
+                              handleDateClick(allDates[0]);
                             } else {
                               setWorkflowStep("select-date");
                             }
@@ -344,14 +430,14 @@ const WebinarCatalogDetail = () => {
                       <div className="space-y-2">
                         {allDates.map((dateItem) => {
                           const dateObj = new Date(dateItem.date);
-                          const isPast = dateObj < new Date();
+                          const isDatePast = dateObj < new Date();
                           return (
                             <button
                               key={dateItem.id}
-                              disabled={isPast}
-                              onClick={() => handleSelectDate(dateItem)}
+                              disabled={isDatePast}
+                              onClick={() => handleDateClick(dateItem)}
                               className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                                isPast
+                                isDatePast
                                   ? "opacity-50 cursor-not-allowed bg-muted/30"
                                   : "hover:border-primary/50 hover:bg-primary/5 cursor-pointer"
                               }`}
@@ -365,7 +451,7 @@ const WebinarCatalogDetail = () => {
                                     {format(dateObj, "'à' HH:mm", { locale: fr })}
                                   </p>
                                 </div>
-                                {isPast ? (
+                                {isDatePast ? (
                                   <Badge variant="outline" className="text-xs">Passé</Badge>
                                 ) : (
                                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -390,10 +476,22 @@ const WebinarCatalogDetail = () => {
                   {workflowStep === "kit" && selectedSession && (
                     <>
                       <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
-                        <p className="text-xs text-muted-foreground">Date sélectionnée</p>
-                        <p className="text-sm font-medium">
-                          {format(new Date(selectedSession.session_date), "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr })}
-                        </p>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Date sélectionnée</p>
+                            <p className="text-sm font-medium">
+                              {format(new Date(selectedSession.session_date), "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr })}
+                            </p>
+                          </div>
+                          {sessionLocked && (
+                            <Lock className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+                        {sessionLocked && (
+                          <p className="text-xs text-muted-foreground mt-1 italic">
+                            Ce choix est définitif
+                          </p>
+                        )}
                       </div>
 
                       {/* Copy link */}
@@ -424,19 +522,6 @@ const WebinarCatalogDetail = () => {
                         <Mail className="h-4 w-4" />
                         Générer le kit de communication
                       </Button>
-
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedSession(null);
-                          setWorkflowStep(allDates.length > 1 ? "select-date" : "info");
-                        }}
-                        className="w-full"
-                      >
-                        <ArrowLeft className="h-3 w-3 mr-1" />
-                        Changer de date
-                      </Button>
                     </>
                   )}
                 </CardContent>
@@ -460,6 +545,43 @@ const WebinarCatalogDetail = () => {
           </div>
         </div>
       </main>
+
+      {/* Confirmation AlertDialog */}
+      <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer votre choix de session</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Vous êtes sur le point de sélectionner la session suivante pour le webinar <strong>{webinar.title}</strong> :
+              </p>
+              {pendingDateItem && (
+                <div className="bg-primary/5 rounded-lg p-3 border border-primary/20 text-foreground">
+                  <p className="font-medium">
+                    {format(new Date(pendingDateItem.date), "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr })}
+                  </p>
+                </div>
+              )}
+              <p className="text-destructive font-medium">
+                ⚠️ Attention : ce choix est définitif. Vous ne pourrez pas revenir en arrière ni changer de date.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={saving}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSelection} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Confirmation...
+                </>
+              ) : (
+                "Confirmer cette date"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Communication Kit Dialog */}
       <Dialog open={showCommKit} onOpenChange={setShowCommKit}>
