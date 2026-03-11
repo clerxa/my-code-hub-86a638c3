@@ -60,6 +60,7 @@ export function WebinarSessionsManager({ moduleId }: WebinarSessionsManagerProps
           id: s.id,
           session_date: toDatetimeLocal(s.session_date),
           registration_url: s.registration_url || "",
+          livestorm_session_id: s.livestorm_session_id || "",
         }))
       );
     }
