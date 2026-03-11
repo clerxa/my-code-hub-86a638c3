@@ -277,6 +277,16 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="company_name">Entreprise</Label>
+              <Input
+                id="company_name"
+                value={proposalData.company_name}
+                onChange={(e) => setProposalData(prev => ({ ...prev, company_name: e.target.value }))}
+                readOnly
+                className="bg-muted/50"
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="theme_title">Titre du thème *</Label>
               <Input
                 id="theme_title"
