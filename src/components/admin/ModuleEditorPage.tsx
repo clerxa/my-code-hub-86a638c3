@@ -19,6 +19,7 @@ import { QuizEditor } from "./QuizEditor";
 import { FormationContentEditor } from "./FormationContentEditor";
 import { ImageUpload } from "./ImageUpload";
 import { WebinarCompanyAssignment } from "./WebinarCompanyAssignment";
+import { WebinarSessionsManager } from "./WebinarSessionsManager";
 import { ModulePreviewDialog } from "./ModulePreviewDialog";
 import { SlidesData, SLIDE_TEMPLATES, applyTemplate } from "@/types/slides";
 
@@ -673,6 +674,9 @@ export const ModuleEditorPage = () => {
                     placeholder='<iframe width="100%" height="480" frameborder="0" src="https://app.livestorm.co/..."></iframe>'
                     rows={4}
                   />
+                </div>
+                <div className="border-t pt-4">
+                  <WebinarSessionsManager moduleId={isEditing && moduleId ? parseInt(moduleId) : null} />
                 </div>
                 <WebinarCompanyAssignment 
                   moduleId={isEditing && moduleId ? parseInt(moduleId) : null}

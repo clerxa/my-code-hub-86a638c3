@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   Loader2,
   Lightbulb,
+  ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -40,6 +41,12 @@ interface WebinarDetail {
   duration: string | null;
 }
 
+interface WebinarSession {
+  id: string;
+  session_date: string;
+  registration_url: string | null;
+}
+
 function stripHtmlAndFormat(html: string): string {
   const clean = DOMPurify.sanitize(html, { ALLOWED_TAGS: [] });
   return clean.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
@@ -49,9 +56,14 @@ const WebinarCatalogDetail = () => {
   const { id: companyId, webinarId } = useParams<{ id: string; webinarId: string }>();
   const navigate = useNavigate();
   const [webinar, setWebinar] = useState<WebinarDetail | null>(null);
+  const [sessions, setSessions] = useState<WebinarSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [showCommKit, setShowCommKit] = useState(false);
+
+  // Workflow state: "info" → "select-date" → "kit"
+  const [workflowStep, setWorkflowStep] = useState<"info" | "select-date" | "kit">("info");
+  const [selectedSession, setSelectedSession] = useState<WebinarSession | null>(null);
 
   useEffect(() => {
     if (webinarId) fetchWebinar();
@@ -59,22 +71,67 @@ const WebinarCatalogDetail = () => {
 
   const fetchWebinar = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("modules")
-      .select("id, title, description, theme, webinar_date, webinar_registration_url, webinar_image_url, duration")
-      .eq("id", Number(webinarId))
-      .single();
+    const [moduleRes, sessionsRes] = await Promise.all([
+      supabase
+        .from("modules")
+        .select("id, title, description, theme, webinar_date, webinar_registration_url, webinar_image_url, duration")
+        .eq("id", Number(webinarId))
+        .single(),
+      supabase
+        .from("webinar_sessions")
+        .select("id, session_date, registration_url")
+        .eq("module_id", Number(webinarId))
+        .order("session_date", { ascending: true }),
+    ]);
 
-    if (!error && data) setWebinar(data as WebinarDetail);
+    if (!moduleRes.error && moduleRes.data) setWebinar(moduleRes.data as WebinarDetail);
+    if (!sessionsRes.error && sessionsRes.data) setSessions(sessionsRes.data);
     setLoading(false);
   };
 
-  const handleCopyLink = async () => {
-    if (!webinar?.webinar_registration_url) return;
-    await navigator.clipboard.writeText(webinar.webinar_registration_url);
+  // Build a combined list of all available dates (sessions table + legacy webinar_date)
+  const allDates = (() => {
+    const dates: { id: string; date: string; url: string | null; isLegacy: boolean }[] = [];
+    
+    sessions.forEach((s) => {
+      dates.push({ id: s.id, date: s.session_date, url: s.registration_url, isLegacy: false });
+    });
+
+    // Add legacy date if no sessions exist or if it's different from all sessions
+    if (webinar?.webinar_date) {
+      const legacyDate = new Date(webinar.webinar_date).getTime();
+      const alreadyExists = sessions.some(
+        (s) => Math.abs(new Date(s.session_date).getTime() - legacyDate) < 60000
+      );
+      if (!alreadyExists) {
+        dates.push({
+          id: "legacy",
+          date: webinar.webinar_date,
+          url: webinar.webinar_registration_url,
+          isLegacy: true,
+        });
+      }
+    }
+
+    return dates.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  })();
+
+  const activeUrl = selectedSession?.registration_url 
+    || (selectedSession && allDates.find(d => d.id === "legacy")?.url) 
+    || webinar?.webinar_registration_url;
+
+  const handleCopyLink = async (url?: string | null) => {
+    const linkToCopy = url || activeUrl;
+    if (!linkToCopy) return;
+    await navigator.clipboard.writeText(linkToCopy);
     setCopied(true);
     toast.success("Lien d'inscription copié !");
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSelectDate = (dateItem: { id: string; date: string; url: string | null }) => {
+    setSelectedSession({ id: dateItem.id, session_date: dateItem.date, registration_url: dateItem.url });
+    setWorkflowStep("kit");
   };
 
   if (loading) {
@@ -100,7 +157,6 @@ const WebinarCatalogDetail = () => {
   }
 
   const cleanDescription = stripHtmlAndFormat(webinar.description || "");
-  const isPast = webinar.webinar_date ? new Date(webinar.webinar_date) < new Date() : false;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -131,10 +187,12 @@ const WebinarCatalogDetail = () => {
                 </h1>
 
                 <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                  {webinar.webinar_date && (
+                  {allDates.length > 0 && (
                     <div className="flex items-center gap-1.5">
                       <Calendar className="h-4 w-4" />
-                      {format(new Date(webinar.webinar_date), "PPP 'à' HH:mm", { locale: fr })}
+                      {allDates.length === 1
+                        ? format(new Date(allDates[0].date), "PPP 'à' HH:mm", { locale: fr })
+                        : `${allDates.length} dates disponibles`}
                     </div>
                   )}
                   {webinar.duration && (
@@ -229,61 +287,158 @@ const WebinarCatalogDetail = () => {
               </Card>
             </div>
 
-            {/* Right sidebar: Actions */}
+            {/* Right sidebar: Workflow */}
             <div className="space-y-4">
-              {/* Copy registration link */}
-              {webinar.webinar_registration_url && (
-                <Card className="border-primary/30">
-                  <CardContent className="p-5 space-y-3">
-                    <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <Copy className="h-4 w-4 text-primary" />
-                      Lien d'inscription
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      Copiez ce lien et partagez-le à vos collaborateurs par email, Slack, Teams ou intranet.
-                    </p>
-                    <div className="bg-muted/50 rounded-md p-2.5 text-xs text-muted-foreground break-all font-mono select-all border">
-                      {webinar.webinar_registration_url}
-                    </div>
-                    <Button
-                      onClick={handleCopyLink}
-                      className="w-full gap-2"
-                      variant={copied ? "outline" : "default"}
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="h-4 w-4" />
-                          Copié !
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-4 w-4" />
-                          Copier le lien
-                        </>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
+              {/* Workflow stepper */}
+              <Card className="border-primary/30 overflow-hidden">
+                <div className="bg-gradient-to-r from-primary/10 to-secondary/10 px-5 py-3 border-b">
+                  <h3 className="text-sm font-semibold">Proposer ce webinar</h3>
+                  <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                    <span className={workflowStep === "info" ? "text-primary font-medium" : ""}>
+                      1. Découvrir
+                    </span>
+                    <ChevronRight className="h-3 w-3" />
+                    <span className={workflowStep === "select-date" ? "text-primary font-medium" : ""}>
+                      2. Choisir la date
+                    </span>
+                    <ChevronRight className="h-3 w-3" />
+                    <span className={workflowStep === "kit" ? "text-primary font-medium" : ""}>
+                      3. Communiquer
+                    </span>
+                  </div>
+                </div>
 
-              {/* Communication kit */}
-              <Card>
                 <CardContent className="p-5 space-y-3">
-                  <h3 className="text-sm font-semibold flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-primary" />
-                    Kit de communication
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Générez un kit prêt à l'emploi pour promouvoir ce webinar auprès de vos équipes.
-                  </p>
-                  <Button
-                    onClick={() => setShowCommKit(true)}
-                    variant="outline"
-                    className="w-full gap-2"
-                  >
-                    <Mail className="h-4 w-4" />
-                    Générer le kit
-                  </Button>
+                  {workflowStep === "info" && (
+                    <>
+                      <p className="text-xs text-muted-foreground">
+                        Vous avez découvert ce webinar. Choisissez maintenant une date pour le proposer à vos salariés.
+                      </p>
+                      {allDates.length > 0 ? (
+                        <Button
+                          onClick={() => {
+                            if (allDates.length === 1) {
+                              handleSelectDate(allDates[0]);
+                            } else {
+                              setWorkflowStep("select-date");
+                            }
+                          }}
+                          className="w-full gap-2"
+                        >
+                          <Calendar className="h-4 w-4" />
+                          {allDates.length === 1 ? "Sélectionner cette date" : "Choisir une date"}
+                        </Button>
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic">
+                          Aucune date programmée pour le moment.
+                        </p>
+                      )}
+                    </>
+                  )}
+
+                  {workflowStep === "select-date" && (
+                    <>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Sélectionnez la date qui convient le mieux à vos équipes :
+                      </p>
+                      <div className="space-y-2">
+                        {allDates.map((dateItem) => {
+                          const dateObj = new Date(dateItem.date);
+                          const isPast = dateObj < new Date();
+                          return (
+                            <button
+                              key={dateItem.id}
+                              disabled={isPast}
+                              onClick={() => handleSelectDate(dateItem)}
+                              className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                                isPast
+                                  ? "opacity-50 cursor-not-allowed bg-muted/30"
+                                  : "hover:border-primary/50 hover:bg-primary/5 cursor-pointer"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-medium">
+                                    {format(dateObj, "EEEE d MMMM yyyy", { locale: fr })}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {format(dateObj, "'à' HH:mm", { locale: fr })}
+                                  </p>
+                                </div>
+                                {isPast ? (
+                                  <Badge variant="outline" className="text-xs">Passé</Badge>
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setWorkflowStep("info")}
+                        className="w-full mt-1"
+                      >
+                        <ArrowLeft className="h-3 w-3 mr-1" />
+                        Retour
+                      </Button>
+                    </>
+                  )}
+
+                  {workflowStep === "kit" && selectedSession && (
+                    <>
+                      <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
+                        <p className="text-xs text-muted-foreground">Date sélectionnée</p>
+                        <p className="text-sm font-medium">
+                          {format(new Date(selectedSession.session_date), "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr })}
+                        </p>
+                      </div>
+
+                      {/* Copy link */}
+                      {(selectedSession.registration_url || webinar.webinar_registration_url) && (
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium">Lien d'inscription</p>
+                          <div className="bg-muted/50 rounded-md p-2 text-xs text-muted-foreground break-all font-mono select-all border">
+                            {selectedSession.registration_url || webinar.webinar_registration_url}
+                          </div>
+                          <Button
+                            onClick={() => handleCopyLink(selectedSession.registration_url || webinar.webinar_registration_url)}
+                            className="w-full gap-2"
+                            size="sm"
+                            variant={copied ? "outline" : "default"}
+                          >
+                            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                            {copied ? "Copié !" : "Copier le lien"}
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Generate kit */}
+                      <Button
+                        onClick={() => setShowCommKit(true)}
+                        variant="outline"
+                        className="w-full gap-2"
+                      >
+                        <Mail className="h-4 w-4" />
+                        Générer le kit de communication
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedSession(null);
+                          setWorkflowStep(allDates.length > 1 ? "select-date" : "info");
+                        }}
+                        className="w-full"
+                      >
+                        <ArrowLeft className="h-3 w-3 mr-1" />
+                        Changer de date
+                      </Button>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
