@@ -149,6 +149,7 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
             theme_description: proposalData.theme_description,
             contact_name: proposalData.contact_name,
             contact_email: proposalData.contact_email,
+            company_name: proposalData.company_name,
             company_id: companyId,
           },
         },
