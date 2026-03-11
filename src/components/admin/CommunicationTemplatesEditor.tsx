@@ -12,9 +12,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const communicationTypes = [
   { value: "email", label: "Email", icon: Mail },
+  { value: "message", label: "Message", icon: MessageSquare },
   { value: "intranet", label: "Article Intranet", icon: FileText },
-  { value: "slack", label: "Message Slack", icon: MessageSquare },
-  { value: "teams", label: "Message Teams", icon: MessageSquare },
 ];
 
 const deadlines = [
