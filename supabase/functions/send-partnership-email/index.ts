@@ -200,6 +200,79 @@ const handler = async (req: Request): Promise<Response> => {
         ${data.message ? `<p><strong>Message :</strong><br />${sanitizeMultilineForEmail(data.message)}</p>` : ""}
         <p><em>Date de la demande : ${new Date().toLocaleDateString("fr-FR")}</em></p>
       `;
+    } else if (type === "webinar_theme_proposal") {
+      // Validate webinar theme proposal fields
+      if (!isWithinLength(data.theme_title, 200) ||
+          !isWithinLength(data.theme_description, MAX_MESSAGE_LENGTH) ||
+          !isWithinLength(data.contact_name, MAX_NAME_LENGTH)) {
+        return new Response(
+          JSON.stringify({ error: "Input exceeds maximum length" }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+
+      if (data.contact_email && !isValidEmail(data.contact_email)) {
+        return new Response(
+          JSON.stringify({ error: "Invalid email format" }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+
+      // Fetch company name
+      let companyName = "Non spécifié";
+      if (data.company_id) {
+        const { data: companyData } = await supabase
+          .from("companies")
+          .select("name")
+          .eq("id", data.company_id)
+          .single();
+        if (companyData) companyName = companyData.name;
+      }
+
+      recipientEmail = "xavier.clermont@perlib.fr";
+      emailSubject = "Nouvelle proposition de thème webinar - FinCare";
+
+      emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #1a1a2e; border-bottom: 2px solid #4f46e5; padding-bottom: 10px;">💡 Nouvelle proposition de thème webinar</h2>
+          
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr>
+              <td style="padding: 12px; background-color: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold; width: 40%;">Thème proposé</td>
+              <td style="padding: 12px; border: 1px solid #e9ecef; font-weight: bold; color: #4f46e5;">${sanitizeForEmail(data.theme_title)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; background-color: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;">Entreprise</td>
+              <td style="padding: 12px; border: 1px solid #e9ecef;">${sanitizeForEmail(companyName)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; background-color: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;">Contact</td>
+              <td style="padding: 12px; border: 1px solid #e9ecef;">${sanitizeForEmail(data.contact_name)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; background-color: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;">Email</td>
+              <td style="padding: 12px; border: 1px solid #e9ecef;"><a href="mailto:${sanitizeForEmail(data.contact_email)}" style="color: #4f46e5;">${sanitizeForEmail(data.contact_email)}</a></td>
+            </tr>
+          </table>
+          
+          ${data.theme_description ? `
+          <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #4f46e5; border-radius: 4px;">
+            <p style="margin: 0 0 10px 0; font-weight: bold; color: #1a1a2e;">📝 Description / Motivation :</p>
+            <p style="margin: 0; color: #495057; white-space: pre-wrap;">${sanitizeMultilineForEmail(data.theme_description)}</p>
+          </div>
+          ` : ""}
+          
+          <p style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 12px;">
+            📅 Date de la proposition : ${new Date().toLocaleDateString("fr-FR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </div>
+      `;
     } else if (type === "contact_request") {
       // Support both camelCase (from frontend) and snake_case field names
       const firstName = data.firstName || data.first_name;
