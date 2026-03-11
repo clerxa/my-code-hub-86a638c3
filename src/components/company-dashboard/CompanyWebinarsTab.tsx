@@ -192,12 +192,10 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
         )}
       </TableCell>
       <TableCell>
-        {webinar.module_duration ? (
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Clock className="h-3 w-3" />
-            {webinar.module_duration}
-          </div>
-        ) : "-"}
+        <div className="flex items-center gap-1 text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          {webinar.module_duration || "45 min"}
+        </div>
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
