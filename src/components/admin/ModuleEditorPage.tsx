@@ -136,6 +136,7 @@ export const ModuleEditorPage = () => {
     themes: [] as string[],
     simulator_id: "",
     is_optional: false,
+    webinar_category: "a_la_demande" as string,
     assigned_companies: [] as string[],
     slides_data: { slides: [], transition: 'fade' } as SlidesData
   });
