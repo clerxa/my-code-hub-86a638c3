@@ -88,6 +88,7 @@ import PensionTracker from "./pages/PensionTracker";
 import BudgetPage from "./pages/BudgetPage";
 import DecryptezPER from "./pages/DecryptezPER";
 import ProspectPresentation from "./pages/ProspectPresentation";
+import WebinarCatalogDetail from "./pages/WebinarCatalogDetail";
 import { Navigate } from "react-router-dom";
 
 /**
@@ -326,6 +327,14 @@ const App = () => (
               element={
                 <ProtectedRoute requireCompanyContact={true}>
                   <CompanyDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/company/:id/dashboard/webinar/:webinarId"
+              element={
+                <ProtectedRoute requireCompanyContact={true}>
+                  <WebinarCatalogDetail />
                 </ProtectedRoute>
               }
             />
