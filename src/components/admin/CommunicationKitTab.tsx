@@ -404,6 +404,18 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
     const signupSlug = company?.signup_slug;
     const signupUrl = signupSlug ? `https://myfincare.fr/join/${signupSlug}` : "";
 
+    // Pre-compute signup CTA block based on type (avoids broken nested conditionals in templates)
+    let signupCta = "";
+    if (signupUrl) {
+      if (communicationType === "email") {
+        signupCta = `\n🚀 Pas encore sur myfincare ? Rejoignez l'aventure !\nAccédez gratuitement à tous nos outils, simulateurs et formations pour prendre en main vos finances personnelles. Vos collègues y sont déjà !\n👉 Créez votre compte en 30 secondes : ${signupUrl}\n`;
+      } else if (communicationType === "intranet") {
+        signupCta = `\n### 🚀 Pas encore inscrit(e) sur myfincare ?\n\n**Rejoignez vos collègues sur la plateforme !** Accédez gratuitement à tous nos outils, simulateurs et formations pour prendre en main vos finances personnelles. L'inscription prend 30 secondes.\n\n👉 [Créez votre compte maintenant](${signupUrl})\n`;
+      } else {
+        signupCta = `\n🚀 **Pas encore sur myfincare ?** Rejoignez vos collègues ! Accédez gratuitement à tous nos outils et formations pour vos finances perso 💰\n👉 Créez votre compte en 30 secondes : ${signupUrl}\n`;
+      }
+    }
+
     const variables = {
       moduleTitle: module.title,
       moduleDescription: module.description,
@@ -413,7 +425,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
       partnershipType: customFields.partnershipType,
       contactName: customFields.contactName,
       bookingUrl: bookingUrl,
-      signupUrl: signupUrl,
+      signupCta: signupCta,
       signature: generateSignature(),
       todayDate: todayFormatted,
       daysUntilWebinar: daysInfo.label,
