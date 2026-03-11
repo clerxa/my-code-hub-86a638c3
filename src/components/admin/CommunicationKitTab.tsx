@@ -124,7 +124,10 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
         .order("session_date", { ascending: true });
       if (!error && data) {
         setSessions(data);
-        if (data.length > 0) {
+        // Pre-select session from prop, or first session
+        if (preselectedSessionId && data.some(s => s.id === preselectedSessionId)) {
+          setSelectedSession(preselectedSessionId);
+        } else if (data.length > 0) {
           setSelectedSession(data[0].id);
         } else {
           setSelectedSession("");
