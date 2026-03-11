@@ -1,331 +1,503 @@
-import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { useState, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import {
+  Wallet, ShoppingCart, PiggyBank, ArrowRight, ArrowLeft,
+  CheckCircle2, AlertTriangle, TrendingUp, RotateCcw, Info,
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-const CATEGORIES = {
-  incompressibles: {
-    label: "Dépenses incompressibles",
+/* ------------------------------------------------------------------ */
+/*  Data                                                               */
+/* ------------------------------------------------------------------ */
+
+const STEPS_CONFIG = [
+  {
+    key: "revenus" as const,
+    label: "Vos revenus",
+    icon: Wallet,
+    description: "Renseignez vos revenus mensuels nets après prélèvement à la source.",
+    targetPct: null,
+  },
+  {
+    key: "incompressibles" as const,
+    label: "Vos besoins",
+    icon: ShoppingCart,
+    description: "Ce sont les dépenses que vous ne pouvez pas supprimer : logement, transport, assurances… L'objectif est de les maintenir sous 50 % de vos revenus.",
     targetPct: 50,
-    colorClass: "bg-primary",
-    textClass: "text-primary",
-    items: [
-      { key: "logement", label: "🏠 Logement", defaultVal: 800 },
-      { key: "impots", label: "📋 Impôts & prélèvements", defaultVal: 200 },
-      { key: "credit", label: "💳 Remboursement crédit", defaultVal: 150 },
-      { key: "transport", label: "🚌 Transport fixe", defaultVal: 150 },
-      { key: "assurances", label: "🛡️ Assurances", defaultVal: 100 },
-      { key: "abonnements", label: "📱 Abonnements", defaultVal: 100 },
-    ],
   },
-  compressibles: {
-    label: "Dépenses compressibles",
+  {
+    key: "compressibles" as const,
+    label: "Vos envies",
+    icon: ShoppingCart,
+    description: "Les dépenses sur lesquelles vous avez un levier : alimentation, loisirs, shopping… Visez 30 % maximum de vos revenus.",
     targetPct: 30,
-    colorClass: "bg-secondary",
-    textClass: "text-secondary",
-    items: [
-      { key: "alimentation", label: "🛒 Alimentation", defaultVal: 400 },
-      { key: "loisirs", label: "🎭 Loisirs & sorties", defaultVal: 200 },
-      { key: "shopping", label: "👜 Shopping", defaultVal: 150 },
-      { key: "divers", label: "📦 Divers", defaultVal: 100 },
-      { key: "sante", label: "💊 Santé", defaultVal: 50 },
-    ],
   },
-  epargne: {
-    label: "Capacité d'épargne",
+  {
+    key: "epargne" as const,
+    label: "Votre épargne",
+    icon: PiggyBank,
+    description: "L'épargne n'est pas ce qui reste — c'est ce que vous décidez de mettre de côté. Visez au moins 20 % de vos revenus.",
     targetPct: 20,
-    colorClass: "bg-accent",
-    textClass: "text-accent",
-    items: [
-      { key: "ep_precaution", label: "🏦 Épargne de précaution", defaultVal: 200 },
-      { key: "ep_projets", label: "🎯 Épargne projets", defaultVal: 200 },
-      { key: "investissement", label: "📈 Investissement long terme", defaultVal: 200 },
-    ],
   },
-} as const;
+];
 
-type CatKey = keyof typeof CATEGORIES;
+const EXPENSE_ITEMS = {
+  incompressibles: [
+    { key: "logement", label: "Logement", emoji: "🏠", defaultVal: 800, tooltip: "Loyer ou mensualité de crédit immobilier" },
+    { key: "impots", label: "Impôts & prélèvements", emoji: "📋", defaultVal: 200, tooltip: "Impôts non prélevés à la source, taxe foncière mensuelle…" },
+    { key: "credit", label: "Remboursement crédit", emoji: "💳", defaultVal: 150, tooltip: "Crédits conso, auto, étudiant…" },
+    { key: "transport", label: "Transport fixe", emoji: "🚌", defaultVal: 150, tooltip: "Abonnement transport, essence, leasing…" },
+    { key: "assurances", label: "Assurances", emoji: "🛡️", defaultVal: 100, tooltip: "Habitation, auto, santé complémentaire…" },
+    { key: "abonnements", label: "Abonnements", emoji: "📱", defaultVal: 100, tooltip: "Téléphone, internet, streaming…" },
+  ],
+  compressibles: [
+    { key: "alimentation", label: "Alimentation", emoji: "🛒", defaultVal: 400, tooltip: "Courses, cantine, livraisons…" },
+    { key: "loisirs", label: "Loisirs & sorties", emoji: "🎭", defaultVal: 200, tooltip: "Restaurants, cinéma, sport, voyages…" },
+    { key: "shopping", label: "Shopping", emoji: "👜", defaultVal: 150, tooltip: "Vêtements, équipement, déco…" },
+    { key: "divers", label: "Divers", emoji: "📦", defaultVal: 100, tooltip: "Cadeaux, imprévus…" },
+    { key: "sante", label: "Santé", emoji: "💊", defaultVal: 50, tooltip: "Pharmacie, consultations non remboursées…" },
+  ],
+  epargne: [
+    { key: "ep_precaution", label: "Épargne de précaution", emoji: "🏦", defaultVal: 200, tooltip: "Livret A, LDDS — votre matelas de sécurité" },
+    { key: "ep_projets", label: "Épargne projets", emoji: "🎯", defaultVal: 200, tooltip: "Vacances, apport immobilier, achat important…" },
+    { key: "investissement", label: "Investissement long terme", emoji: "📈", defaultVal: 200, tooltip: "PEA, assurance-vie, SCPI…" },
+  ],
+};
+
+type StepKey = "revenus" | "incompressibles" | "compressibles" | "epargne";
 
 const fmt = (n: number) => n.toLocaleString("fr-FR") + " €";
 
+/* ------------------------------------------------------------------ */
+/*  Slider item                                                        */
+/* ------------------------------------------------------------------ */
+
+function BudgetSliderItem({
+  emoji,
+  label,
+  tooltip,
+  value,
+  max,
+  step,
+  colorClass,
+  onChange,
+}: {
+  emoji: string;
+  label: string;
+  tooltip: string;
+  value: number;
+  max: number;
+  step: number;
+  colorClass: string;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div className="space-y-2 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
+      <div className="flex items-center justify-between gap-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <label className="text-sm text-foreground flex items-center gap-2 cursor-help">
+                <span>{emoji}</span>
+                <span>{label}</span>
+                <Info className="h-3 w-3 text-muted-foreground/50" />
+              </label>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[220px] text-xs">
+              {tooltip}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <div className="flex items-center gap-1">
+          <Input
+            type="number"
+            min={0}
+            max={max}
+            step={step}
+            value={value}
+            onChange={(e) => onChange(Math.max(0, Math.min(max, Number(e.target.value))))}
+            className={`w-24 text-right font-mono text-sm h-8 ${colorClass}`}
+          />
+          <span className="text-xs text-muted-foreground">€</span>
+        </div>
+      </div>
+      <Slider
+        min={0}
+        max={max}
+        step={step}
+        value={[value]}
+        onValueChange={([v]) => onChange(v)}
+        className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4"
+      />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main component                                                     */
+/* ------------------------------------------------------------------ */
+
 export function BudgetSimulator() {
+  const [currentStep, setCurrentStep] = useState(0);
   const [salaire, setSalaire] = useState(2600);
   const [autres, setAutres] = useState(400);
   const [values, setValues] = useState<Record<string, number>>(() => {
     const v: Record<string, number> = {};
-    Object.values(CATEGORIES).forEach((cat) =>
-      cat.items.forEach((i) => {
-        v[i.key] = i.defaultVal;
-      })
+    Object.values(EXPENSE_ITEMS).forEach((items) =>
+      items.forEach((i) => { v[i.key] = i.defaultVal; })
     );
     return v;
   });
-  const [activeTab, setActiveTab] = useState<CatKey>("incompressibles");
 
   const revenus = salaire + autres;
-  const totalIncomp = CATEGORIES.incompressibles.items.reduce((s, i) => s + (values[i.key] ?? 0), 0);
-  const totalComp = CATEGORIES.compressibles.items.reduce((s, i) => s + (values[i.key] ?? 0), 0);
-  const totalEp = CATEGORIES.epargne.items.reduce((s, i) => s + (values[i.key] ?? 0), 0);
-  const solde = revenus - totalIncomp - totalComp - totalEp;
-  const pctIncomp = revenus > 0 ? (totalIncomp / revenus) * 100 : 0;
-  const pctComp = revenus > 0 ? (totalComp / revenus) * 100 : 0;
-  const pctEp = revenus > 0 ? (totalEp / revenus) * 100 : 0;
+  const totalByCategory = useMemo(() => ({
+    incompressibles: EXPENSE_ITEMS.incompressibles.reduce((s, i) => s + (values[i.key] ?? 0), 0),
+    compressibles: EXPENSE_ITEMS.compressibles.reduce((s, i) => s + (values[i.key] ?? 0), 0),
+    epargne: EXPENSE_ITEMS.epargne.reduce((s, i) => s + (values[i.key] ?? 0), 0),
+  }), [values]);
 
-  const totals: Record<CatKey, number> = { incompressibles: totalIncomp, compressibles: totalComp, epargne: totalEp };
-  const pcts: Record<CatKey, number> = { incompressibles: pctIncomp, compressibles: pctComp, epargne: pctEp };
+  const solde = revenus - totalByCategory.incompressibles - totalByCategory.compressibles - totalByCategory.epargne;
+  const pctByCat = useMemo(() => ({
+    incompressibles: revenus > 0 ? (totalByCategory.incompressibles / revenus) * 100 : 0,
+    compressibles: revenus > 0 ? (totalByCategory.compressibles / revenus) * 100 : 0,
+    epargne: revenus > 0 ? (totalByCategory.epargne / revenus) * 100 : 0,
+  }), [revenus, totalByCategory]);
 
-  const updateValue = (key: string, val: number) => {
-    setValues((prev) => ({ ...prev, [key]: Math.max(0, val) }));
-  };
+  const updateValue = useCallback((key: string, val: number) => {
+    setValues((prev) => ({ ...prev, [key]: val }));
+  }, []);
 
-  const renderAdvice = (catKey: CatKey, pct: number) => {
-    const cat = CATEGORIES[catKey];
-    const target = cat.targetPct;
-    let icon: string;
-    let msg: string;
-    let colorCls: string;
+  const stepConfig = STEPS_CONFIG[currentStep];
+  const isResults = currentStep === STEPS_CONFIG.length;
 
-    if (catKey === "epargne") {
-      if (pct >= 20) {
-        icon = "🌟"; msg = "Excellent ! Vous atteignez l'objectif des 20%."; colorCls = "text-accent";
-      } else if (pct >= 10) {
-        icon = "✅"; msg = "Bon début, mais visez 20% pour sécuriser vos projets."; colorCls = "text-green-400";
-      } else {
-        icon = "⚠️"; msg = "Votre épargne est insuffisante. Réduisez vos dépenses compressibles."; colorCls = "text-destructive";
-      }
-    } else {
-      if (pct <= target) {
-        icon = "✅"; msg = `Vous êtes dans la cible (≤${target}%).`; colorCls = "text-green-400";
-      } else {
-        icon = "⚠️"; msg = `Vous dépassez la cible de ${target}%. Cherchez des postes à réduire.`; colorCls = "text-destructive";
-      }
-    }
+  const canGoNext = currentStep < STEPS_CONFIG.length;
+  const canGoPrev = currentStep > 0;
+
+  /* ---------------------------------------------------------------- */
+  /*  Step renderers                                                   */
+  /* ---------------------------------------------------------------- */
+
+  const renderRevenus = () => (
+    <div className="space-y-6">
+      <BudgetSliderItem
+        emoji="💰"
+        label="Salaire net mensuel"
+        tooltip="Votre salaire net après prélèvement à la source"
+        value={salaire}
+        max={100000}
+        step={50}
+        colorClass="text-primary"
+        onChange={setSalaire}
+      />
+      <BudgetSliderItem
+        emoji="💎"
+        label="Autres revenus"
+        tooltip="Revenus locatifs, placements, pensions, freelance…"
+        value={autres}
+        max={500000}
+        step={50}
+        colorClass="text-primary"
+        onChange={setAutres}
+      />
+      <div className="flex justify-between items-center border-t border-border/40 pt-4 px-3">
+        <span className="text-sm text-muted-foreground">Total revenus mensuels</span>
+        <span className="text-2xl font-bold text-foreground font-mono">{fmt(revenus)}</span>
+      </div>
+    </div>
+  );
+
+  const renderCategory = (catKey: "incompressibles" | "compressibles" | "epargne") => {
+    const items = EXPENSE_ITEMS[catKey];
+    const total = totalByCategory[catKey];
+    const pct = pctByCat[catKey];
+    const target = STEPS_CONFIG.find((s) => s.key === catKey)!.targetPct!;
+    const isOk = catKey === "epargne" ? pct >= target : pct <= target;
+    const colorClass = catKey === "incompressibles" ? "text-primary" : catKey === "compressibles" ? "text-secondary" : "text-accent";
+
     return (
-      <div className="rounded-lg bg-muted/30 px-3 py-2 text-xs">
-        <span className={colorCls}>{icon} {msg}</span>
-        <span className="text-muted-foreground"> · Cible : {target}% ({fmt(Math.round(revenus * target / 100))})</span>
+      <div className="space-y-4">
+        {/* Live gauge */}
+        <div className="rounded-lg bg-muted/30 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {isOk ? (
+                <CheckCircle2 className="h-5 w-5 text-green-400" />
+              ) : (
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              )}
+              <span className="text-sm text-foreground font-medium">
+                {Math.round(pct)}% de vos revenus
+              </span>
+            </div>
+            <Badge variant={isOk ? "default" : "destructive"} className="font-mono">
+              Cible : {target}%
+            </Badge>
+          </div>
+          <Progress value={Math.min(pct, 100)} className="h-2.5" />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>{fmt(total)} alloués</span>
+            <span>Cible : {fmt(Math.round(revenus * target / 100))}</span>
+          </div>
+        </div>
+
+        {/* Items */}
+        <div className="space-y-2">
+          {items.map((item) => (
+            <BudgetSliderItem
+              key={item.key}
+              emoji={item.emoji}
+              label={item.label}
+              tooltip={item.tooltip}
+              value={values[item.key] ?? 0}
+              max={20000}
+              step={10}
+              colorClass={colorClass}
+              onChange={(v) => updateValue(item.key, v)}
+            />
+          ))}
+        </div>
       </div>
     );
   };
 
-  const scoreItems = useMemo(() => {
-    return (Object.keys(CATEGORIES) as CatKey[]).map((k) => ({
-      key: k,
-      label: CATEGORIES[k].label,
-      pct: pcts[k],
-      target: CATEGORIES[k].targetPct,
-      textClass: CATEGORIES[k].textClass,
-      ok:
-        k === "epargne" ? pcts[k] >= CATEGORIES[k].targetPct : pcts[k] <= CATEGORIES[k].targetPct,
-    }));
-  }, [pcts]);
+  const renderResults = () => {
+    const categories = [
+      { label: "Besoins (incompressibles)", pct: pctByCat.incompressibles, total: totalByCategory.incompressibles, target: 50, color: "bg-primary", textColor: "text-primary" },
+      { label: "Envies (compressibles)", pct: pctByCat.compressibles, total: totalByCategory.compressibles, target: 30, color: "bg-secondary", textColor: "text-secondary" },
+      { label: "Épargne", pct: pctByCat.epargne, total: totalByCategory.epargne, target: 20, color: "bg-accent", textColor: "text-accent" },
+    ];
 
-  return (
-    <div className="space-y-6">
-      {/* Bloc Revenus */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <Card className="bg-card/60 border-border/40 backdrop-blur-sm">
-          <CardContent className="pt-6 space-y-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Revenus mensuels</p>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm text-foreground">Salaire net</label>
-                  <span className="font-mono text-primary font-bold">{fmt(salaire)}</span>
-                </div>
-                <input type="range" min={0} max={10000000} step={50} value={salaire} onChange={(e) => setSalaire(Number(e.target.value))} className="w-full accent-primary" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm text-foreground">Autres revenus</label>
-                  <span className="font-mono text-primary font-bold">{fmt(autres)}</span>
-                </div>
-                <input type="range" min={0} max={100000} step={50} value={autres} onChange={(e) => setAutres(Number(e.target.value))} className="w-full accent-primary" />
-              </div>
-            </div>
-            <div className="flex justify-between items-center border-t border-border/40 pt-4">
-              <span className="text-sm text-muted-foreground">Total revenus</span>
-              <span className="text-2xl font-bold text-foreground font-mono">{fmt(revenus)}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+    const score = categories.reduce((acc, cat) => {
+      const isEpargne = cat.target === 20;
+      const isOk = isEpargne ? cat.pct >= cat.target : cat.pct <= cat.target;
+      return acc + (isOk ? 1 : 0);
+    }, 0);
 
-      {/* Onglets catégories */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as CatKey)}>
-          <TabsList className="w-full">
-            <TabsTrigger value="incompressibles" className="flex-1 text-xs sm:text-sm">Incompressibles</TabsTrigger>
-            <TabsTrigger value="compressibles" className="flex-1 text-xs sm:text-sm">Compressibles</TabsTrigger>
-            <TabsTrigger value="epargne" className="flex-1 text-xs sm:text-sm">Épargne</TabsTrigger>
-          </TabsList>
+    return (
+      <div className="space-y-6">
+        {/* Score */}
+        <div className="text-center space-y-2">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Votre score 50 / 30 / 20</p>
+          <div className="flex items-center justify-center gap-1">
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: i * 0.15, type: "spring" }}
+              >
+                {i < score ? (
+                  <CheckCircle2 className="h-8 w-8 text-green-400" />
+                ) : (
+                  <AlertTriangle className="h-8 w-8 text-destructive/50" />
+                )}
+              </motion.div>
+            ))}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {score === 3
+              ? "Félicitations ! Votre budget respecte parfaitement la règle 50/30/20."
+              : score === 2
+              ? "Presque ! Un dernier ajustement et vous y êtes."
+              : "Des optimisations sont possibles — consultez les détails ci-dessous."}
+          </p>
+        </div>
 
-          {(Object.keys(CATEGORIES) as CatKey[]).map((catKey) => {
-            const cat = CATEGORIES[catKey];
-            const total = totals[catKey];
-            const pct = pcts[catKey];
-
+        {/* Category breakdown */}
+        <div className="space-y-4">
+          {categories.map((cat) => {
+            const isEpargne = cat.target === 20;
+            const isOk = isEpargne ? cat.pct >= cat.target : cat.pct <= cat.target;
             return (
-              <TabsContent key={catKey} value={catKey}>
-                <Card className="bg-card/60 border-border/40 backdrop-blur-sm">
-                  <CardContent className="pt-6 space-y-4">
-                    {/* Header */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-muted-foreground">{cat.label}</p>
-                        <p className={`font-mono text-xl font-bold ${cat.textClass}`}>{fmt(total)}</p>
-                      </div>
-                      <Badge variant="outline" className={cat.textClass}>{Math.round(pct)}%</Badge>
-                    </div>
-
-                    {renderAdvice(catKey, pct)}
-
-                    {/* Items */}
-                    <div className="space-y-3">
-                      {cat.items.map((item) => (
-                        <div key={item.key} className="space-y-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <label className="text-sm text-foreground flex-1">{item.label}</label>
-                            <input
-                              type="number"
-                              min={0}
-                              step={10}
-                              value={values[item.key] ?? 0}
-                              onChange={(e) => updateValue(item.key, Number(e.target.value))}
-                              className={`w-[72px] bg-muted/30 border border-border/40 rounded px-2 py-1 text-right font-mono text-sm ${cat.textClass} focus:outline-none focus:ring-1 focus:ring-primary/50`}
-                            />
-                          </div>
-                          <input
-                            type="range"
-                            min={0}
-                            max={20000}
-                            step={10}
-                            value={values[item.key] ?? 0}
-                            onChange={(e) => updateValue(item.key, Number(e.target.value))}
-                            className="w-full accent-primary h-1"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+              <motion.div
+                key={cat.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-lg bg-muted/20 p-4 space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {isOk ? <CheckCircle2 className="h-4 w-4 text-green-400" /> : <AlertTriangle className="h-4 w-4 text-destructive" />}
+                    <span className="text-sm font-medium text-foreground">{cat.label}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-mono text-sm font-bold ${cat.textColor}`}>{Math.round(cat.pct)}%</span>
+                    <Badge variant="outline" className="text-xs">cible {cat.target}%</Badge>
+                  </div>
+                </div>
+                <Progress value={Math.min(cat.pct, 100)} className={`h-2 [&>div]:${cat.color}`} />
+                <p className="text-xs text-muted-foreground">{fmt(cat.total)} / mois</p>
+              </motion.div>
             );
           })}
-        </Tabs>
-      </motion.div>
+        </div>
 
-      {/* Bilan mensuel */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
-        <Card className={`bg-card/60 backdrop-blur-sm ${solde >= 0 ? "border-green-500/30" : "border-destructive/30"}`}>
-          <CardContent className="pt-6 space-y-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bilan mensuel</p>
-
-            {/* Progress bars */}
-            <div className="space-y-3">
-              {([
-                { label: "Incompressibles", pct: pctIncomp, total: totalIncomp, colorClass: "bg-primary" },
-                { label: "Compressibles", pct: pctComp, total: totalComp, colorClass: "bg-secondary" },
-                { label: "Épargne", pct: pctEp, total: totalEp, colorClass: "bg-accent" },
-              ] as const).map((row) => (
-                <div key={row.label} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-foreground">{row.label}</span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">{Math.round(row.pct)}%</Badge>
-                      <span className="font-mono text-muted-foreground">{fmt(row.total)}</span>
-                    </div>
-                  </div>
-                  <Progress value={Math.min(row.pct, 100)} className={`h-2 [&>div]:${row.colorClass}`} />
-                </div>
-              ))}
-            </div>
-
-            {/* Solde */}
-            <div className="text-center pt-2">
-              <p className="text-xs text-muted-foreground mb-1">Solde disponible</p>
-              <p className={`text-3xl font-bold font-mono ${solde >= 0 ? "text-green-400" : "text-destructive"}`}>
-                {solde > 0 ? "+" : ""}{fmt(solde)}
-              </p>
-            </div>
-
-            {/* Messages conditionnels */}
+        {/* Solde */}
+        <Card className={`${solde >= 0 ? "border-green-500/30" : "border-destructive/30"}`}>
+          <CardContent className="pt-5 pb-5 text-center space-y-2">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Solde disponible</p>
+            <p className={`text-3xl font-bold font-mono ${solde >= 0 ? "text-green-400" : "text-destructive"}`}>
+              {solde > 0 ? "+" : ""}{fmt(solde)}
+            </p>
             {solde < 0 && (
-              <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
-                Votre budget est en déficit de {fmt(Math.abs(solde))}. Réduisez vos dépenses compressibles.
-              </div>
+              <p className="text-sm text-destructive">
+                Votre budget est en déficit. Réduisez vos dépenses compressibles ou augmentez vos revenus.
+              </p>
             )}
             {solde >= 0 && solde <= revenus * 0.05 && (
-              <div className="rounded-lg bg-accent/10 border border-accent/20 p-3 text-sm text-accent">
+              <p className="text-sm text-accent">
                 Votre marge est faible. Renforcez votre épargne de précaution.
-              </div>
+              </p>
             )}
             {solde > revenus * 0.1 && (
-              <div className="rounded-lg bg-green-500/10 border border-green-500/20 p-3 text-sm text-green-400">
+              <p className="text-sm text-green-400">
                 Excellent ! Orientez cet excédent vers l'investissement long terme.
-              </div>
+              </p>
             )}
           </CardContent>
         </Card>
-      </motion.div>
 
-      {/* Score 50/30/20 */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
-        <Card className="bg-card/60 border-border/40 backdrop-blur-sm">
-          <CardContent className="pt-6 space-y-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Règle 50/30/20 — votre score
-            </p>
-            <div className="space-y-4">
-              {scoreItems.map((s) => (
-                <div key={s.key} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-foreground">
-                      {s.ok ? "✅" : "⚠️"} {s.label}
-                    </span>
-                    <span className={`font-mono ${s.textClass}`}>
-                      {Math.round(s.pct)}% / cible {s.target}%
-                    </span>
-                  </div>
-                  <div className="relative h-2 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className={`absolute inset-y-0 left-0 rounded-full ${CATEGORIES[s.key].colorClass}`}
-                      style={{ width: `${Math.min((s.pct / (s.target * 1.5)) * 100, 100)}%` }}
-                    />
-                    <div
-                      className="absolute inset-y-0 w-0.5 bg-foreground/60"
-                      style={{ left: `${(s.target / (s.target * 1.5)) * 100}%` }}
-                    />
+        {/* Reset */}
+        <div className="flex justify-center">
+          <Button variant="outline" className="gap-2" onClick={() => setCurrentStep(0)}>
+            <RotateCcw className="h-4 w-4" /> Recommencer la simulation
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  /* ---------------------------------------------------------------- */
+  /*  Render                                                           */
+  /* ---------------------------------------------------------------- */
+
+  return (
+    <div className="space-y-6 max-w-2xl mx-auto">
+      {/* Step indicator */}
+      {!isResults && (
+        <div className="flex items-center justify-between px-2">
+          {STEPS_CONFIG.map((s, i) => (
+            <div key={s.key} className="flex items-center gap-0 flex-1 last:flex-none">
+              <button
+                onClick={() => setCurrentStep(i)}
+                className={`flex items-center gap-2 transition-all ${
+                  i === currentStep
+                    ? "text-primary"
+                    : i < currentStep
+                    ? "text-green-400"
+                    : "text-muted-foreground/40"
+                }`}
+              >
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
+                    i === currentStep
+                      ? "border-primary bg-primary/10 text-primary"
+                      : i < currentStep
+                      ? "border-green-400 bg-green-400/10 text-green-400"
+                      : "border-muted-foreground/20 text-muted-foreground/40"
+                  }`}
+                >
+                  {i < currentStep ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
+                </div>
+                <span className="text-xs font-medium hidden sm:block">{s.label}</span>
+              </button>
+              {i < STEPS_CONFIG.length - 1 && (
+                <div className={`flex-1 h-0.5 mx-2 rounded ${
+                  i < currentStep ? "bg-green-400/50" : "bg-muted-foreground/10"
+                }`} />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentStep}
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -30 }}
+          transition={{ duration: 0.25 }}
+        >
+          <Card className="bg-card/60 border-border/40 backdrop-blur-sm">
+            <CardContent className="pt-6 space-y-5">
+              {!isResults && (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <stepConfig.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-foreground">{stepConfig.label}</h2>
+                      <p className="text-xs text-muted-foreground">{stepConfig.description}</p>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+              )}
 
-      {/* CTA Perlib */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.4 }}>
-        <Card className="bg-gradient-to-r from-primary/20 via-secondary/10 to-accent/10 border-primary/20">
-          <CardContent className="pt-6 space-y-4 text-center">
-            <p className="text-lg font-semibold text-foreground">
-              Optimisez votre budget avec un conseiller Perlib
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Nos experts analysent votre situation et vous proposent des stratégies patrimoniales personnalisées.
-            </p>
-            <Button
-              variant="default"
-              onClick={() => window.open("https://calendly.com/perlib", "_blank")}
-            >
-              Prendre rendez-vous →
-            </Button>
-          </CardContent>
-        </Card>
-      </motion.div>
+              {isResults && (
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                    <TrendingUp className="h-5 w-5 text-accent" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground">Votre bilan Zenith</h2>
+                    <p className="text-xs text-muted-foreground">Résultat de votre simulation budget 50/30/20</p>
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 0 && renderRevenus()}
+              {currentStep === 1 && renderCategory("incompressibles")}
+              {currentStep === 2 && renderCategory("compressibles")}
+              {currentStep === 3 && renderCategory("epargne")}
+              {isResults && renderResults()}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Navigation */}
+      {!isResults && (
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            onClick={() => setCurrentStep((p) => p - 1)}
+            disabled={!canGoPrev}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" /> Précédent
+          </Button>
+
+          <Button
+            onClick={() => setCurrentStep((p) => p + 1)}
+            disabled={!canGoNext}
+            className="gap-2"
+          >
+            {currentStep === STEPS_CONFIG.length - 1 ? (
+              <>
+                <TrendingUp className="h-4 w-4" /> Voir mon bilan
+              </>
+            ) : (
+              <>
+                Suivant <ArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
