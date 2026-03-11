@@ -13,6 +13,7 @@ interface WebinarSession {
   id?: string;
   session_date: string;
   registration_url: string;
+  livestorm_session_id: string;
   isNew?: boolean;
 }
 
