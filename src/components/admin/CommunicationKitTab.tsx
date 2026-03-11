@@ -500,12 +500,46 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
                 {modules.map((module) => (
                   <SelectItem key={module.id} value={module.id.toString()}>
                     {module.title}
-                    {module.webinar_date && ` - ${new Date(module.webinar_date).toLocaleDateString()}`}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+
+          {/* Sélection de la session */}
+          {selectedModule && sessions.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="session">Session (date) *</Label>
+              <Select value={selectedSession} onValueChange={setSelectedSession}>
+                <SelectTrigger id="session">
+                  <SelectValue placeholder="Sélectionner une session" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sessions.map((session) => (
+                    <SelectItem key={session.id} value={session.id}>
+                      {new Date(session.session_date).toLocaleDateString("fr-FR", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      {session.livestorm_session_id ? " ✅" : " ⚠️"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {sessions.length > 0 && !selectedSession && (
+                <p className="text-xs text-destructive">Veuillez sélectionner une session</p>
+              )}
+            </div>
+          )}
+          {selectedModule && sessions.length === 0 && (
+            <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
+              ⚠️ Aucune session configurée pour ce webinar. Ajoutez des sessions dans l'éditeur de module.
+            </div>
+          )}
 
           {/* Sélection de l'entreprise - masqué pour les contacts entreprise */}
           {!companyId && (
