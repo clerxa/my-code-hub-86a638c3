@@ -3393,6 +3393,7 @@ export type Database = {
           theme: string[] | null
           title: string
           type: string
+          webinar_category: string | null
           webinar_date: string | null
           webinar_image_url: string | null
           webinar_registration_url: string | null
@@ -3421,6 +3422,7 @@ export type Database = {
           theme?: string[] | null
           title: string
           type: string
+          webinar_category?: string | null
           webinar_date?: string | null
           webinar_image_url?: string | null
           webinar_registration_url?: string | null
@@ -3449,6 +3451,7 @@ export type Database = {
           theme?: string[] | null
           title?: string
           type?: string
+          webinar_category?: string | null
           webinar_date?: string | null
           webinar_image_url?: string | null
           webinar_registration_url?: string | null
