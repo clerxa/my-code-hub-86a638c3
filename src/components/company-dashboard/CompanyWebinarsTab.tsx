@@ -32,6 +32,7 @@ interface WebinarItem {
   // Available sessions (for obligatory not yet selected)
   available_sessions: WebinarSession[];
   is_session_locked: boolean;
+  is_exclusive: boolean;
 }
 
 export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
