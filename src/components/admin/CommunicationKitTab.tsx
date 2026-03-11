@@ -108,6 +108,35 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
     }
   }, [preselectedCompanyId, companies, isCompanyDashboardMode]);
 
+  // Fetch sessions when selected module changes
+  useEffect(() => {
+    const fetchSessions = async () => {
+      if (!selectedModule) {
+        setSessions([]);
+        setSelectedSession("");
+        return;
+      }
+      const { data, error } = await supabase
+        .from("webinar_sessions")
+        .select("id, session_date, registration_url, livestorm_session_id, module_id")
+        .eq("module_id", parseInt(selectedModule))
+        .order("session_date", { ascending: true });
+      if (!error && data) {
+        setSessions(data);
+        if (data.length > 0) {
+          setSelectedSession(data[0].id);
+        } else {
+          setSelectedSession("");
+        }
+      }
+    };
+    fetchSessions();
+  }, [selectedModule]);
+
+  const getSelectedSession = (): WebinarSession | undefined => {
+    return sessions.find(s => s.id === selectedSession);
+  };
+
   const fetchBookingUrls = async () => {
     try {
       const { data: settings } = await supabase
