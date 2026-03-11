@@ -70,7 +70,7 @@ export function WebinarSessionsManager({ moduleId }: WebinarSessionsManagerProps
   const addSession = () => {
     setSessions((prev) => [
       ...prev,
-      { session_date: "", registration_url: "", isNew: true },
+      { session_date: "", registration_url: "", livestorm_session_id: "", isNew: true },
     ]);
   };
 
