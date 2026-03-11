@@ -557,7 +557,6 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
                   {companies.map((company) => (
                     <SelectItem key={company.id} value={company.id}>
                       {company.name}
-                      {company.rang && ` (Rang ${company.rang})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
