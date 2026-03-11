@@ -351,12 +351,8 @@ export const ModulesTab = ({
         ...moduleData,
         title: `${module.title} - Copie`,
         order_num: newOrderNum,
-        // Ensure null values for optional fields
-        webinar_date: moduleData.webinar_date || null,
         content_url: moduleData.content_url || null,
-        webinar_registration_url: moduleData.webinar_registration_url || null,
         webinar_image_url: moduleData.webinar_image_url || null,
-        livestorm_session_id: null, // Don't copy the session ID when cloning
         appointment_calendar_url: moduleData.appointment_calendar_url || null,
         embed_code: moduleData.embed_code || null,
         content_data: moduleData.content_data || null,
