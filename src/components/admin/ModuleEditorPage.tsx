@@ -318,8 +318,6 @@ export const ModuleEditorPage = () => {
     description: formData.description,
     points: formData.points,
     content_url: formData.content_url,
-    webinar_date: formData.webinar_date,
-    webinar_registration_url: formData.webinar_registration_url,
     webinar_image_url: formData.webinar_image_url,
     quiz_questions: formData.quiz_questions,
     appointment_calendar_url: formData.appointment_calendar_url,
