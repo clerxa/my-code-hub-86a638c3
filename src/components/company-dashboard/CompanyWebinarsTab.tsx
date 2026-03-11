@@ -200,14 +200,26 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
         ) : "-"}
       </TableCell>
       <TableCell>
-        <Button
-          variant={webinar.is_session_locked ? "ghost" : "default"}
-          size="sm"
-          onClick={() => navigate(`/company/${companyId}/dashboard/webinar/${webinar.module_id}`)}
-          className="gap-1 text-xs"
-        >
-          {webinar.is_session_locked ? "Voir" : "Choisir une date"} <ArrowRight className="h-3 w-3" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={webinar.is_session_locked ? "ghost" : "default"}
+            size="sm"
+            onClick={() => navigate(`/company/${companyId}/dashboard/webinar/${webinar.module_id}`)}
+            className="gap-1 text-xs"
+          >
+            {webinar.is_session_locked ? "Voir" : "Choisir une date"} <ArrowRight className="h-3 w-3" />
+          </Button>
+          {webinar.is_session_locked && webinar.selected_session_date && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(`/company/${companyId}/dashboard/webinar/${webinar.module_id}?step=kit`)}
+              className="gap-1 text-xs"
+            >
+              Générer le kit
+            </Button>
+          )}
+        </div>
       </TableCell>
     </TableRow>
   );
