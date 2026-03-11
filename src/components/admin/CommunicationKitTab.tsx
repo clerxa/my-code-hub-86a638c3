@@ -471,11 +471,11 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
     }
   };
 
-  const getDeadlineLabel = (deadline: string, moduleId?: string) => {
-    if (deadline === "today" && moduleId) {
-      const module = modules.find((m) => m.id.toString() === moduleId);
-      if (module?.webinar_date) {
-        const daysInfo = calculateDaysUntilWebinar(module.webinar_date);
+  const getDeadlineLabel = (deadline: string) => {
+    if (deadline === "today") {
+      const session = getSelectedSession();
+      if (session?.session_date) {
+        const daysInfo = calculateDaysUntilWebinar(session.session_date);
         return `Date du jour (${daysInfo.label})`;
       }
     }
