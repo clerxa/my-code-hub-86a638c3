@@ -280,7 +280,14 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
                   </div>
                 )}
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base line-clamp-2">{webinar.title}</CardTitle>
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-base line-clamp-2">{webinar.title}</CardTitle>
+                  </div>
+                  {webinar.is_exclusive && (
+                    <span className="text-xs text-primary font-medium">
+                      ✨ Webinar exclusif pour {companyName}
+                    </span>
+                  )}
                   <CardDescription className="line-clamp-2">
                     {stripHtml(webinar.description)}
                   </CardDescription>
