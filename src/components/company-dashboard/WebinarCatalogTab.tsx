@@ -98,51 +98,57 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
   const fetchCatalogWebinars = async () => {
     setLoading(true);
     try {
-      const { count: totalCompanies } = await supabase
-        .from("companies")
-        .select("id", { count: "exact", head: true });
-
-      const { data: allWebinarModules, error: cwError } = await supabase
-        .from("company_webinars")
-        .select("module_id, company_id");
+      const [{ count: totalCompanies }, { data: allWebinarModules, error: cwError }, companyResult] = await Promise.all([
+        supabase.from("companies").select("id", { count: "exact", head: true }),
+        supabase.from("company_webinars").select("module_id, company_id"),
+        supabase.from("companies").select("name").eq("id", companyId).single(),
+      ]);
 
       if (cwError) throw cwError;
+      if (companyResult.data) setCompanyName(companyResult.data.name);
 
       const moduleCompanyCount: Record<number, number> = {};
+      const thisCompanyModuleIds = new Set<number>();
       (allWebinarModules || []).forEach(row => {
         moduleCompanyCount[row.module_id] = (moduleCompanyCount[row.module_id] || 0) + 1;
+        if (row.company_id === companyId) thisCompanyModuleIds.add(row.module_id);
       });
 
+      // Generic = assigned to all companies, Exclusive = assigned to this company but not all
       const genericModuleIds = Object.entries(moduleCompanyCount)
         .filter(([, count]) => count >= (totalCompanies || 0))
         .map(([id]) => Number(id));
 
-      if (genericModuleIds.length === 0) {
+      const exclusiveModuleIds = Array.from(thisCompanyModuleIds).filter(
+        id => !genericModuleIds.includes(id)
+      );
+
+      const allRelevantIds = [...genericModuleIds, ...exclusiveModuleIds];
+
+      if (allRelevantIds.length === 0) {
         setWebinars([]);
         setLoading(false);
         return;
       }
 
-      // Fetch modules and sessions in parallel
       const [modulesResult, sessionsResult] = await Promise.all([
         supabase
           .from("modules")
           .select("id, title, description, theme, webinar_image_url, duration, type, webinar_category")
-          .in("id", genericModuleIds)
+          .in("id", allRelevantIds)
           .eq("type", "webinar")
           .eq("webinar_category", "a_la_demande")
           .order("title"),
         supabase
           .from("webinar_sessions")
           .select("id, session_date, registration_url, module_id")
-          .in("module_id", genericModuleIds)
+          .in("module_id", allRelevantIds)
           .order("session_date", { ascending: true }),
       ]);
 
       if (modulesResult.error) throw modulesResult.error;
       if (sessionsResult.error) throw sessionsResult.error;
 
-      // Group sessions by module_id
       const sessionsByModule: Record<number, WebinarSession[]> = {};
       (sessionsResult.data || []).forEach(s => {
         if (!sessionsByModule[s.module_id]) sessionsByModule[s.module_id] = [];
@@ -161,6 +167,7 @@ export function WebinarCatalogTab({ companyId }: WebinarCatalogTabProps) {
         webinar_image_url: m.webinar_image_url,
         duration: m.duration,
         sessions: sessionsByModule[m.id] || [],
+        is_exclusive: exclusiveModuleIds.includes(m.id),
       }));
 
       setWebinars(webinarsWithSessions);

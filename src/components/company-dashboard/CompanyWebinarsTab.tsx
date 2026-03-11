@@ -253,13 +253,20 @@ export function CompanyWebinarsTab({ companyId }: CompanyWebinarsTabProps) {
   const renderWebinarRow = (webinar: WebinarItem) => (
     <TableRow key={`${webinar.category}-${webinar.module_id}`}>
       <TableCell>
-        <div className="flex items-center gap-2">
-          <span className="font-medium">{webinar.module_title}</span>
-          {webinar.category === "parcours_fincare" && (
-            <Badge variant="default" className="text-[10px] px-1.5 py-0">
-              <Star className="h-2.5 w-2.5 mr-0.5" />
-              FinCare
-            </Badge>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{webinar.module_title}</span>
+            {webinar.category === "parcours_fincare" && (
+              <Badge variant="default" className="text-[10px] px-1.5 py-0">
+                <Star className="h-2.5 w-2.5 mr-0.5" />
+                FinCare
+              </Badge>
+            )}
+          </div>
+          {webinar.is_exclusive && (
+            <span className="text-xs text-primary font-medium">
+              ✨ Webinar exclusif pour {companyName}
+            </span>
           )}
         </div>
       </TableCell>
