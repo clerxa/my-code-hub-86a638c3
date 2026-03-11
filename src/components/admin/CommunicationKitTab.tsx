@@ -607,18 +607,18 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
           </div>
 
           {/* Info sur la date du jour si sélectionnée */}
-          {selectedDeadlines.includes("today") && selectedModule && (
+          {selectedDeadlines.includes("today") && selectedSession && (
             <div className="bg-muted p-3 rounded-md flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">
                 {(() => {
-                  const module = modules.find((m) => m.id.toString() === selectedModule);
-                  if (module?.webinar_date) {
-                    const daysInfo = calculateDaysUntilWebinar(module.webinar_date);
+                  const session = getSelectedSession();
+                  if (session?.session_date) {
+                    const daysInfo = calculateDaysUntilWebinar(session.session_date);
                     const today = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
                     return `Aujourd'hui (${today}) = ${daysInfo.label} avant le webinar`;
                   }
-                  return "Sélectionnez un webinar pour voir l'échéance calculée";
+                  return "Sélectionnez une session pour voir l'échéance calculée";
                 })()}
               </span>
             </div>
