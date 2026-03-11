@@ -268,7 +268,8 @@ export const ModuleEditorPage = () => {
         pedagogical_objectives: formData.pedagogical_objectives.length > 0 ? formData.pedagogical_objectives : null,
         key_takeaways: formData.key_takeaways.length > 0 ? formData.key_takeaways : null,
         theme: formData.themes.length > 0 ? formData.themes : null,
-        is_optional: formData.is_optional
+        is_optional: formData.is_optional,
+        webinar_category: formData.type === "webinar" ? formData.webinar_category : null
       };
 
       if (isEditing && moduleId) {
