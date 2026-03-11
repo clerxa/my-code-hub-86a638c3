@@ -58,10 +58,11 @@ const deadlines = [
 interface CommunicationKitTabProps {
   preselectedModuleId?: number;
   preselectedCompanyId?: string;
+  preselectedSessionId?: string;
   companyId?: string; // Used when accessed from company dashboard
 }
 
-export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId, companyId }: CommunicationKitTabProps = {}) => {
+export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId, preselectedSessionId, companyId }: CommunicationKitTabProps = {}) => {
   const [modules, setModules] = useState<Module[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [companyContacts, setCompanyContacts] = useState<CompanyContact[]>([]);
