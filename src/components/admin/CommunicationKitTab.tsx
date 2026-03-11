@@ -13,9 +13,15 @@ interface Module {
   id: number;
   title: string;
   description: string;
-  webinar_date: string | null;
-  webinar_registration_url: string | null;
   type: string;
+}
+
+interface WebinarSession {
+  id: string;
+  session_date: string;
+  registration_url: string | null;
+  livestorm_session_id: string | null;
+  module_id: number;
 }
 
 interface Company {
@@ -60,6 +66,8 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
   const [companies, setCompanies] = useState<Company[]>([]);
   const [companyContacts, setCompanyContacts] = useState<CompanyContact[]>([]);
   const [selectedModule, setSelectedModule] = useState<string>("");
+  const [selectedSession, setSelectedSession] = useState<string>("");
+  const [sessions, setSessions] = useState<WebinarSession[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>("");
   const [selectedContact, setSelectedContact] = useState<string>("");
   const [communicationType, setCommunicationType] = useState<string>("email");
@@ -99,6 +107,35 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
       setSelectedCompany(preselectedCompanyId);
     }
   }, [preselectedCompanyId, companies, isCompanyDashboardMode]);
+
+  // Fetch sessions when selected module changes
+  useEffect(() => {
+    const fetchSessions = async () => {
+      if (!selectedModule) {
+        setSessions([]);
+        setSelectedSession("");
+        return;
+      }
+      const { data, error } = await supabase
+        .from("webinar_sessions")
+        .select("id, session_date, registration_url, livestorm_session_id, module_id")
+        .eq("module_id", parseInt(selectedModule))
+        .order("session_date", { ascending: true });
+      if (!error && data) {
+        setSessions(data);
+        if (data.length > 0) {
+          setSelectedSession(data[0].id);
+        } else {
+          setSelectedSession("");
+        }
+      }
+    };
+    fetchSessions();
+  }, [selectedModule]);
+
+  const getSelectedSession = (): WebinarSession | undefined => {
+    return sessions.find(s => s.id === selectedSession);
+  };
 
   const fetchBookingUrls = async () => {
     try {
@@ -205,7 +242,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
           .select("*")
           .eq("type", "webinar")
           .in("id", allModuleIds)
-          .order("webinar_date");
+          .order("title");
 
         if (error) throw error;
         setModules(webinars || []);
@@ -215,7 +252,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
           .from("modules")
           .select("*")
           .eq("type", "webinar")
-          .order("webinar_date");
+          .order("title");
 
         if (modulesRes.error) throw modulesRes.error;
         setModules(modulesRes.data || []);
@@ -336,9 +373,12 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
 
     const company = companies.find((c) => c.id === effectiveCompanyId);
     const bookingUrl = getBookingUrlForCompany(company);
+    const session = getSelectedSession();
+    const sessionDate = session?.session_date || null;
+    const sessionUrl = session?.registration_url || "";
 
-    const formattedDate = module.webinar_date
-      ? new Date(module.webinar_date).toLocaleDateString("fr-FR", {
+    const formattedDate = sessionDate
+      ? new Date(sessionDate).toLocaleDateString("fr-FR", {
           weekday: "long",
           year: "numeric",
           month: "long",
@@ -349,7 +389,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
       : "Date à confirmer";
 
     // Calculate days until webinar for "today" option
-    const daysInfo = calculateDaysUntilWebinar(module.webinar_date);
+    const daysInfo = calculateDaysUntilWebinar(sessionDate);
     const todayFormatted = new Date().toLocaleDateString("fr-FR", {
       weekday: "long",
       day: "numeric",
@@ -361,7 +401,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
       moduleTitle: module.title,
       moduleDescription: module.description,
       webinarDate: formattedDate,
-      webinar_registration_url: (module as any).webinar_registration_url || "",
+      webinar_registration_url: sessionUrl,
       companyName: customFields.companyName,
       partnershipType: customFields.partnershipType,
       contactName: customFields.contactName,
@@ -431,11 +471,11 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
     }
   };
 
-  const getDeadlineLabel = (deadline: string, moduleId?: string) => {
-    if (deadline === "today" && moduleId) {
-      const module = modules.find((m) => m.id.toString() === moduleId);
-      if (module?.webinar_date) {
-        const daysInfo = calculateDaysUntilWebinar(module.webinar_date);
+  const getDeadlineLabel = (deadline: string) => {
+    if (deadline === "today") {
+      const session = getSelectedSession();
+      if (session?.session_date) {
+        const daysInfo = calculateDaysUntilWebinar(session.session_date);
         return `Date du jour (${daysInfo.label})`;
       }
     }
@@ -460,12 +500,46 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
                 {modules.map((module) => (
                   <SelectItem key={module.id} value={module.id.toString()}>
                     {module.title}
-                    {module.webinar_date && ` - ${new Date(module.webinar_date).toLocaleDateString()}`}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+
+          {/* Sélection de la session */}
+          {selectedModule && sessions.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="session">Session (date) *</Label>
+              <Select value={selectedSession} onValueChange={setSelectedSession}>
+                <SelectTrigger id="session">
+                  <SelectValue placeholder="Sélectionner une session" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sessions.map((session) => (
+                    <SelectItem key={session.id} value={session.id}>
+                      {new Date(session.session_date).toLocaleDateString("fr-FR", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      {session.livestorm_session_id ? " ✅" : " ⚠️"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {sessions.length > 0 && !selectedSession && (
+                <p className="text-xs text-destructive">Veuillez sélectionner une session</p>
+              )}
+            </div>
+          )}
+          {selectedModule && sessions.length === 0 && (
+            <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
+              ⚠️ Aucune session configurée pour ce webinar. Ajoutez des sessions dans l'éditeur de module.
+            </div>
+          )}
 
           {/* Sélection de l'entreprise - masqué pour les contacts entreprise */}
           {!companyId && (
@@ -533,18 +607,18 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
           </div>
 
           {/* Info sur la date du jour si sélectionnée */}
-          {selectedDeadlines.includes("today") && selectedModule && (
+          {selectedDeadlines.includes("today") && selectedSession && (
             <div className="bg-muted p-3 rounded-md flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">
                 {(() => {
-                  const module = modules.find((m) => m.id.toString() === selectedModule);
-                  if (module?.webinar_date) {
-                    const daysInfo = calculateDaysUntilWebinar(module.webinar_date);
+                  const session = getSelectedSession();
+                  if (session?.session_date) {
+                    const daysInfo = calculateDaysUntilWebinar(session.session_date);
                     const today = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
                     return `Aujourd'hui (${today}) = ${daysInfo.label} avant le webinar`;
                   }
-                  return "Sélectionnez un webinar pour voir l'échéance calculée";
+                  return "Sélectionnez une session pour voir l'échéance calculée";
                 })()}
               </span>
             </div>
@@ -618,7 +692,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
           {/* Bouton de génération */}
           <Button
             onClick={generateContent}
-            disabled={!selectedModule || !effectiveCompanyId || selectedDeadlines.length === 0}
+            disabled={!selectedModule || !selectedSession || !effectiveCompanyId || selectedDeadlines.length === 0}
             className="w-full"
             size="lg"
           >
@@ -639,7 +713,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
             return (
               <Card key={deadline}>
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg">{getDeadlineLabel(deadline, selectedModule)}</CardTitle>
+                  <CardTitle className="text-lg">{getDeadlineLabel(deadline)}</CardTitle>
                   <Button
                     variant="outline"
                     size="sm"
