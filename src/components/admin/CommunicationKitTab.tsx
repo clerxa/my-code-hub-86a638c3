@@ -242,7 +242,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
           .select("*")
           .eq("type", "webinar")
           .in("id", allModuleIds)
-          .order("webinar_date");
+          .order("title");
 
         if (error) throw error;
         setModules(webinars || []);
