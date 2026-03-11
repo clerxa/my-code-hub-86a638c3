@@ -692,7 +692,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
           {/* Bouton de génération */}
           <Button
             onClick={generateContent}
-            disabled={!selectedModule || !effectiveCompanyId || selectedDeadlines.length === 0}
+            disabled={!selectedModule || !selectedSession || !effectiveCompanyId || selectedDeadlines.length === 0}
             className="w-full"
             size="lg"
           >
