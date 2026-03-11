@@ -467,7 +467,7 @@ const WebinarCatalogDetail = () => {
           <DialogHeader>
             <DialogTitle>Kit de Communication — {webinar.title}</DialogTitle>
           </DialogHeader>
-          <CommunicationKitTab preselectedModuleId={webinar.id} preselectedCompanyId={companyId} />
+          <CommunicationKitTab preselectedModuleId={webinar.id} preselectedCompanyId={companyId} preselectedSessionId={selectedSession?.id} />
         </DialogContent>
       </Dialog>
 
