@@ -338,8 +338,12 @@ const OcrAvisImposition = () => {
       if (fnError) throw fnError;
       if (result?.error) throw new Error(result.error);
 
-      setData(result);
-      setRawJson(JSON.stringify(result, null, 2));
+      // Extract usage data before setting main data
+      const { _usage, ...ocrData } = result;
+      if (_usage) setUsage(_usage);
+
+      setData(ocrData);
+      setRawJson(JSON.stringify(ocrData, null, 2));
       toast.success("Analyse terminée !");
     } catch (err: any) {
       console.error("OCR error:", err);
