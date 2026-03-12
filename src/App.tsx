@@ -569,8 +569,10 @@ const App = () => (
               }
             />
             
-            {/* Route 404 - Capture toutes les routes non définies */}
-            {/* Route 404 - Capture toutes les routes non définies */}
+            {/* Route test OCR */}
+            <Route path="/test-ocr" element={<TestOcr />} />
+            
+            {/* Route 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
             </GlobalSettingsProvider>
