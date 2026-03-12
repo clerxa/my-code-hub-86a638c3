@@ -59,7 +59,7 @@ export default function OcrFicheDePaie() {
   const [progress, setProgress] = useState("");
   const [data, setData] = useState<PayslipData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"data" | "explain">("data");
+  const [activeTab, setActiveTab] = useState<"data" | "explain" | "raw">("data");
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -700,6 +700,116 @@ export default function OcrFicheDePaie() {
     );
   };
 
+  // ─── Tab 3: Données brutes ─────────────────────────────────
+  const renderRawTab = () => {
+    if (!data) return null;
+
+    const renderValue = (val: any): string => {
+      if (val === null || val === undefined) return "—";
+      if (typeof val === "number") return val.toLocaleString("fr-FR");
+      if (typeof val === "string") return val || "—";
+      if (Array.isArray(val)) return val.length === 0 ? "(vide)" : JSON.stringify(val, null, 2);
+      if (typeof val === "object") return JSON.stringify(val, null, 2);
+      return String(val);
+    };
+
+    const renderSection = (sectionKey: string, sectionData: any, title: string, color: string) => {
+      if (!sectionData || typeof sectionData !== "object") return null;
+      const entries = Object.entries(sectionData);
+      if (entries.length === 0) return null;
+
+      return (
+        <div key={sectionKey} style={{ background: colors.cardBg, borderRadius: 10, marginBottom: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+          <div style={{ background: color + "12", borderBottom: `2px solid ${color}30`, padding: "10px 16px" }}>
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color }}>{title}</h3>
+          </div>
+          <div style={{ padding: "4px 0" }}>
+            {entries.map(([key, val]) => {
+              // Nested objects get their own sub-section
+              if (val && typeof val === "object" && !Array.isArray(val)) {
+                return (
+                  <div key={key} style={{ padding: "6px 16px" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: colors.slate, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      {key.replace(/_/g, " ")}
+                    </div>
+                    {Object.entries(val).map(([subKey, subVal]) => (
+                      <div key={subKey} style={{
+                        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+                        padding: "4px 0 4px 12px", fontSize: 12, borderBottom: `1px solid ${colors.border}`,
+                      }}>
+                        <span style={{ color: colors.slate, minWidth: 180 }}>{subKey.replace(/_/g, " ")}</span>
+                        <span style={{ fontWeight: 500, textAlign: "right", wordBreak: "break-word", maxWidth: "60%" }}>
+                          {renderValue(subVal)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              }
+
+              // Arrays
+              if (Array.isArray(val)) {
+                return (
+                  <div key={key} style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+                    padding: "6px 16px", fontSize: 13, borderBottom: `1px solid ${colors.border}`,
+                  }}>
+                    <span style={{ color: colors.slate }}>{key.replace(/_/g, " ")}</span>
+                    <span style={{ fontWeight: 500, textAlign: "right", maxWidth: "60%" }}>
+                      {val.length === 0 ? <span style={{ color: "#94a3b8", fontStyle: "italic" }}>(vide)</span> : (
+                        <pre style={{ margin: 0, fontSize: 11, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>
+                          {JSON.stringify(val, null, 2)}
+                        </pre>
+                      )}
+                    </span>
+                  </div>
+                );
+              }
+
+              // Scalars
+              return (
+                <div key={key} style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  padding: "6px 16px", fontSize: 13, borderBottom: `1px solid ${colors.border}`,
+                }}>
+                  <span style={{ color: colors.slate }}>{key.replace(/_/g, " ")}</span>
+                  <span style={{ fontWeight: 500, color: val === null || val === undefined ? "#94a3b8" : "#1e293b" }}>
+                    {renderValue(val)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
+
+    const sections: [string, any, string, string][] = [
+      ["salarie", data.salarie, "👤 Salarié", colors.primary],
+      ["employeur", data.employeur, "🏢 Employeur", colors.primary],
+      ["periode", data.periode, "📅 Période", colors.slate],
+      ["remuneration_brute", data.remuneration_brute, "💶 Rémunération brute", colors.green],
+      ["cotisations_salariales", data.cotisations_salariales, "📋 Cotisations salariales", colors.orange],
+      ["cotisations_patronales", data.cotisations_patronales, "📋 Cotisations patronales", colors.primary],
+      ["net", data.net, "💰 Net", colors.green],
+      ["cumuls_annuels", data.cumuls_annuels, "📊 Cumuls annuels", colors.violet],
+      ["epargne_salariale", data.epargne_salariale, "🏦 Épargne salariale", colors.green],
+      ["conges_rtt", data.conges_rtt, "🏖️ Congés & RTT", colors.teal],
+      ["cout_employeur", data.cout_employeur, "🏢 Coût employeur", colors.slate],
+      ["explications_pedagogiques", data.explications_pedagogiques, "💡 Explications pédagogiques", colors.violet],
+      ["meta", data.meta, "⚙️ Métadonnées", colors.slate],
+    ];
+
+    return (
+      <div>
+        <div style={{ fontSize: 13, color: colors.slate, marginBottom: 12, fontStyle: "italic" }}>
+          Toutes les données extraites par l'IA, champ par champ.
+        </div>
+        {sections.map(([key, val, title, color]) => renderSection(key, val, title, color))}
+      </div>
+    );
+  };
+
   // ─── Main render ────────────────────────────────────────────
   return (
     <div style={{ fontFamily: font, background: colors.bg, minHeight: "100vh", padding: "24px 16px" }}>
@@ -790,6 +900,7 @@ export default function OcrFicheDePaie() {
               {[
                 { key: "data" as const, label: "📋 Ma fiche de paie" },
                 { key: "explain" as const, label: "💡 Comprendre ma paie" },
+                { key: "raw" as const, label: "🗂️ Données brutes" },
               ].map(tab => (
                 <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
                   flex: 1, padding: "10px 16px", border: "none", borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: "pointer",
@@ -801,7 +912,7 @@ export default function OcrFicheDePaie() {
               ))}
             </div>
 
-            {activeTab === "data" ? renderDataTab() : renderExplainTab()}
+            {activeTab === "data" ? renderDataTab() : activeTab === "explain" ? renderExplainTab() : renderRawTab()}
 
             {/* Actions */}
             <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
