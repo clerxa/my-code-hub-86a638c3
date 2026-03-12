@@ -59,7 +59,7 @@ export default function OcrFicheDePaie() {
   const [progress, setProgress] = useState("");
   const [data, setData] = useState<PayslipData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"data" | "explain">("data");
+  const [activeTab, setActiveTab] = useState<"data" | "explain" | "raw">("data");
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
