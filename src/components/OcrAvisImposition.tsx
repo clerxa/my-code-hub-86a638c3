@@ -462,7 +462,7 @@ const OcrAvisImposition = () => {
   const copyJson = useCallback(() => {
     const payload: any = {};
     if (data1) payload["haiku-4.5"] = data1;
-    if (data2) payload["haiku-3.5"] = data2;
+    if (data2) payload["sonnet-4"] = data2;
     navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
     toast.success("JSON copié dans le presse-papier");
   }, [data1, data2]);
