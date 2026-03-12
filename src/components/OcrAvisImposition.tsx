@@ -301,6 +301,15 @@ const OcrAvisImposition = () => {
   const [progressMsg, setProgressMsg] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [usage, setUsage] = useState<{
+    input_tokens: number;
+    output_tokens: number;
+    total_tokens: number;
+    cost_input_usd: number;
+    cost_output_usd: number;
+    cost_total_usd: number;
+    model: string;
+  } | null>(null);
 
   const analyzeFile = useCallback(async (file: File) => {
     if (file.type !== "application/pdf") {
@@ -329,8 +338,12 @@ const OcrAvisImposition = () => {
       if (fnError) throw fnError;
       if (result?.error) throw new Error(result.error);
 
-      setData(result);
-      setRawJson(JSON.stringify(result, null, 2));
+      // Extract usage data before setting main data
+      const { _usage, ...ocrData } = result;
+      if (_usage) setUsage(_usage);
+
+      setData(ocrData);
+      setRawJson(JSON.stringify(ocrData, null, 2));
       toast.success("Analyse terminée !");
     } catch (err: any) {
       console.error("OCR error:", err);
@@ -514,6 +527,47 @@ const OcrAvisImposition = () => {
               </Button>
             </div>
           </div>
+
+          {/* Token usage & cost */}
+          {usage && (
+            <Card className="bg-muted/30 border-border">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Consommation API
+                    </span>
+                    <span className="text-xs text-muted-foreground">({usage.model})</span>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Tokens entrée</p>
+                      <p className="text-sm font-semibold tabular-nums text-foreground">
+                        {usage.input_tokens.toLocaleString("fr-FR")}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">{usage.cost_input_usd.toFixed(4)} $</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Tokens sortie</p>
+                      <p className="text-sm font-semibold tabular-nums text-foreground">
+                        {usage.output_tokens.toLocaleString("fr-FR")}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">{usage.cost_output_usd.toFixed(4)} $</p>
+                    </div>
+                    <div className="h-8 w-px bg-border" />
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground">Total tokens</p>
+                      <p className="text-sm font-bold tabular-nums text-foreground">
+                        {usage.total_tokens.toLocaleString("fr-FR")}
+                      </p>
+                      <p className="text-xs font-semibold text-primary">{usage.cost_total_usd.toFixed(4)} $</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Tabs */}
           <Tabs defaultValue="data">
