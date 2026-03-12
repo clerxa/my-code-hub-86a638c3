@@ -7,8 +7,8 @@ const corsHeaders = {
 };
 
 const MODELS: Record<string, { id: string; input_cost: number; output_cost: number }> = {
-  "haiku-4.5": { id: "claude-haiku-4-5", input_cost: 1.00, output_cost: 5.00 },
-  "haiku-3.5": { id: "claude-3-5-haiku-20241022", input_cost: 0.80, output_cost: 4.00 },
+  "haiku-4.5": { id: "claude-haiku-4-5-20251001", input_cost: 1.00, output_cost: 5.00 },
+  "sonnet-4": { id: "claude-sonnet-4-20250514", input_cost: 3.00, output_cost: 15.00 },
 };
 
 const SYSTEM_PROMPT = `Tu es un expert en fiscalité française et en droit fiscal des particuliers. Tu analyses des avis d'imposition français (Direction Générale des Finances Publiques — DGFIP).
@@ -151,7 +151,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Anthropic API error:", errorText);
+      console.error("Anthropic API error for model", modelConfig.id, ":", response.status, errorText);
       throw new Error(`Anthropic API error: ${response.status}`);
     }
 

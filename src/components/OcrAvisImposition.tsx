@@ -77,11 +77,11 @@ interface UsageData {
   model: string;
 }
 
-type ModelKey = "haiku-4.5" | "haiku-3.5" | "both";
+type ModelKey = "haiku-4.5" | "sonnet-4" | "both";
 
 const MODEL_LABELS: Record<string, string> = {
   "haiku-4.5": "Haiku 4.5",
-  "haiku-3.5": "Haiku 3.5",
+  "sonnet-4": "Sonnet 4",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -415,8 +415,8 @@ const OcrAvisImposition = () => {
         setData1(r1.ocrData);
         setUsage1(r1.usage);
 
-        setProgressMsg("Analyse par Haiku 3.5…");
-        const r2 = await callOcr(images, "haiku-3.5");
+        setProgressMsg("Analyse par Sonnet 4…");
+        const r2 = await callOcr(images, "sonnet-4");
         setData2(r2.ocrData);
         setUsage2(r2.usage);
       } else if (selectedModel === "haiku-4.5") {
@@ -425,8 +425,8 @@ const OcrAvisImposition = () => {
         setData1(r.ocrData);
         setUsage1(r.usage);
       } else {
-        setProgressMsg("Analyse par Haiku 3.5…");
-        const r = await callOcr(images, "haiku-3.5");
+        setProgressMsg("Analyse par Sonnet 4…");
+        const r = await callOcr(images, "sonnet-4");
         setData2(r.ocrData);
         setUsage2(r.usage);
       }
@@ -462,7 +462,7 @@ const OcrAvisImposition = () => {
   const copyJson = useCallback(() => {
     const payload: any = {};
     if (data1) payload["haiku-4.5"] = data1;
-    if (data2) payload["haiku-3.5"] = data2;
+    if (data2) payload["sonnet-4"] = data2;
     navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
     toast.success("JSON copié dans le presse-papier");
   }, [data1, data2]);
@@ -492,7 +492,7 @@ const OcrAvisImposition = () => {
               Choix du modèle
             </h3>
             <div className="flex gap-3">
-              {(["haiku-4.5", "haiku-3.5", "both"] as ModelKey[]).map((key) => (
+              {(["haiku-4.5", "sonnet-4", "both"] as ModelKey[]).map((key) => (
                 <Button
                   key={key}
                   variant={selectedModel === key ? "default" : "outline"}
@@ -502,7 +502,7 @@ const OcrAvisImposition = () => {
                   {key === "both" ? "Les deux (comparaison)" : MODEL_LABELS[key]}
                   {key !== "both" && (
                     <span className="ml-2 text-xs opacity-70">
-                      {key === "haiku-4.5" ? "$0.80/$4.00" : "$0.25/$1.25"}
+                      {key === "haiku-4.5" ? "$1/$5" : "$3/$15"}
                     </span>
                   )}
                 </Button>
