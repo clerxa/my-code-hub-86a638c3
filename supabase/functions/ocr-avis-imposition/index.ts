@@ -174,7 +174,28 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify(parsed), {
+    // Extract token usage from Anthropic response
+    const usage = result.usage || {};
+    const inputTokens = usage.input_tokens || 0;
+    const outputTokens = usage.output_tokens || 0;
+    
+    // Claude Haiku 4.5 pricing: $0.80/MTok input, $4.00/MTok output
+    const costInput = (inputTokens / 1_000_000) * 0.80;
+    const costOutput = (outputTokens / 1_000_000) * 4.00;
+    const totalCost = costInput + costOutput;
+
+    return new Response(JSON.stringify({
+      ...parsed,
+      _usage: {
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        total_tokens: inputTokens + outputTokens,
+        cost_input_usd: Math.round(costInput * 10000) / 10000,
+        cost_output_usd: Math.round(costOutput * 10000) / 10000,
+        cost_total_usd: Math.round(totalCost * 10000) / 10000,
+        model: "claude-haiku-4-5-20251001",
+      }
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
