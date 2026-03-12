@@ -492,7 +492,7 @@ const OcrAvisImposition = () => {
               Choix du modèle
             </h3>
             <div className="flex gap-3">
-              {(["haiku-4.5", "haiku-3.5", "both"] as ModelKey[]).map((key) => (
+              {(["haiku-4.5", "sonnet-4", "both"] as ModelKey[]).map((key) => (
                 <Button
                   key={key}
                   variant={selectedModel === key ? "default" : "outline"}
@@ -502,7 +502,7 @@ const OcrAvisImposition = () => {
                   {key === "both" ? "Les deux (comparaison)" : MODEL_LABELS[key]}
                   {key !== "both" && (
                     <span className="ml-2 text-xs opacity-70">
-                      {key === "haiku-4.5" ? "$0.80/$4.00" : "$0.25/$1.25"}
+                      {key === "haiku-4.5" ? "$1/$5" : "$3/$15"}
                     </span>
                   )}
                 </Button>
