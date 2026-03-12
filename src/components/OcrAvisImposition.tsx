@@ -13,7 +13,6 @@ import {
   FileText,
   ChevronDown,
   Copy,
-  Download,
   AlertTriangle,
   Lightbulb,
   BarChart3,
@@ -67,6 +66,23 @@ interface AvisData {
     annee_detectee: number | null;
   };
 }
+
+interface UsageData {
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+  cost_input_usd: number;
+  cost_output_usd: number;
+  cost_total_usd: number;
+  model: string;
+}
+
+type ModelKey = "haiku-4.5" | "haiku-3.5" | "both";
+
+const MODEL_LABELS: Record<string, string> = {
+  "haiku-4.5": "Haiku 4.5",
+  "haiku-3.5": "Haiku 3.5",
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -135,13 +151,11 @@ const pdfToImages = async (
 ): Promise<string[]> => {
   onProgress("Chargement de la librairie PDF…");
   const pdfjsLib = await loadPdfJs();
-
   onProgress("Lecture du fichier…");
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const totalPages = Math.min(pdf.numPages, 8);
   const images: string[] = [];
-
   for (let i = 1; i <= totalPages; i++) {
     onProgress(`Conversion de la page ${i}/${totalPages}…`);
     const page = await pdf.getPage(i);
@@ -154,34 +168,51 @@ const pdfToImages = async (
     const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
     images.push(dataUrl.split(",")[1]);
   }
-
   return images;
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-const DataRow = ({
+const DualDataRow = ({
   label,
-  value,
+  value1,
+  value2,
   highlight,
+  dualMode,
 }: {
   label: string;
-  value: string;
+  value1: string;
+  value2?: string;
   highlight?: boolean;
+  dualMode: boolean;
 }) => (
   <div
-    className={`flex items-center justify-between py-2.5 px-3 rounded-lg transition-colors ${
-      highlight
-        ? "bg-accent/10 border border-accent/30"
-        : "hover:bg-muted/50"
-    }`}
+    className={`grid items-center py-2.5 px-3 rounded-lg transition-colors ${
+      highlight ? "bg-accent/10 border border-accent/30" : "hover:bg-muted/50"
+    } ${dualMode ? "grid-cols-[1fr_auto_auto]" : "grid-cols-[1fr_auto]"} gap-4`}
   >
     <span className="text-sm text-muted-foreground">{label}</span>
-    <span className={`text-sm font-semibold tabular-nums ${highlight ? "text-accent" : "text-foreground"}`}>
-      {value}
+    <span className={`text-sm font-semibold tabular-nums text-right ${highlight ? "text-accent" : "text-foreground"}`}>
+      {value1}
     </span>
+    {dualMode && (
+      <span className={`text-sm font-semibold tabular-nums text-right min-w-[100px] ${highlight ? "text-accent" : "text-foreground"}`}>
+        {value2 || "—"}
+      </span>
+    )}
   </div>
 );
+
+const ColumnHeaders = ({ dualMode }: { dualMode: boolean }) => {
+  if (!dualMode) return null;
+  return (
+    <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-3 py-2 mb-1">
+      <span />
+      <span className="text-[10px] font-bold uppercase tracking-widest text-primary text-right">Haiku 4.5</span>
+      <span className="text-[10px] font-bold uppercase tracking-widest text-secondary text-right min-w-[100px]">Haiku 3.5</span>
+    </div>
+  );
+};
 
 const WaterfallStep = ({
   label,
@@ -197,19 +228,13 @@ const WaterfallStep = ({
   <div className="relative">
     <div
       className={`flex items-center justify-between p-3 rounded-lg border ${
-        isLast
-          ? "bg-primary/10 border-primary/30"
-          : "bg-card border-border"
+        isLast ? "bg-primary/10 border-primary/30" : "bg-card border-border"
       }`}
     >
       <span className="text-sm text-foreground">{label}</span>
       <span
         className={`text-sm font-bold tabular-nums ${
-          isPositive === true
-            ? "text-success"
-            : isPositive === false
-            ? "text-destructive"
-            : "text-foreground"
+          isPositive === true ? "text-success" : isPositive === false ? "text-destructive" : "text-foreground"
         }`}
       >
         {value}
@@ -227,19 +252,42 @@ const PedagogicalCard = ({
   icon,
   title,
   text,
+  text2,
+  dualMode,
   variant = "info",
 }: {
   icon: React.ReactNode;
   title: string;
   text: string;
+  text2?: string;
+  dualMode: boolean;
   variant?: "info" | "tip" | "warning";
 }) => {
   const borderColor =
-    variant === "warning"
-      ? "border-l-destructive"
-      : variant === "tip"
-      ? "border-l-accent"
-      : "border-l-primary";
+    variant === "warning" ? "border-l-destructive" : variant === "tip" ? "border-l-accent" : "border-l-primary";
+
+  if (dualMode && text2) {
+    return (
+      <Card className={`border-l-4 ${borderColor}`}>
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="mt-0.5 shrink-0">{icon}</div>
+            <h4 className="font-semibold text-foreground">{title}</h4>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Haiku 4.5</span>
+              <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-secondary">Haiku 3.5</span>
+              <p className="text-sm text-muted-foreground leading-relaxed">{text2}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className={`border-l-4 ${borderColor}`}>
@@ -274,42 +322,72 @@ const CollapsibleSection = ({
         <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-border hover:bg-muted/30 transition-colors">
           <div className="flex items-center gap-3">
             {icon}
-            <span className="font-semibold text-foreground text-sm uppercase tracking-wider">
-              {title}
-            </span>
+            <span className="font-semibold text-foreground text-sm uppercase tracking-wider">{title}</span>
           </div>
-          <ChevronDown
-            className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${
-              open ? "rotate-180" : ""
-            }`}
-          />
+          <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
         </div>
       </CollapsibleTrigger>
-      <CollapsibleContent className="mt-2 space-y-1 pl-1 pr-1">
-        {children}
-      </CollapsibleContent>
+      <CollapsibleContent className="mt-2 space-y-1 pl-1 pr-1">{children}</CollapsibleContent>
     </Collapsible>
   );
 };
 
+const UsageCard = ({ usage, label }: { usage: UsageData; label?: string }) => (
+  <div className="flex-1 space-y-2">
+    {label && <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>}
+    <div className="flex items-center gap-2 mb-2">
+      <span className="text-xs text-muted-foreground">Modèle :</span>
+      <span className="text-xs font-medium text-foreground">{usage.model}</span>
+    </div>
+    <div className="flex items-center gap-6">
+      <div className="text-center">
+        <p className="text-xs text-muted-foreground">Tokens in</p>
+        <p className="text-sm font-semibold tabular-nums text-foreground">{usage.input_tokens.toLocaleString("fr-FR")}</p>
+        <p className="text-[10px] text-muted-foreground">{usage.cost_input_usd.toFixed(4)} $</p>
+      </div>
+      <div className="text-center">
+        <p className="text-xs text-muted-foreground">Tokens out</p>
+        <p className="text-sm font-semibold tabular-nums text-foreground">{usage.output_tokens.toLocaleString("fr-FR")}</p>
+        <p className="text-[10px] text-muted-foreground">{usage.cost_output_usd.toFixed(4)} $</p>
+      </div>
+      <div className="h-8 w-px bg-border" />
+      <div className="text-center">
+        <p className="text-xs text-muted-foreground">Total</p>
+        <p className="text-sm font-bold tabular-nums text-foreground">{usage.total_tokens.toLocaleString("fr-FR")}</p>
+        <p className="text-xs font-semibold text-primary">{usage.cost_total_usd.toFixed(4)} $</p>
+      </div>
+    </div>
+  </div>
+);
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const OcrAvisImposition = () => {
-  const [data, setData] = useState<AvisData | null>(null);
-  const [rawJson, setRawJson] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<ModelKey>("both");
+  const [data1, setData1] = useState<AvisData | null>(null);
+  const [data2, setData2] = useState<AvisData | null>(null);
+  const [usage1, setUsage1] = useState<UsageData | null>(null);
+  const [usage2, setUsage2] = useState<UsageData | null>(null);
   const [loading, setLoading] = useState(false);
   const [progressMsg, setProgressMsg] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
-  const [usage, setUsage] = useState<{
-    input_tokens: number;
-    output_tokens: number;
-    total_tokens: number;
-    cost_input_usd: number;
-    cost_output_usd: number;
-    cost_total_usd: number;
-    model: string;
-  } | null>(null);
+
+  const hasData = data1 || data2;
+  const dualMode = selectedModel === "both" && !!data1 && !!data2;
+  // For display, use whichever data is available (data1 preferred for single-model)
+  const primaryData = data1 || data2;
+
+  const callOcr = async (images: string[], modelKey: string) => {
+    const { data: result, error: fnError } = await supabase.functions.invoke(
+      "ocr-avis-imposition",
+      { body: { images, model: modelKey } }
+    );
+    if (fnError) throw fnError;
+    if (result?.error) throw new Error(result.error);
+    const { _usage, ...ocrData } = result;
+    return { ocrData, usage: _usage };
+  };
 
   const analyzeFile = useCallback(async (file: File) => {
     if (file.type !== "application/pdf") {
@@ -323,38 +401,45 @@ const OcrAvisImposition = () => {
 
     setLoading(true);
     setError(null);
-    setData(null);
+    setData1(null);
+    setData2(null);
+    setUsage1(null);
+    setUsage2(null);
 
     try {
       const images = await pdfToImages(file, setProgressMsg);
 
-      setProgressMsg("Analyse en cours par l'IA…");
+      if (selectedModel === "both") {
+        setProgressMsg("Analyse par Haiku 4.5…");
+        const r1 = await callOcr(images, "haiku-4.5");
+        setData1(r1.ocrData);
+        setUsage1(r1.usage);
 
-      const { data: result, error: fnError } = await supabase.functions.invoke(
-        "ocr-avis-imposition",
-        { body: { images } }
-      );
+        setProgressMsg("Analyse par Haiku 3.5…");
+        const r2 = await callOcr(images, "haiku-3.5");
+        setData2(r2.ocrData);
+        setUsage2(r2.usage);
+      } else if (selectedModel === "haiku-4.5") {
+        setProgressMsg("Analyse par Haiku 4.5…");
+        const r = await callOcr(images, "haiku-4.5");
+        setData1(r.ocrData);
+        setUsage1(r.usage);
+      } else {
+        setProgressMsg("Analyse par Haiku 3.5…");
+        const r = await callOcr(images, "haiku-3.5");
+        setData2(r.ocrData);
+        setUsage2(r.usage);
+      }
 
-      if (fnError) throw fnError;
-      if (result?.error) throw new Error(result.error);
-
-      // Extract usage data before setting main data
-      const { _usage, ...ocrData } = result;
-      if (_usage) setUsage(_usage);
-
-      setData(ocrData);
-      setRawJson(JSON.stringify(ocrData, null, 2));
       toast.success("Analyse terminée !");
     } catch (err: any) {
       console.error("OCR error:", err);
-      setError(
-        err.message || "Une erreur est survenue lors de l'analyse. Veuillez réessayer."
-      );
+      setError(err.message || "Une erreur est survenue lors de l'analyse.");
     } finally {
       setLoading(false);
       setProgressMsg("");
     }
-  }, []);
+  }, [selectedModel]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -375,503 +460,452 @@ const OcrAvisImposition = () => {
   );
 
   const copyJson = useCallback(() => {
-    navigator.clipboard.writeText(rawJson);
+    const payload: any = {};
+    if (data1) payload["haiku-4.5"] = data1;
+    if (data2) payload["haiku-3.5"] = data2;
+    navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
     toast.success("JSON copié dans le presse-papier");
-  }, [rawJson]);
+  }, [data1, data2]);
 
-  const downloadPdf = useCallback(() => {
-    console.log("PDF download placeholder — raw data:", rawJson);
-    toast.info("Fonctionnalité de téléchargement PDF à venir");
-  }, [rawJson]);
+  const reset = () => {
+    setData1(null);
+    setData2(null);
+    setUsage1(null);
+    setUsage2(null);
+    setError(null);
+  };
 
-  // Solde banner
-  const solde = data?.prelevement_source?.solde_a_payer_ou_rembourser;
-  const isRefund = solde != null && solde < 0;
-  const isDue = solde != null && solde > 0;
+  // Helper to get value from either dataset
+  const getVal = (accessor: (d: AvisData) => number | null | undefined) => {
+    const v1 = data1 ? accessor(data1) : undefined;
+    const v2 = data2 ? accessor(data2) : undefined;
+    return { v1, v2 };
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Upload zone */}
-      {!data && !loading && (
+    <div className="max-w-5xl mx-auto space-y-6 p-4">
+      {/* Model selector */}
+      {!hasData && !loading && (
         <Card>
-          <CardContent className="p-8">
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragOver(true);
-              }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all cursor-pointer ${
-                dragOver
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50 hover:bg-muted/30"
-              }`}
-              onClick={() => document.getElementById("pdf-input")?.click()}
-            >
-              <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                Déposez votre avis d'imposition
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Glissez-déposez votre PDF ici ou cliquez pour parcourir
-              </p>
-              <p className="text-xs text-muted-foreground">
-                PDF uniquement • 8 pages max • 20 Mo max
-              </p>
-              <input
-                id="pdf-input"
-                type="file"
-                accept="application/pdf,.pdf"
-                onChange={handleFileChange}
-                className="hidden"
-              />
+          <CardContent className="p-6">
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
+              Choix du modèle
+            </h3>
+            <div className="flex gap-3">
+              {(["haiku-4.5", "haiku-3.5", "both"] as ModelKey[]).map((key) => (
+                <Button
+                  key={key}
+                  variant={selectedModel === key ? "default" : "outline"}
+                  onClick={() => setSelectedModel(key)}
+                  className="flex-1"
+                >
+                  {key === "both" ? "Les deux (comparaison)" : MODEL_LABELS[key]}
+                  {key !== "both" && (
+                    <span className="ml-2 text-xs opacity-70">
+                      {key === "haiku-4.5" ? "$0.80/$4.00" : "$0.25/$1.25"}
+                    </span>
+                  )}
+                </Button>
+              ))}
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Loading state */}
+      {/* Upload zone */}
+      {!hasData && !loading && (
+        <Card>
+          <CardContent className="p-8">
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all cursor-pointer ${
+                dragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/30"
+              }`}
+              onClick={() => document.getElementById("pdf-input")?.click()}
+            >
+              <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">Déposez votre avis d'imposition</h3>
+              <p className="text-sm text-muted-foreground mb-4">Glissez-déposez votre PDF ici ou cliquez pour parcourir</p>
+              <p className="text-xs text-muted-foreground">PDF uniquement • 8 pages max • 20 Mo max</p>
+              <input id="pdf-input" type="file" accept="application/pdf,.pdf" onChange={handleFileChange} className="hidden" />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Loading */}
       {loading && (
         <Card>
           <CardContent className="p-12 text-center">
             <Loader2 className="h-10 w-10 mx-auto mb-4 text-primary animate-spin" />
             <p className="text-foreground font-medium">{progressMsg}</p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Cette opération peut prendre quelques secondes
-            </p>
+            <p className="text-xs text-muted-foreground mt-2">Cette opération peut prendre quelques secondes</p>
           </CardContent>
         </Card>
       )}
 
-      {/* Error state */}
+      {/* Error */}
       {error && (
         <Card className="border-destructive/30">
           <CardContent className="p-8 text-center">
             <AlertTriangle className="h-10 w-10 mx-auto mb-4 text-destructive" />
             <p className="text-foreground font-medium mb-4">{error}</p>
-            <Button
-              onClick={() => {
-                setError(null);
-                document.getElementById("pdf-input")?.click();
-              }}
-              variant="outline"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Réessayer
+            <Button onClick={() => { setError(null); }} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" /> Réessayer
             </Button>
           </CardContent>
         </Card>
       )}
 
       {/* Results */}
-      {data && (
+      {hasData && primaryData && (
         <>
-          {/* Solde banner */}
-          {isRefund && (
-            <div className="rounded-xl p-4 bg-success/10 border border-success/30 flex items-center gap-3">
-              <CheckCircle className="h-5 w-5 text-success shrink-0" />
-              <p className="text-sm font-semibold text-success">
-                Vous avez droit à un remboursement de {fmt(Math.abs(solde!))}
-              </p>
-            </div>
-          )}
-          {isDue && (
-            <div className="rounded-xl p-4 bg-primary/10 border border-primary/30 flex items-center gap-3">
-              <Info className="h-5 w-5 text-primary shrink-0" />
-              <p className="text-sm font-semibold text-primary">
-                Vous avez un solde à régler de {fmt(solde!)}
-              </p>
-            </div>
-          )}
-
-          {/* Confidence badge */}
-          <div className="flex items-center justify-between">
+          {/* Action bar */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2">
-              <span
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                  data.meta.confidence === "high"
-                    ? "bg-success/10 text-success"
-                    : data.meta.confidence === "medium"
-                    ? "bg-accent/10 text-accent"
+              {primaryData.meta.confidence && (
+                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+                  primaryData.meta.confidence === "high" ? "bg-success/10 text-success"
+                    : primaryData.meta.confidence === "medium" ? "bg-accent/10 text-accent"
                     : "bg-destructive/10 text-destructive"
-                }`}
-              >
-                Confiance : {data.meta.confidence}
-              </span>
-              {data.meta.type_document && (
-                <span className="text-xs text-muted-foreground">
-                  {data.meta.type_document.replace(/_/g, " ")}
+                }`}>
+                  Confiance : {primaryData.meta.confidence}
                 </span>
               )}
+              {dualMode && <span className="text-xs px-2 py-1 bg-secondary/10 text-secondary rounded-full font-medium">Mode comparaison</span>}
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={copyJson}>
-                <Copy className="h-3.5 w-3.5 mr-1.5" />
-                Copier JSON
+                <Copy className="h-3.5 w-3.5 mr-1.5" /> Copier JSON
               </Button>
-              <Button variant="outline" size="sm" onClick={downloadPdf}>
-                <Download className="h-3.5 w-3.5 mr-1.5" />
-                PDF résumé
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setData(null);
-                  setRawJson("");
-                }}
-              >
-                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-                Nouveau
+              <Button variant="ghost" size="sm" onClick={reset}>
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Nouveau
               </Button>
             </div>
           </div>
 
-          {/* Token usage & cost */}
-          {usage && (
+          {/* Usage comparison */}
+          {(usage1 || usage2) && (
             <Card className="bg-muted/30 border-border">
               <CardContent className="p-4">
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                  <div className="flex items-center gap-2">
-                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Consommation API
-                    </span>
-                    <span className="text-xs text-muted-foreground">({usage.model})</span>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <div className="text-center">
-                      <p className="text-xs text-muted-foreground">Tokens entrée</p>
-                      <p className="text-sm font-semibold tabular-nums text-foreground">
-                        {usage.input_tokens.toLocaleString("fr-FR")}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">{usage.cost_input_usd.toFixed(4)} $</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xs text-muted-foreground">Tokens sortie</p>
-                      <p className="text-sm font-semibold tabular-nums text-foreground">
-                        {usage.output_tokens.toLocaleString("fr-FR")}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">{usage.cost_output_usd.toFixed(4)} $</p>
-                    </div>
-                    <div className="h-8 w-px bg-border" />
-                    <div className="text-center">
-                      <p className="text-xs text-muted-foreground">Total tokens</p>
-                      <p className="text-sm font-bold tabular-nums text-foreground">
-                        {usage.total_tokens.toLocaleString("fr-FR")}
-                      </p>
-                      <p className="text-xs font-semibold text-primary">{usage.cost_total_usd.toFixed(4)} $</p>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Consommation API</span>
                 </div>
+                <div className={`flex ${dualMode ? "gap-8" : ""}`}>
+                  {usage1 && <UsageCard usage={usage1} label={dualMode ? "Haiku 4.5" : undefined} />}
+                  {dualMode && <div className="w-px bg-border" />}
+                  {usage2 && <UsageCard usage={usage2} label={dualMode ? "Haiku 3.5" : undefined} />}
+                </div>
+                {dualMode && usage1 && usage2 && (
+                  <div className="mt-4 pt-3 border-t border-border">
+                    <div className="flex items-center gap-4 text-sm">
+                      <span className="text-muted-foreground">Économie Haiku 3.5 :</span>
+                      <span className="font-bold text-success">
+                        {((1 - usage2.cost_total_usd / usage1.cost_total_usd) * 100).toFixed(0)}% moins cher
+                      </span>
+                      <span className="text-muted-foreground">
+                        ({usage1.cost_total_usd.toFixed(4)}$ → {usage2.cost_total_usd.toFixed(4)}$)
+                      </span>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
+
+          {/* Solde banner */}
+          {(() => {
+            const solde = primaryData.prelevement_source?.solde_a_payer_ou_rembourser;
+            if (solde != null && solde < 0) {
+              return (
+                <div className="rounded-xl p-4 bg-success/10 border border-success/30 flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-success shrink-0" />
+                  <p className="text-sm font-semibold text-success">Remboursement : {fmt(Math.abs(solde))}</p>
+                </div>
+              );
+            }
+            if (solde != null && solde > 0) {
+              return (
+                <div className="rounded-xl p-4 bg-primary/10 border border-primary/30 flex items-center gap-3">
+                  <Info className="h-5 w-5 text-primary shrink-0" />
+                  <p className="text-sm font-semibold text-primary">Solde à régler : {fmt(solde)}</p>
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           {/* Tabs */}
           <Tabs defaultValue="data">
             <TabsList className="w-full">
               <TabsTrigger value="data" className="flex-1">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Mes données fiscales
+                <BarChart3 className="h-4 w-4 mr-2" /> Mes données fiscales
               </TabsTrigger>
               <TabsTrigger value="explain" className="flex-1">
-                <Lightbulb className="h-4 w-4 mr-2" />
-                Comprendre mon avis
+                <Lightbulb className="h-4 w-4 mr-2" /> Comprendre mon avis
               </TabsTrigger>
             </TabsList>
 
-            {/* Tab 1: Structured Data */}
+            {/* Tab 1: Data */}
             <TabsContent value="data" className="space-y-4 mt-4">
               {/* Identité */}
-              <CollapsibleSection
-                icon={<User className="h-5 w-5 text-primary" />}
-                title="Identité & foyer"
-                defaultOpen
-              >
+              <CollapsibleSection icon={<User className="h-5 w-5 text-primary" />} title="Identité & foyer" defaultOpen>
+                <ColumnHeaders dualMode={dualMode} />
                 <div className="space-y-1">
-                  <DataRow
-                    label="Nom"
-                    value={`${data.contribuable.prenom} ${data.contribuable.nom}`}
+                  <DualDataRow dualMode={dualMode} label="Nom"
+                    value1={data1 ? `${data1.contribuable.prenom} ${data1.contribuable.nom}` : "—"}
+                    value2={data2 ? `${data2.contribuable.prenom} ${data2.contribuable.nom}` : undefined}
                   />
-                  <DataRow label="Adresse" value={data.contribuable.adresse_complete || "—"} />
-                  <DataRow label="N° fiscal" value={data.contribuable.numero_fiscal || "—"} />
-                  <DataRow label="Réf. avis" value={data.contribuable.reference_avis || "—"} />
-                  <DataRow
-                    label="Situation familiale"
-                    value={data.contribuable.situation_familiale || "—"}
+                  <DualDataRow dualMode={dualMode} label="N° fiscal"
+                    value1={data1?.contribuable.numero_fiscal || "—"}
+                    value2={data2?.contribuable.numero_fiscal || undefined}
                   />
-                  <DataRow
-                    label="Nombre de parts"
-                    value={data.contribuable.nombre_parts?.toString() || "—"}
+                  <DualDataRow dualMode={dualMode} label="Situation familiale"
+                    value1={data1?.contribuable.situation_familiale || "—"}
+                    value2={data2?.contribuable.situation_familiale || undefined}
+                  />
+                  <DualDataRow dualMode={dualMode} label="Nombre de parts"
+                    value1={data1?.contribuable.nombre_parts?.toString() || "—"}
+                    value2={data2?.contribuable.nombre_parts?.toString() || undefined}
                     highlight
                   />
-                  {data.annees.annee_revenus && (
-                    <DataRow
-                      label="Revenus de"
-                      value={data.annees.annee_revenus.toString()}
-                    />
-                  )}
                 </div>
               </CollapsibleSection>
 
               {/* Revenus */}
-              <CollapsibleSection
-                icon={<Wallet className="h-5 w-5 text-success" />}
-                title="Revenus déclarés"
-                defaultOpen
-              >
+              <CollapsibleSection icon={<Wallet className="h-5 w-5 text-success" />} title="Revenus déclarés" defaultOpen>
+                <ColumnHeaders dualMode={dualMode} />
                 <div className="space-y-1">
                   {Object.entries(REVENUE_LABELS).map(([key, label]) => {
-                    const val = data.revenus[key];
-                    if (val == null) return null;
+                    const { v1, v2 } = getVal(d => d.revenus[key]);
+                    if (v1 == null && v2 == null) return null;
                     const isRfr = key === "revenu_fiscal_reference";
                     return (
-                      <DataRow key={key} label={label} value={fmt(val)} highlight={isRfr} />
+                      <DualDataRow key={key} dualMode={dualMode} label={label}
+                        value1={fmt(v1)} value2={dualMode ? fmt(v2) : undefined} highlight={isRfr}
+                      />
                     );
                   })}
                 </div>
               </CollapsibleSection>
 
-              {/* Calcul de l'impôt — waterfall */}
-              <CollapsibleSection
-                icon={<Calculator className="h-5 w-5 text-secondary" />}
-                title="Calcul de l'impôt"
-                defaultOpen
-              >
-                <div className="space-y-0">
-                  {data.revenus.revenu_net_imposable != null && (
-                    <WaterfallStep
-                      label="Revenu net imposable"
-                      value={fmt(data.revenus.revenu_net_imposable)}
-                    />
-                  )}
-                  {data.impot.impot_brut_progressif != null && (
-                    <WaterfallStep
-                      label="Impôt brut (barème)"
-                      value={fmt(data.impot.impot_brut_progressif)}
-                    />
-                  )}
-                  {data.impot.reductions_impot != null && (
-                    <WaterfallStep
-                      label="Réductions d'impôt"
-                      value={`- ${fmt(data.impot.reductions_impot)}`}
-                      isPositive
-                    />
-                  )}
-                  {data.impot.credits_impot != null && (
-                    <WaterfallStep
-                      label="Crédits d'impôt"
-                      value={`- ${fmt(data.impot.credits_impot)}`}
-                      isPositive
-                    />
-                  )}
-                  {data.impot.impot_net_total != null && (
-                    <WaterfallStep
-                      label="Impôt net total"
-                      value={fmt(data.impot.impot_net_total)}
-                      isLast
-                    />
-                  )}
-                </div>
-
-                {/* TMI vs Taux moyen */}
-                {(data.impot.taux_marginal_imposition_pct != null ||
-                  data.impot.taux_moyen_imposition_pct != null) && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                    <Card className="border-l-4 border-l-secondary">
-                      <CardContent className="p-4 text-center">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                          Taux marginal (TMI)
-                        </p>
-                        <p className="text-2xl font-bold text-secondary">
-                          {pct(data.impot.taux_marginal_imposition_pct)}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          S'applique à la dernière tranche
-                        </p>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-l-4 border-l-primary">
-                      <CardContent className="p-4 text-center">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                          Taux moyen réel
-                        </p>
-                        <p className="text-2xl font-bold text-primary">
-                          {pct(data.impot.taux_moyen_imposition_pct)}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Impôt ÷ revenu imposable
-                        </p>
-                      </CardContent>
-                    </Card>
+              {/* Calcul impôt */}
+              <CollapsibleSection icon={<Calculator className="h-5 w-5 text-secondary" />} title="Calcul de l'impôt" defaultOpen>
+                {!dualMode && (
+                  <div className="space-y-0">
+                    {primaryData.revenus.revenu_net_imposable != null && (
+                      <WaterfallStep label="Revenu net imposable" value={fmt(primaryData.revenus.revenu_net_imposable)} />
+                    )}
+                    {primaryData.impot.impot_brut_progressif != null && (
+                      <WaterfallStep label="Impôt brut (barème)" value={fmt(primaryData.impot.impot_brut_progressif)} />
+                    )}
+                    {primaryData.impot.reductions_impot != null && (
+                      <WaterfallStep label="Réductions d'impôt" value={`- ${fmt(primaryData.impot.reductions_impot)}`} isPositive />
+                    )}
+                    {primaryData.impot.credits_impot != null && (
+                      <WaterfallStep label="Crédits d'impôt" value={`- ${fmt(primaryData.impot.credits_impot)}`} isPositive />
+                    )}
+                    {primaryData.impot.impot_net_total != null && (
+                      <WaterfallStep label="Impôt net total" value={fmt(primaryData.impot.impot_net_total)} isLast />
+                    )}
                   </div>
                 )}
 
-                {/* Other tax lines */}
-                <div className="space-y-1 mt-3">
+                <ColumnHeaders dualMode={dualMode} />
+                <div className="space-y-1 mt-2">
                   {Object.entries(TAX_LABELS).map(([key, label]) => {
-                    const val = data.impot[key];
-                    if (val == null) return null;
-                    return <DataRow key={key} label={label} value={fmt(val)} />;
+                    const { v1, v2 } = getVal(d => d.impot[key]);
+                    if (v1 == null && v2 == null) return null;
+                    return (
+                      <DualDataRow key={key} dualMode={dualMode} label={label}
+                        value1={fmt(v1)} value2={dualMode ? fmt(v2) : undefined}
+                      />
+                    );
                   })}
                 </div>
+
+                {/* TMI vs Taux moyen */}
+                {(primaryData.impot.taux_marginal_imposition_pct != null || primaryData.impot.taux_moyen_imposition_pct != null) && (
+                  <div className="mt-4">
+                    <ColumnHeaders dualMode={dualMode} />
+                    <DualDataRow dualMode={dualMode} label="Taux marginal (TMI)"
+                      value1={pct(data1?.impot.taux_marginal_imposition_pct)}
+                      value2={dualMode ? pct(data2?.impot.taux_marginal_imposition_pct) : undefined}
+                      highlight
+                    />
+                    <DualDataRow dualMode={dualMode} label="Taux moyen réel"
+                      value1={pct(data1?.impot.taux_moyen_imposition_pct)}
+                      value2={dualMode ? pct(data2?.impot.taux_moyen_imposition_pct) : undefined}
+                    />
+                  </div>
+                )}
               </CollapsibleSection>
 
-              {/* Prélèvement à la source */}
-              <CollapsibleSection
-                icon={<FileText className="h-5 w-5 text-accent" />}
-                title="Prélèvement à la source"
-              >
+              {/* PAS */}
+              <CollapsibleSection icon={<FileText className="h-5 w-5 text-accent" />} title="Prélèvement à la source">
+                <ColumnHeaders dualMode={dualMode} />
                 <div className="space-y-1">
-                  <DataRow
-                    label="Taux PAS"
-                    value={pct(data.prelevement_source.taux_pas_pct)}
+                  <DualDataRow dualMode={dualMode} label="Taux PAS"
+                    value1={pct(data1?.prelevement_source.taux_pas_pct ?? data2?.prelevement_source.taux_pas_pct)}
+                    value2={dualMode ? pct(data2?.prelevement_source.taux_pas_pct) : undefined}
                   />
-                  <DataRow
-                    label="Montant prélevé sur l'année"
-                    value={fmt(data.prelevement_source.montant_preleve_annee_n)}
+                  <DualDataRow dualMode={dualMode} label="Montant prélevé"
+                    value1={fmt(data1?.prelevement_source.montant_preleve_annee_n ?? data2?.prelevement_source.montant_preleve_annee_n)}
+                    value2={dualMode ? fmt(data2?.prelevement_source.montant_preleve_annee_n) : undefined}
                   />
-                  <DataRow
-                    label="Solde (à payer / à rembourser)"
-                    value={fmt(data.prelevement_source.solde_a_payer_ou_rembourser)}
+                  <DualDataRow dualMode={dualMode} label="Solde"
+                    value1={fmt(data1?.prelevement_source.solde_a_payer_ou_rembourser ?? data2?.prelevement_source.solde_a_payer_ou_rembourser)}
+                    value2={dualMode ? fmt(data2?.prelevement_source.solde_a_payer_ou_rembourser) : undefined}
                     highlight
                   />
                 </div>
               </CollapsibleSection>
             </TabsContent>
 
-            {/* Tab 2: Pedagogical */}
+            {/* Tab 2: Pédagogique */}
             <TabsContent value="explain" className="space-y-4 mt-4">
-              {data.explications_pedagogiques.introduction && (
-                <PedagogicalCard
+              {(data1?.explications_pedagogiques.introduction || data2?.explications_pedagogiques.introduction) && (
+                <PedagogicalCard dualMode={dualMode}
                   icon={<BarChart3 className="h-5 w-5 text-primary" />}
                   title="Qu'est-ce qu'un avis d'imposition ?"
-                  text={data.explications_pedagogiques.introduction}
+                  text={data1?.explications_pedagogiques.introduction || data2?.explications_pedagogiques.introduction || ""}
+                  text2={data2?.explications_pedagogiques.introduction}
                 />
               )}
-
-              {data.explications_pedagogiques.revenu_fiscal_reference_explication && (
-                <PedagogicalCard
+              {(data1?.explications_pedagogiques.revenu_fiscal_reference_explication || data2?.explications_pedagogiques.revenu_fiscal_reference_explication) && (
+                <PedagogicalCard dualMode={dualMode}
                   icon={<BarChart3 className="h-5 w-5 text-accent" />}
                   title="Le revenu fiscal de référence (RFR)"
-                  text={data.explications_pedagogiques.revenu_fiscal_reference_explication}
+                  text={data1?.explications_pedagogiques.revenu_fiscal_reference_explication || data2?.explications_pedagogiques.revenu_fiscal_reference_explication || ""}
+                  text2={data2?.explications_pedagogiques.revenu_fiscal_reference_explication}
                   variant="tip"
                 />
               )}
-
-              {data.explications_pedagogiques.taux_marginal_explication && (
-                <PedagogicalCard
+              {(data1?.explications_pedagogiques.taux_marginal_explication || data2?.explications_pedagogiques.taux_marginal_explication) && (
+                <PedagogicalCard dualMode={dualMode}
                   icon={<BarChart3 className="h-5 w-5 text-secondary" />}
                   title="Le taux marginal d'imposition (TMI)"
-                  text={data.explications_pedagogiques.taux_marginal_explication}
+                  text={data1?.explications_pedagogiques.taux_marginal_explication || data2?.explications_pedagogiques.taux_marginal_explication || ""}
+                  text2={data2?.explications_pedagogiques.taux_marginal_explication}
                 />
               )}
-
-              {data.explications_pedagogiques.taux_moyen_explication && (
-                <PedagogicalCard
-                  icon={<BarChart3 className="h-5 w-5 text-primary" />}
-                  title="Le taux moyen d'imposition"
-                  text={data.explications_pedagogiques.taux_moyen_explication}
-                />
-              )}
-
-              {data.explications_pedagogiques.quotient_familial_explication && (
-                <PedagogicalCard
+              {(data1?.explications_pedagogiques.quotient_familial_explication || data2?.explications_pedagogiques.quotient_familial_explication) && (
+                <PedagogicalCard dualMode={dualMode}
                   icon={<User className="h-5 w-5 text-primary" />}
                   title="Le quotient familial"
-                  text={data.explications_pedagogiques.quotient_familial_explication}
+                  text={data1?.explications_pedagogiques.quotient_familial_explication || data2?.explications_pedagogiques.quotient_familial_explication || ""}
+                  text2={data2?.explications_pedagogiques.quotient_familial_explication}
                 />
               )}
-
-              {data.explications_pedagogiques.abattement_10_pct_explication && (
-                <PedagogicalCard
-                  icon={<Calculator className="h-5 w-5 text-primary" />}
-                  title="L'abattement de 10 % sur les salaires"
-                  text={data.explications_pedagogiques.abattement_10_pct_explication}
-                />
-              )}
-
-              {data.explications_pedagogiques.prelevement_source_explication && (
-                <PedagogicalCard
+              {(data1?.explications_pedagogiques.prelevement_source_explication || data2?.explications_pedagogiques.prelevement_source_explication) && (
+                <PedagogicalCard dualMode={dualMode}
                   icon={<Wallet className="h-5 w-5 text-primary" />}
                   title="Le prélèvement à la source"
-                  text={data.explications_pedagogiques.prelevement_source_explication}
+                  text={data1?.explications_pedagogiques.prelevement_source_explication || data2?.explications_pedagogiques.prelevement_source_explication || ""}
+                  text2={data2?.explications_pedagogiques.prelevement_source_explication}
                 />
               )}
 
-              {/* Lignes inhabituelles */}
-              {data.explications_pedagogiques.lignes_inhabituelles?.length > 0 && (
-                <Card className="border-accent/30 bg-accent/5">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2 text-accent">
-                      <AlertTriangle className="h-4 w-4" />
-                      Ce qui est particulier dans votre avis
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {data.explications_pedagogiques.lignes_inhabituelles.map(
-                      (line, i) => (
-                        <p key={i} className="text-sm text-muted-foreground">
-                          • {line}
-                        </p>
-                      )
-                    )}
-                  </CardContent>
-                </Card>
-              )}
+              {/* Conseils d'optimisation - dual */}
+              {(() => {
+                const c1 = data1?.explications_pedagogiques.conseils_optimisation || [];
+                const c2 = data2?.explications_pedagogiques.conseils_optimisation || [];
+                if (c1.length === 0 && c2.length === 0) return null;
 
-              {/* Conseils d'optimisation */}
-              {data.explications_pedagogiques.conseils_optimisation?.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                    <Lightbulb className="h-4 w-4 text-accent" />
-                    Pistes d'optimisation
-                  </h3>
-                  {data.explications_pedagogiques.conseils_optimisation.map(
-                    (conseil, i) => (
-                      <Card key={i}>
-                        <CardContent className="p-4 flex items-start justify-between gap-4">
-                          <div className="flex items-start gap-3">
-                            <span className="text-lg">💡</span>
-                            <p className="text-sm text-muted-foreground">{conseil}</p>
-                          </div>
-                          <Button variant="outline" size="sm" className="shrink-0" disabled>
-                            En savoir plus
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    )
-                  )}
-                </div>
-              )}
+                if (dualMode) {
+                  return (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+                        <Lightbulb className="h-4 w-4 text-accent" /> Pistes d'optimisation
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Haiku 4.5</span>
+                          {c1.map((c, i) => (
+                            <Card key={i}><CardContent className="p-3"><p className="text-sm text-muted-foreground">💡 {c}</p></CardContent></Card>
+                          ))}
+                        </div>
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-secondary">Haiku 3.5</span>
+                          {c2.map((c, i) => (
+                            <Card key={i}><CardContent className="p-3"><p className="text-sm text-muted-foreground">💡 {c}</p></CardContent></Card>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
 
-              {/* Points d'attention */}
-              {data.explications_pedagogiques.points_attention?.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-destructive uppercase tracking-wider flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
-                    Points d'attention
-                  </h3>
-                  {data.explications_pedagogiques.points_attention.map((point, i) => (
-                    <PedagogicalCard
-                      key={i}
-                      icon={<AlertTriangle className="h-5 w-5 text-destructive" />}
-                      title={`Alerte ${i + 1}`}
-                      text={point}
-                      variant="warning"
-                    />
-                  ))}
-                </div>
-              )}
+                const list = c1.length > 0 ? c1 : c2;
+                return (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4 text-accent" /> Pistes d'optimisation
+                    </h3>
+                    {list.map((c, i) => (
+                      <Card key={i}><CardContent className="p-4 flex items-start gap-3"><span className="text-lg">💡</span><p className="text-sm text-muted-foreground">{c}</p></CardContent></Card>
+                    ))}
+                  </div>
+                );
+              })()}
+
+              {/* Points d'attention - dual */}
+              {(() => {
+                const p1 = data1?.explications_pedagogiques.points_attention || [];
+                const p2 = data2?.explications_pedagogiques.points_attention || [];
+                if (p1.length === 0 && p2.length === 0) return null;
+
+                if (dualMode) {
+                  return (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-destructive uppercase tracking-wider flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4" /> Points d'attention
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Haiku 4.5</span>
+                          {p1.map((p, i) => (
+                            <Card key={i} className="border-l-4 border-l-destructive">
+                              <CardContent className="p-3"><p className="text-sm text-muted-foreground">⚠️ {p}</p></CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-secondary">Haiku 3.5</span>
+                          {p2.map((p, i) => (
+                            <Card key={i} className="border-l-4 border-l-destructive">
+                              <CardContent className="p-3"><p className="text-sm text-muted-foreground">⚠️ {p}</p></CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                const list = p1.length > 0 ? p1 : p2;
+                return (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-destructive uppercase tracking-wider flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4" /> Points d'attention
+                    </h3>
+                    {list.map((p, i) => (
+                      <PedagogicalCard key={i} dualMode={false}
+                        icon={<AlertTriangle className="h-5 w-5 text-destructive" />}
+                        title={`Alerte ${i + 1}`} text={p} variant="warning"
+                      />
+                    ))}
+                  </div>
+                );
+              })()}
             </TabsContent>
           </Tabs>
 
-          {/* Disclaimer */}
           <p className="text-xs text-muted-foreground text-center px-4 py-3 bg-muted/30 rounded-xl">
-            Ces informations sont extraites automatiquement de votre document. MyFinCare ne
-            fournit pas de conseil fiscal — rapprochez-vous d'un conseiller pour toute décision.
+            Ces informations sont extraites automatiquement. MyFinCare ne fournit pas de conseil fiscal — rapprochez-vous d'un conseiller.
           </p>
         </>
       )}
