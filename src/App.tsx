@@ -28,6 +28,7 @@ import { NotificationManager } from "@/components/notifications/NotificationMana
 
 import { useFaviconAnimation } from "@/hooks/useFaviconAnimation";
 import TestOcr from "./pages/TestOcr";
+import TestPayslip from "./pages/TestPayslip";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PartnershipRoute from "@/components/PartnershipRoute";
 import { CheckPlanAccess } from "@/components/CheckPlanAccess";
