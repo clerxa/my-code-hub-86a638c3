@@ -196,9 +196,9 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error:", error.message);
+    console.error("Error:", error.message, error.stack);
     return new Response(
-      JSON.stringify({ error: "Une erreur est survenue lors de l'analyse du document." }),
+      JSON.stringify({ error: error.message || "Une erreur est survenue lors de l'analyse du document." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
