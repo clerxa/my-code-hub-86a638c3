@@ -572,6 +572,7 @@ const App = () => (
             
             {/* Route test OCR */}
             <Route path="/test-ocr" element={<TestOcr />} />
+            <Route path="/test-payslip" element={<TestPayslip />} />
             
             {/* Route 404 */}
             <Route path="*" element={<NotFound />} />

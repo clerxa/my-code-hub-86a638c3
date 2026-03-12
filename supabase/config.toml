@@ -80,3 +80,6 @@ verify_jwt = false
 
 [functions.ocr-avis-imposition]
 verify_jwt = false
+
+[functions.ocr-bulletin-paie]
+verify_jwt = false
