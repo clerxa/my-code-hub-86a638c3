@@ -27,6 +27,7 @@ import { GlobalSettingsProvider } from "@/contexts/GlobalSettingsContext";
 import { NotificationManager } from "@/components/notifications/NotificationManager";
 
 import { useFaviconAnimation } from "@/hooks/useFaviconAnimation";
+import TestOcr from "./pages/TestOcr";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PartnershipRoute from "@/components/PartnershipRoute";
 import { CheckPlanAccess } from "@/components/CheckPlanAccess";
