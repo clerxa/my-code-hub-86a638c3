@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const MODELS: Record<string, { id: string; input_cost: number; output_cost: number }> = {
   "haiku-4.5": { id: "claude-haiku-4-5-20251001", input_cost: 1.00, output_cost: 5.00 },
-  "haiku-3.5": { id: "claude-haiku-4-5-20251001", input_cost: 1.00, output_cost: 5.00 },
+  "sonnet-4": { id: "claude-sonnet-4-20250514", input_cost: 3.00, output_cost: 15.00 },
 };
 
 const SYSTEM_PROMPT = `Tu es un expert en fiscalité française et en droit fiscal des particuliers. Tu analyses des avis d'imposition français (Direction Générale des Finances Publiques — DGFIP).
