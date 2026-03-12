@@ -77,11 +77,11 @@ interface UsageData {
   model: string;
 }
 
-type ModelKey = "haiku-4.5" | "haiku-3.5" | "both";
+type ModelKey = "haiku-4.5" | "sonnet-4" | "both";
 
 const MODEL_LABELS: Record<string, string> = {
   "haiku-4.5": "Haiku 4.5",
-  "haiku-3.5": "Haiku 3.5",
+  "sonnet-4": "Sonnet 4",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
