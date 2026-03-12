@@ -151,7 +151,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Anthropic API error:", errorText);
+      console.error("Anthropic API error for model", modelConfig.id, ":", response.status, errorText);
       throw new Error(`Anthropic API error: ${response.status}`);
     }
 
