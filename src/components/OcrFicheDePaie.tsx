@@ -790,6 +790,7 @@ export default function OcrFicheDePaie() {
               {[
                 { key: "data" as const, label: "📋 Ma fiche de paie" },
                 { key: "explain" as const, label: "💡 Comprendre ma paie" },
+                { key: "raw" as const, label: "🗂️ Données brutes" },
               ].map(tab => (
                 <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
                   flex: 1, padding: "10px 16px", border: "none", borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: "pointer",
@@ -801,7 +802,7 @@ export default function OcrFicheDePaie() {
               ))}
             </div>
 
-            {activeTab === "data" ? renderDataTab() : renderExplainTab()}
+            {activeTab === "data" ? renderDataTab() : activeTab === "explain" ? renderExplainTab() : renderRawTab()}
 
             {/* Actions */}
             <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
