@@ -415,8 +415,8 @@ const OcrAvisImposition = () => {
         setData1(r1.ocrData);
         setUsage1(r1.usage);
 
-        setProgressMsg("Analyse par Haiku 3.5…");
-        const r2 = await callOcr(images, "haiku-3.5");
+        setProgressMsg("Analyse par Sonnet 4…");
+        const r2 = await callOcr(images, "sonnet-4");
         setData2(r2.ocrData);
         setUsage2(r2.usage);
       } else if (selectedModel === "haiku-4.5") {
@@ -425,8 +425,8 @@ const OcrAvisImposition = () => {
         setData1(r.ocrData);
         setUsage1(r.usage);
       } else {
-        setProgressMsg("Analyse par Haiku 3.5…");
-        const r = await callOcr(images, "haiku-3.5");
+        setProgressMsg("Analyse par Sonnet 4…");
+        const r = await callOcr(images, "sonnet-4");
         setData2(r.ocrData);
         setUsage2(r.usage);
       }
