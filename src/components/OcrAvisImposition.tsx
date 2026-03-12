@@ -301,6 +301,15 @@ const OcrAvisImposition = () => {
   const [progressMsg, setProgressMsg] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [usage, setUsage] = useState<{
+    input_tokens: number;
+    output_tokens: number;
+    total_tokens: number;
+    cost_input_usd: number;
+    cost_output_usd: number;
+    cost_total_usd: number;
+    model: string;
+  } | null>(null);
 
   const analyzeFile = useCallback(async (file: File) => {
     if (file.type !== "application/pdf") {
