@@ -6,6 +6,11 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const MODELS: Record<string, { id: string; input_cost: number; output_cost: number }> = {
+  "haiku-4.5": { id: "claude-haiku-4-5-20251001", input_cost: 0.80, output_cost: 4.00 },
+  "haiku-3.5": { id: "claude-3-5-haiku-20241022", input_cost: 0.25, output_cost: 1.25 },
+};
+
 const SYSTEM_PROMPT = `Tu es un expert en fiscalité française et en droit fiscal des particuliers. Tu analyses des avis d'imposition français (Direction Générale des Finances Publiques — DGFIP).
 
 Tu dois faire DEUX choses simultanément :
@@ -104,7 +109,7 @@ serve(async (req) => {
       throw new Error("ANTHROPIC_API_KEY not configured");
     }
 
-    const { images } = await req.json();
+    const { images, model: modelKey } = await req.json();
 
     if (!images || !Array.isArray(images) || images.length === 0) {
       return new Response(
@@ -112,6 +117,8 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const modelConfig = MODELS[modelKey] || MODELS["haiku-4.5"];
 
     const content: any[] = images.map((base64: string) => ({
       type: "image",
@@ -135,15 +142,10 @@ serve(async (req) => {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: modelConfig.id,
         max_tokens: 4000,
         system: SYSTEM_PROMPT,
-        messages: [
-          {
-            role: "user",
-            content,
-          },
-        ],
+        messages: [{ role: "user", content }],
       }),
     });
 
@@ -160,12 +162,10 @@ serve(async (req) => {
       throw new Error("No text content in API response");
     }
 
-    // Try to parse the JSON response
     let parsed;
     try {
       parsed = JSON.parse(textContent);
     } catch {
-      // Try to extract JSON from the response if it has extra text
       const jsonMatch = textContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsed = JSON.parse(jsonMatch[0]);
@@ -174,14 +174,11 @@ serve(async (req) => {
       }
     }
 
-    // Extract token usage from Anthropic response
     const usage = result.usage || {};
     const inputTokens = usage.input_tokens || 0;
     const outputTokens = usage.output_tokens || 0;
-    
-    // Claude Haiku 4.5 pricing: $0.80/MTok input, $4.00/MTok output
-    const costInput = (inputTokens / 1_000_000) * 0.80;
-    const costOutput = (outputTokens / 1_000_000) * 4.00;
+    const costInput = (inputTokens / 1_000_000) * modelConfig.input_cost;
+    const costOutput = (outputTokens / 1_000_000) * modelConfig.output_cost;
     const totalCost = costInput + costOutput;
 
     return new Response(JSON.stringify({
@@ -193,7 +190,7 @@ serve(async (req) => {
         cost_input_usd: Math.round(costInput * 10000) / 10000,
         cost_output_usd: Math.round(costOutput * 10000) / 10000,
         cost_total_usd: Math.round(totalCost * 10000) / 10000,
-        model: "claude-haiku-4-5-20251001",
+        model: modelConfig.id,
       }
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
