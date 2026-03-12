@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const MODELS: Record<string, { id: string; input_cost: number; output_cost: number }> = {
-  "haiku-4.5": { id: "claude-haiku-4-5-20250514", input_cost: 1.00, output_cost: 5.00 },
+  "haiku-4.5": { id: "claude-haiku-4-5", input_cost: 1.00, output_cost: 5.00 }, input_cost: 1.00, output_cost: 5.00 },
   "haiku-3.5": { id: "claude-3-5-haiku-20241022", input_cost: 0.80, output_cost: 4.00 },
 };
 
