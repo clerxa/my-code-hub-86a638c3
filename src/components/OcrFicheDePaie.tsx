@@ -82,17 +82,25 @@ export default function OcrFicheDePaie() {
   const convertPdfToImages = useCallback(async (pdfFile: File): Promise<string[]> => {
     setProgress("Chargement de pdf.js…");
 
-    // Load pdf.js dynamically
-    if (!(window as any).pdfjsLib) {
+    // Load pdf.js v3 from CDN (avoid conflict with react-pdf's v5)
+    if (!(window as any).__pdfjsLib3) {
+      // Temporarily save any existing pdfjsLib (from react-pdf)
+      const existing = (window as any).pdfjsLib;
+      delete (window as any).pdfjsLib;
       await new Promise<void>((resolve, reject) => {
         const script = document.createElement("script");
         script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-        script.onload = () => resolve();
+        script.onload = () => {
+          (window as any).__pdfjsLib3 = (window as any).pdfjsLib;
+          // Restore the original if it existed
+          if (existing) (window as any).pdfjsLib = existing;
+          resolve();
+        };
         script.onerror = () => reject(new Error("Failed to load pdf.js"));
         document.head.appendChild(script);
       });
     }
-    const pdfjsLib = (window as any).pdfjsLib;
+    const pdfjsLib = (window as any).__pdfjsLib3;
     pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
     setProgress("Lecture du PDF…");
