@@ -924,7 +924,7 @@ export default function OcrFicheDePaie() {
           const detected: { label: string; expl: string }[] = [];
           const checks = [
             { key: "taux_pas_zero", label: "Taux PAS à 0%" },
-            { key: "taux_pas_negatif", label: "Taux PAS négatif" },
+            { key: "credit_impot", label: "Crédit d'impôt" },
             { key: "conge_paternite", label: "Congé paternité" },
             { key: "absence_longue_duree", label: "Absence longue durée" },
             { key: "conges_pris", label: "Congés pris" },
