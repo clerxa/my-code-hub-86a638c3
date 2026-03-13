@@ -57,12 +57,15 @@ Ignore les pages de synthèse avec graphiques circulaires ou camemberts — elle
 - Champ type_plan et impact_pas_immediat obligatoires dans actions_gratuites_acquises[]
 
 ⚠️ CAS 2 — CRÉDIT D'IMPÔT vs DÉDUCTION NORMALE :
-- Seul le SIGNE DU MONTANT détermine s'il y a crédit ou déduction, PAS le signe du taux
-- montant_pas > 0 → CRÉDIT D'IMPÔT | montant_pas < 0 → DÉDUCTION normale
+- Le taux PAS est TOUJOURS affiché avec un signe "-" sur les fiches de paie (convention d'affichage)
+- IGNORER TOTALEMENT le signe du taux
+- SEUL le signe du MONTANT détermine : montant_pas > 0 → CRÉDIT D'IMPÔT | montant_pas < 0 → DÉDUCTION normale
+- NE JAMAIS alerter sur un "taux négatif" → c'est l'affichage NORMAL
+- Toujours afficher le taux en VALEUR ABSOLUE
 
 IMPORTANT : Les champs points_attention et conseils_optimisation doivent contenir des STRINGS simples, pas des objets.
 
-Structure JSON : salarie, employeur, periode, remuneration_brute, cotisations_salariales, cotisations_patronales, net, conges_rtt, epargne_salariale, remuneration_equity (avec type_plan et impact_pas_immediat dans actions_gratuites_acquises), explications_pedagogiques, points_attention, conseils_optimisation, cas_particuliers_mois (avec credit_impot au lieu de taux_pas_negatif), cumuls_annuels, informations_complementaires.
+Structure JSON : salarie, employeur, periode, remuneration_brute, cotisations_salariales, cotisations_patronales, net, conges_rtt, epargne_salariale, remuneration_equity (avec type_plan et impact_pas_immediat dans actions_gratuites_acquises), explications_pedagogiques, points_attention, conseils_optimisation, cas_particuliers_mois (avec credit_impot), cumuls_annuels, informations_complementaires.
 
 (Prompt complet identique côté serveur — modifiez ci-dessous pour personnaliser)`;
 
