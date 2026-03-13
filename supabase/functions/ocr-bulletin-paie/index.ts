@@ -758,78 +758,6 @@ net_social (salaire net après cotisations)
 
 = montant_pas_preleve
 
-EXTRACTION :
-
-Si 4 lignes "Acquisition de X actions gratuites" détectées :
-
-{
-
-  "remuneration_equity": {
-
-    "actions_gratuites_acquises": [
-
-      {"nb_actions": 359, "prix_unitaire": 46.7269, "valeur_fiscale_totale": 16774.95, "societe": "DocuSign"},
-
-      {"nb_actions": 12, "prix_unitaire": 46.7267, "valeur_fiscale_totale": 560.72, "societe": "DocuSign"},
-
-      {"nb_actions": 6, "prix_unitaire": 46.7269, "valeur_fiscale_totale": 280.36, "societe": "DocuSign"},
-
-      {"nb_actions": 31, "prix_unitaire": 46.7268, "valeur_fiscale_totale": 1448.53, "societe": "DocuSign"}
-
-    ]
-
-  },
-
-  "cas_particuliers_mois": {
-
-    "actions_gratuites_vesting": {
-
-      "detecte": true,
-
-      "nb_actions": 408,
-
-      "valeur_fiscale": 19064.56
-
-    }
-
-  }
-
-}
-
-EXPLICATION PÉDAGOGIQUE :
-
-"🎉 BONNE NOUVELLE : Ce mois-ci, {nb_actions_total} actions gratuites de ton plan d'actionnariat salarié {entreprise} sont devenues définitivement acquises (vesting). Leur valeur fiscale totale est de {valeur_totale} €.
-
-⚠️ IMPORTANT — COMPRENDRE L'IMPACT FISCAL :
-
-1️⃣ Ces actions n'apparaissent PAS dans ton brut ni dans ton net payé
-
-Elles sont dans une section à part de ta fiche de paie (colonne 'Charges patronales' ou 'A payer'). Tu ne reçois pas {valeur_totale} € en cash ce mois-ci — tu reçois les ACTIONS sur ton compte titre.
-
-2️⃣ Mais elles augmentent ton net imposable et donc ton impôt
-
-La valeur fiscale de {valeur_totale} € est ajoutée à ton net imposable pour calculer le PAS. Résultat :
-
-- Net imposable SANS actions : ~{net_social} €
-
-- Net imposable AVEC actions : {net_imposable} €
-
-- PAS appliqué ({taux_pas}%) sur {net_imposable} € : {montant_pas} €
-
-- PAS qui aurait été appliqué sur {net_social} € : ~{montant_pas_sans_actions} €
-
-- Impôt supplémentaire dû aux actions : ~{ecart} €
-
-3️⃣ Tu paies l'impôt SANS avoir reçu de cash
-
-C'est le piège des actions gratuites : tu paies {ecart} € d'impôt supplémentaire ce mois-ci, mais tu n'as pas reçu cette somme en euros — tu as reçu les actions. Si tu veux payer l'impôt sans impacter ton budget, tu peux vendre une partie des actions pour récupérer la liquidité.
-
-4️⃣ Les actions sont maintenant à toi
-
-Tu peux les conserver sur ton compte titre ou les vendre quand tu veux. Si tu les vends rapidement (dans les 30 jours), tu n'auras pas de plus-value à déclarer (tu as déjà payé l'impôt sur la valeur d'acquisition via le PAS). Si tu les gardes plus longtemps et qu'elles prennent de la valeur, tu devras payer une plus-value à la revente (PFU 30% ou barème IR).
-
-💡 Conseil : Vends au moins 5-10% des actions rapidement pour récupérer de la liquidité et compenser l'impôt. Garde le reste si tu crois en {entreprise}, mais diversifie ton patrimoine (ne mets pas tout dans les actions de ton employeur)."
-
 B. RSU — VARIANTE A : SIMPLE AVEC REMBOURSEMENT BROKER
 
 DÉTECTION :
@@ -850,50 +778,6 @@ MÉCANISME :
 
 3. Le remboursement de l'impôt broker est ajouté au net
 
-EXTRACTION :
-
-{
-
-  "remuneration_equity": {
-
-    "rsu_restricted_stock_units": {
-
-      "variante": "simple_avec_remboursement_broker",
-
-      "gain_brut_total": 3316.66,
-
-      "reprise_rsu_et_taxes": -3316.66,
-
-      "remboursement_stc_ou_broker": 1955.34,
-
-      "cotisations_supplementaires_estimees": 1000.00,
-
-      "impot_supplementaire_estime": 428.00,
-
-      "mecanisme_description": "RSU ajouté au brut pour cotisations, puis retiré. Broker a prélevé et remboursé l'impôt."
-
-    }
-
-  }
-
-}
-
-EXPLICATION :
-
-"Ce mois-ci, des RSU (Restricted Stock Units) {entreprise} d'une valeur de {gain} € sont devenues acquises.
-
-Mécanisme :
-
-1. Cette valeur est ajoutée à ton brut pour calculer les cotisations sociales → tu paies ~{cotisations_supp} € de cotisations supplémentaires ce mois-ci.
-
-2. Le PAS est également calculé sur un net imposable qui inclut le RSU → ~{impot_supp} € d'impôt supplémentaire.
-
-3. Ensuite, le gain RSU est retiré de ton net à payer (ligne 'Reprise RSU').
-
-4. En parallèle, {remboursement} € d'impôt prélevé par le broker te sont remboursés.
-
-Au final : tu paies {total_charges} € de charges (cotisations + impôt) mais tu reçois {remboursement} € de remboursement → gain net de ~{gain_net} € sur cette opération ! Les actions ont été vendues par le broker et tu as reçu le cash via un compte séparé."
-
 C. RSU — VARIANTE B : SELL TO COVER 45% (CISCO, LINKEDIN)
 
 DÉTECTION :
@@ -906,82 +790,6 @@ DÉTECTION :
 
 - Vérifier : Y / (X + Y) ≈ 45% (quotité cédée France)
 
-MÉCANISME :
-
-1. Le gain RSU TOTAL (valeur de TOUTES les actions) est ajouté au brut en 2 lignes : RSU (55% conservées) + TAXES (45% vendues)
-
-2. Les cotisations explosent (calculées sur brut + RSU complet)
-
-3. Le RSU et les TAXES sont retirés après cotisations
-
-4. Le cash de la vente des 45% est ajouté au net payé (Remboursement STC)
-
-EXTRACTION :
-
-{
-
-  "remuneration_equity": {
-
-    "rsu_restricted_stock_units": {
-
-      "variante": "sell_to_cover_45pct",
-
-      "gain_brut_total": 34168.00,
-
-      "dont_rsu_ligne_paie": 17472.00,
-
-      "dont_taxes_rsu_ligne_paie": 16640.00,
-
-      "quotite_cedee_pct": 45,
-
-      "nb_actions_acquises": 410,
-
-      "nb_actions_vendues": 185,
-
-      "nb_actions_conservees": 225,
-
-      "valeur_actions_vendues": 15376.00,
-
-      "valeur_actions_conservees": 18792.00,
-
-      "reprise_rsu_et_taxes": -34112.00,
-
-      "remboursement_stc_ou_broker": 16640.00,
-
-      "cotisations_supplementaires_estimees": 6000.00,
-
-      "mecanisme_description": "Sell to Cover automatique 45% (France). 45% d'actions vendues pour payer cotisations, 55% conservées en portefeuille."
-
-    }
-
-  }
-
-}
-
-EXPLICATION :
-
-"⚠️ GROS LOT RSU CE MOIS-CI : {nb_actions} actions RSU {entreprise} ({gain_total} €) sont devenues définitivement acquises (vesting).
-
-⚠️ MÉCANISME SELL TO COVER : En France, 45% de tes actions RSU (soit {nb_actions_vendues} actions valant {valeur_vendues} €) sont AUTOMATIQUEMENT VENDUES au moment de l'acquisition pour payer les cotisations sociales et une partie de l'impôt. Les 55% restants ({nb_actions_conservees} actions valant {valeur_conservees} €) sont conservées dans ton portefeuille.
-
-Voici comment ça impacte ta paie ce mois-ci :
-
-1. La valeur totale des RSU ({gain_total} €) est ajoutée à ton brut pour calculer les cotisations sociales → tu paies ~{cotisations_supp} € de cotisations supplémentaires.
-
-2. Ensuite, le RSU est retiré de ton brut (ligne 'Reprise RSU').
-
-3. Le produit de la vente des 45% d'actions ({remboursement_stc} €) est ajouté à ton net à payer (ligne 'Remboursement STC').
-
-Résultat :
-
-- Tu reçois {remboursement_stc} € en cash ce mois-ci (via le net payé)
-
-- Tu conserves {nb_actions_conservees} actions en portefeuille (valeur {valeur_conservees} €)
-
-- Total : {gain_total} € (cash + actions)
-
-💡 Conseil : Les {nb_actions_conservees} actions conservées sont à toi. Tu peux les vendre quand tu veux sur ton compte titre. Si tu les vends plus tard à un prix supérieur, tu devras payer une plus-value (PFU 30% ou barème IR)."
-
 D. ESPP (EMPLOYEE STOCK PURCHASE PLAN)
 
 DÉTECTION :
@@ -990,42 +798,6 @@ DÉTECTION :
 
 - OU ligne "[Mois] - [Mois] ESPP" (ex: "Jul - Dec ESPP")
 
-EXTRACTION :
-
-{
-
-  "remuneration_equity": {
-
-    "espp_employee_stock_purchase_plan": {
-
-      "contribution_mensuelle": 492.58,
-
-      "periode": "en cours"
-
-    }
-
-  }
-
-}
-
-EXPLICATION :
-
-"Tu participes à l'ESPP (Employee Stock Purchase Plan) de {entreprise}. Ce mois-ci, {montant} € ont été prélevés sur ton net payé et mis de côté.
-
-Comment ça marche :
-
-- Chaque mois, {montant} € sont prélevés sur ton net payé et mis dans un compte dédié
-
-- Tous les 6 mois (généralement en mars et septembre), {entreprise} utilise ces fonds pour acheter des actions à ta place
-
-- Tu bénéficies d'une décote de 15% sur le prix du marché : si l'action vaut 100€, tu l'achètes 85€
-
-C'est un excellent dispositif d'épargne : tu gagnes automatiquement 15% dès l'achat !
-
-💡 Conseil : Tu peux revendre les actions dès réception pour sécuriser ce gain de 15%. Ou les garder si tu crois en {entreprise} — mais attention à ne pas concentrer tout ton patrimoine dans les actions de ton employeur (diversifie !).
-
-Les gains seront imposables à la revente (PFU 30% ou barème IR sur la plus-value)."
-
 E. AVANTAGES EN NATURE AVEC GROSS-UP (LINKEDIN, META)
 
 DÉTECTION :
@@ -1033,36 +805,6 @@ DÉTECTION :
 - Ligne "Food BIK" ou "[X] BIK" (Benefit In Kind = avantage en nature)
 
 - Ligne "Food GU BIK" ou "[X] GU BIK" (GU = Gross-Up = compensation fiscale)
-
-EXTRACTION :
-
-{
-
-  "remuneration_equity": {
-
-    "avantages_nature_compenses": {
-
-      "food_bik_benefit_in_kind": 631.23,
-
-      "gross_up_compensation": 714.68,
-
-      "total_brut": 1345.91
-
-    }
-
-  }
-
-}
-
-EXPLICATION :
-
-"{Entreprise} te fournit des repas gratuits d'une valeur de {montant_bik} €/mois (avantage en nature).
-
-Normalement, cet avantage est soumis à cotisations sociales (~{montant_cot} €) et à l'impôt sur le revenu. Mais {entreprise} ajoute {montant_grossup} € de 'gross-up' (compensation fiscale) à ton brut pour couvrir ces charges.
-
-Résultat : tu profites des repas gratuits sans que ça te coûte quoi que ce soit en net. C'est un avantage très généreux !
-
-Total ajouté à ton brut : {total_brut} € (avantage + compensation), mais impact net ≈ 0€."
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1074,8 +816,6 @@ TAUX PAS À 0% :
 
 - Détection : taux_pas_pct = 0 ET net_avant_impot > 3000€
 
-- Explication : (voir section 2 ci-dessus)
-
 CRÉDIT D'IMPÔT vs DÉDUCTION NORMALE :
 
 - Détection : Regarder le SIGNE DU MONTANT (pas le signe du taux)
@@ -1086,15 +826,9 @@ CRÉDIT D'IMPÔT vs DÉDUCTION NORMALE :
 
 - ⚠️ IGNORER le signe du taux (peut être négatif pour raisons techniques)
 
-- Explication si crédit : (voir section 2)
-
-- Explication si déduction normale : "Ton impôt de {abs(montant)} € a été prélevé normalement"
-
 CONGÉ PATERNITÉ :
 
 - Détection : "Absence paternité" OU "Congé paternité" OU brut < 30% du salaire habituel avec mention "paternité"
-
-- Explication : (voir section 2)
 
 ABSENCE LONGUE DURÉE :
 
@@ -1102,43 +836,29 @@ ABSENCE LONGUE DURÉE :
 
 - Détection supplémentaire : si ligne "Prévoyance" ou "Prévoyance Alan" avec part salariale = 0€ MAIS part patronale > 0€ → maintien de salaire par l'assurance prévoyance
 
-- Explication : "Ce mois-ci, tu étais en arrêt maladie pendant [X] jours, ce qui a réduit ton brut de [montant]€. Cependant, ta prévoyance d'entreprise prend en charge une partie de tes cotisations santé pendant ton arrêt — c'est pour ça que tu vois 0€ en 'Prévoyance salarié' alors qu'il y a un montant en 'Prévoyance patronal'. C'est un mécanisme de protection : tu cotises moins quand tu es malade."
-
 CONGES PRIS :
 
 - Détection : conges_pris_mois > 0 ou rtt_pris_mois > 0
-
-- Explication : "Tu as pris [nb] jours de congés payés ce mois-ci. Ton salaire n'est pas réduit car les congés payés sont indemnisés à 100% de ton salaire habituel (sauf si congés sans solde)."
 
 PRIME EXCEPTIONNELLE :
 
 - Détection : Si une ligne Prime X représente > 50% du salaire de base OU montant > 5000€
 
-- Explication : "Ce mois-ci, tu as reçu une prime sur objectifs de [montant]€, soit [pourcentage]% de ton salaire de base. Ça augmente ton brut et donc tes cotisations et ton impôt proportionnellement."
-
 ENTRÉE OU SORTIE EN COURS DE MOIS :
 
 - Détection : Ligne "Absence pour entrée" ou "Absence pour sortie" OU date_entree dans le mois concerné
-
-- Explication : (voir section 2)
 
 CHANGEMENT TAUX PAS > 1 POINT :
 
 - Détection : Comparer taux_pas_pct avec mois précédents → si changement > 1%
 
-- Explication : (voir section 2)
-
 ACTIONS GRATUITES VESTING :
 
 - Détection : actions_gratuites_acquises non vide
 
-- Explication : (voir section 3.A)
-
 RSU MASSIF :
 
 - Détection : rsu_gain > 20 000€
-
-- Explication : (voir section 3.B ou 3.C selon variante)
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1146,41 +866,7 @@ RSU MASSIF :
 
 ═══════════════════════════════════════════════════════════════════════════════
 
-POINTS D'ATTENTION À GÉNÉRER AUTOMATIQUEMENT :
-
-Si actions_gratuites_acquises > 10 000€ :
-
-"⚠️ ACTIONS GRATUITES : Tu as acquis {montant} € d'actions gratuites ce mois-ci. Cette somme augmente ton net imposable et donc ton impôt sur le revenu (+{montant_pas_supplementaire} € d'impôt ce mois-ci). IMPORTANT : tu n'as pas reçu ce montant en cash, juste les actions. Si tu veux payer l'impôt sans impacter ton budget, pense à vendre une partie des actions pour récupérer la liquidité."
-
-Si rsu_gain > 20 000€ :
-
-"⚠️ GROS LOT RSU : Un montant important de RSU ({montant} €) a été acquis ce mois-ci. Tes cotisations sociales ont explosé (+{montant_cot_salariales} €) à cause de ça. Ton net payé est fortement impacté ce mois-ci. Les actions sont maintenant à toi — tu peux les vendre pour récupérer la liquidité si besoin."
-
-Si espp_contribution > 0 :
-
-"💡 ESPP : Tu contribues {montant} €/mois à l'ESPP (plan d'achat d'actions à prix réduit). Vérifie la prochaine date d'achat pour savoir quand tes actions seront achetées avec la décote de 15%."
-
-Si taux_pas = 0 :
-
-"⚠️ TAUX PAS À 0% : Tu ne paies pas d'impôt ce mois-ci, mais attention à la régularisation en septembre si tes revenus annuels dépassent 10 000€."
-
-CONSEILS D'OPTIMISATION À GÉNÉRER :
-
-Si actions_gratuites_acquises OU rsu_gain > 0 :
-
-"💡 Stratégie fiscale actions : Tu as des RSU/actions gratuites qui se transforment en liquidités. Si tu comptes vendre les actions, fais-le rapidement après acquisition (dans les 30 jours) pour éviter la plus-value — tu paies déjà l'impôt sur la valeur d'acquisition via le PAS. Si tu veux les garder long terme (paris sur la croissance de l'entreprise), attention à la fiscalité de la plus-value à la revente : PFU 30% (flat tax) ou barème de l'IR si plus avantageux. À valider avec un conseiller patrimonial."
-
-Si espp_contribution > 0 :
-
-"💡 Stratégie ESPP : Ton ESPP te fait acheter des actions avec 15% de décote sur le prix du marché. Deux stratégies possibles :
-
-1. Vendre immédiatement après achat → sécuriser le gain de 15% (recommandé pour diversifier)
-
-2. Garder les actions → parier sur la croissance de l'entreprise, mais diversifie ton patrimoine (ne mets pas tout dans les actions de ton employeur — risque de concentration)."
-
-Si avantages_nature_compenses > 0 :
-
-"💡 Avantages en nature : Les avantages comme les repas ou la voiture de fonction sont imposables, mais ton employeur les compense via des gross-up (ajouts au brut). Ces avantages sont plus avantageux fiscalement que du salaire brut classique. Profite-en au maximum !"
+Génère automatiquement des points d'attention (strings simples) et des conseils d'optimisation (strings simples) basés sur les données extraites.
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1194,27 +880,21 @@ FORMULE GÉNÉRALE :
 
 total_brut - total_cotisations_salariales - montant_pas = net_paye
 
-Si écart > 100€ → ajouter dans points_attention :
-
-"⚠️ INCOHÉRENCE DÉTECTÉE : La formule brut - cotisations - PAS ne correspond pas au net payé (écart de {ecart}€). Cela peut être dû à des éléments non détectés (titres restaurant, acompte, saisie sur salaire, etc.). Vérifie ta fiche de paie ou contacte les RH."
+Si écart > 100€ → ajouter dans points_attention (comme string simple).
 
 VÉRIFICATION EQUITY :
 
-- Si epargne_salariale.interessement > 10000 € ET remuneration_equity.actions_gratuites vide
+- Si epargne_salariale.interessement > 10000 € ET remuneration_equity.actions_gratuites vide → ⚠️ POSSIBLE CONFUSION
 
-  → ⚠️ POSSIBLE CONFUSION, relire les lignes pour vérifier
-
-- Si remuneration_equity.rsu_vesting.variante = "sell_to_cover_45pct"
-
-  → Vérifier que quotite_cedee_pct ≈ 45% (± 5%)
-
-  → Vérifier que remboursement_stc ≈ taxes_rsu (± 100€)
+- Si remuneration_equity.rsu_vesting.variante = "sell_to_cover_45pct" → Vérifier que quotite_cedee_pct ≈ 45% (± 5%)
 
 ═══════════════════════════════════════════════════════════════════════════════
 
 FIN DES INSTRUCTIONS
 
 ═══════════════════════════════════════════════════════════════════════════════
+
+IMPORTANT : Les champs points_attention et conseils_optimisation doivent contenir des STRINGS simples, pas des objets.
 
 Retourne maintenant le JSON complet pour le bulletin de paie fourni, en suivant SCRUPULEUSEMENT toutes les instructions ci-dessus.
 
