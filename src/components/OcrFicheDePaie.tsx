@@ -895,9 +895,9 @@ export default function OcrFicheDePaie() {
         {/* Card 8 — Points d'attention */}
         {Array.isArray(d.points_attention) && d.points_attention.length > 0 && (
           <ExplainCard title="Points d'attention" color={colors.gold} icon="⚠️">
-            {d.points_attention.map((pt: string, i: number) => (
+            {d.points_attention.map((pt: any, i: number) => (
               <div key={i} style={{ background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "10px 14px", marginBottom: 8, fontSize: 13, lineHeight: 1.6 }}>
-                {pt}
+                {typeof pt === "string" ? pt : pt?.message || JSON.stringify(pt)}
               </div>
             ))}
           </ExplainCard>
