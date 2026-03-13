@@ -714,9 +714,9 @@ export default function OcrFicheDePaie() {
         {/* Conseils d'optimisation */}
         {Array.isArray(d.conseils_optimisation) && d.conseils_optimisation.length > 0 && (
           <div style={{ marginTop: 8 }}>
-            {d.conseils_optimisation.map((conseil: string, i: number) => (
+            {d.conseils_optimisation.map((conseil: any, i: number) => (
               <div key={i} style={{ background: "#ecfdf5", border: "1px solid #10b981", borderRadius: 8, padding: "10px 14px", marginBottom: 6, fontSize: 13, color: "#065f46", lineHeight: 1.6 }}>
-                {conseil}
+                {typeof conseil === "string" ? conseil : conseil?.message || JSON.stringify(conseil)}
               </div>
             ))}
           </div>
