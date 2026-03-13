@@ -275,10 +275,15 @@ serve(async (req) => {
       throw new Error("ANTHROPIC_API_KEY not configured");
     }
 
-    const { images } = await req.json();
+    const { images, custom_prompt } = await req.json();
     if (!images || !Array.isArray(images) || images.length === 0) {
       throw new Error("No images provided");
     }
+
+    // Use custom prompt if provided, otherwise use default
+    const activePrompt = (custom_prompt && typeof custom_prompt === "string" && custom_prompt.trim().length > 0)
+      ? custom_prompt.trim()
+      : SYSTEM_PROMPT;
 
     const content: any[] = [
       { type: "text", text: "Analyse ce bulletin de paie français. Extrais toutes les données et fournis les explications pédagogiques complètes." },
