@@ -14,6 +14,15 @@ Tu dois faire DEUX choses simultanément :
 
 Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
 
+IMPORTANT — GESTION MULTI-PAGES :
+Si le bulletin contient plusieurs pages, utilise TOUJOURS la page qui contient le tableau détaillé complet des cotisations pour extraire les montants (colonnes : Désignation, Base, Taux, Montant salarié, Montant patronal).
+
+Ignore les pages de synthèse avec graphiques circulaires ou camemberts — elles sont jolies mais imprécises. Les montants exacts sont dans le tableau détaillé.
+
+Exemple : Libeo a souvent une page 1 avec un graphique "Composition du salaire brut" et une page 2 avec toutes les lignes de cotisations → utilise la page 2.
+
+STRUCTURE JSON ATTENDUE :
+
 {
   "salarie": {
     "nom": "",
@@ -50,7 +59,14 @@ Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
     "prime_exceptionnelle": null,
     "avantages_en_nature": null,
     "tickets_restaurant_part_patronale": null,
-    "autres_elements_bruts": [],
+    "autres_elements_bruts": [
+      {
+        "label": "ex: AVANCE SUR COMMISSIONS ou ICP SUR COMMISSIONS ou Prime vacances",
+        "base": null,
+        "taux": null,
+        "montant": null
+      }
+    ],
     "total_brut": null
   },
   "cotisations_salariales": {
@@ -67,6 +83,14 @@ Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
     "prevoyance_salarie": null,
     "csg_deductible": null,
     "csg_crds_non_deductible": null,
+    "autres_cotisations_salariales": [
+      {
+        "label": "ex: Complémentaire TUB ou Journée solidarité",
+        "base": null,
+        "taux": null,
+        "montant": null
+      }
+    ],
     "total_cotisations_salariales": null
   },
   "cotisations_patronales": {
@@ -80,6 +104,14 @@ Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
     "taxe_apprentissage": null,
     "prevoyance_patronale": null,
     "complementaire_sante_patronale": null,
+    "autres_contributions_patronales": [
+      {
+        "label": "ex: Développement du paritarisme ou Autres contributions",
+        "base": null,
+        "taux": null,
+        "montant": null
+      }
+    ],
     "total_cotisations_patronales": null
   },
   "net": {
@@ -108,7 +140,8 @@ Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
     "conges_payes_n_solde": null,
     "conges_payes_n1_solde": null,
     "rtt_solde": null,
-    "conges_pris_mois": null
+    "conges_pris_mois": null,
+    "rtt_pris_mois": null
   },
   "cout_employeur": {
     "salaire_brut": null,
@@ -116,20 +149,45 @@ Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
     "cout_total_mensuel": null,
     "ratio_charges_sur_brut_pct": null
   },
-  "explications_pedagogiques": {
-    "introduction": "Phrase d'accroche : ce mois-ci tu as gagné X€ brut et reçu Y€ net. Voici pourquoi.",
-    "ecart_brut_net_explication": "Explication claire et chiffrée de la différence entre brut et net.",
-    "cotisations_a_quoi_ca_sert": {
-      "retraite": "Explication concrète.",
-      "sante": "Explication concrète.",
-      "chomage": "Explication concrète.",
-      "csg_crds": "Explication concrète.",
-      "prevoyance": "Explication concrète."
+  "cas_particuliers_mois": {
+    "absence_longue_duree": {
+      "detecte": false,
+      "type": "conge_paternite | conge_maternite | maladie | autre",
+      "duree_jours": null,
+      "explication": "Si détecté : expliquer pourquoi le brut et le net sont beaucoup plus bas ce mois-ci, et rassurer que c'est normal"
     },
-    "pas_explication": "Explication du prélèvement à la source.",
-    "cout_employeur_explication": "Explication du coût réel pour l'employeur.",
-    "epargne_salariale_explication": "Explication de l'épargne salariale.",
-    "conges_explication": "Explication des congés.",
+    "entree_ou_sortie": {
+      "detecte": false,
+      "type": "entree | sortie",
+      "jours_travailles": null,
+      "explication": "Expliquer la proratisation du salaire"
+    },
+    "regularisation": {
+      "detecte": false,
+      "type": "cotisation | salaire | autre",
+      "montant": null,
+      "explication": "Expliquer ce qui a été régularisé et pourquoi"
+    },
+    "prime_exceptionnelle": {
+      "detecte": false,
+      "montant": null,
+      "explication": "Signaler la prime et son impact sur le brut/net"
+    }
+  },
+  "explications_pedagogiques": {
+    "introduction": "Ce mois-ci, tu as gagné [total_brut]€ brut et reçu [net_paye]€ net. [Si cas particulier détecté : mentionner ici]. Voici le détail.",
+    "ecart_brut_net_explication": "Tu es passé de [brut]€ à [net_paye]€. Voici où sont partis les [ecart]€ de différence :\\n- [total_cotisations_salariales]€ de cotisations sociales (retraite, santé, chômage)\\n- [csg_crds]€ de CSG/CRDS (financement de la Sécu)\\n- [montant_pas]€ d'impôt sur le revenu prélevé à la source\\n- [autres ajustements si tickets resto etc.]",
+    "cotisations_a_quoi_ca_sert": {
+      "retraite": "Ce mois-ci, [montant]€ sont partis pour ta retraite future (base + complémentaire AGIRC-ARRCO). Ces cotisations te donnent des points de retraite qui serviront à calculer ta pension.",
+      "sante": "[montant]€ pour l'assurance maladie (Sécurité Sociale + mutuelle d'entreprise). Ça couvre tes consultations médicales, hospitalisations, et médicaments.",
+      "chomage": "[montant]€ pour l'assurance chômage. Si tu perds ton emploi, tu toucheras des allocations Pôle Emploi financées par ces cotisations.",
+      "csg_crds": "[montant]€ de CSG/CRDS. C'est un impôt qui finance la protection sociale (Sécu, RSA, dépendance). [csg_deductible]€ sont déductibles de ton impôt sur le revenu, [csg_non_deductible]€ ne le sont pas.",
+      "prevoyance": "Si mentionné : [montant]€ pour la prévoyance (maintien de salaire en cas d'arrêt maladie, capital décès, invalidité)."
+    },
+    "pas_explication": "Ton employeur a prélevé [montant_pas]€ d'impôt sur le revenu ce mois-ci, soit un taux de [taux_pas_pct]%.",
+    "cout_employeur_explication": "Pour te verser [net_paye]€ net, ton employeur a dépensé [cout_total]€ au total ce mois-ci.",
+    "epargne_salariale_explication": "Ton entreprise propose peut-être un PEE ou PERCOI — renseigne-toi auprès des RH, c'est un super dispositif d'épargne défiscalisée.",
+    "conges_explication": "Congés payés : tu as [solde_n]j en cours + [solde_n1]j de l'année dernière. RTT : [solde_rtt]j restants.",
     "lignes_inhabituelles": [],
     "points_attention": [],
     "conseils_optimisation": []
@@ -141,16 +199,70 @@ Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
   }
 }
 
-Règles importantes :
-- introduction : toujours commencer par les chiffres clés brut/net avec les montants réels
-- ecart_brut_net_explication : c'est LA question que tout salarié se pose — être très concret, utiliser les vrais montants, décomposer en 3 lignes max
-- cotisations_a_quoi_ca_sert : expliquer le POURQUOI de chaque prélèvement, pas juste le montant
-- lignes_inhabituelles : signaler toute ligne hors norme
-- points_attention : alertes concrètes
-- conseils_optimisation : 2-3 pistes actionnables adaptées au profil — toujours avec mention "à valider avec un conseiller"
-- cout_employeur.ratio_charges_sur_brut_pct : calculer (charges patronales / brut) * 100
-- Tous montants en euros, nombres décimaux. Arrays vides [] si aucune donnée.
-- confidence : "high" si bulletin complet et lisible, "medium" si partiellement lisible, "low" si illisible`;
+═══════════════════════════════════════════════════════════════════════════════
+RÈGLES CRITIQUES D'EXTRACTION ET D'EXPLICATION
+═══════════════════════════════════════════════════════════════════════════════
+
+1. MAPPING FLEXIBLE DES COTISATIONS
+Si une ligne de cotisation n'a pas de champ exact dans le JSON, la mettre dans "autres_cotisations_salariales" ou "autres_contributions_patronales" avec le label ORIGINAL de la fiche de paie.
+
+Exemples de synonymes à reconnaître :
+- "Complémentaire Tranche 1/2" = "Retraite complémentaire" = "AGIRC-ARRCO T1/T2"
+- "Complémentaire TUB" (Solocal) = fusion des tranches pour cadres dirigeants
+- "SS Maladie" = "Sécurité Sociale Maladie Maternité Invalidité Décès"
+- "Contribution d'Équilibre Technique (CET)" = "Contribution Équilibre Général (CEG)" → cet_salarie
+- "Développement du paritarisme" → autres_contributions_patronales
+- "APEC" → apec_ou_agirc_arrco (c'est la cotisation cadre)
+
+2. EXPLICATIONS PÉDAGOGIQUES : TON ET EXEMPLES CONCRETS
+- TOUJOURS utiliser les vrais montants de la fiche dans les explications
+- Bannir le jargon : "cotisations salariales" → "ce qui est prélevé sur ton brut pour financer ta protection sociale"
+- Utiliser "tu" et "ton" (tutoiement), pas "vous"
+- Introduire avec les chiffres clés
+- Pour l'écart brut→net : DÉCOMPOSER ligne par ligne avec les vrais montants
+
+3. CAS PARTICULIERS : DÉTECTION AUTOMATIQUE
+Analyse systématiquement ces patterns sur la fiche :
+
+ABSENCE LONGUE DURÉE :
+- Si "Absence paternité" ou "congé maternité" ou "maladie" > 10 jours détecté → cas_particuliers_mois.absence_longue_duree.detecte = true
+- Si brut du mois < 50% du salaire de base annuel / 12 → probable absence
+
+DÉTECTION SUPPLÉMENTAIRE MALADIE :
+- Si ligne "Prévoyance" avec part salariale = 0€ MAIS part patronale > 0€ → Maintien de salaire par l'assurance prévoyance
+
+ENTRÉE/SORTIE :
+- Si "Absence pour entrée/sortie" détecté ou ancienneté < 1 mois
+
+RÉGULARISATION :
+- Si ligne contenant "régul" ou "régularisation" ou "rappel"
+
+TAUX PAS À 0% :
+- Si taux_pas_pct = 0 ET net_avant_impot > 3000€ → alerte
+
+TAUX PAS NÉGATIF :
+- Si taux_pas_pct < 0 → crédit d'impôt, expliquer positivement
+
+4. VÉRIFICATION DES CALCULS
+Recalcule systématiquement la cohérence du bulletin :
+total_brut - total_cotisations_salariales - csg_crds_non_deductible - montant_pas_preleve = net_paye (±100€)
+Si écart > 100€ → meta.alertes
+
+5. LIGNES "AUTRES CONTRIBUTIONS" OPAQUES
+Les lister dans autres_contributions_patronales avec label générique si pas de label clair.
+
+6. CUMULS ANNUELS
+Toujours remplir si présent sur la fiche.
+
+7. CONFIDENCE LEVEL
+- "high" : fiche complète, claire, tous les totaux cohérents
+- "medium" : quelques champs manquants ou ambigus
+- "low" : fiche illisible, beaucoup de champs vides ou incohérents
+
+8. STRUCTURE DES EXPLICATIONS
+Pour chaque section : commencer par le concret (montants), expliquer le POURQUOI, terminer par l'actionnable.
+
+Retourne maintenant le JSON complet en suivant TOUTES ces règles.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
