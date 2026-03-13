@@ -906,9 +906,9 @@ export default function OcrFicheDePaie() {
         {/* Card 9 — Conseils d'optimisation */}
         {Array.isArray(d.conseils_optimisation) && d.conseils_optimisation.length > 0 && (
           <ExplainCard title="Conseils d'optimisation" color={colors.green} icon="💡">
-            {d.conseils_optimisation.map((conseil: string, i: number) => (
+            {d.conseils_optimisation.map((conseil: any, i: number) => (
               <div key={i} style={{ background: "#ecfdf5", border: "1px solid #10b981", borderRadius: 8, padding: "10px 14px", marginBottom: 8, fontSize: 13, lineHeight: 1.6 }}>
-                {conseil}
+                {typeof conseil === "string" ? conseil : conseil?.message || JSON.stringify(conseil)}
               </div>
             ))}
           </ExplainCard>
