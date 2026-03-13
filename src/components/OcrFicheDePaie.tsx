@@ -175,7 +175,10 @@ export default function OcrFicheDePaie() {
           "apikey": SUPABASE_ANON_KEY,
           "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ images: images.map(img => img.split(",")[1]) }),
+        body: JSON.stringify({
+          images: images.map(img => img.split(",")[1]),
+          ...(customPrompt.trim() ? { custom_prompt: customPrompt.trim() } : {}),
+        }),
       });
 
       if (!res.ok) {
