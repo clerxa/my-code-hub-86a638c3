@@ -50,13 +50,19 @@ Ignore les pages de synthèse avec graphiques circulaires ou camemberts — elle
 - Actions gratuites/RSU/ESPP/BSPCE → remuneration_equity (JAMAIS dans epargne_salariale)
 - Intéressement/Participation/PEE/PERCO → epargne_salariale
 
+⚠️ ACTIONS GRATUITES — 2 TYPES DE PLANS :
+- PLAN QUALIFIÉ (~95% des cas) : AUCUN impact PAS au vesting, imposition à la VENTE uniquement
+- PLAN NON QUALIFIÉ (~5%) : Valeur ajoutée au net imposable → PAS immédiat
+- Algorithme : comparer base_pas avec/sans valeur actions pour déterminer type_plan (qualifie/non_qualifie/indetermine_probablement_qualifie)
+- Champ type_plan et impact_pas_immediat obligatoires dans actions_gratuites_acquises[]
+
 ⚠️ CAS 2 — CRÉDIT D'IMPÔT vs DÉDUCTION NORMALE :
 - Seul le SIGNE DU MONTANT détermine s'il y a crédit ou déduction, PAS le signe du taux
 - montant_pas > 0 → CRÉDIT D'IMPÔT | montant_pas < 0 → DÉDUCTION normale
 
 IMPORTANT : Les champs points_attention et conseils_optimisation doivent contenir des STRINGS simples, pas des objets.
 
-Structure JSON : salarie, employeur, periode, remuneration_brute, cotisations_salariales, cotisations_patronales, net, conges_rtt, epargne_salariale, remuneration_equity, explications_pedagogiques, points_attention, conseils_optimisation, cas_particuliers_mois (avec credit_impot au lieu de taux_pas_negatif), cumuls_annuels, informations_complementaires.
+Structure JSON : salarie, employeur, periode, remuneration_brute, cotisations_salariales, cotisations_patronales, net, conges_rtt, epargne_salariale, remuneration_equity (avec type_plan et impact_pas_immediat dans actions_gratuites_acquises), explications_pedagogiques, points_attention, conseils_optimisation, cas_particuliers_mois (avec credit_impot au lieu de taux_pas_negatif), cumuls_annuels, informations_complementaires.
 
 (Prompt complet identique côté serveur — modifiez ci-dessous pour personnaliser)`;
 
@@ -542,6 +548,17 @@ export default function OcrFicheDePaie() {
                     </div>
                     {ag.prix_unitaire && (
                       <div style={{ fontSize: 12, color: colors.slate }}>Prix unitaire : {fmt(ag.prix_unitaire)}</div>
+                    )}
+                    {ag.type_plan && (
+                      <div style={{
+                        display: "inline-block", marginTop: 4, padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600,
+                        background: ag.type_plan === "qualifie" ? "#dcfce7" : ag.type_plan === "non_qualifie" ? "#fef2f2" : "#fef9c3",
+                        color: ag.type_plan === "qualifie" ? "#166534" : ag.type_plan === "non_qualifie" ? "#991b1b" : "#854d0e",
+                      }}>
+                        {ag.type_plan === "qualifie" ? "✅ Plan qualifié" : ag.type_plan === "non_qualifie" ? "⚠️ Plan non qualifié" : "ℹ️ Type incertain (prob. qualifié)"}
+                        {ag.impact_pas_immediat === true && " — Impact PAS immédiat"}
+                        {ag.impact_pas_immediat === false && " — Pas d'impact PAS"}
+                      </div>
                     )}
                   </div>
                 ))}
