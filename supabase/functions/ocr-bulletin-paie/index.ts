@@ -307,7 +307,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 4000,
+        max_tokens: 16000,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content }],
       }),
@@ -326,15 +326,52 @@ serve(async (req) => {
       throw new Error("No text content in API response");
     }
 
+    // Check for truncation via stop_reason
+    const stopReason = result.stop_reason;
+    if (stopReason === "max_tokens") {
+      console.warn("Response was truncated due to max_tokens limit");
+    }
+
     let parsed;
     try {
       parsed = JSON.parse(textContent);
     } catch {
-      const jsonMatch = textContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsed = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("Could not parse JSON from API response");
+      // Try to extract JSON from markdown or partial response
+      let cleaned = textContent
+        .replace(/```json\s*/gi, "")
+        .replace(/```\s*/g, "")
+        .trim();
+
+      const jsonStart = cleaned.indexOf("{");
+      if (jsonStart === -1) {
+        throw new Error("Could not find JSON in API response");
+      }
+      cleaned = cleaned.substring(jsonStart);
+
+      // Try direct parse
+      try {
+        parsed = JSON.parse(cleaned);
+      } catch {
+        // Attempt to repair truncated JSON by closing open braces/brackets
+        let repaired = cleaned
+          .replace(/,\s*$/g, ""); // remove trailing comma
+
+        const openBraces = (repaired.match(/{/g) || []).length;
+        const closeBraces = (repaired.match(/}/g) || []).length;
+        const openBrackets = (repaired.match(/\[/g) || []).length;
+        const closeBrackets = (repaired.match(/\]/g) || []).length;
+
+        // Close unclosed brackets then braces
+        for (let i = 0; i < openBrackets - closeBrackets; i++) repaired += "]";
+        for (let i = 0; i < openBraces - closeBraces; i++) repaired += "}";
+
+        try {
+          parsed = JSON.parse(repaired);
+          console.warn("Recovered truncated JSON by closing unclosed braces/brackets");
+        } catch (finalErr) {
+          console.error("Raw response (first 500 chars):", textContent.substring(0, 500));
+          throw new Error("Could not parse JSON from API response even after repair attempt");
+        }
       }
     }
 
