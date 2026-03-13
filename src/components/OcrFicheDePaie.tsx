@@ -62,10 +62,20 @@ Tu dois faire DEUX choses simultanément :
 Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
 
 IMPORTANT — GESTION MULTI-PAGES :
-Si le bulletin contient plusieurs pages, utilise TOUJOURS la page qui contient le tableau détaillé complet des cotisations pour extraire les montants (colonnes : Désignation, Base, Taux, Montant salarié, Montant patronal).
-Ignore les pages de synthèse avec graphiques circulaires ou camemberts.
+Si le bulletin contient plusieurs pages, utilise TOUJOURS la page qui contient le tableau détaillé complet des cotisations pour extraire les montants.
+Ignore les pages de synthèse avec graphiques circulaires ou camemberts — elles sont jolies mais imprécises.
 
-(Prompt complet envoyé côté serveur — modifiez ci-dessous pour personnaliser)`;
+⚠️ CORRECTION CRITIQUE : DISTINCTION ACTIONS GRATUITES vs ÉPARGNE SALARIALE
+- Actions gratuites/RSU/ESPP/BSPCE → remuneration_equity (JAMAIS dans epargne_salariale)
+- Intéressement/Participation/PEE/PERCO → epargne_salariale
+
+Structure JSON : salarie, employeur, periode, remuneration_brute, cotisations_salariales, cotisations_patronales, net, conges_rtt, epargne_salariale, remuneration_equity (actions gratuites, RSU, ESPP, avantages nature compensés), explications_pedagogiques, points_attention, conseils_optimisation, cas_particuliers_mois, cumuls_annuels, informations_complementaires.
+
+Détection equity : RSU variante A (simple + remboursement broker) ou B (sell to cover 45%). Actions gratuites avec impact fiscal sur net imposable. ESPP avec décote 15%.
+
+Explications pédagogiques ultra-concrètes avec montants réels, tutoiement, cas particuliers (PAS 0%, PAS négatif, congé paternité, entrée/sortie mois, primes exceptionnelles, vesting actions).
+
+(Prompt complet identique côté serveur — modifiez ci-dessous pour personnaliser)`;
 
 // ─── Workflow config ──────────────────────────────────────────
 const WORKFLOW_CONFIG = {
