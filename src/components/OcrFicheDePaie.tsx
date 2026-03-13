@@ -195,7 +195,7 @@ export default function OcrFicheDePaie() {
       setLoading(false);
       setProgress("");
     }
-  }, [file, convertPdfToImages]);
+  }, [file, convertPdfToImages, customPrompt]);
 
   // ─── Drop handlers ─────────────────────────────────────────
   const onDrop = useCallback((e: React.DragEvent) => {
