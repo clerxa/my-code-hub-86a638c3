@@ -3,24 +3,6 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 const SUPABASE_FUNCTION_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/ocr-bulletin-paie`;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// ─── Types ────────────────────────────────────────────────────────
-interface PayslipData {
-  salarie: any;
-  employeur: any;
-  periode: any;
-  remuneration_brute: any;
-  cotisations_salariales: any;
-  cotisations_patronales: any;
-  net: any;
-  cumuls_annuels: any;
-  epargne_salariale: any;
-  conges_rtt: any;
-  cout_employeur: any;
-  explications_pedagogiques: any;
-  meta: any;
-  _usage?: any;
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────
 const fmt = (n: number | null | undefined): string => {
   if (n === null || n === undefined) return "—";
@@ -51,8 +33,7 @@ const colors = {
 
 const font = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
 
-// ─── Main Component ──────────────────────────────────────────────
-// ─── Default prompt (loaded from edge function) ──────────────
+// ─── Default prompt ──────────────────────────────────────────
 const DEFAULT_PROMPT = `Tu es un expert en droit du travail français, en paie et en fiscalité des salariés. Tu analyses des bulletins de paie français.
 
 Tu dois faire DEUX choses simultanément :
@@ -69,11 +50,7 @@ Ignore les pages de synthèse avec graphiques circulaires ou camemberts — elle
 - Actions gratuites/RSU/ESPP/BSPCE → remuneration_equity (JAMAIS dans epargne_salariale)
 - Intéressement/Participation/PEE/PERCO → epargne_salariale
 
-Structure JSON : salarie, employeur, periode, remuneration_brute, cotisations_salariales, cotisations_patronales, net, conges_rtt, epargne_salariale, remuneration_equity (actions gratuites, RSU, ESPP, avantages nature compensés), explications_pedagogiques, points_attention, conseils_optimisation, cas_particuliers_mois, cumuls_annuels, informations_complementaires.
-
-Détection equity : RSU variante A (simple + remboursement broker) ou B (sell to cover 45%). Actions gratuites avec impact fiscal sur net imposable. ESPP avec décote 15%.
-
-Explications pédagogiques ultra-concrètes avec montants réels, tutoiement, cas particuliers (PAS 0%, PAS négatif, congé paternité, entrée/sortie mois, primes exceptionnelles, vesting actions).
+Structure JSON : salarie, employeur, periode, remuneration_brute, cotisations_salariales, cotisations_patronales, net, conges_rtt, epargne_salariale, remuneration_equity, explications_pedagogiques, points_attention, conseils_optimisation, cas_particuliers_mois, cumuls_annuels, informations_complementaires.
 
 (Prompt complet identique côté serveur — modifiez ci-dessous pour personnaliser)`;
 
@@ -97,7 +74,7 @@ export default function OcrFicheDePaie() {
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState("");
-  const [data, setData] = useState<PayslipData | null>(null);
+  const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"data" | "explain" | "raw">("data");
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
@@ -111,12 +88,12 @@ export default function OcrFicheDePaie() {
     setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Open all sections by default when data loads
   useEffect(() => {
     if (data) {
       setOpenSections({
         identity: true, waterfall: true, cotisations: true,
-        variables: true, epargne: true, conges: true, cumuls: true,
+        variables: true, epargne: true, equity: true, conges: true,
+        cumuls: true, casParticuliers: true, infos: true,
       });
     }
   }, [data]);
@@ -124,10 +101,7 @@ export default function OcrFicheDePaie() {
   // ─── PDF → Images ───────────────────────────────────────────
   const convertPdfToImages = useCallback(async (pdfFile: File): Promise<string[]> => {
     setProgress("Chargement de pdf.js…");
-
-    // Load pdf.js v3 from CDN (avoid conflict with react-pdf's v5)
     if (!(window as any).__pdfjsLib3) {
-      // Temporarily save any existing pdfjsLib (from react-pdf)
       const existing = (window as any).pdfjsLib;
       delete (window as any).pdfjsLib;
       await new Promise<void>((resolve, reject) => {
@@ -135,7 +109,6 @@ export default function OcrFicheDePaie() {
         script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
         script.onload = () => {
           (window as any).__pdfjsLib3 = (window as any).pdfjsLib;
-          // Restore the original if it existed
           if (existing) (window as any).pdfjsLib = existing;
           resolve();
         };
@@ -151,7 +124,6 @@ export default function OcrFicheDePaie() {
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     const pageCount = Math.min(pdf.numPages, 6);
     const images: string[] = [];
-
     for (let i = 1; i <= pageCount; i++) {
       setProgress(`Conversion page ${i}/${pageCount}…`);
       const page = await pdf.getPage(i);
@@ -163,7 +135,6 @@ export default function OcrFicheDePaie() {
       await page.render({ canvasContext: ctx, viewport }).promise;
       images.push(canvas.toDataURL("image/jpeg", 0.85));
     }
-
     return images;
   }, []);
 
@@ -173,11 +144,9 @@ export default function OcrFicheDePaie() {
     setLoading(true);
     setError(null);
     setData(null);
-
     try {
       const images = await convertPdfToImages(file);
       setProgress("Analyse en cours…");
-
       const res = await fetch(SUPABASE_FUNCTION_URL, {
         method: "POST",
         headers: {
@@ -190,12 +159,10 @@ export default function OcrFicheDePaie() {
           ...(customPrompt.trim() ? { custom_prompt: customPrompt.trim() } : {}),
         }),
       });
-
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || `Erreur ${res.status}`);
       }
-
       setProgress("Extraction des données…");
       const result = await res.json();
       setData(result);
@@ -221,9 +188,7 @@ export default function OcrFicheDePaie() {
   }, []);
 
   const copyJson = () => {
-    if (data) {
-      navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-    }
+    if (data) navigator.clipboard.writeText(JSON.stringify(data, null, 2));
   };
 
   // ─── Render helpers ─────────────────────────────────────────
@@ -273,17 +238,40 @@ export default function OcrFicheDePaie() {
     </div>
   );
 
+  const DataRow = ({ label, value, color = "#1e293b" }: { label: string; value: any; color?: string }) => {
+    if (value === null || value === undefined) return null;
+    return (
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
+        <span style={{ color: colors.slate }}>{label}</span>
+        <span style={{ fontWeight: 500, color }}>{typeof value === "number" ? fmt(value) : String(value)}</span>
+      </div>
+    );
+  };
+
+  // Helper to safely get nested values
+  const safe = (obj: any, ...keys: string[]): any => {
+    let val = obj;
+    for (const k of keys) {
+      if (val == null) return null;
+      val = val[k];
+    }
+    return val;
+  };
+
   // ─── Tab 1: Ma fiche de paie ───────────────────────────────
   const renderDataTab = () => {
     if (!data) return null;
     const d = data;
-    const netPaye = d.net?.net_paye;
-    const brut = d.remuneration_brute?.total_brut;
-    const cotSal = d.cotisations_salariales?.total_cotisations_salariales;
-    const csgNonDed = d.cotisations_salariales?.csg_crds_non_deductible;
-    const netSocial = d.net?.net_social;
-    const pas = d.net?.montant_pas_preleve;
-    const tauxPas = d.net?.taux_pas_pct;
+    const netPaye = safe(d, "net", "net_paye");
+    const brut = safe(d, "remuneration_brute", "total_brut");
+    const cotSal = safe(d, "cotisations_salariales", "total_cotisations_salariales");
+    const netAvantImpot = safe(d, "net", "net_avant_impot");
+    const basePas = safe(d, "net", "base_pas");
+    const pas = safe(d, "net", "montant_pas");
+    const tauxPas = safe(d, "net", "taux_pas_pct");
+
+    // Congés N-1 solde (new structure)
+    const congesN1Solde = safe(d, "conges_rtt", "conges_n_moins_1", "solde");
 
     return (
       <div>
@@ -292,26 +280,38 @@ export default function OcrFicheDePaie() {
           background: netPaye && netPaye > 3000 ? `linear-gradient(135deg, ${colors.green}, #059669)` : `linear-gradient(135deg, ${colors.primary}, #3b82f6)`,
           color: "#fff", borderRadius: 12, padding: "20px 24px", marginBottom: 16, fontFamily: font,
         }}>
-          <div style={{ fontSize: 14, opacity: 0.9 }}>Ce mois-ci</div>
+          <div style={{ fontSize: 14, opacity: 0.9 }}>
+            {d.periode?.mois && d.periode?.annee ? `${MONTHS[d.periode.mois] || ""} ${d.periode.annee}` : "Ce mois-ci"}
+          </div>
           <div style={{ fontSize: 28, fontWeight: 800 }}>{fmt(netPaye)} nets</div>
           {d.periode?.date_paiement && <div style={{ fontSize: 13, opacity: 0.8, marginTop: 4 }}>Versés le {d.periode.date_paiement}</div>}
         </div>
 
-        {/* PAS warning */}
-        {tauxPas === 0 && (
+        {/* Alerts */}
+        {tauxPas === 0 && netAvantImpot > 3000 && (
           <div style={{ background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "12px 16px", marginBottom: 12, fontSize: 13, color: "#92400e" }}>
             ⚠️ Votre taux PAS est à 0% — vérifiez que c'est intentionnel
           </div>
         )}
 
-        {/* N-1 congés warning */}
-        {d.conges_rtt?.conges_payes_n1_solde > 5 && (
+        {congesN1Solde != null && congesN1Solde > 5 && (
           <div style={{ background: "#fef2f2", border: "1px solid #ef4444", borderRadius: 8, padding: "12px 16px", marginBottom: 12, fontSize: 13, color: "#991b1b" }}>
-            ⚠️ Vous avez {d.conges_rtt.conges_payes_n1_solde} jours de congés N-1 à solder avant le 31 mai
+            ⚠️ Vous avez {congesN1Solde} jours de congés N-1 à solder avant le 31 mai
           </div>
         )}
 
-        {/* Section 1 — Identity */}
+        {/* Points d'attention */}
+        {Array.isArray(d.points_attention) && d.points_attention.length > 0 && (
+          <div style={{ marginBottom: 12 }}>
+            {d.points_attention.map((pt: string, i: number) => (
+              <div key={i} style={{ background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "10px 14px", marginBottom: 6, fontSize: 13, color: "#92400e", lineHeight: 1.6 }}>
+                {pt}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Section 1 — Identité */}
         <AccordionSection id="identity" title="Identité & employeur" borderColor={colors.primary} icon="👤">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             <div>
@@ -320,10 +320,12 @@ export default function OcrFicheDePaie() {
                 ["Nom", `${d.salarie?.prenom || ""} ${d.salarie?.nom || ""}`],
                 ["Emploi", d.salarie?.emploi],
                 ["Statut", d.salarie?.statut],
+                ["Classification", d.salarie?.classification],
                 ["Convention", d.salarie?.convention_collective],
                 ["Entrée", d.salarie?.date_entree],
                 ["Ancienneté", d.salarie?.anciennete_annees ? `${d.salarie.anciennete_annees} ans` : null],
                 ["N° SS", d.salarie?.numero_securite_sociale],
+                ["Matricule", d.salarie?.matricule],
               ].map(([label, val], i) => val ? (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
                   <span style={{ color: colors.slate }}>{label}</span>
@@ -337,6 +339,7 @@ export default function OcrFicheDePaie() {
                 ["Raison sociale", d.employeur?.nom],
                 ["SIRET", d.employeur?.siret],
                 ["Code NAF", d.employeur?.code_naf],
+                ["URSSAF", d.employeur?.urssaf],
                 ["Adresse", d.employeur?.adresse],
               ].map(([label, val], i) => val ? (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
@@ -352,18 +355,14 @@ export default function OcrFicheDePaie() {
         <AccordionSection id="waterfall" title="Décomposition brut → net" borderColor={colors.violet} icon="📊">
           <div style={{ background: "#faf5ff", borderRadius: 10, padding: 20 }}>
             {[
-              { label: "SALAIRE BRUT", value: brut, color: colors.primary, sign: "", tooltipKey: "brut", tooltipText: "Votre rémunération totale avant déductions : salaire de base + primes + heures supplémentaires." },
-              { label: "Cotisations salariales", value: cotSal, color: colors.orange, sign: "−", tooltipKey: "cotsal", tooltipText: d.explications_pedagogiques?.ecart_brut_net_explication || "Cotisations obligatoires finançant votre protection sociale." },
-              { label: "CSG/CRDS non déductible", value: csgNonDed, color: colors.gold, sign: "−", tooltipKey: "csg", tooltipText: d.explications_pedagogiques?.cotisations_a_quoi_ca_sert?.csg_crds || "Contributions au financement de la protection sociale." },
+              { label: "SALAIRE BRUT", value: brut, color: colors.primary, sign: "" },
+              { label: "Cotisations salariales", value: cotSal, color: colors.orange, sign: "−" },
             ].map((row, i) => (
               <div key={i} style={{
                 display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px",
                 background: i % 2 === 0 ? "#fff" : "transparent", borderRadius: 6, marginBottom: 2,
               }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 14, color: "#64748b" }}>{row.label}</span>
-                  <InfoTooltip id={row.tooltipKey} text={row.tooltipText} />
-                </div>
+                <span style={{ fontSize: 14, color: "#64748b" }}>{row.label}</span>
                 <span style={{ fontSize: 16, fontWeight: 600, color: row.color }}>
                   {row.sign} {fmt(row.value)}
                 </span>
@@ -371,9 +370,16 @@ export default function OcrFicheDePaie() {
             ))}
 
             <div style={{ borderTop: `2px dashed ${colors.violet}`, margin: "8px 0", padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: colors.violet }}>= NET SOCIAL</span>
-              <span style={{ fontSize: 16, fontWeight: 700, color: colors.violet }}>{fmt(netSocial)}</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: colors.violet }}>= NET AVANT IMPÔT</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: colors.violet }}>{fmt(netAvantImpot)}</span>
             </div>
+
+            {basePas != null && basePas !== netAvantImpot && (
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 14px", fontSize: 13, color: colors.slate }}>
+                <span>Base PAS (net imposable)</span>
+                <span style={{ fontWeight: 600, color: colors.violet }}>{fmt(basePas)}</span>
+              </div>
+            )}
 
             <div style={{
               display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px",
@@ -386,7 +392,6 @@ export default function OcrFicheDePaie() {
                     taux {fmtPct(tauxPas)}
                   </span>
                 )}
-                <InfoTooltip id="pas" text={d.explications_pedagogiques?.pas_explication || "Impôt sur le revenu prélevé chaque mois directement sur votre salaire."} />
               </div>
               <span style={{ fontSize: 16, fontWeight: 600, color: colors.violet }}>− {fmt(pas)}</span>
             </div>
@@ -395,7 +400,7 @@ export default function OcrFicheDePaie() {
 
             <div style={{
               background: `linear-gradient(135deg, ${colors.green}15, ${colors.green}08)`, border: `2px solid ${colors.green}40`,
-              borderRadius: 10, padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center",
+              borderRadius: 10, padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center",
             }}>
               <span style={{ fontSize: 16, fontWeight: 700, color: colors.green }}>= NET PAYÉ</span>
               <span style={{ fontSize: 24, fontWeight: 800, color: colors.green }}>{fmt(netPaye)}</span>
@@ -408,50 +413,57 @@ export default function OcrFicheDePaie() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             <div>
               <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.orange, marginBottom: 8 }}>Cotisations salariales</h4>
-              {d.cotisations_salariales && Object.entries(d.cotisations_salariales).filter(([k, v]) => k !== "total_cotisations_salariales" && v !== null && v !== 0).map(([key, val]) => {
-                const explKey = key.includes("retraite") ? "retraite" : key.includes("sante") || key.includes("complementaire_sante") ? "sante" : key.includes("chomage") ? "chomage" : key.includes("csg") ? "csg_crds" : key.includes("prevoyance") ? "prevoyance" : null;
-                const expl = explKey ? d.explications_pedagogiques?.cotisations_a_quoi_ca_sert?.[explKey] : null;
-                return (
-                  <div key={key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
+              {d.cotisations_salariales && Object.entries(d.cotisations_salariales)
+                .filter(([k, v]) => k !== "total_cotisations_salariales" && k !== "autres_cotisations_salariales" && v !== null && v !== 0)
+                .map(([key, val]) => (
+                  <div key={key} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
                     <span style={{ color: colors.slate }}>{key.replace(/_/g, " ")}</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontWeight: 500 }}>{fmt(val as number)}</span>
-                      {expl && <InfoTooltip id={`cot-s-${key}`} text={expl} />}
-                    </div>
+                    <span style={{ fontWeight: 500 }}>{fmt(val as number)}</span>
                   </div>
-                );
-              })}
+                ))}
+              {/* Autres cotisations salariales (tableau) */}
+              {Array.isArray(d.cotisations_salariales?.autres_cotisations_salariales) && d.cotisations_salariales.autres_cotisations_salariales.length > 0 && (
+                <>
+                  {d.cotisations_salariales.autres_cotisations_salariales.map((item: any, i: number) => (
+                    <div key={`acs-${i}`} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
+                      <span style={{ color: colors.slate }}>{item.label || "Autre"}</span>
+                      <span style={{ fontWeight: 500 }}>{fmt(item.montant)}</span>
+                    </div>
+                  ))}
+                </>
+              )}
               <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontSize: 14, fontWeight: 700, color: colors.orange }}>
                 <span>Total</span><span>{fmt(d.cotisations_salariales?.total_cotisations_salariales)}</span>
               </div>
             </div>
             <div>
               <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.primary, marginBottom: 8 }}>Cotisations patronales</h4>
-              {d.cotisations_patronales && Object.entries(d.cotisations_patronales).filter(([k, v]) => k !== "total_cotisations_patronales" && v !== null && v !== 0).map(([key, val]) => (
-                <div key={key} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
-                  <span style={{ color: colors.slate }}>{key.replace(/_/g, " ")}</span>
-                  <span style={{ fontWeight: 500 }}>{fmt(val as number)}</span>
-                </div>
-              ))}
+              {d.cotisations_patronales && Object.entries(d.cotisations_patronales)
+                .filter(([k, v]) => k !== "total_cotisations_patronales" && k !== "autres_contributions_patronales" && v !== null && v !== 0)
+                .map(([key, val]) => (
+                  <div key={key} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
+                    <span style={{ color: colors.slate }}>{key.replace(/_/g, " ")}</span>
+                    <span style={{ fontWeight: 500 }}>{fmt(val as number)}</span>
+                  </div>
+                ))}
               <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontSize: 14, fontWeight: 700, color: colors.primary }}>
                 <span>Total</span><span>{fmt(d.cotisations_patronales?.total_cotisations_patronales)}</span>
               </div>
             </div>
           </div>
-          <div style={{ marginTop: 12, display: "flex", gap: 12, alignItems: "center", justifyContent: "center" }}>
-            <StatCard label="Coût employeur total" value={fmt(d.cout_employeur?.cout_total_mensuel)} color={colors.primary} />
-            {d.cout_employeur?.ratio_charges_sur_brut_pct && (
-              <span style={{ background: colors.gold + "20", color: colors.gold, fontSize: 13, padding: "6px 14px", borderRadius: 20, fontWeight: 700 }}>
-                {fmtPct(d.cout_employeur.ratio_charges_sur_brut_pct)} de charges
-              </span>
-            )}
-          </div>
+          {/* Coût employeur */}
+          {d.informations_complementaires?.cout_total_employeur && (
+            <div style={{ marginTop: 12, display: "flex", gap: 12, alignItems: "center", justifyContent: "center" }}>
+              <StatCard label="Coût employeur total" value={fmt(d.informations_complementaires.cout_total_employeur)} color={colors.primary} />
+            </div>
+          )}
         </AccordionSection>
 
         {/* Section 4 — Variables & primes */}
         <AccordionSection id="variables" title="Éléments variables & primes" borderColor={colors.gold} icon="💰">
           {(() => {
             const items = [
+              ["Salaire de base", d.remuneration_brute?.salaire_base],
               ["Heures supplémentaires", d.remuneration_brute?.heures_supplementaires],
               ["Prime ancienneté", d.remuneration_brute?.prime_anciennete],
               ["Prime objectifs", d.remuneration_brute?.prime_objectifs],
@@ -487,16 +499,16 @@ export default function OcrFicheDePaie() {
           {(() => {
             const ep = d.epargne_salariale;
             const items = [
-              ["Intéressement brut", ep?.interesse_brut],
-              ["Participation brute", ep?.participation_brute],
+              ["Intéressement", ep?.interessement],
+              ["Participation", ep?.participation],
+              ["Versement PEE", ep?.pee_versement],
+              ["Versement PERCO", ep?.perco_versement],
               ["Abondement employeur", ep?.abondement_employeur],
-              ["Versement PEE", ep?.versement_pee],
-              ["Versement PERCOI", ep?.versement_percoi],
             ].filter(([, v]) => v !== null && v !== undefined && v !== 0);
             if (items.length === 0) {
               return (
                 <div style={{ background: `${colors.green}08`, border: `1px dashed ${colors.green}40`, borderRadius: 8, padding: 16, fontSize: 13, color: colors.green }}>
-                  💡 Votre entreprise propose peut-être un PEE ou PERCOI — renseignez-vous auprès des RH.
+                  💡 Votre entreprise propose peut-être un PEE ou PERCO — renseignez-vous auprès des RH.
                 </div>
               );
             }
@@ -509,45 +521,210 @@ export default function OcrFicheDePaie() {
           })()}
         </AccordionSection>
 
-        {/* Section 6 — Congés & RTT */}
+        {/* Section 6 — Rémunération Equity */}
+        {d.remuneration_equity && (
+          <AccordionSection id="equity" title="Rémunération Equity (actions / RSU / ESPP)" borderColor={colors.violet} icon="📈">
+            {/* Actions gratuites */}
+            {Array.isArray(d.remuneration_equity.actions_gratuites_acquises) && d.remuneration_equity.actions_gratuites_acquises.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.violet, marginBottom: 8 }}>🎯 Actions gratuites acquises (vesting)</h4>
+                {d.remuneration_equity.actions_gratuites_acquises.map((ag: any, i: number) => (
+                  <div key={i} style={{ background: colors.violet + "08", border: `1px solid ${colors.violet}20`, borderRadius: 8, padding: 12, marginBottom: 6 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+                      <span style={{ fontWeight: 600 }}>{ag.nb_actions} actions {ag.societe || ""}</span>
+                      <span style={{ fontWeight: 700, color: colors.violet }}>{fmt(ag.valeur_fiscale_totale)}</span>
+                    </div>
+                    {ag.prix_unitaire && (
+                      <div style={{ fontSize: 12, color: colors.slate }}>Prix unitaire : {fmt(ag.prix_unitaire)}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* RSU */}
+            {d.remuneration_equity.rsu_restricted_stock_units?.gain_brut_total && (
+              <div style={{ marginBottom: 16 }}>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.violet, marginBottom: 8 }}>📊 RSU (Restricted Stock Units)</h4>
+                <div style={{ background: colors.violet + "08", border: `1px solid ${colors.violet}20`, borderRadius: 8, padding: 12 }}>
+                  {(() => {
+                    const rsu = d.remuneration_equity.rsu_restricted_stock_units;
+                    return (
+                      <>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: colors.violet, marginBottom: 8 }}>
+                          Variante : {rsu.variante || "indéterminée"}
+                        </div>
+                        <DataRow label="Gain brut total" value={rsu.gain_brut_total} color={colors.violet} />
+                        <DataRow label="Actions acquises" value={rsu.nb_actions_acquises} />
+                        <DataRow label="Actions vendues" value={rsu.nb_actions_vendues} />
+                        <DataRow label="Actions conservées" value={rsu.nb_actions_conservees} />
+                        <DataRow label="Valeur actions vendues" value={rsu.valeur_actions_vendues} />
+                        <DataRow label="Valeur actions conservées" value={rsu.valeur_actions_conservees} />
+                        <DataRow label="Reprise RSU" value={rsu.reprise_rsu_et_taxes} color={colors.red} />
+                        <DataRow label="Remboursement STC/broker" value={rsu.remboursement_stc_ou_broker} color={colors.green} />
+                        <DataRow label="Cotisations supp. estimées" value={rsu.cotisations_supplementaires_estimees} color={colors.orange} />
+                        <DataRow label="Impôt supp. estimé" value={rsu.impot_supplementaire_estime} color={colors.orange} />
+                        {rsu.mecanisme_description && (
+                          <div style={{ marginTop: 8, fontSize: 12, color: colors.slate, lineHeight: 1.6, fontStyle: "italic" }}>
+                            💡 {rsu.mecanisme_description}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {/* ESPP */}
+            {d.remuneration_equity.espp_employee_stock_purchase_plan?.contribution_mensuelle && (
+              <div style={{ marginBottom: 16 }}>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.teal, marginBottom: 8 }}>💳 ESPP (Plan d'achat d'actions)</h4>
+                <div style={{ background: colors.teal + "08", border: `1px solid ${colors.teal}20`, borderRadius: 8, padding: 12 }}>
+                  <DataRow label="Contribution mensuelle" value={d.remuneration_equity.espp_employee_stock_purchase_plan.contribution_mensuelle} color={colors.teal} />
+                  {d.remuneration_equity.espp_employee_stock_purchase_plan.periode && (
+                    <DataRow label="Période" value={d.remuneration_equity.espp_employee_stock_purchase_plan.periode} />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Avantages en nature compensés */}
+            {d.remuneration_equity.avantages_nature_compenses?.total_brut && (
+              <div>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.gold, marginBottom: 8 }}>🍽️ Avantages en nature compensés</h4>
+                <div style={{ background: colors.gold + "08", border: `1px solid ${colors.gold}20`, borderRadius: 8, padding: 12 }}>
+                  <DataRow label="Avantage en nature (BIK)" value={d.remuneration_equity.avantages_nature_compenses.food_bik_benefit_in_kind} color={colors.gold} />
+                  <DataRow label="Compensation gross-up" value={d.remuneration_equity.avantages_nature_compenses.gross_up_compensation} color={colors.gold} />
+                  <DataRow label="Total brut" value={d.remuneration_equity.avantages_nature_compenses.total_brut} color={colors.gold} />
+                </div>
+              </div>
+            )}
+          </AccordionSection>
+        )}
+
+        {/* Section 7 — Congés & RTT */}
         <AccordionSection id="conges" title="Congés & RTT" borderColor={colors.teal} icon="🏖️">
           {(() => {
             const c = d.conges_rtt;
-            const items = [
-              { label: "Congés payés N (solde)", value: c?.conges_payes_n_solde, max: 25 },
-              { label: "Congés payés N-1 (solde)", value: c?.conges_payes_n1_solde, max: 25, warn: c?.conges_payes_n1_solde > 5 },
-              { label: "RTT (solde)", value: c?.rtt_solde, max: 12 },
-              { label: "Congés pris ce mois", value: c?.conges_pris_mois, max: null },
-            ];
-            return items.map((item, i) => item.value !== null && item.value !== undefined ? (
-              <div key={i} style={{ marginBottom: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
-                  <span style={{ color: item.warn ? colors.red : colors.slate }}>{item.warn ? "⚠️ " : ""}{item.label}</span>
-                  <span style={{ fontWeight: 600, color: item.warn ? colors.red : colors.teal }}>{item.value} jours</span>
-                </div>
-                {item.max && (
+            if (!c) return <div style={{ color: colors.slate, fontSize: 13, fontStyle: "italic" }}>Aucune donnée de congés détectée.</div>;
+
+            const renderCongesBlock = (label: string, block: any, max: number) => {
+              if (!block) return null;
+              const solde = block.solde;
+              if (solde == null) return null;
+              return (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+                    <span style={{ color: colors.slate }}>{label}</span>
+                    <span style={{ fontWeight: 600, color: colors.teal }}>{solde} jours</span>
+                  </div>
+                  {block.acquis != null && (
+                    <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>
+                      Acquis : {block.acquis} | Pris : {block.pris ?? 0}
+                    </div>
+                  )}
                   <div style={{ background: colors.border, borderRadius: 4, height: 6, overflow: "hidden" }}>
-                    <div style={{ width: `${Math.min((item.value / item.max) * 100, 100)}%`, height: "100%", background: item.warn ? colors.red : colors.teal, borderRadius: 4, transition: "width 0.5s" }} />
+                    <div style={{ width: `${Math.min((solde / max) * 100, 100)}%`, height: "100%", background: colors.teal, borderRadius: 4, transition: "width 0.5s" }} />
+                  </div>
+                </div>
+              );
+            };
+
+            return (
+              <div>
+                {renderCongesBlock("Congés payés N-1", c.conges_n_moins_1, 25)}
+                {renderCongesBlock("Congés payés N", c.conges_n, 25)}
+                {renderCongesBlock("RTT", c.rtt, 12)}
+                {c.conges_pris_mois != null && c.conges_pris_mois > 0 && (
+                  <div style={{ marginTop: 8, fontSize: 13, color: colors.teal }}>
+                    📅 {c.conges_pris_mois} jour(s) de congés pris ce mois-ci
+                  </div>
+                )}
+                {c.rtt_pris_mois != null && c.rtt_pris_mois > 0 && (
+                  <div style={{ fontSize: 13, color: colors.teal }}>
+                    📅 {c.rtt_pris_mois} jour(s) de RTT pris ce mois-ci
                   </div>
                 )}
               </div>
-            ) : null);
+            );
           })()}
         </AccordionSection>
 
-        {/* Section 7 — Cumuls annuels */}
+        {/* Section 8 — Cas particuliers */}
+        {d.cas_particuliers_mois && (
+          <AccordionSection id="casParticuliers" title="Cas particuliers du mois" borderColor={colors.red} icon="⚡">
+            {(() => {
+              const cas = d.cas_particuliers_mois;
+              const detected: { label: string; expl: string }[] = [];
+              
+              const checks = [
+                { key: "taux_pas_zero", label: "Taux PAS à 0%" },
+                { key: "taux_pas_negatif", label: "Taux PAS négatif" },
+                { key: "conge_paternite", label: "Congé paternité" },
+                { key: "absence_longue_duree", label: "Absence longue durée" },
+                { key: "conges_pris", label: "Congés pris" },
+                { key: "prime_exceptionnelle", label: "Prime exceptionnelle" },
+                { key: "entree_ou_sortie_mois", label: "Entrée/Sortie en cours de mois" },
+                { key: "changement_taux_pas", label: "Changement taux PAS" },
+                { key: "actions_gratuites_vesting", label: "Vesting actions gratuites" },
+                { key: "rsu_massif", label: "RSU massif" },
+              ];
+
+              for (const check of checks) {
+                const val = cas[check.key];
+                if (val?.detecte) {
+                  detected.push({ label: check.label, expl: val.explication || "" });
+                }
+              }
+
+              if (detected.length === 0) {
+                return <div style={{ color: colors.slate, fontSize: 13, fontStyle: "italic" }}>Aucun cas particulier détecté ce mois-ci. ✅</div>;
+              }
+
+              return detected.map((item, i) => (
+                <div key={i} style={{ background: colors.red + "08", border: `1px solid ${colors.red}20`, borderRadius: 8, padding: 12, marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: colors.red, marginBottom: 4 }}>⚡ {item.label}</div>
+                  {item.expl && <div style={{ fontSize: 13, color: colors.slate, lineHeight: 1.6 }}>{item.expl}</div>}
+                </div>
+              ));
+            })()}
+          </AccordionSection>
+        )}
+
+        {/* Section 9 — Cumuls annuels */}
         <AccordionSection id="cumuls" title="Cumuls annuels" borderColor={colors.slate} icon="📅">
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-            <StatCard label="Brut cumulé" value={fmt(d.cumuls_annuels?.brut_cumul)} color={colors.primary} />
-            <StatCard label="Net imposable cumulé" value={fmt(d.cumuls_annuels?.net_imposable_cumul)} color={colors.violet} />
-            <StatCard label="PAS cumulé" value={fmt(d.cumuls_annuels?.pas_cumul)} color={colors.orange} />
-            <StatCard label="Coût employeur cumulé" value={fmt(d.cumuls_annuels?.cout_total_employeur_cumul)} color={colors.slate} />
+            <StatCard label="Brut cumulé" value={fmt(d.cumuls_annuels?.brut_cumule)} color={colors.primary} />
+            <StatCard label="Net imposable cumulé" value={fmt(d.cumuls_annuels?.net_imposable_cumule)} color={colors.violet} />
+            <StatCard label="PAS cumulé" value={fmt(d.cumuls_annuels?.pas_cumule)} color={colors.orange} />
           </div>
         </AccordionSection>
 
+        {/* Section 10 — Informations complémentaires */}
+        {d.informations_complementaires && (
+          <AccordionSection id="infos" title="Informations complémentaires" borderColor={colors.slate} icon="ℹ️">
+            <DataRow label="Plafond SS mensuel" value={d.informations_complementaires.plafond_securite_sociale_mensuel} />
+            <DataRow label="Plafond SS annuel" value={d.informations_complementaires.plafond_securite_sociale_annuel} />
+            <DataRow label="Coût total employeur" value={d.informations_complementaires.cout_total_employeur} color={colors.primary} />
+            <DataRow label="Allègements cotisations" value={d.informations_complementaires.allegements_cotisations} />
+          </AccordionSection>
+        )}
+
+        {/* Conseils d'optimisation */}
+        {Array.isArray(d.conseils_optimisation) && d.conseils_optimisation.length > 0 && (
+          <div style={{ marginTop: 8 }}>
+            {d.conseils_optimisation.map((conseil: string, i: number) => (
+              <div key={i} style={{ background: "#ecfdf5", border: "1px solid #10b981", borderRadius: 8, padding: "10px 14px", marginBottom: 6, fontSize: 13, color: "#065f46", lineHeight: 1.6 }}>
+                {conseil}
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Disclaimer */}
         <div style={{ fontSize: 11, color: "#94a3b8", textAlign: "center", padding: "16px 0", lineHeight: 1.5, fontStyle: "italic" }}>
-          Ces informations sont extraites automatiquement. MyFinCare n'est pas un éditeur de logiciel de paie — en cas de doute, contactez votre service RH ou un expert-comptable.
+          Ces informations sont extraites automatiquement. MyFinCare n'est pas un éditeur de logiciel de paie — en cas de doute, contactez votre service RH.
         </div>
       </div>
     );
@@ -561,15 +738,13 @@ export default function OcrFicheDePaie() {
     const brut = d.remuneration_brute?.total_brut || 0;
     const netPaye = d.net?.net_paye || 0;
     const cotSal = d.cotisations_salariales?.total_cotisations_salariales || 0;
-    const csgCrds = d.cotisations_salariales?.csg_crds_non_deductible || 0;
-    const pas = d.net?.montant_pas_preleve || 0;
-    const total = cotSal + csgCrds + pas + netPaye;
+    const pas = d.net?.montant_pas || 0;
+    const total = cotSal + pas + netPaye;
 
     // Donut segments
     const segments = [
       { label: "Net payé", value: netPaye, color: colors.green },
       { label: "Cotisations", value: cotSal, color: colors.orange },
-      { label: "CSG/CRDS", value: csgCrds, color: colors.gold },
       { label: "PAS", value: pas, color: colors.violet },
     ];
 
@@ -623,7 +798,7 @@ export default function OcrFicheDePaie() {
 
     return (
       <div>
-        {/* Card 1 — Introduction */}
+        {/* Card 1 — Résumé brut → net */}
         <ExplainCard title="Résumé de votre paie" color={colors.primary} icon="📄">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 24, marginBottom: 16, flexWrap: "wrap" }}>
             <div style={{ textAlign: "center" }}>
@@ -636,112 +811,141 @@ export default function OcrFicheDePaie() {
               <div style={{ fontSize: 28, fontWeight: 800, color: colors.green }}>{fmt(netPaye)}</div>
             </div>
           </div>
-          <p>{expl?.introduction}</p>
+          {expl?.brut_explication && <p>{expl.brut_explication}</p>}
+          {expl?.net_paye_explication && <p style={{ marginTop: 8 }}>{expl.net_paye_explication}</p>}
         </ExplainCard>
 
-        {/* Card 2 — Brut ≠ Net */}
-        <ExplainCard title="Pourquoi brut ≠ net ?" color={colors.violet} icon="🔍">
-          <p style={{ marginBottom: 16 }}>{expl?.ecart_brut_net_explication}</p>
+        {/* Card 2 — Cotisations */}
+        <ExplainCard title="Tes cotisations expliquées" color={colors.orange} icon="🛡️">
+          {expl?.cotisations_explication && <p style={{ marginBottom: 16 }}>{expl.cotisations_explication}</p>}
           {renderDonut()}
         </ExplainCard>
 
-        {/* Card 3 — Cotisations explained */}
-        <ExplainCard title="À quoi servent vos cotisations ?" color={colors.orange} icon="🛡️">
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {[
-              { icon: "🏦", title: "Retraite", key: "retraite", color: colors.primary },
-              { icon: "🏥", title: "Santé", key: "sante", color: colors.green },
-              { icon: "🛡️", title: "Chômage", key: "chomage", color: colors.orange },
-              { icon: "📋", title: "CSG/CRDS", key: "csg_crds", color: colors.violet },
-            ].map((item) => (
-              <div key={item.key} style={{ background: item.color + "08", border: `1px solid ${item.color}20`, borderRadius: 10, padding: 14 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>{item.icon} {item.title}</div>
-                <p style={{ fontSize: 12, lineHeight: 1.6, margin: 0, color: colors.slate }}>
-                  {expl?.cotisations_a_quoi_ca_sert?.[item.key] || "Pas d'information disponible."}
-                </p>
-              </div>
-            ))}
-          </div>
-          {expl?.cotisations_a_quoi_ca_sert?.prevoyance && (
-            <div style={{ marginTop: 12, background: colors.teal + "08", border: `1px solid ${colors.teal}20`, borderRadius: 10, padding: 14 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>🩺 Prévoyance</div>
-              <p style={{ fontSize: 12, lineHeight: 1.6, margin: 0, color: colors.slate }}>{expl.cotisations_a_quoi_ca_sert.prevoyance}</p>
-            </div>
-          )}
-        </ExplainCard>
+        {/* Card 3 — Net imposable */}
+        {expl?.net_imposable_explication && (
+          <ExplainCard title="Net imposable" color={colors.violet} icon="💡">
+            <p>{expl.net_imposable_explication}</p>
+          </ExplainCard>
+        )}
 
         {/* Card 4 — PAS */}
         <ExplainCard title="Le prélèvement à la source" color={colors.primary} icon="🏛️">
           {d.net?.taux_pas_pct !== null && d.net?.taux_pas_pct !== undefined && (
             <div style={{ textAlign: "center", marginBottom: 16 }}>
               <div style={{ fontSize: 40, fontWeight: 800, color: colors.primary }}>{fmtPct(d.net.taux_pas_pct)}</div>
-              <div style={{ fontSize: 12, color: colors.slate }}>Votre taux de prélèvement</div>
+              <div style={{ fontSize: 12, color: colors.slate }}>Ton taux de prélèvement</div>
             </div>
           )}
-          <p>{expl?.pas_explication}</p>
+          {expl?.pas_explication && <p>{expl.pas_explication}</p>}
           <div style={{ background: colors.primary + "08", border: `1px solid ${colors.primary}20`, borderRadius: 8, padding: 12, marginTop: 12, fontSize: 12, color: colors.primary }}>
-            💡 Si votre situation change (mariage, enfant, revenus en hausse/baisse), vous pouvez moduler votre taux sur impots.gouv.fr.
+            💡 Si ta situation change (mariage, enfant, revenus en hausse/baisse), tu peux moduler ton taux sur impots.gouv.fr.
           </div>
         </ExplainCard>
 
-        {/* Card 5 — Coût employeur */}
-        <ExplainCard title="Ce que vous coûtez à votre employeur" color={colors.slate} icon="🏢">
-          {d.cout_employeur?.cout_total_mensuel && brut > 0 && (
-            <div style={{ textAlign: "center", marginBottom: 16 }}>
-              <div style={{ fontSize: 13, color: colors.slate }}>Pour 100 € de coût employeur, vous recevez :</div>
-              <div style={{ fontSize: 36, fontWeight: 800, color: colors.green, margin: "8px 0" }}>
-                {Math.round((netPaye / d.cout_employeur.cout_total_mensuel) * 100)} €
-              </div>
-            </div>
-          )}
-          <p>{expl?.cout_employeur_explication}</p>
-        </ExplainCard>
+        {/* Card 5 — Congés */}
+        {expl?.conges_rtt_explication && (
+          <ExplainCard title="Congés & RTT" color={colors.teal} icon="🏖️">
+            <p>{expl.conges_rtt_explication}</p>
+          </ExplainCard>
+        )}
 
-        {/* Card 6 — Lignes inhabituelles */}
-        {expl?.lignes_inhabituelles?.length > 0 && (
-          <ExplainCard title="Ce qui est particulier ce mois-ci" color={colors.gold} icon="⚡">
-            <ul style={{ margin: 0, paddingLeft: 20 }}>
-              {expl.lignes_inhabituelles.map((line: string, i: number) => (
-                <li key={i} style={{ marginBottom: 6 }}>{line}</li>
+        {/* Card 6 — Épargne salariale */}
+        {expl?.epargne_salariale_explication && (
+          <ExplainCard title="Épargne salariale" color={colors.green} icon="🏦">
+            <p>{expl.epargne_salariale_explication}</p>
+          </ExplainCard>
+        )}
+
+        {/* Card 7 — Equity */}
+        {expl?.equity_explication && (
+          <ExplainCard title="Rémunération en actions (Equity)" color={colors.violet} icon="📈">
+            {expl.equity_explication.actions_gratuites && (
+              <div style={{ marginBottom: 16 }}>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: colors.violet, marginBottom: 6 }}>🎯 Actions gratuites</h4>
+                <p style={{ whiteSpace: "pre-line" }}>{expl.equity_explication.actions_gratuites}</p>
+              </div>
+            )}
+            {expl.equity_explication.rsu_simple && (
+              <div style={{ marginBottom: 16 }}>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: colors.violet, marginBottom: 6 }}>📊 RSU (simple)</h4>
+                <p style={{ whiteSpace: "pre-line" }}>{expl.equity_explication.rsu_simple}</p>
+              </div>
+            )}
+            {expl.equity_explication.rsu_sell_to_cover && (
+              <div style={{ marginBottom: 16 }}>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: colors.violet, marginBottom: 6 }}>📊 RSU (sell to cover)</h4>
+                <p style={{ whiteSpace: "pre-line" }}>{expl.equity_explication.rsu_sell_to_cover}</p>
+              </div>
+            )}
+            {expl.equity_explication.espp && (
+              <div style={{ marginBottom: 16 }}>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: colors.teal, marginBottom: 6 }}>💳 ESPP</h4>
+                <p style={{ whiteSpace: "pre-line" }}>{expl.equity_explication.espp}</p>
+              </div>
+            )}
+            {expl.equity_explication.avantages_nature_compenses && (
+              <div>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: colors.gold, marginBottom: 6 }}>🍽️ Avantages compensés</h4>
+                <p style={{ whiteSpace: "pre-line" }}>{expl.equity_explication.avantages_nature_compenses}</p>
+              </div>
+            )}
+          </ExplainCard>
+        )}
+
+        {/* Card 8 — Points d'attention */}
+        {Array.isArray(d.points_attention) && d.points_attention.length > 0 && (
+          <ExplainCard title="Points d'attention" color={colors.gold} icon="⚠️">
+            {d.points_attention.map((pt: string, i: number) => (
+              <div key={i} style={{ background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "10px 14px", marginBottom: 8, fontSize: 13, lineHeight: 1.6 }}>
+                {pt}
+              </div>
+            ))}
+          </ExplainCard>
+        )}
+
+        {/* Card 9 — Conseils d'optimisation */}
+        {Array.isArray(d.conseils_optimisation) && d.conseils_optimisation.length > 0 && (
+          <ExplainCard title="Conseils d'optimisation" color={colors.green} icon="💡">
+            {d.conseils_optimisation.map((conseil: string, i: number) => (
+              <div key={i} style={{ background: "#ecfdf5", border: "1px solid #10b981", borderRadius: 8, padding: "10px 14px", marginBottom: 8, fontSize: 13, lineHeight: 1.6 }}>
+                {conseil}
+              </div>
+            ))}
+          </ExplainCard>
+        )}
+
+        {/* Card 10 — Cas particuliers */}
+        {d.cas_particuliers_mois && (() => {
+          const cas = d.cas_particuliers_mois;
+          const detected: { label: string; expl: string }[] = [];
+          const checks = [
+            { key: "taux_pas_zero", label: "Taux PAS à 0%" },
+            { key: "taux_pas_negatif", label: "Taux PAS négatif" },
+            { key: "conge_paternite", label: "Congé paternité" },
+            { key: "absence_longue_duree", label: "Absence longue durée" },
+            { key: "conges_pris", label: "Congés pris" },
+            { key: "prime_exceptionnelle", label: "Prime exceptionnelle" },
+            { key: "entree_ou_sortie_mois", label: "Entrée/Sortie" },
+            { key: "changement_taux_pas", label: "Changement taux PAS" },
+            { key: "actions_gratuites_vesting", label: "Vesting actions gratuites" },
+            { key: "rsu_massif", label: "RSU massif" },
+          ];
+          for (const check of checks) {
+            const val = cas[check.key];
+            if (val?.detecte) detected.push({ label: check.label, expl: val.explication || "" });
+          }
+          if (detected.length === 0) return null;
+          return (
+            <ExplainCard title="Ce qui est particulier ce mois-ci" color={colors.red} icon="⚡">
+              {detected.map((item, i) => (
+                <div key={i} style={{ background: colors.red + "08", border: `1px solid ${colors.red}20`, borderRadius: 8, padding: 12, marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: colors.red, marginBottom: 4 }}>⚡ {item.label}</div>
+                  <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-line" }}>{item.expl}</p>
+                </div>
               ))}
-            </ul>
-          </ExplainCard>
-        )}
-
-        {/* Card 7 — Points d'attention */}
-        {expl?.points_attention?.length > 0 && (
-          <ExplainCard title="Points d'attention" color={colors.red} icon="⚠️">
-            {expl.points_attention.map((pt: string, i: number) => (
-              <div key={i} style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: 12, marginBottom: 8, fontSize: 13 }}>
-                ⚠️ {pt}
-              </div>
-            ))}
-          </ExplainCard>
-        )}
-
-        {/* Card 8 — Conseils */}
-        {expl?.conseils_optimisation?.length > 0 && (
-          <ExplainCard title="Pour aller plus loin" color={colors.green} icon="💡">
-            {expl.conseils_optimisation.map((conseil: string, i: number) => (
-              <div key={i} style={{ background: colors.green + "08", border: `1px solid ${colors.green}20`, borderRadius: 8, padding: 12, marginBottom: 8, fontSize: 13 }}>
-                💡 {conseil}
-              </div>
-            ))}
-            <p style={{ fontSize: 12, color: "#94a3b8", fontStyle: "italic", marginTop: 12 }}>
-              Ces conseils sont indicatifs. Rapprochez-vous d'un conseiller patrimonial pour votre situation personnelle.
-            </p>
-          </ExplainCard>
-        )}
-
-        {/* Épargne salariale explanation */}
-        <ExplainCard title="Épargne salariale" color={colors.green} icon="🏦">
-          <p>{expl?.epargne_salariale_explication}</p>
-        </ExplainCard>
-
-        {/* Congés explanation */}
-        <ExplainCard title="Vos congés" color={colors.teal} icon="🏖️">
-          <p>{expl?.conges_explication}</p>
-        </ExplainCard>
+            </ExplainCard>
+          );
+        })()}
       </div>
     );
   };
@@ -753,6 +957,7 @@ export default function OcrFicheDePaie() {
     const renderValue = (val: any): string => {
       if (val === null || val === undefined) return "—";
       if (typeof val === "number") return val.toLocaleString("fr-FR");
+      if (typeof val === "boolean") return val ? "✅ Oui" : "❌ Non";
       if (typeof val === "string") return val || "—";
       if (Array.isArray(val)) return val.length === 0 ? "(vide)" : JSON.stringify(val, null, 2);
       if (typeof val === "object") return JSON.stringify(val, null, 2);
@@ -771,7 +976,6 @@ export default function OcrFicheDePaie() {
           </div>
           <div style={{ padding: "4px 0" }}>
             {entries.map(([key, val]) => {
-              // Nested objects get their own sub-section
               if (val && typeof val === "object" && !Array.isArray(val)) {
                 return (
                   <div key={key} style={{ padding: "6px 16px" }}>
@@ -793,7 +997,6 @@ export default function OcrFicheDePaie() {
                 );
               }
 
-              // Arrays
               if (Array.isArray(val)) {
                 return (
                   <div key={key} style={{
@@ -812,7 +1015,6 @@ export default function OcrFicheDePaie() {
                 );
               }
 
-              // Scalars
               return (
                 <div key={key} style={{
                   display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -830,20 +1032,24 @@ export default function OcrFicheDePaie() {
       );
     };
 
-    const sections: [string, any, string, string][] = [
-      ["salarie", data.salarie, "👤 Salarié", colors.primary],
-      ["employeur", data.employeur, "🏢 Employeur", colors.primary],
-      ["periode", data.periode, "📅 Période", colors.slate],
-      ["remuneration_brute", data.remuneration_brute, "💶 Rémunération brute", colors.green],
-      ["cotisations_salariales", data.cotisations_salariales, "📋 Cotisations salariales", colors.orange],
-      ["cotisations_patronales", data.cotisations_patronales, "📋 Cotisations patronales", colors.primary],
-      ["net", data.net, "💰 Net", colors.green],
-      ["cumuls_annuels", data.cumuls_annuels, "📊 Cumuls annuels", colors.violet],
-      ["epargne_salariale", data.epargne_salariale, "🏦 Épargne salariale", colors.green],
-      ["conges_rtt", data.conges_rtt, "🏖️ Congés & RTT", colors.teal],
-      ["cout_employeur", data.cout_employeur, "🏢 Coût employeur", colors.slate],
-      ["explications_pedagogiques", data.explications_pedagogiques, "💡 Explications pédagogiques", colors.violet],
-      ["meta", data.meta, "⚙️ Métadonnées", colors.slate],
+    // Build sections dynamically from actual data keys
+    const sectionConfig: [string, string, string][] = [
+      ["salarie", "👤 Salarié", colors.primary],
+      ["employeur", "🏢 Employeur", colors.primary],
+      ["periode", "📅 Période", colors.slate],
+      ["remuneration_brute", "💶 Rémunération brute", colors.green],
+      ["cotisations_salariales", "📋 Cotisations salariales", colors.orange],
+      ["cotisations_patronales", "📋 Cotisations patronales", colors.primary],
+      ["net", "💰 Net", colors.green],
+      ["conges_rtt", "🏖️ Congés & RTT", colors.teal],
+      ["epargne_salariale", "🏦 Épargne salariale", colors.green],
+      ["remuneration_equity", "📈 Rémunération Equity", colors.violet],
+      ["explications_pedagogiques", "💡 Explications pédagogiques", colors.violet],
+      ["points_attention", "⚠️ Points d'attention", colors.gold],
+      ["conseils_optimisation", "💡 Conseils d'optimisation", colors.green],
+      ["cas_particuliers_mois", "⚡ Cas particuliers du mois", colors.red],
+      ["cumuls_annuels", "📊 Cumuls annuels", colors.slate],
+      ["informations_complementaires", "ℹ️ Informations complémentaires", colors.slate],
     ];
 
     return (
@@ -851,7 +1057,32 @@ export default function OcrFicheDePaie() {
         <div style={{ fontSize: 13, color: colors.slate, marginBottom: 12, fontStyle: "italic" }}>
           Toutes les données extraites par l'IA, champ par champ.
         </div>
-        {sections.map(([key, val, title, color]) => renderSection(key, val, title, color))}
+        {sectionConfig.map(([key, title, color]) => {
+          const val = (data as any)[key];
+          if (!val) return null;
+          // Arrays at root level
+          if (Array.isArray(val)) {
+            if (val.length === 0) return null;
+            return (
+              <div key={key} style={{ background: colors.cardBg, borderRadius: 10, marginBottom: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                <div style={{ background: color + "12", borderBottom: `2px solid ${color}30`, padding: "10px 16px" }}>
+                  <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color }}>{title}</h3>
+                </div>
+                <div style={{ padding: 16 }}>
+                  {val.map((item: any, i: number) => (
+                    <div key={i} style={{ background: "#f8fafc", borderRadius: 6, padding: "8px 12px", marginBottom: 4, fontSize: 13, lineHeight: 1.6 }}>
+                      {typeof item === "string" ? item : <pre style={{ margin: 0, fontSize: 11, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{JSON.stringify(item, null, 2)}</pre>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+          return renderSection(key, val, title, color);
+        })}
+
+        {/* Usage / meta */}
+        {data._usage && renderSection("_usage", data._usage, "📊 Consommation API", colors.slate)}
       </div>
     );
   };
@@ -879,13 +1110,9 @@ export default function OcrFicheDePaie() {
             onClick={() => fileInputRef.current?.click()}
             style={{
               border: `2px dashed ${isDragging ? colors.primary : colors.border}`,
-              borderRadius: 12,
-              padding: "48px 24px",
-              textAlign: "center",
-              cursor: "pointer",
+              borderRadius: 12, padding: "48px 24px", textAlign: "center", cursor: "pointer",
               background: isDragging ? colors.primary + "08" : colors.cardBg,
-              transition: "all 0.2s",
-              marginBottom: 16,
+              transition: "all 0.2s", marginBottom: 16,
             }}
           >
             <input ref={fileInputRef} type="file" accept=".pdf" style={{ display: "none" }}
@@ -905,10 +1132,9 @@ export default function OcrFicheDePaie() {
           </div>
         )}
 
-        {/* Workflow Info Panel */}
+        {/* Workflow & Prompt panels */}
         {!data && (
           <div style={{ marginBottom: 16 }}>
-            {/* Toggle buttons */}
             <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
               <button onClick={() => setShowWorkflow(!showWorkflow)} style={{
                 padding: "8px 14px", background: showWorkflow ? colors.primary + "12" : colors.cardBg,
@@ -922,7 +1148,6 @@ export default function OcrFicheDePaie() {
               }}>📝 Prompt système</button>
             </div>
 
-            {/* Workflow details */}
             {showWorkflow && (
               <div style={{ background: colors.cardBg, border: `1px solid ${colors.border}`, borderRadius: 10, padding: 16, marginBottom: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
                 <h3 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 700, color: "#1e293b" }}>⚙️ Configuration du workflow OCR</h3>
@@ -952,7 +1177,6 @@ export default function OcrFicheDePaie() {
               </div>
             )}
 
-            {/* Prompt editor */}
             {showPrompt && (
               <div style={{ background: colors.cardBg, border: `1px solid ${colors.border}`, borderRadius: 10, padding: 16, marginBottom: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -971,7 +1195,6 @@ export default function OcrFicheDePaie() {
                 </div>
                 <div style={{ fontSize: 11, color: colors.slate, marginBottom: 8, lineHeight: 1.5 }}>
                   ⚠️ Si vous modifiez le prompt ci-dessous, votre version personnalisée sera envoyée à la place du prompt par défaut côté serveur.
-                  Laissez vide pour utiliser le prompt par défaut (complet, ~265 lignes).
                 </div>
                 <textarea
                   value={customPrompt}
@@ -984,7 +1207,7 @@ export default function OcrFicheDePaie() {
                   }}
                 />
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, fontSize: 11, color: "#94a3b8" }}>
-                  <span>{customPrompt.length > 0 ? `${customPrompt.length} caractères` : "Prompt par défaut du serveur (~265 lignes)"}</span>
+                  <span>{customPrompt.length > 0 ? `${customPrompt.length} caractères` : "Prompt par défaut du serveur"}</span>
                   <button onClick={() => {
                     navigator.clipboard.writeText(customPrompt || DEFAULT_PROMPT);
                   }} style={{
@@ -1033,7 +1256,6 @@ export default function OcrFicheDePaie() {
         {/* Results */}
         {data && (
           <>
-            {/* Tabs */}
             <div style={{ display: "flex", gap: 4, marginBottom: 16, background: colors.border, borderRadius: 10, padding: 4 }}>
               {[
                 { key: "data" as const, label: "📋 Ma fiche de paie" },
@@ -1052,7 +1274,16 @@ export default function OcrFicheDePaie() {
 
             {activeTab === "data" ? renderDataTab() : activeTab === "explain" ? renderExplainTab() : renderRawTab()}
 
-            {/* Actions */}
+            {/* Usage info */}
+            {data._usage && (
+              <div style={{ marginTop: 12, background: colors.cardBg, border: `1px solid ${colors.border}`, borderRadius: 8, padding: "10px 16px", display: "flex", gap: 16, fontSize: 12, color: colors.slate, flexWrap: "wrap" }}>
+                <span>🤖 {data._usage.model}</span>
+                <span>📥 {data._usage.input_tokens?.toLocaleString()} tokens in</span>
+                <span>📤 {data._usage.output_tokens?.toLocaleString()} tokens out</span>
+                <span>💰 ${data._usage.cost_total_usd}</span>
+              </div>
+            )}
+
             <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
               <button onClick={copyJson} style={{
                 padding: "8px 16px", background: colors.cardBg, border: `1px solid ${colors.border}`, borderRadius: 8,
@@ -1063,15 +1294,6 @@ export default function OcrFicheDePaie() {
                 fontSize: 13, cursor: "pointer", color: colors.slate,
               }}>🔄 Nouvelle analyse</button>
             </div>
-
-            {/* Usage info */}
-            {data._usage && (
-              <div style={{ marginTop: 12, fontSize: 11, color: "#94a3b8", display: "flex", gap: 12 }}>
-                <span>Modèle : {data._usage.model}</span>
-                <span>Tokens : {data._usage.total_tokens?.toLocaleString("fr-FR")}</span>
-                <span>Coût : {data._usage.cost_total_usd?.toFixed(4)} $</span>
-              </div>
-            )}
           </>
         )}
       </div>
