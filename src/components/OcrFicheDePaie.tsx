@@ -52,6 +52,36 @@ const colors = {
 const font = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
 
 // ─── Main Component ──────────────────────────────────────────────
+// ─── Default prompt (loaded from edge function) ──────────────
+const DEFAULT_PROMPT = `Tu es un expert en droit du travail français, en paie et en fiscalité des salariés. Tu analyses des bulletins de paie français.
+
+Tu dois faire DEUX choses simultanément :
+1. Extraire toutes les données de la fiche de paie de façon structurée
+2. Expliquer chaque section en langage clair et pédagogique pour un salarié qui ne comprend pas sa fiche de paie
+
+Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
+
+IMPORTANT — GESTION MULTI-PAGES :
+Si le bulletin contient plusieurs pages, utilise TOUJOURS la page qui contient le tableau détaillé complet des cotisations pour extraire les montants (colonnes : Désignation, Base, Taux, Montant salarié, Montant patronal).
+Ignore les pages de synthèse avec graphiques circulaires ou camemberts.
+
+(Prompt complet envoyé côté serveur — modifiez ci-dessous pour personnaliser)`;
+
+// ─── Workflow config ──────────────────────────────────────────
+const WORKFLOW_CONFIG = {
+  model: "claude-haiku-4-5-20251001",
+  max_tokens: 16000,
+  api_endpoint: "https://api.anthropic.com/v1/messages",
+  anthropic_version: "2023-06-01",
+  edge_function: "ocr-bulletin-paie",
+  pdf_scale: 2.0,
+  image_format: "JPEG 85%",
+  max_pages: 6,
+  json_recovery: true,
+  cost_input_per_mtok: 1.0,
+  cost_output_per_mtok: 5.0,
+};
+
 export default function OcrFicheDePaie() {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -63,6 +93,9 @@ export default function OcrFicheDePaie() {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [customPrompt, setCustomPrompt] = useState("");
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [showWorkflow, setShowWorkflow] = useState(false);
 
   const toggleSection = (key: string) => {
     setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
