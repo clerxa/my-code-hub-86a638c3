@@ -303,9 +303,9 @@ export default function OcrFicheDePaie() {
         {/* Points d'attention */}
         {Array.isArray(d.points_attention) && d.points_attention.length > 0 && (
           <div style={{ marginBottom: 12 }}>
-            {d.points_attention.map((pt: string, i: number) => (
+            {d.points_attention.map((pt: any, i: number) => (
               <div key={i} style={{ background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "10px 14px", marginBottom: 6, fontSize: 13, color: "#92400e", lineHeight: 1.6 }}>
-                {pt}
+                {typeof pt === "string" ? pt : pt?.message || JSON.stringify(pt)}
               </div>
             ))}
           </div>
