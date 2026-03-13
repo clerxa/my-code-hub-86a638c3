@@ -304,6 +304,10 @@ STRUCTURE JSON ATTENDUE :
 
         "societe": "",
 
+        "type_plan": "qualifie | non_qualifie | indetermine_probablement_qualifie",
+
+        "impact_pas_immediat": false,
+
         "note": "Actions devenues définitivement acquises ce mois-ci (vesting)"
 
       }
@@ -556,6 +560,8 @@ STRUCTURE JSON ATTENDUE :
 
 }
 
+IMPORTANT : Les champs points_attention et conseils_optimisation doivent contenir des STRINGS simples, pas des objets.
+
 ═══════════════════════════════════════════════════════════════════════════════
 
 1. MAPPING FLEXIBLE DES COTISATIONS ET DÉTECTION EQUITY
@@ -574,7 +580,7 @@ RETRAITE :
 
 - "Complémentaire Tranche 2" = "AGIRC-ARRCO T2" = "Retraite comp T2" → retraite_complementaire_tranche2
 
-- "Contribution d'Équilibre Technique (CET)" = "Contribution Équilibre Général (CEG)" → cet_salarie (cotisation retraite AGIRC-ARRCO pour équilibrer le régime)
+- "Contribution d'Équilibre Technique (CET)" = "Contribution Équilibre Général (CEG)" → cet_salarie
 
 - "APEC" = "Association Pour l'Emploi des Cadres" → apec_ou_agirc_arrco
 
@@ -624,14 +630,6 @@ MOTS-CLÉS ÉPARGNE SALARIALE (priorité 2) :
 
 → Mettre dans epargne_salariale
 
-Comportement attendu :
-
-- Si ligne contient "Acquisition de 359 actions gratuites" → remuneration_equity.actions_gratuites_acquises
-
-- Si ligne contient "Intéressement brut" → epargne_salariale.interessement
-
-- Si ligne contient "ESPP" ou "Contribution ESPP" → remuneration_equity.espp_contribution
-
 RÈGLE SPÉCIALE : ABSENCE + INDEMNITÉ (MÉCANISME COMPTABLE NEUTRE)
 
 Si tu trouves ces deux lignes ensemble :
@@ -640,23 +638,9 @@ Si tu trouves ces deux lignes ensemble :
 
 - "Indemnité Congés Payés N (X jours)" avec montant POSITIF (même valeur absolue)
 
-OU
+→ NE PAS inclure ces lignes dans autres_elements_bruts[]. C'est un mécanisme comptable de compensation.
 
-- "Absence RTT" avec montant NÉGATIF
-
-- "Indemnité RTT" avec montant POSITIF (même valeur absolue)
-
-→ NE PAS inclure ces lignes dans autres_elements_bruts[]. C'est un mécanisme comptable de compensation (l'employeur déduit puis réinjecte pour calculer les congés payés). L'impact sur le brut total est NUL.
-
-→ À la place, note juste le nombre de jours dans :
-
-- conges_rtt.conges_pris_mois si CP
-
-- conges_rtt.rtt_pris_mois si RTT
-
-Explication pédagogique :
-
-"Ce mois-ci, tu as pris 5 jours de congés payés et 4 jours de RTT. Sur ta fiche, tu vois des lignes 'Absence' et 'Indemnité' qui se compensent — c'est juste la mécanique comptable pour calculer l'indemnité de congés. Ton brut final intègre déjà ces jours."
+→ À la place, note juste le nombre de jours dans conges_rtt.conges_pris_mois ou conges_rtt.rtt_pris_mois.
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -666,59 +650,35 @@ Explication pédagogique :
 
 Tes explications doivent être en français clair, avec des montants réels tirés de la fiche de paie. Bannir le jargon RH/paie.
 
-EXEMPLES DE FORMULATIONS IMPOSÉES :
-
 CAS 1 : TAUX PAS À 0%
 
 - Détection : taux_pas_pct = 0 ET net_avant_impot > 3000€
 
-- Explication : "⚠️ Ton taux d'impôt sur le revenu est à 0% ce mois-ci. Cela signifie que tu ne paies pas d'impôt directement sur ta paie. ATTENTION : Ce n'est pas forcément une bonne nouvelle ! Si tes revenus annuels dépassent 10 000€, tu devras payer l'impôt en une seule fois en septembre prochain lors de la régularisation annuelle. Pour éviter une grosse facture d'un coup, tu peux demander à appliquer un taux personnalisé sur impots.gouv.fr."
+- Explication : "⚠️ Ton taux d'impôt sur le revenu est à 0% ce mois-ci. ATTENTION : Si tes revenus annuels dépassent 10 000€, tu devras payer l'impôt en une seule fois en septembre prochain."
 
 CAS 2 : CRÉDIT D'IMPÔT vs DÉDUCTION NORMALE
 
 - ⚠️ RÈGLE CRITIQUE : Seul le SIGNE DU MONTANT détermine s'il y a crédit ou déduction, PAS le signe du taux
 
-- Le taux peut être affiché négatif par certains logiciels de paie (artefact technique), IGNORER ce signe
-
-DÉTECTION :
-
 - Si montant_pas > 0 (positif, argent AJOUTÉ au net) → CRÉDIT D'IMPÔT (rare)
 
 - Si montant_pas < 0 (négatif, argent DÉDUIT du net) → DÉDUCTION normale (impôt payé)
-
-EXPLICATION si CRÉDIT D'IMPÔT (montant_pas > 0) :
-
-"🎉 Bonne nouvelle ! Ce mois-ci, tu as reçu {montant_pas} € de crédit d'impôt via ta fiche de paie. Au lieu de payer de l'impôt, l'État te restitue de l'argent. Cela peut être dû à des réductions d'impôt importantes (enfants à charge, dons aux associations, emploi à domicile, etc.) qui dépassent ton impôt dû. C'est une excellente nouvelle 🎉 !"
-
-EXPLICATION si DÉDUCTION normale (montant_pas < 0) :
-
-"Ton impôt sur le revenu (PAS) de {abs(montant_pas)} € a été prélevé à la source ce mois-ci. Ton taux est de {abs(taux_pas_pct)}%."
-
-Note : Si le taux affiché sur la fiche est négatif (ex: -22,4%) mais que le montant est déduit (ex: -1 822 €), c'est juste un affichage technique du logiciel de paie. L'impôt est bien prélevé normalement. Toujours se fier au SIGNE DU MONTANT, pas au signe du taux.
 
 CAS 3 : CONGÉ PATERNITÉ
 
 - Détection : Ligne "Absence paternité" OU "Congé paternité" avec brut < 50% du salaire habituel
 
-- Explication : "Ce mois-ci, ton salaire est réduit car tu étais en congé paternité. La Sécurité Sociale verse des indemnités journalières (IJSS) directement sur ton compte bancaire (pas sur la fiche de paie), généralement sous 2-3 semaines. Ces indemnités représentent environ 90% de ton salaire net plafonné (max ~100€/jour). Vérifie ton compte bancaire dans les prochaines semaines pour voir le virement de la Sécu. Pas d'inquiétude, c'est normal !"
-
 CAS 4 : ENTRÉE EN COURS DE MOIS
 
-- Détection : Ligne "Absence pour entrée" OU brut < 70% du salaire mensuel normal ET date_entree dans le mois concerné
-
-- Explication : "Tu as commencé à travailler le [date_entree], donc tu n'as été payé que pour [nb_jours] jours travaillés ce mois-ci (au lieu des 22 jours ouvrables habituels). Ton salaire est donc proratisé : [salaire_base] × [nb_jours] / 22 = [brut]. C'est tout à fait normal pour un premier mois."
+- Détection : Ligne "Absence pour entrée" OU brut < 70% du salaire mensuel normal ET date_entree dans le mois
 
 CAS 5 : AVANTAGE EN NATURE VÉHICULE
 
 - Détection : Ligne "Avantage nature véhicule" OU "AN véhicule" avec montant > 100€
 
-- Explication : "L'avantage en nature véhicule de [montant]€ représente la valeur fiscale de l'usage personnel de ta voiture de fonction. Ce montant est AJOUTÉ à ton brut (tu paies des cotisations dessus) ET à ton net imposable (tu paies de l'impôt dessus). Ça ne réduit pas ton salaire, mais ça augmente tes cotisations et ton impôt. En gros : l'État considère que tu reçois [montant]€ de plus en 'salaire' sous forme de voiture. Mais en contrepartie, tu bénéficies d'une voiture gratuite pour tes trajets personnels !"
-
 CAS 6 : CHANGEMENT TAUX PAS > 1 POINT
 
-- Détection : Comparer taux_pas_pct avec mois précédents dans cumuls → si changement > 1%, signaler
-
-- Explication : "⚠️ Ton taux d'impôt sur le revenu a changé ce mois-ci : il est passé de [ancien]% à [nouveau]%. Ça peut être la régularisation annuelle de septembre (les impôts ajustent ton taux en fonction de tes revenus réels de l'année précédente), ou un changement de situation (mariage, naissance, changement de salaire déclaré). Si tu ne comprends pas pourquoi, va sur impots.gouv.fr > Gérer mon prélèvement à la source pour vérifier."
+- Détection : Comparer taux_pas_pct avec mois précédents
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -726,13 +686,77 @@ CAS 6 : CHANGEMENT TAUX PAS > 1 POINT
 
 ═══════════════════════════════════════════════════════════════════════════════
 
-A. ACTIONS GRATUITES (TYPE DOCUSIGN, META, GOOGLE)
+A. ACTIONS GRATUITES — 2 TYPES DE PLANS (CRITIQUE !)
 
-DÉTECTION :
+⚠️ DISTINCTION ESSENTIELLE : PLAN QUALIFIÉ vs PLAN NON QUALIFIÉ
 
-- Lignes "Acquisition de X actions gratuites" avec montant dans colonne "A payer" ou "Charges patronales"
+Il existe 2 types de plans d'actions gratuites en France, avec des impacts fiscaux TRÈS différents :
 
-- MAIS PAS dans la colonne "A déduire" (= pas dans le brut)
+1. **PLAN QUALIFIÉ** (~95% des cas - grandes entreprises US comme DocuSign, Meta, Google)
+
+   - Conditions : Respect des délais légaux (2 ans d'acquisition + 2 ans de conservation)
+
+   - Impact fiscal : AUCUN impact sur le PAS au moment du vesting
+
+   - Imposition : Uniquement à la VENTE des actions (PFU 30% ou barème IR sur la plus-value)
+
+   - Détection fiche paie : Valeur dans colonne "Charges patronales", BASE PAS = net social normal
+
+2. **PLAN NON QUALIFIÉ** (~5% des cas)
+
+   - Conditions : Aucun délai imposé
+
+   - Impact fiscal : Valeur ajoutée au net imposable → PAS prélevé immédiatement au vesting
+
+   - Imposition : Au vesting (via PAS) + à la vente (plus-value)
+
+   - Détection fiche paie : BASE PAS = net social + valeur actions gratuites
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ALGORITHME DE DÉTECTION AUTOMATIQUE (PRIORITÉ : 95% DE FIABILITÉ)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ÉTAPE 1 : Détecter les lignes "Acquisition de X actions gratuites"
+
+- Avec montant dans colonne "A payer" ou "Charges patronales"
+
+- MAIS PAS dans la colonne "A déduire" (= pas dans le brut cotisable)
+
+ÉTAPE 2 : Calculer la valeur totale des actions acquises
+
+valeur_totale_actions = somme de toutes les lignes "Acquisition de X actions gratuites"
+
+ÉTAPE 3 : Vérifier l'impact sur la base PAS
+
+base_pas_theorique_avec_actions = net_social + reintegration_fiscale + valeur_totale_actions
+
+base_pas_theorique_sans_actions = net_social + reintegration_fiscale
+
+Si base_pas (affichée sur fiche) ≈ base_pas_theorique_avec_actions (± 100€) :
+
+  → PLAN NON QUALIFIÉ (valeur ajoutée au net imposable)
+
+  → type_plan = "non_qualifie"
+
+  → impact_pas_immediat = true
+
+  
+
+Si base_pas (affichée sur fiche) ≈ base_pas_theorique_sans_actions (± 100€) :
+
+  → PLAN QUALIFIÉ (valeur NON ajoutée au net imposable)
+
+  → type_plan = "qualifie"
+
+  → impact_pas_immediat = false
+
+Si incertitude :
+
+  → type_plan = "indetermine_probablement_qualifie"
+
+  → Mentionner "95% de probabilité plan qualifié, à confirmer avec RH"
 
 RÈGLE CRITIQUE :
 
@@ -740,23 +764,41 @@ RÈGLE CRITIQUE :
 
 → Les mettre dans remuneration_equity.actions_gratuites_acquises[]
 
-IMPACT FISCAL :
+→ Préciser obligatoirement le type_plan détecté
 
-La valeur totale des actions acquises s'AJOUTE au net social pour calculer le net imposable.
+EXPLICATION PÉDAGOGIQUE :
 
-Le PAS est prélevé sur ce net imposable gonflé.
+Si type_plan = "qualifie" :
 
-Formule :
+"🎉 BONNE NOUVELLE : Ce mois-ci, {nb_actions_total} actions gratuites de ton plan d'actionnariat salarié {entreprise} sont devenues définitivement acquises (vesting). Leur valeur fiscale totale est de {valeur_totale} €.
 
-net_social (salaire net après cotisations)
+✅ PLAN D'ACTIONS GRATUITES QUALIFIÉ (excellente nouvelle !)
 
-+ valeur_fiscale_actions_gratuites
+Ton plan respecte les conditions légales françaises, ce qui te donne un avantage fiscal majeur :
 
-= net_imposable (base PAS)
+1️⃣ AUCUN IMPÔT À PAYER CE MOIS-CI
 
-× taux_pas
+2️⃣ Les actions sont maintenant à toi
 
-= montant_pas_preleve
+3️⃣ Imposition uniquement à la VENTE (fiscalité ultra-avantageuse !)"
+
+Si type_plan = "non_qualifie" :
+
+"Ce mois-ci, {nb_actions_total} actions gratuites {entreprise} sont devenues définitivement acquises.
+
+⚠️ PLAN D'ACTIONS GRATUITES NON QUALIFIÉ
+
+1️⃣ La valeur des actions est ajoutée à ton net imposable
+
+2️⃣ Tu paies l'impôt SANS avoir reçu de cash
+
+3️⃣ Les actions sont maintenant à toi"
+
+Si type_plan = "indetermine_probablement_qualifie" :
+
+"ℹ️ TYPE DE PLAN INCERTAIN (probablement QUALIFIÉ à 95%)
+
+Pour confirmer, vérifie si ta base PAS inclut la valeur des actions ou non."
 
 B. RSU — VARIANTE A : SIMPLE AVEC REMBOURSEMENT BROKER
 
@@ -770,25 +812,17 @@ DÉTECTION :
 
 - PAS de ligne "TAXES SUR RSU"
 
-MÉCANISME :
-
-1. Le gain RSU est ajouté au brut → augmente les cotisations sociales
-
-2. Le gain RSU est ensuite retiré via la reprise → n'impacte pas le net payé
-
-3. Le remboursement de l'impôt broker est ajouté au net
-
 C. RSU — VARIANTE B : SELL TO COVER 45% (CISCO, LINKEDIN)
 
 DÉTECTION :
 
 - 2 lignes dans brut : "RSU" (montant X) + "TAXES SUR RSU" (montant Y)
 
-- 1 ligne "REPRISE RSU" ou "Reprise RSU + Taxes" négative (montant -(X+Y))
+- 1 ligne "REPRISE RSU" négative (montant -(X+Y))
 
-- 1 ligne "REMB STC" ou "Remboursement Sell To Cover" positive (montant Y)
+- 1 ligne "REMB STC" positive (montant Y)
 
-- Vérifier : Y / (X + Y) ≈ 45% (quotité cédée France)
+- Vérifier : Y / (X + Y) ≈ 45%
 
 D. ESPP (EMPLOYEE STOCK PURCHASE PLAN)
 
@@ -796,15 +830,13 @@ DÉTECTION :
 
 - Ligne "Contribution ESPP" ou "ESPP" avec montant négatif dans les retenues
 
-- OU ligne "[Mois] - [Mois] ESPP" (ex: "Jul - Dec ESPP")
-
 E. AVANTAGES EN NATURE AVEC GROSS-UP (LINKEDIN, META)
 
 DÉTECTION :
 
-- Ligne "Food BIK" ou "[X] BIK" (Benefit In Kind = avantage en nature)
+- Ligne "Food BIK" ou "[X] BIK" (Benefit In Kind)
 
-- Ligne "Food GU BIK" ou "[X] GU BIK" (GU = Gross-Up = compensation fiscale)
+- Ligne "Food GU BIK" ou "[X] GU BIK" (GU = Gross-Up)
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -820,21 +852,13 @@ CRÉDIT D'IMPÔT vs DÉDUCTION NORMALE :
 
 - Détection : Regarder le SIGNE DU MONTANT (pas le signe du taux)
 
-  - Si montant_pas > 0 (positif) → CRÉDIT D'IMPÔT (argent reçu)
-
-  - Si montant_pas < 0 (négatif) → DÉDUCTION normale (impôt payé)
-
-- ⚠️ IGNORER le signe du taux (peut être négatif pour raisons techniques)
-
 CONGÉ PATERNITÉ :
 
-- Détection : "Absence paternité" OU "Congé paternité" OU brut < 30% du salaire habituel avec mention "paternité"
+- Détection : "Absence paternité" OU "Congé paternité"
 
 ABSENCE LONGUE DURÉE :
 
 - Détection : Si "Absence maladie" ou "Maladie ordinaire" détecté ET brut du mois < 70% du salaire de base
-
-- Détection supplémentaire : si ligne "Prévoyance" ou "Prévoyance Alan" avec part salariale = 0€ MAIS part patronale > 0€ → maintien de salaire par l'assurance prévoyance
 
 CONGES PRIS :
 
@@ -846,11 +870,11 @@ PRIME EXCEPTIONNELLE :
 
 ENTRÉE OU SORTIE EN COURS DE MOIS :
 
-- Détection : Ligne "Absence pour entrée" ou "Absence pour sortie" OU date_entree dans le mois concerné
+- Détection : Ligne "Absence pour entrée" ou "Absence pour sortie"
 
 CHANGEMENT TAUX PAS > 1 POINT :
 
-- Détection : Comparer taux_pas_pct avec mois précédents → si changement > 1%
+- Détection : Comparer taux_pas_pct avec mois précédents
 
 ACTIONS GRATUITES VESTING :
 
@@ -866,7 +890,33 @@ RSU MASSIF :
 
 ═══════════════════════════════════════════════════════════════════════════════
 
-Génère automatiquement des points d'attention (strings simples) et des conseils d'optimisation (strings simples) basés sur les données extraites.
+POINTS D'ATTENTION À GÉNÉRER AUTOMATIQUEMENT (toujours en tant que STRINGS simples) :
+
+Si actions_gratuites_acquises > 10 000€ :
+
+"⚠️ ACTIONS GRATUITES : Tu as acquis {montant} € d'actions gratuites ce mois-ci."
+
+Si rsu_gain > 20 000€ :
+
+"⚠️ GROS LOT RSU : Un montant important de RSU ({montant} €) a été acquis ce mois-ci."
+
+Si espp_contribution > 0 :
+
+"💡 ESPP : Tu contribues {montant} €/mois à l'ESPP."
+
+Si taux_pas = 0 :
+
+"⚠️ TAUX PAS À 0% : Tu ne paies pas d'impôt ce mois-ci, attention à la régularisation en septembre."
+
+CONSEILS D'OPTIMISATION À GÉNÉRER (toujours en tant que STRINGS simples) :
+
+Si actions_gratuites_acquises OU rsu_gain > 0 :
+
+"💡 Stratégie fiscale actions : Si plan qualifié, garde les actions 2 ans minimum pour bénéficier de l'abattement fiscal."
+
+Si espp_contribution > 0 :
+
+"💡 Stratégie ESPP : Tu bénéficies d'une décote de 15% sur le prix du marché."
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -880,21 +930,23 @@ FORMULE GÉNÉRALE :
 
 total_brut - total_cotisations_salariales - montant_pas = net_paye
 
-Si écart > 100€ → ajouter dans points_attention (comme string simple).
+Si écart > 100€ → ajouter dans points_attention (comme STRING simple).
 
 VÉRIFICATION EQUITY :
 
-- Si epargne_salariale.interessement > 10000 € ET remuneration_equity.actions_gratuites vide → ⚠️ POSSIBLE CONFUSION
+- Si epargne_salariale.interessement > 10000 € ET remuneration_equity.actions_gratuites vide
 
-- Si remuneration_equity.rsu_vesting.variante = "sell_to_cover_45pct" → Vérifier que quotite_cedee_pct ≈ 45% (± 5%)
+  → ⚠️ POSSIBLE CONFUSION, relire les lignes pour vérifier
+
+- Si remuneration_equity.rsu_vesting.variante = "sell_to_cover_45pct"
+
+  → Vérifier que quotite_cedee_pct ≈ 45% (± 5%)
 
 ═══════════════════════════════════════════════════════════════════════════════
 
 FIN DES INSTRUCTIONS
 
 ═══════════════════════════════════════════════════════════════════════════════
-
-IMPORTANT : Les champs points_attention et conseils_optimisation doivent contenir des STRINGS simples, pas des objets.
 
 Retourne maintenant le JSON complet pour le bulletin de paie fourni, en suivant SCRUPULEUSEMENT toutes les instructions ci-dessus.
 
@@ -906,9 +958,11 @@ N'oublie pas :
 
 3. Détecter les mécanismes RSU (variante A ou B) correctement
 
-4. Générer des explications ultra-concrètes avec montants réels
+4. Détecter le type_plan des actions gratuites (qualifie / non_qualifie / indetermine)
 
-5. Ajouter points d'attention et conseils personnalisés pour equity`;
+5. Générer des explications ultra-concrètes avec montants réels
+
+6. Ajouter points d'attention et conseils personnalisés pour equity`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {

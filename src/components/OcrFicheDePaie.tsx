@@ -50,13 +50,19 @@ Ignore les pages de synthèse avec graphiques circulaires ou camemberts — elle
 - Actions gratuites/RSU/ESPP/BSPCE → remuneration_equity (JAMAIS dans epargne_salariale)
 - Intéressement/Participation/PEE/PERCO → epargne_salariale
 
+⚠️ ACTIONS GRATUITES — 2 TYPES DE PLANS :
+- PLAN QUALIFIÉ (~95% des cas) : AUCUN impact PAS au vesting, imposition à la VENTE uniquement
+- PLAN NON QUALIFIÉ (~5%) : Valeur ajoutée au net imposable → PAS immédiat
+- Algorithme : comparer base_pas avec/sans valeur actions pour déterminer type_plan (qualifie/non_qualifie/indetermine_probablement_qualifie)
+- Champ type_plan et impact_pas_immediat obligatoires dans actions_gratuites_acquises[]
+
 ⚠️ CAS 2 — CRÉDIT D'IMPÔT vs DÉDUCTION NORMALE :
 - Seul le SIGNE DU MONTANT détermine s'il y a crédit ou déduction, PAS le signe du taux
 - montant_pas > 0 → CRÉDIT D'IMPÔT | montant_pas < 0 → DÉDUCTION normale
 
 IMPORTANT : Les champs points_attention et conseils_optimisation doivent contenir des STRINGS simples, pas des objets.
 
-Structure JSON : salarie, employeur, periode, remuneration_brute, cotisations_salariales, cotisations_patronales, net, conges_rtt, epargne_salariale, remuneration_equity, explications_pedagogiques, points_attention, conseils_optimisation, cas_particuliers_mois (avec credit_impot au lieu de taux_pas_negatif), cumuls_annuels, informations_complementaires.
+Structure JSON : salarie, employeur, periode, remuneration_brute, cotisations_salariales, cotisations_patronales, net, conges_rtt, epargne_salariale, remuneration_equity (avec type_plan et impact_pas_immediat dans actions_gratuites_acquises), explications_pedagogiques, points_attention, conseils_optimisation, cas_particuliers_mois (avec credit_impot au lieu de taux_pas_negatif), cumuls_annuels, informations_complementaires.
 
 (Prompt complet identique côté serveur — modifiez ci-dessous pour personnaliser)`;
 
