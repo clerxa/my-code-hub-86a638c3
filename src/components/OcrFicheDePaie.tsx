@@ -895,13 +895,105 @@ export default function OcrFicheDePaie() {
           </div>
         )}
 
+        {/* Workflow Info Panel */}
+        {!data && (
+          <div style={{ marginBottom: 16 }}>
+            {/* Toggle buttons */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <button onClick={() => setShowWorkflow(!showWorkflow)} style={{
+                padding: "8px 14px", background: showWorkflow ? colors.primary + "12" : colors.cardBg,
+                border: `1px solid ${showWorkflow ? colors.primary + "40" : colors.border}`, borderRadius: 8,
+                fontSize: 13, cursor: "pointer", color: showWorkflow ? colors.primary : colors.slate, fontWeight: 600,
+              }}>⚙️ Workflow & config</button>
+              <button onClick={() => setShowPrompt(!showPrompt)} style={{
+                padding: "8px 14px", background: showPrompt ? colors.violet + "12" : colors.cardBg,
+                border: `1px solid ${showPrompt ? colors.violet + "40" : colors.border}`, borderRadius: 8,
+                fontSize: 13, cursor: "pointer", color: showPrompt ? colors.violet : colors.slate, fontWeight: 600,
+              }}>📝 Prompt système</button>
+            </div>
+
+            {/* Workflow details */}
+            {showWorkflow && (
+              <div style={{ background: colors.cardBg, border: `1px solid ${colors.border}`, borderRadius: 10, padding: 16, marginBottom: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                <h3 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 700, color: "#1e293b" }}>⚙️ Configuration du workflow OCR</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {[
+                    ["Modèle IA", WORKFLOW_CONFIG.model],
+                    ["Max tokens", WORKFLOW_CONFIG.max_tokens.toLocaleString("fr-FR")],
+                    ["API endpoint", WORKFLOW_CONFIG.api_endpoint],
+                    ["API version", WORKFLOW_CONFIG.anthropic_version],
+                    ["Edge Function", WORKFLOW_CONFIG.edge_function],
+                    ["Échelle PDF", `×${WORKFLOW_CONFIG.pdf_scale}`],
+                    ["Format images", WORKFLOW_CONFIG.image_format],
+                    ["Pages max", String(WORKFLOW_CONFIG.max_pages)],
+                    ["Récupération JSON", WORKFLOW_CONFIG.json_recovery ? "✅ Activée" : "❌ Désactivée"],
+                    ["Coût input", `$${WORKFLOW_CONFIG.cost_input_per_mtok}/MTok`],
+                    ["Coût output", `$${WORKFLOW_CONFIG.cost_output_per_mtok}/MTok`],
+                  ].map(([label, value], i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 10px", fontSize: 12, background: i % 2 === 0 ? "#f8fafc" : "transparent", borderRadius: 4 }}>
+                      <span style={{ color: colors.slate, fontWeight: 600 }}>{label}</span>
+                      <span style={{ fontFamily: "monospace", fontSize: 11, color: "#1e293b", textAlign: "right", maxWidth: "60%", wordBreak: "break-all" }}>{value}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: 12, padding: 10, background: "#eff6ff", borderRadius: 6, fontSize: 11, color: colors.primary, lineHeight: 1.6 }}>
+                  <strong>Pipeline :</strong> PDF → pdf.js v3.11.174 (CDN isolé) → Canvas (scale {WORKFLOW_CONFIG.pdf_scale}) → JPEG {WORKFLOW_CONFIG.image_format.split(" ")[1]} → base64 → Edge Function → Anthropic API ({WORKFLOW_CONFIG.model}) → JSON → Parsing + récupération auto si tronqué → Affichage 3 onglets
+                </div>
+              </div>
+            )}
+
+            {/* Prompt editor */}
+            {showPrompt && (
+              <div style={{ background: colors.cardBg, border: `1px solid ${colors.border}`, borderRadius: 10, padding: 16, marginBottom: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#1e293b" }}>📝 Prompt système (envoyé à Claude)</h3>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {customPrompt.trim() && (
+                      <span style={{ background: colors.violet + "15", color: colors.violet, padding: "3px 10px", borderRadius: 10, fontSize: 11, fontWeight: 600 }}>
+                        ✏️ Modifié
+                      </span>
+                    )}
+                    <button onClick={() => setCustomPrompt("")} style={{
+                      padding: "4px 10px", background: "transparent", border: `1px solid ${colors.border}`, borderRadius: 6,
+                      fontSize: 11, cursor: "pointer", color: colors.slate,
+                    }}>🔄 Réinitialiser</button>
+                  </div>
+                </div>
+                <div style={{ fontSize: 11, color: colors.slate, marginBottom: 8, lineHeight: 1.5 }}>
+                  ⚠️ Si vous modifiez le prompt ci-dessous, votre version personnalisée sera envoyée à la place du prompt par défaut côté serveur.
+                  Laissez vide pour utiliser le prompt par défaut (complet, ~265 lignes).
+                </div>
+                <textarea
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  placeholder="Laissez vide pour utiliser le prompt par défaut du serveur. Collez ici un prompt personnalisé pour le tester..."
+                  style={{
+                    width: "100%", minHeight: 300, padding: 12, border: `1px solid ${colors.border}`, borderRadius: 8,
+                    fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 12, lineHeight: 1.6,
+                    resize: "vertical", color: "#1e293b", background: "#fafbfc",
+                  }}
+                />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, fontSize: 11, color: "#94a3b8" }}>
+                  <span>{customPrompt.length > 0 ? `${customPrompt.length} caractères` : "Prompt par défaut du serveur (~265 lignes)"}</span>
+                  <button onClick={() => {
+                    navigator.clipboard.writeText(customPrompt || DEFAULT_PROMPT);
+                  }} style={{
+                    padding: "4px 10px", background: "transparent", border: `1px solid ${colors.border}`, borderRadius: 6,
+                    fontSize: 11, cursor: "pointer", color: colors.slate,
+                  }}>📋 Copier</button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Analyze button */}
         {file && !data && !loading && (
           <button onClick={analyze} style={{
             width: "100%", padding: "14px", background: `linear-gradient(135deg, ${colors.primary}, ${colors.violet})`,
             color: "#fff", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", marginBottom: 16,
           }}>
-            🔍 Analyser mon bulletin de paie
+            🔍 Analyser mon bulletin de paie {customPrompt.trim() ? "(prompt personnalisé)" : ""}
           </button>
         )}
 
