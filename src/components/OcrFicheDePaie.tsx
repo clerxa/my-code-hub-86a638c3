@@ -549,6 +549,17 @@ export default function OcrFicheDePaie() {
                     {ag.prix_unitaire && (
                       <div style={{ fontSize: 12, color: colors.slate }}>Prix unitaire : {fmt(ag.prix_unitaire)}</div>
                     )}
+                    {ag.type_plan && (
+                      <div style={{
+                        display: "inline-block", marginTop: 4, padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600,
+                        background: ag.type_plan === "qualifie" ? "#dcfce7" : ag.type_plan === "non_qualifie" ? "#fef2f2" : "#fef9c3",
+                        color: ag.type_plan === "qualifie" ? "#166534" : ag.type_plan === "non_qualifie" ? "#991b1b" : "#854d0e",
+                      }}>
+                        {ag.type_plan === "qualifie" ? "✅ Plan qualifié" : ag.type_plan === "non_qualifie" ? "⚠️ Plan non qualifié" : "ℹ️ Type incertain (prob. qualifié)"}
+                        {ag.impact_pas_immediat === true && " — Impact PAS immédiat"}
+                        {ag.impact_pas_immediat === false && " — Pas d'impact PAS"}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
