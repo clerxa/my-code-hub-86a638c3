@@ -50,7 +50,11 @@ Ignore les pages de synthèse avec graphiques circulaires ou camemberts — elle
 - Actions gratuites/RSU/ESPP/BSPCE → remuneration_equity (JAMAIS dans epargne_salariale)
 - Intéressement/Participation/PEE/PERCO → epargne_salariale
 
-Structure JSON : salarie, employeur, periode, remuneration_brute, cotisations_salariales, cotisations_patronales, net, conges_rtt, epargne_salariale, remuneration_equity, explications_pedagogiques, points_attention, conseils_optimisation, cas_particuliers_mois, cumuls_annuels, informations_complementaires.
+⚠️ CAS 2 — CRÉDIT D'IMPÔT vs DÉDUCTION NORMALE :
+- Seul le SIGNE DU MONTANT détermine s'il y a crédit ou déduction, PAS le signe du taux
+- montant_pas > 0 → CRÉDIT D'IMPÔT | montant_pas < 0 → DÉDUCTION normale
+
+Structure JSON : salarie, employeur, periode, remuneration_brute, cotisations_salariales, cotisations_patronales, net, conges_rtt, epargne_salariale, remuneration_equity, explications_pedagogiques, points_attention, conseils_optimisation, cas_particuliers_mois (avec credit_impot au lieu de taux_pas_negatif), cumuls_annuels, informations_complementaires.
 
 (Prompt complet identique côté serveur — modifiez ci-dessous pour personnaliser)`;
 
@@ -660,7 +664,7 @@ export default function OcrFicheDePaie() {
               
               const checks = [
                 { key: "taux_pas_zero", label: "Taux PAS à 0%" },
-                { key: "taux_pas_negatif", label: "Taux PAS négatif" },
+                { key: "credit_impot", label: "Crédit d'impôt" },
                 { key: "conge_paternite", label: "Congé paternité" },
                 { key: "absence_longue_duree", label: "Absence longue durée" },
                 { key: "conges_pris", label: "Congés pris" },
@@ -920,7 +924,7 @@ export default function OcrFicheDePaie() {
           const detected: { label: string; expl: string }[] = [];
           const checks = [
             { key: "taux_pas_zero", label: "Taux PAS à 0%" },
-            { key: "taux_pas_negatif", label: "Taux PAS négatif" },
+            { key: "credit_impot", label: "Crédit d'impôt" },
             { key: "conge_paternite", label: "Congé paternité" },
             { key: "absence_longue_duree", label: "Absence longue durée" },
             { key: "conges_pris", label: "Congés pris" },

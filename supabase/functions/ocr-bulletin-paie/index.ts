@@ -424,9 +424,11 @@ STRUCTURE JSON ATTENDUE :
 
     },
 
-    "taux_pas_negatif": {
+    "credit_impot": {
 
       "detecte": false,
+
+      "montant_credit": null,
 
       "explication": ""
 
@@ -672,17 +674,27 @@ CAS 1 : TAUX PAS À 0%
 
 - Explication : "⚠️ Ton taux d'impôt sur le revenu est à 0% ce mois-ci. Cela signifie que tu ne paies pas d'impôt directement sur ta paie. ATTENTION : Ce n'est pas forcément une bonne nouvelle ! Si tes revenus annuels dépassent 10 000€, tu devras payer l'impôt en une seule fois en septembre prochain lors de la régularisation annuelle. Pour éviter une grosse facture d'un coup, tu peux demander à appliquer un taux personnalisé sur impots.gouv.fr."
 
-CAS 2 : TAUX PAS NÉGATIF (CRÉDIT D'IMPÔT)
+CAS 2 : CRÉDIT D'IMPÔT vs DÉDUCTION NORMALE
 
-- Détection : taux_pas_pct < 0 (exemple : -5.5%)
+- ⚠️ RÈGLE CRITIQUE : Seul le SIGNE DU MONTANT détermine s'il y a crédit ou déduction, PAS le signe du taux
 
-- ⚠️ CORRECTION CRITIQUE : Si montant_pas > 0 (positif, sans le signe moins), ce n'est PAS un crédit d'impôt !
+- Le taux peut être affiché négatif par certains logiciels de paie (artefact technique), IGNORER ce signe
 
-- Vérification : Un crédit d'impôt signifie que le montant_pas est POSITIF (argent reçu), pas négatif (argent déduit)
+DÉTECTION :
 
-- Explication CORRECTE si vraiment crédit d'impôt (montant_pas > 0) : "🎉 Bonne nouvelle ! Ton taux d'impôt est de -5,5% ce mois-ci, ce qui signifie que tu bénéficies d'un CRÉDIT D'IMPÔT. Au lieu de payer de l'impôt, l'État te restitue de l'argent (ici 350€) via ta fiche de paie. Cela peut être dû à des réductions d'impôt (enfants à charge, dons aux associations, emploi à domicile, etc.). C'est une bonne nouvelle 🎉"
+- Si montant_pas > 0 (positif, argent AJOUTÉ au net) → CRÉDIT D'IMPÔT (rare)
 
-- Explication si taux négatif MAIS montant déduit (montant_pas < 0) : "Ton taux PAS affiché est de -5,5%, mais tu as bien payé 350€ d'impôt ce mois-ci (montant déduit). Le signe négatif du taux peut être un affichage technique de ton logiciel de paie. Ton impôt est bien prélevé normalement."
+- Si montant_pas < 0 (négatif, argent DÉDUIT du net) → DÉDUCTION normale (impôt payé)
+
+EXPLICATION si CRÉDIT D'IMPÔT (montant_pas > 0) :
+
+"🎉 Bonne nouvelle ! Ce mois-ci, tu as reçu {montant_pas} € de crédit d'impôt via ta fiche de paie. Au lieu de payer de l'impôt, l'État te restitue de l'argent. Cela peut être dû à des réductions d'impôt importantes (enfants à charge, dons aux associations, emploi à domicile, etc.) qui dépassent ton impôt dû. C'est une excellente nouvelle 🎉 !"
+
+EXPLICATION si DÉDUCTION normale (montant_pas < 0) :
+
+"Ton impôt sur le revenu (PAS) de {abs(montant_pas)} € a été prélevé à la source ce mois-ci. Ton taux est de {abs(taux_pas_pct)}%."
+
+Note : Si le taux affiché sur la fiche est négatif (ex: -22,4%) mais que le montant est déduit (ex: -1 822 €), c'est juste un affichage technique du logiciel de paie. L'impôt est bien prélevé normalement. Toujours se fier au SIGNE DU MONTANT, pas au signe du taux.
 
 CAS 3 : CONGÉ PATERNITÉ
 
@@ -1064,15 +1076,19 @@ TAUX PAS À 0% :
 
 - Explication : (voir section 2 ci-dessus)
 
-TAUX PAS NÉGATIF (CRÉDIT D'IMPÔT) :
+CRÉDIT D'IMPÔT vs DÉDUCTION NORMALE :
 
-- Détection : taux_pas_pct < 0
+- Détection : Regarder le SIGNE DU MONTANT (pas le signe du taux)
 
-- ⚠️ VÉRIFICATION : Si montant_pas < 0 (montant déduit), ce n'est PAS un crédit d'impôt !
+  - Si montant_pas > 0 (positif) → CRÉDIT D'IMPÔT (argent reçu)
 
-- Explication vraie si crédit : (voir section 2)
+  - Si montant_pas < 0 (négatif) → DÉDUCTION normale (impôt payé)
 
-- Explication si faux négatif : "Ton taux PAS affiché est négatif, mais le montant de {montant_pas} € a bien été déduit de ton salaire. C'est un affichage technique, ton impôt est prélevé normalement."
+- ⚠️ IGNORER le signe du taux (peut être négatif pour raisons techniques)
+
+- Explication si crédit : (voir section 2)
+
+- Explication si déduction normale : "Ton impôt de {abs(montant)} € a été prélevé normalement"
 
 CONGÉ PATERNITÉ :
 
