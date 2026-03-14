@@ -90,6 +90,14 @@ Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
     "conseils_optimisation": [],
     "points_attention": []
   },
+  "niches_fiscales": {
+    "total_niches": null,
+    "plafond_atteint": false,
+    "girardin_detecte": false,
+    "plafond_applicable": 10000,
+    "marge_restante": null,
+    "cas_detecte": "A | B | C | D | aucun"
+  },
   "meta": {
     "type_document": "avis_imposition | avis_non_imposition | avis_tiers_provisionnel | inconnu",
     "confidence": "high | medium | low",
@@ -123,7 +131,51 @@ RÈGLE CRITIQUE — PLAFONDS PER (Plan d'Épargne Retraite) :
   2. Calcule précisément l'économie d'impôt potentielle si le contribuable versait le restant sur un PER (= plafond_restant × TMI / 100)
   3. Donne un exemple concret : "Si vous versiez X € sur un PER avant le 31 décembre, vous pourriez réduire votre impôt de Y €."
   4. Mentionne que cela est à valider avec un conseiller patrimonial
-- Si les plafonds PER ne sont pas visibles sur le document, mets les champs numériques à null et indique dans analyse_personnalisee : "Les plafonds de déduction épargne retraite ne sont pas visibles sur ce document. Ils figurent généralement en page 2 de votre avis d'imposition. Nous vous recommandons de vérifier ce point avec un conseiller."`;
+- Si les plafonds PER ne sont pas visibles sur le document, mets les champs numériques à null et indique dans analyse_personnalisee : "Les plafonds de déduction épargne retraite ne sont pas visibles sur ce document. Ils figurent généralement en page 2 de votre avis d'imposition. Nous vous recommandons de vérifier ce point avec un conseiller."
+
+RÈGLE CRITIQUE — PLAFOND DES NICHES FISCALES :
+
+ÉTAPE 1 — CALCUL DU TOTAL NICHES :
+- Calculer : total_niches = reductions_impot + credits_impot
+- Ne JAMAIS inclure : les versements PER (déduction de revenu), le prélèvement à la source, les contributions sociales.
+
+ÉTAPE 2 — DÉTECTION DU PLAFONNEMENT :
+- Rechercher toute mention de "Plafonnement des avantages fiscaux", "Reprise de réduction d'impôt", "Avantages fiscaux plafonnés", ou tout écart inexpliqué entre réduction demandée et accordée.
+- Si détecté : plafond_atteint = true. Sinon : false.
+
+ÉTAPE 3 — DÉTECTION DU GIRARDIN :
+- Rechercher toute mention de "Investissement Outre-mer", "Article 199 undecies B", "Girardin", ou réduction d'impôt isolée > 5 000 € sans autre explication.
+- Si détecté : girardin_detecte = true et plafond_applicable = 18000. Sinon : girardin_detecte = false et plafond_applicable = 10000.
+
+ÉTAPE 4 — GÉNÉRATION DU CONSEIL (dans conseils_optimisation ou points_attention) :
+
+CAS A — total_niches < 7000 ET plafond_atteint = false → cas_detecte = "A"
+Ajouter dans conseils_optimisation :
+"Vous n'avez mobilisé que [total_niches] € d'avantages fiscaux cette année, alors que la loi vous autorise jusqu'à 10 000 € par an. Il vous restait donc une marge d'environ [10000 - total_niches] €. Selon votre situation, des dispositifs comme l'emploi à domicile (crédit d'impôt de 50% jusqu'à 12 000 € de dépenses), les dons aux associations (réduction de 66 à 75%), ou l'investissement au capital de PME pourraient être pertinents pour l'année en cours. Cette liste n'est pas exhaustive — d'autres dispositifs peuvent s'appliquer selon votre situation personnelle et patrimoniale. À évoquer avec votre conseiller patrimonial."
+
+CAS B — total_niches >= 7000 ET total_niches < 10000 ET plafond_atteint = false → cas_detecte = "B"
+Ajouter dans conseils_optimisation :
+"Vous avez mobilisé [total_niches] € d'avantages fiscaux cette année. Vous approchez du plafond légal de 10 000 €, avec environ [10000 - total_niches] € de marge restante. Cette capacité résiduelle mérite d'être utilisée de manière ciblée avant la fin de l'année fiscale. Les dispositifs éligibles sont nombreux et varient selon votre situation — un conseiller patrimonial pourrait vous aider à identifier celui qui vous correspond le mieux."
+
+CAS C — (total_niches >= 10000 OU plafond_atteint = true) ET girardin_detecte = false → cas_detecte = "C"
+Ajouter dans points_attention :
+"Votre avis d'imposition indique que vous avez atteint le plafond annuel de 10 000 € d'avantages fiscaux. Cela signifie que vous exploitez déjà pleinement votre capacité de défiscalisation classique. Il existe cependant des dispositifs bénéficiant d'un plafond majoré à 18 000 €, notamment l'investissement en Outre-mer (Girardin industriel), parmi d'autres solutions qui ne sont pas toutes visibles sur un avis d'imposition. Ce sujet mérite une analyse approfondie avec votre conseiller patrimonial pour identifier les leviers adaptés à votre situation."
+
+CAS D — (total_niches >= 10000 OU plafond_atteint = true) ET girardin_detecte = true → cas_detecte = "D"
+Ajouter dans points_attention :
+"Votre avis d'imposition mentionne un investissement en Outre-mer. Ce type de dispositif bénéficie d'un plafond majoré de 18 000 € (contre 10 000 € pour les niches classiques), mais ce n'est pas le seul mécanisme permettant d'aller au-delà du plafond standard. Avec [total_niches] € d'avantages fiscaux constatés cette année, votre conseiller patrimonial est le mieux placé pour évaluer votre capacité résiduelle exacte et l'ensemble des options disponibles pour l'année prochaine."
+
+Si aucun cas ne s'applique ou confidence = "low" : cas_detecte = "aucun", ne générer aucun conseil niches.
+
+RÈGLES DE TON pour les niches fiscales :
+- Toujours vouvoyer
+- Formuler positivement (ouvrir une opportunité, jamais alerter)
+- Toujours terminer par une orientation vers le conseiller
+- Ne jamais calculer de marge résiduelle dans le cas D
+- Ne jamais mentionner de pourcentages de prise en compte du Girardin dans le plafond
+- Les exemples de dispositifs sont illustratifs et non exhaustifs
+
+Remplir l'objet niches_fiscales avec : total_niches (nombre), plafond_atteint (boolean), girardin_detecte (boolean), plafond_applicable (10000 ou 18000), marge_restante (nombre ou null si cas D), cas_detecte ("A", "B", "C", "D" ou "aucun").`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
