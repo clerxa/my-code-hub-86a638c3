@@ -292,6 +292,14 @@ const App = () => (
               }
             />
             <Route
+              path="/employee/atlas"
+              element={
+                <PartnershipRoute featureType="company">
+                  <AtlasPage />
+                </PartnershipRoute>
+              }
+            />
+            <Route
               path="/employee/decryptez-per"
               element={
                 <ProtectedRoute>
