@@ -800,6 +800,10 @@ const OcrAvisImposition = () => {
   const totalReductionsCredits =
     (reductions || 0) + (credits || 0) > 0 ? (reductions || 0) + (credits || 0) : null;
 
+  const impotSansDispositifs = data?.impot?.impot_sans_dispositifs ?? (impotBrut != null ? impotBrut : null);
+  const economieDispositifs = impotSansDispositifs != null && impotNet != null ? impotSansDispositifs - impotNet : null;
+  const chargesDeductibles = data?.revenus?.charges_deductibles;
+
   const conseils = data?.explications_pedagogiques?.conseils_optimisation || [];
   const pointsAttention = data?.explications_pedagogiques?.points_attention || [];
 
