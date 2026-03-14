@@ -70,6 +70,13 @@ Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
     "montant_preleve_annee_n": null,
     "solde_a_payer_ou_rembourser": null
   },
+  "plafonds_per": {
+    "plafond_declarant_1": null,
+    "plafond_declarant_2": null,
+    "montant_verse_per": null,
+    "plafond_restant": null,
+    "analyse_personnalisee": "Analyse détaillée et personnalisée du plafond PER : combien a été versé, combien il reste, quel serait l'avantage fiscal concret en euros si le contribuable utilisait tout son plafond restant (calcul basé sur son TMI), et recommandation claire."
+  },
   "explications_pedagogiques": {
     "introduction": "Phrase d'accroche expliquant en 2 lignes ce qu'est un avis d'imposition et à quoi il sert",
     "revenu_fiscal_reference_explication": "Explication claire du RFR",
