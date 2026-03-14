@@ -435,6 +435,7 @@ export const SIMULATION_TYPE_LABELS: Record<SimulationType, string> = {
   gestion_pilotee: 'Gestion Pilotée',
   rsu: 'RSU',
   bspce: 'BSPCE',
+  budget: 'Budget',
 };
 
 export const SIMULATION_TYPE_URLS: Record<SimulationType, { edit: string; view: string }> = {
