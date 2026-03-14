@@ -380,6 +380,9 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
           data: budgetData as any,
         });
       }
+      // Invalidate cache so BudgetPage picks up the saved sim
+      queryClient.invalidateQueries({ queryKey: ['budget-saved-sim'] });
+      queryClient.invalidateQueries({ queryKey: ['simulations'] });
     } catch (e) {
       console.error('Auto-save budget failed:', e);
     }
