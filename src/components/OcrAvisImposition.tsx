@@ -705,8 +705,8 @@ const OcrAvisImposition = () => {
       .select("analysis_data")
       .eq("id", id)
       .single();
-    if (row?.analysis_data) {
-      setData(row.analysis_data as unknown as AvisData);
+    if ((row as any)?.analysis_data) {
+      setData((row as any).analysis_data as unknown as AvisData);
       setShowHistory(false);
     }
   }, []);
