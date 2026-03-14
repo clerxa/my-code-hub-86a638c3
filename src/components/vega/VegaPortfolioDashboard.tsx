@@ -4,7 +4,7 @@
  */
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, TrendingDown, Activity, Layers, BarChart3, ArrowUpRight, ArrowDownRight, Minus, CheckCircle2, Clock, Sparkles, Zap, Banknote, AlertTriangle, Lock, Table2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Layers, BarChart3, Minus, CheckCircle2, Clock, Sparkles, Zap, Banknote, AlertTriangle, Lock, Table2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
