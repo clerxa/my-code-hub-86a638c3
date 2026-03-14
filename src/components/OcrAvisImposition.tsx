@@ -572,6 +572,7 @@ const SimpleDataRow = ({ label, value }: { label: string; value: string }) => (
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const OcrAvisImposition = () => {
+  const { user } = useAuth();
   const [data, setData] = useState<AvisData | null>(null);
   const [loading, setLoading] = useState(false);
   const [progressMsg, setProgressMsg] = useState("");
@@ -582,14 +583,80 @@ const OcrAvisImposition = () => {
   const [apiDone, setApiDone] = useState(false);
   const pendingDataRef = useRef<AvisData | null>(null);
 
+  // History state
+  const [history, setHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Load history on mount
+  useEffect(() => {
+    if (!user?.id) return;
+    const loadHistory = async () => {
+      setLoadingHistory(true);
+      const { data: rows } = await supabase
+        .from("ocr_avis_imposition_analyses")
+        .select("id, annee_revenus, annee_imposition, prenom, nom, revenu_fiscal_reference, impot_net_total, taux_moyen_pct, solde, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      setHistory(rows || []);
+      setLoadingHistory(false);
+    };
+    loadHistory();
+  }, [user?.id, data]); // reload after new analysis
+
+  // Save analysis to DB
+  const saveAnalysis = useCallback(async (analysisData: AvisData) => {
+    if (!user?.id) return;
+    try {
+      await supabase.from("ocr_avis_imposition_analyses").insert({
+        user_id: user.id,
+        analysis_data: analysisData as any,
+        annee_revenus: analysisData.annees?.annee_revenus,
+        annee_imposition: analysisData.annees?.annee_imposition,
+        prenom: analysisData.contribuable?.prenom,
+        nom: analysisData.contribuable?.nom,
+        revenu_fiscal_reference: analysisData.revenus?.revenu_fiscal_reference,
+        impot_net_total: analysisData.impot?.impot_net_total,
+        taux_moyen_pct: analysisData.impot?.taux_moyen_imposition_pct,
+        solde: analysisData.prelevement_source?.solde_a_payer_ou_rembourser,
+      });
+      toast.success("Analyse sauvegardée dans votre espace");
+    } catch (err) {
+      console.error("Save error:", err);
+    }
+  }, [user?.id]);
+
+  // Load a saved analysis
+  const loadSavedAnalysis = useCallback(async (id: string) => {
+    const { data: row } = await supabase
+      .from("ocr_avis_imposition_analyses")
+      .select("analysis_data")
+      .eq("id", id)
+      .single();
+    if (row?.analysis_data) {
+      setData(row.analysis_data as unknown as AvisData);
+      setShowHistory(false);
+    }
+  }, []);
+
+  // Delete a saved analysis
+  const deleteSavedAnalysis = useCallback(async (id: string) => {
+    await supabase.from("ocr_avis_imposition_analyses").delete().eq("id", id);
+    setHistory((prev) => prev.filter((h) => h.id !== id));
+    toast.success("Analyse supprimée");
+  }, []);
+
   const handleOverlayComplete = useCallback(() => {
     setShowOverlay(false);
     setLoading(false);
     if (pendingDataRef.current) {
-      setData(pendingDataRef.current);
+      const analysisResult = pendingDataRef.current;
+      setData(analysisResult);
       pendingDataRef.current = null;
+      // Auto-save if logged in
+      saveAnalysis(analysisResult);
     }
-  }, []);
+  }, [saveAnalysis]);
 
   const analyzeFile = useCallback(async (file: File) => {
     if (file.type !== "application/pdf") {
