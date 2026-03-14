@@ -48,6 +48,7 @@ export default function PayslipDetailModal({ open, onClose, modalType, data }: P
 
   const getTitle = () => {
     const titles: Record<string, string> = {
+      brut_net_explication: "📖 Comment on passe de brut à net ?",
       rsu_sell_to_cover: "📊 RSU Sell-To-Cover : Explication détaillée",
       rsu_simple: "📊 RSU Simple : Explication détaillée",
       actions_gratuites_qualifie: "🎁 Actions gratuites — Plan qualifié",
