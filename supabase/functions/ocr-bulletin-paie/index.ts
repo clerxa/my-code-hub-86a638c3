@@ -1024,7 +1024,7 @@ POINTS D'ATTENTION (STRINGS simples) :
 - Si ligne non identifiée → proposer hypothèses + inviter à vérifier RH
 
 CONSEILS D'OPTIMISATION (STRINGS simples, 4-6 conseils) :
-- Si RSU/actions gratuites détectés → "Pour bien comprendre l'impact fiscal et patrimonial de tes actions, nous te recommandons de consulter un expert patrimonial."
+- Si RSU/actions gratuites détectés → "Pour bien comprendre l'impact fiscal et patrimonial de vos actions, nous vous recommandons de consulter un expert patrimonial."
 - Si ESPP > 0 → mentionner les deux stratégies (vente immédiate vs conservation) sans recommander → renvoyer vers expert
 - Si avantages nature compensés → mentionner que c'est plus avantageux que du brut classique
 - Si taux PAS > 30% → possibilité de modulation
