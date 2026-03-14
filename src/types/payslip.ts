@@ -1,16 +1,34 @@
 /**
  * TypeScript interfaces for the payslip analysis backend response.
- * Architecture "1 seul appel" v2.0 — extraction complète en une fois.
+ * Architecture "1 seul appel" v3.0 — extraction complète en une fois.
  */
+
+export interface PrimeCommission {
+  label: string;
+  montant: number;
+}
+
+export interface AvantageNature {
+  label: string;
+  montant_brut: number;
+  grossup?: number | null;
+  explication?: string;
+}
 
 export interface RemboursementsDeductions {
   remboursement_frais_professionnels?: number | null;
   tickets_restaurant_part_salarie?: number | null;
-  avantage_vehicule_deduit?: number | null;
-  avantage_logement_deduit?: number | null;
+  avantages_nature?: AvantageNature[];
   reintegration_fiscale?: number | null;
   autres_remboursements?: Array<{ label: string; montant: number } | string>;
   note?: string;
+}
+
+export interface Absences {
+  conges_payes_jours?: number | null;
+  rtt_jours?: number | null;
+  maladie_jours?: number | null;
+  autres_absences?: Array<{ label: string; jours: number }>;
 }
 
 export interface PayslipData {
@@ -41,13 +59,16 @@ export interface PayslipData {
     heures_travaillees?: number | null;
     total_brut: number | null;
     heures_supplementaires?: number | null;
-    prime_anciennete?: number | null;
-    prime_objectifs?: number | null;
-    prime_exceptionnelle?: number | null;
+    primes_commissions?: PrimeCommission[];
     avantages_en_nature?: number | null;
     tickets_restaurant_part_patronale?: number | null;
     autres_elements_bruts?: Array<{ label: string; montant: number } | string>;
+    // Legacy fields (V2 compat)
+    prime_anciennete?: number | null;
+    prime_objectifs?: number | null;
+    prime_exceptionnelle?: number | null;
   };
+  absences?: Absences;
   cotisations_salariales: {
     total_cotisations_salariales: number | null;
     sante_maladie?: number | null;
@@ -87,6 +108,27 @@ export interface PayslipData {
     net_paye: number | null;
   };
   remuneration_equity?: {
+    has_equity?: boolean;
+    // V3 simplified
+    actions_gratuites?: Array<{
+      nb_actions?: number | null;
+      prix_unitaire?: number | null;
+      valeur_fiscale_totale?: number | null;
+      type_plan?: string;
+      impact_pas_immediat?: boolean;
+    }>;
+    rsu?: {
+      detected?: boolean;
+      variante?: string | null;
+      gain_brut?: number | null;
+      nb_actions_acquises?: number | null;
+      mecanisme_description?: string;
+    };
+    espp?: {
+      detected?: boolean;
+      contribution_mensuelle?: number | null;
+    };
+    // Legacy V2 compat
     rsu_detected?: boolean;
     rsu_montant_brut?: number | null;
     actions_gratuites_detected?: boolean;
@@ -126,6 +168,10 @@ export interface PayslipData {
     };
   };
   conges_rtt?: {
+    conges_n_minus_1_solde?: number | null;
+    conges_n_solde?: number | null;
+    rtt_solde?: number | null;
+    // Legacy V2 compat
     conges_n_moins_1?: { solde: number | null; acquis?: number | null; pris?: number | null };
     conges_n?: { solde: number | null; acquis?: number | null; pris?: number | null };
     rtt?: { solde: number | null; acquis?: number | null; pris?: number | null };

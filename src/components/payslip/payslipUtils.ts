@@ -1,6 +1,6 @@
 /**
  * Payslip formatting & helper utilities
- * v2.0 — includes remboursements/deductions helpers and PAS sign normalization.
+ * v3.0 — V3 schema support with V2 backward compatibility.
  */
 
 import type { PayslipData, RemboursementsDeductions } from "@/types/payslip";
@@ -180,14 +180,27 @@ export function getRemboursementsDeductionsLines(data: PayslipData): RembDeducti
   if (rd.tickets_restaurant_part_salarie && rd.tickets_restaurant_part_salarie !== 0) {
     lines.push({ label: "Tickets restaurant (part salarié)", montant: Math.abs(rd.tickets_restaurant_part_salarie), sign: "-" });
   }
-  if (rd.avantage_vehicule_deduit && rd.avantage_vehicule_deduit !== 0) {
-    lines.push({ label: "Avantage véhicule déduit", montant: Math.abs(rd.avantage_vehicule_deduit), sign: "-" });
-  }
-  if (rd.avantage_logement_deduit && rd.avantage_logement_deduit !== 0) {
-    lines.push({ label: "Avantage logement déduit", montant: Math.abs(rd.avantage_logement_deduit), sign: "-" });
-  }
   if (rd.reintegration_fiscale && rd.reintegration_fiscale !== 0) {
     lines.push({ label: "Réintégration fiscale", montant: Math.abs(rd.reintegration_fiscale), sign: rd.reintegration_fiscale > 0 ? "+" : "-" });
+  }
+
+  // V3: avantages_nature array
+  if (rd.avantages_nature && Array.isArray(rd.avantages_nature)) {
+    for (const av of rd.avantages_nature) {
+      if (av && av.montant_brut && av.montant_brut !== 0) {
+        lines.push({ label: av.label || "Avantage en nature déduit", montant: Math.abs(av.montant_brut), sign: "-" });
+      }
+    }
+  }
+
+  // V2 legacy compat
+  if (!(rd.avantages_nature && rd.avantages_nature.length > 0)) {
+    if ((rd as any).avantage_vehicule_deduit && (rd as any).avantage_vehicule_deduit !== 0) {
+      lines.push({ label: "Avantage véhicule déduit", montant: Math.abs((rd as any).avantage_vehicule_deduit), sign: "-" });
+    }
+    if ((rd as any).avantage_logement_deduit && (rd as any).avantage_logement_deduit !== 0) {
+      lines.push({ label: "Avantage logement déduit", montant: Math.abs((rd as any).avantage_logement_deduit), sign: "-" });
+    }
   }
 
   // Autres remboursements
@@ -206,4 +219,77 @@ export function getRemboursementsDeductionsLines(data: PayslipData): RembDeducti
   }
 
   return lines.filter(l => l.montant > 0);
+}
+
+/** Detect if equity is present (V3 has_equity flag or V2 heuristic) */
+export function hasEquity(data: PayslipData): boolean {
+  const eq = data.remuneration_equity;
+  if (!eq) return false;
+  // V3 explicit flag
+  if (eq.has_equity === true) return true;
+  if (eq.has_equity === false) return false;
+  // V2 meta fallback
+  if (data._meta?.has_equity != null) return data._meta.has_equity;
+  // V2 heuristic
+  return !!(
+    eq.rsu?.detected || eq.rsu_detected || eq.rsu_restricted_stock_units?.gain_brut_total ||
+    (eq.actions_gratuites && eq.actions_gratuites.length > 0 && eq.actions_gratuites[0]?.nb_actions) ||
+    (eq.actions_gratuites_acquises && eq.actions_gratuites_acquises.length > 0 && eq.actions_gratuites_acquises[0]?.nb_actions) ||
+    eq.espp?.detected || eq.espp_detected || eq.espp_employee_stock_purchase_plan?.contribution_mensuelle
+  );
+}
+
+/** Get primes/commissions list (V3 array or V2 individual fields) */
+export function getPrimesCommissions(data: PayslipData): Array<{ label: string; montant: number }> {
+  const d = data.remuneration_brute;
+  if (!d) return [];
+
+  // V3 array
+  if (d.primes_commissions && d.primes_commissions.length > 0) {
+    return d.primes_commissions.filter(p => p.montant != null && p.montant !== 0);
+  }
+
+  // V2 individual fields
+  const items: Array<{ label: string; montant: number }> = [];
+  if (d.prime_anciennete) items.push({ label: "Prime ancienneté", montant: d.prime_anciennete });
+  if (d.prime_objectifs) items.push({ label: "Prime objectifs", montant: d.prime_objectifs });
+  if (d.prime_exceptionnelle) items.push({ label: "Prime exceptionnelle", montant: d.prime_exceptionnelle });
+  return items;
+}
+
+/** Get absences in days */
+export function getAbsencesDays(data: PayslipData): Array<{ label: string; jours: number }> {
+  const abs = data.absences;
+  if (!abs) {
+    // V2 fallback from conges_rtt
+    const cr = data.conges_rtt;
+    if (!cr) return [];
+    const items: Array<{ label: string; jours: number }> = [];
+    if (cr.conges_pris_mois && cr.conges_pris_mois > 0) items.push({ label: "Congés payés", jours: cr.conges_pris_mois });
+    if (cr.rtt_pris_mois && cr.rtt_pris_mois > 0) items.push({ label: "RTT", jours: cr.rtt_pris_mois });
+    return items;
+  }
+
+  const items: Array<{ label: string; jours: number }> = [];
+  if (abs.conges_payes_jours && abs.conges_payes_jours > 0) items.push({ label: "Congés payés", jours: abs.conges_payes_jours });
+  if (abs.rtt_jours && abs.rtt_jours > 0) items.push({ label: "RTT", jours: abs.rtt_jours });
+  if (abs.maladie_jours && abs.maladie_jours > 0) items.push({ label: "Maladie", jours: abs.maladie_jours });
+  if (abs.autres_absences) {
+    for (const a of abs.autres_absences) {
+      if (a.jours > 0) items.push({ label: a.label, jours: a.jours });
+    }
+  }
+  return items;
+}
+
+/** Get congés/RTT soldes (V3 flat or V2 nested) */
+export function getCongesSoldes(data: PayslipData): { congesN1: number | null; congesN: number | null; rtt: number | null } {
+  const cr = data.conges_rtt;
+  if (!cr) return { congesN1: null, congesN: null, rtt: null };
+
+  return {
+    congesN1: cr.conges_n_minus_1_solde ?? cr.conges_n_moins_1?.solde ?? null,
+    congesN: cr.conges_n_solde ?? cr.conges_n?.solde ?? null,
+    rtt: cr.rtt_solde ?? cr.rtt?.solde ?? null,
+  };
 }

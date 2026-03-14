@@ -1,6 +1,6 @@
 /**
  * PayslipSimpleView — Vue gratuite (filtre les données à ~30%)
- * Affiche : Hero + Décomposition détaillée + 3 points max + Paywall CTA
+ * V3.0 — Conditional equity, absences in days, primes section, no offsets
  */
 import React, { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
@@ -18,6 +18,8 @@ import {
   normalizePointsAttention,
   normalizeActions,
   getRemboursementsDeductionsLines,
+  hasEquity,
+  getAbsencesDays,
 } from "./payslipUtils";
 import PayslipDetailModal from "./PayslipDetailModal";
 import type { PayslipData, PointAttention } from "@/types/payslip";
@@ -41,8 +43,11 @@ export default function PayslipSimpleView({ data, onUpgradeClick, onReset }: Pay
   const monthLabel = getMonthLabel(data?.periode?.mois, data?.periode?.annee);
   const cotPct = brut && cotSal ? Math.round((cotSal / brut) * 100) : null;
 
-  // Remboursements & déductions lines
+  // Remboursements & déductions lines (no offsets in simple view)
   const rembLines = useMemo(() => getRemboursementsDeductionsLines(data), [data]);
+
+  // Absences in days
+  const absencesDays = useMemo(() => getAbsencesDays(data), [data]);
 
   // Vue simple : max 3 points d'attention, max 2 actions
   const allPoints = useMemo(
@@ -57,7 +62,7 @@ export default function PayslipSimpleView({ data, onUpgradeClick, onReset }: Pay
     [data.actions_recommandees]
   );
 
-  const hasEquity = data._meta?.has_equity || false;
+  const equityDetected = hasEquity(data);
 
   return (
     <div className="space-y-4">
@@ -82,7 +87,7 @@ export default function PayslipSimpleView({ data, onUpgradeClick, onReset }: Pay
         </div>
       </Card>
 
-      {/* ─── BLOC 2: DÉCOMPOSITION DÉTAILLÉE ─── */}
+      {/* ─── BLOC 2: DÉCOMPOSITION ─── */}
       <Card className="p-4">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
           <span>💡</span> Comment j'arrive à ce net payé
@@ -97,7 +102,7 @@ export default function PayslipSimpleView({ data, onUpgradeClick, onReset }: Pay
             <span className="font-medium text-muted-foreground">− {fmtShort(cotSal)}</span>
           </div>
 
-          {/* Remboursements & déductions */}
+          {/* Remboursements & déductions (classiques uniquement, pas d'offsets) */}
           {rembLines.map((line, i) => (
             <div key={i} className="flex justify-between">
               <span className="text-muted-foreground">{line.sign === "+" ? "+" : "−"} {line.label}</span>
@@ -107,14 +112,12 @@ export default function PayslipSimpleView({ data, onUpgradeClick, onReset }: Pay
             </div>
           ))}
 
-          {/* Net avant impôt (si remboursements existent, afficher cette étape intermédiaire) */}
+          {/* Net avant impôt (if adjustments exist) */}
           {rembLines.length > 0 && netAvantImpot && (
-            <>
-              <div className="border-t border-dashed pt-1.5 mt-1.5 flex justify-between items-center">
-                <span className="font-semibold text-foreground">= Net avant impôt</span>
-                <span className="font-bold text-foreground">{fmtShort(netAvantImpot)}</span>
-              </div>
-            </>
+            <div className="border-t border-dashed pt-1.5 mt-1.5 flex justify-between items-center">
+              <span className="font-semibold text-foreground">= Net avant impôt</span>
+              <span className="font-bold text-foreground">{fmtShort(netAvantImpot)}</span>
+            </div>
           )}
 
           <div className="flex justify-between">
@@ -128,7 +131,24 @@ export default function PayslipSimpleView({ data, onUpgradeClick, onReset }: Pay
         </div>
       </Card>
 
-      {/* ─── BLOC 3: POINTS D'ATTENTION (max 3) ─── */}
+      {/* ─── BLOC 3: ABSENCES (en jours) ─── */}
+      {absencesDays.length > 0 && (
+        <Card className="p-4">
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
+            <span>📅</span> Absences ce mois
+          </h3>
+          <div className="space-y-1.5 text-sm">
+            {absencesDays.map((abs, i) => (
+              <div key={i} className="flex justify-between">
+                <span className="text-muted-foreground">{abs.label}</span>
+                <span className="font-medium">{abs.jours} jour{abs.jours > 1 ? "s" : ""}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* ─── BLOC 4: POINTS D'ATTENTION (max 3) ─── */}
       {points.length > 0 && (
         <Card className="p-4">
           <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
@@ -168,7 +188,7 @@ export default function PayslipSimpleView({ data, onUpgradeClick, onReset }: Pay
         </Card>
       )}
 
-      {/* ─── BLOC 4: ACTIONS (max 2) ─── */}
+      {/* ─── BLOC 5: ACTIONS (max 2) ─── */}
       {actions.length > 0 && (
         <Card className="p-4">
           <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
@@ -204,16 +224,12 @@ export default function PayslipSimpleView({ data, onUpgradeClick, onReset }: Pay
               🔒 Analyse avancée disponible
             </h4>
             <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              {hasEquity
+              {equityDetected
                 ? "Vous avez reçu de l'equity ce mois-ci. L'analyse avancée vous explique les mécanismes fiscaux (Sell-To-Cover, plan qualifié, etc.) et vous propose des conseils d'optimisation personnalisés."
                 : "Obtenez la décomposition détaillée de vos cotisations, des explications pédagogiques complètes et des conseils d'optimisation fiscale personnalisés."
               }
             </p>
-            <Button
-              className="mt-3 w-full"
-              size="sm"
-              onClick={onUpgradeClick}
-            >
+            <Button className="mt-3 w-full" size="sm" onClick={onUpgradeClick}>
               <Sparkles className="h-4 w-4 mr-2" />
               Débloquer l'analyse avancée
               <ChevronRight className="h-4 w-4 ml-1" />
@@ -238,7 +254,6 @@ export default function PayslipSimpleView({ data, onUpgradeClick, onReset }: Pay
         Données extraites automatiquement. En cas de doute, contactez votre service RH.
       </p>
 
-      {/* Modal for point d'attention details */}
       <PayslipDetailModal
         open={!!modalOpen}
         onClose={() => { setModalOpen(null); setActivePoint(null); }}
