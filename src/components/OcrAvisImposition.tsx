@@ -1164,8 +1164,9 @@ const OcrAvisImposition = () => {
               <Card>
                 <CardContent className="p-6">
                   {(() => {
+                    const rbg = data?.revenus?.revenu_brut_global || 0;
                     const rni = revenuImposable || 0;
-                    const ded = Math.abs(chargesDeductibles || 0) + Math.abs(abattement || 0);
+                    const ded = rbg > 0 && rni > 0 ? rbg - rni : (Math.abs(chargesDeductibles || 0) + Math.abs(abattement || 0));
                     const baseApresDeductions = rni;
                     const red = (reductions || 0) + (credits || 0);
                     const impFinal = impotNet || 0;
