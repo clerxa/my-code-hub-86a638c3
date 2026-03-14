@@ -1,6 +1,6 @@
 /**
  * PayslipAdvancedView — Vue Premium (affiche 100% des données)
- * Mêmes données que Simple, mais sans filtre + accordéons détaillés.
+ * V3.0 — Conditional equity, avantages nature separated, absences in days, primes section
  */
 import React, { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
@@ -26,9 +26,13 @@ import {
   normalizePointsAttention,
   normalizeActions,
   getRemboursementsDeductionsLines,
+  hasEquity as hasEquityFn,
+  getPrimesCommissions,
+  getAbsencesDays,
+  getCongesSoldes,
 } from "./payslipUtils";
 import PayslipDetailModal from "./PayslipDetailModal";
-import type { PayslipData, PointAttention, ActionRecommandee } from "@/types/payslip";
+import type { PayslipData, PointAttention } from "@/types/payslip";
 
 interface PayslipAdvancedViewProps {
   data: PayslipData;
@@ -51,8 +55,10 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
   const cotPct = getCotisationsPct(d);
   const cotisationsGrouped = useMemo(() => getCotisationsGrouped(d), [d]);
   const rembLines = useMemo(() => getRemboursementsDeductionsLines(d), [d]);
+  const primes = useMemo(() => getPrimesCommissions(d), [d]);
+  const absencesDays = useMemo(() => getAbsencesDays(d), [d]);
+  const congesSoldes = useMemo(() => getCongesSoldes(d), [d]);
 
-  // TOUS les points d'attention (pas de limite)
   const points = useMemo(
     () => normalizePointsAttention(d.points_attention).sort((a, b) => a.priorite - b.priorite),
     [d.points_attention]
@@ -62,15 +68,8 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
     [d.actions_recommandees]
   );
 
-  const hasEquityData = !!(d.remuneration_equity && (
-    d.remuneration_equity.rsu_restricted_stock_units?.gain_brut_total ||
-    (d.remuneration_equity.actions_gratuites_acquises && d.remuneration_equity.actions_gratuites_acquises.length > 0 && d.remuneration_equity.actions_gratuites_acquises[0]?.nb_actions) ||
-    d.remuneration_equity.espp_employee_stock_purchase_plan?.contribution_mensuelle ||
-    d.remuneration_equity.avantages_nature_compenses?.total_brut ||
-    d.remuneration_equity.rsu_detected ||
-    d.remuneration_equity.actions_gratuites_detected ||
-    d.remuneration_equity.espp_detected
-  ));
+  const equityDetected = hasEquityFn(d);
+  const hasAvantagesNature = (d.remboursements_deductions?.avantages_nature?.length ?? 0) > 0;
 
   const openPointModal = (point: PointAttention) => {
     setModalPoint(point);
@@ -98,19 +97,12 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
             </div>
           </div>
           {d.periode?.date_paiement && (
-            <div className="text-center text-xs opacity-75 mt-3">
-              Versés le {d.periode.date_paiement}
-            </div>
+            <div className="text-center text-xs opacity-75 mt-3">Versés le {d.periode.date_paiement}</div>
           )}
         </div>
         <div className="p-2 border-t bg-card">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full text-xs text-muted-foreground hover:text-foreground"
-            onClick={() => setModalOpen("brut_net_explication")}
-            aria-label="Explication brut vers net"
-          >
+          <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground hover:text-foreground"
+            onClick={() => setModalOpen("brut_net_explication")}>
             <BookOpen className="h-3.5 w-3.5 mr-1.5" />
             Comment on passe de brut à net ?
           </Button>
@@ -120,23 +112,16 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
       {/* ═══════════ BLOC 2 : DÉCOMPOSITION ═══════════ */}
       <Card className="p-4">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
-          <span>💡</span>
-          Comment j'arrive à ce net payé
+          <span>💡</span> Comment j'arrive à ce net payé
         </h3>
         <div className="space-y-2 bg-muted/30 rounded-lg p-4">
           <SalaryLine label="Salaire brut" amount={fmtShort(brut)} />
-          <SalaryLine
-            label={`− Cotisations${cotPct ? ` (${cotPct}%)` : ""}`}
-            amount={`− ${fmtShort(cotSal)}`}
-            dimmed
-          />
+          <SalaryLine label={`− Cotisations${cotPct ? ` (${cotPct}%)` : ""}`} amount={`− ${fmtShort(cotSal)}`} dimmed />
           {rembLines.map((line, i) => (
-            <SalaryLine
-              key={i}
+            <SalaryLine key={i}
               label={`${line.sign === "+" ? "+" : "−"} ${line.label}`}
               amount={`${line.sign === "+" ? "+" : "−"} ${fmtShort(Math.abs(line.montant))}`}
-              dimmed={line.sign === "-"}
-            />
+              dimmed={line.sign === "-"} />
           ))}
           {rembLines.length > 0 && netAvantImpot && (
             <>
@@ -144,11 +129,7 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
               <SalaryLine label="= Net avant impôt" amount={fmtShort(netAvantImpot)} emphasized />
             </>
           )}
-          <SalaryLine
-            label={`− Impôt (PAS ${fmtPct(tauxPas)})`}
-            amount={`− ${fmtShort(Math.abs(pas || 0))}`}
-            dimmed
-          />
+          <SalaryLine label={`− Impôt (PAS ${fmtPct(tauxPas)})`} amount={`− ${fmtShort(Math.abs(pas || 0))}`} dimmed />
           <div className="border-t-2 border-green-500/50 my-2" />
           <div className="flex justify-between items-center bg-green-50 dark:bg-green-950/30 rounded-lg p-3">
             <span className="text-base font-bold text-green-700 dark:text-green-400">= Net payé</span>
@@ -157,35 +138,42 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
         </div>
       </Card>
 
-      {/* ═══════════ BLOC 3 : TOUS LES POINTS D'ATTENTION ═══════════ */}
+      {/* ═══════════ BLOC 3 : ABSENCES (jours) ═══════════ */}
+      {absencesDays.length > 0 && (
+        <Card className="p-4">
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
+            <span>📅</span> Absences ce mois
+          </h3>
+          <div className="space-y-1.5 text-sm">
+            {absencesDays.map((abs, i) => (
+              <div key={i} className="flex justify-between">
+                <span className="text-muted-foreground">{abs.label}</span>
+                <span className="font-medium">{abs.jours} jour{abs.jours > 1 ? "s" : ""}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* ═══════════ BLOC 4 : TOUS LES POINTS D'ATTENTION ═══════════ */}
       {points.length > 0 && (
         <Card className="p-4">
           <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
-            <span>⚠️</span>
-            {points.length} point{points.length > 1 ? "s" : ""} d'attention détecté{points.length > 1 ? "s" : ""}
+            <span>⚠️</span> {points.length} point{points.length > 1 ? "s" : ""} d'attention
           </h3>
           <div className="space-y-2.5">
             {points.map((point) => {
               const style = getPriorityStyle(point.priorite);
               const icon = getPointIcon(point.id);
               return (
-                <div
-                  key={point.id}
-                  className={`flex items-start gap-3 rounded-lg border p-3 ${style.border} ${style.bg}`}
-                >
+                <div key={point.id} className={`flex items-start gap-3 rounded-lg border p-3 ${style.border} ${style.bg}`}>
                   <span className="text-base flex-shrink-0 mt-0.5">{icon}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-foreground leading-tight">
-                      {point.titre}
-                    </div>
+                    <div className="text-sm font-semibold text-foreground leading-tight">{point.titre}</div>
                     <p className="text-xs text-muted-foreground mt-0.5">{point.resume}</p>
                     {point.a_modal && point.explication_detaillee && (
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="p-0 h-auto mt-1 text-xs text-primary"
-                        onClick={() => openPointModal(point)}
-                      >
+                      <Button variant="link" size="sm" className="p-0 h-auto mt-1 text-xs text-primary"
+                        onClick={() => openPointModal(point)}>
                         En savoir plus →
                       </Button>
                     )}
@@ -197,37 +185,21 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
         </Card>
       )}
 
-      {/* ═══════════ BLOC 4 : TOUTES LES ACTIONS ═══════════ */}
+      {/* ═══════════ BLOC 5 : TOUTES LES ACTIONS ═══════════ */}
       {actions.length > 0 && (
         <Card className="p-4">
           <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
-            <span>✅</span>
-            {actions.length} action{actions.length > 1 ? "s" : ""} recommandée{actions.length > 1 ? "s" : ""}
+            <span>✅</span> {actions.length} action{actions.length > 1 ? "s" : ""} recommandée{actions.length > 1 ? "s" : ""}
           </h3>
           <div className="space-y-2.5">
             {actions.map((action) => (
-              <div
-                key={action.id}
-                className="flex items-start gap-3 rounded-lg bg-green-50/50 dark:bg-green-950/10 border border-green-200/60 dark:border-green-800/40 p-3"
-              >
+              <div key={action.id} className="flex items-start gap-3 rounded-lg bg-green-50/50 dark:bg-green-950/10 border border-green-200/60 dark:border-green-800/40 p-3">
                 <span className="text-base flex-shrink-0 mt-0.5">💡</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-foreground leading-snug">{action.texte}</p>
                   {action.cta_label && (
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="p-0 h-auto mt-1 text-xs text-primary"
-                      onClick={() => {
-                        if (action.cta_url) {
-                          if (action.cta_url.startsWith("http")) {
-                            window.open(action.cta_url, "_blank", "noopener");
-                          } else {
-                            window.location.href = action.cta_url;
-                          }
-                        }
-                      }}
-                    >
+                    <Button variant="link" size="sm" className="p-0 h-auto mt-1 text-xs text-primary"
+                      onClick={() => { if (action.cta_url) { action.cta_url.startsWith("http") ? window.open(action.cta_url, "_blank", "noopener") : (window.location.href = action.cta_url); } }}>
                       {action.cta_label} →
                     </Button>
                   )}
@@ -240,11 +212,7 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
 
       {/* ═══════════ DÉTAILS COMPLETS (Accordéons) ═══════════ */}
       {!showAllDetails ? (
-        <Button
-          variant="outline"
-          className="w-full py-5 text-sm font-medium"
-          onClick={() => setShowAllDetails(true)}
-        >
+        <Button variant="outline" className="w-full py-5 text-sm font-medium" onClick={() => setShowAllDetails(true)}>
           <BookOpen className="h-4 w-4 mr-2" />
           📖 Voir le détail complet de ma paie
         </Button>
@@ -252,27 +220,16 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
         <div className="space-y-2">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              Détail complet de ma paie
+              <BookOpen className="h-4 w-4" /> Détail complet de ma paie
             </h3>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs text-muted-foreground"
-              onClick={() => setShowAllDetails(false)}
-            >
-              <ChevronUp className="h-3.5 w-3.5 mr-1" />
-              Masquer
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setShowAllDetails(false)}>
+              <ChevronUp className="h-3.5 w-3.5 mr-1" /> Masquer
             </Button>
           </div>
 
-          <Accordion
-            type="multiple"
-            defaultValue={hasEquityData ? ["equity"] : []}
-            className="space-y-1.5"
-          >
-            {/* Equity section */}
-            {hasEquityData && (
+          <Accordion type="multiple" defaultValue={equityDetected ? ["equity"] : []} className="space-y-1.5">
+            {/* Equity section — ONLY if has_equity */}
+            {equityDetected && (
               <AccordionItem value="equity" className="border-2 border-primary/30 rounded-lg overflow-hidden bg-primary/[0.02]">
                 <AccordionTrigger className="px-4 py-3 hover:no-underline text-sm font-semibold">
                   <span className="flex items-center gap-2">
@@ -282,6 +239,55 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
                   <EquityDetail data={d} />
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {/* Avantages en nature compensés — SEPARATE from equity */}
+            {hasAvantagesNature && (
+              <AccordionItem value="avantages_nature" className="border rounded-lg overflow-hidden">
+                <AccordionTrigger className="px-4 py-3 hover:no-underline text-sm font-semibold">
+                  🍽️ Avantages en nature compensés
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <div className="space-y-3">
+                    {d.remboursements_deductions!.avantages_nature!.map((av, i) => (
+                      <div key={i} className="border-b last:border-0 pb-2 last:pb-0">
+                        <div className="flex justify-between text-sm py-1">
+                          <span className="text-foreground font-medium">{av.label}</span>
+                          <span className="font-bold text-primary">{fmt(av.montant_brut)}</span>
+                        </div>
+                        {av.grossup != null && av.grossup !== 0 && (
+                          <div className="flex justify-between text-xs text-muted-foreground py-0.5">
+                            <span>Compensation (gross-up)</span>
+                            <span>{fmt(av.grossup)}</span>
+                          </div>
+                        )}
+                        {av.explication && (
+                          <p className="text-xs text-muted-foreground mt-1">{av.explication}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {/* Primes et commissions */}
+            {primes.length > 0 && (
+              <AccordionItem value="primes" className="border rounded-lg overflow-hidden">
+                <AccordionTrigger className="px-4 py-3 hover:no-underline text-sm font-semibold">
+                  💰 Primes et commissions
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <div className="space-y-1">
+                    {primes.map((p, i) => (
+                      <div key={i} className="flex justify-between text-sm py-1.5 border-b last:border-0">
+                        <span className="text-muted-foreground">{p.label}</span>
+                        <span className="font-semibold text-primary">{fmt(p.montant)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             )}
@@ -296,23 +302,17 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
                   <SalaryLine label="Salaire brut" amount={fmt(brut)} />
                   <SalaryLine label="Cotisations salariales" amount={`− ${fmt(cotSal)}`} dimmed />
                   {rembLines.map((line, i) => (
-                    <SalaryLine
-                      key={i}
+                    <SalaryLine key={i}
                       label={`${line.sign === "+" ? "+" : "−"} ${line.label}`}
                       amount={`${line.sign === "+" ? "+" : "−"} ${fmt(Math.abs(line.montant))}`}
-                      dimmed={line.sign === "-"}
-                    />
+                      dimmed={line.sign === "-"} />
                   ))}
                   <div className="border-t border-dashed border-primary/30 my-2" />
                   <SalaryLine label="= Net avant impôt" amount={fmt(netAvantImpot)} emphasized />
                   {basePas != null && basePas !== netAvantImpot && (
                     <SalaryLine label="Base PAS (net imposable)" amount={fmt(basePas)} dimmed />
                   )}
-                  <SalaryLine
-                    label={`Prélèvement à la source (${fmtPct(tauxPas)})`}
-                    amount={`− ${fmt(Math.abs(pas || 0))}`}
-                    dimmed
-                  />
+                  <SalaryLine label={`Prélèvement à la source (${fmtPct(tauxPas)})`} amount={`− ${fmt(Math.abs(pas || 0))}`} dimmed />
                   <div className="border-t-2 border-green-500/50 my-2" />
                   <div className="flex justify-between items-center bg-green-50 dark:bg-green-950/30 rounded-lg p-3">
                     <span className="text-base font-bold text-green-700 dark:text-green-400">= NET PAYÉ</span>
@@ -330,11 +330,8 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
               <AccordionContent className="px-4 pb-4">
                 <div className="grid grid-cols-2 gap-2">
                   {Object.entries(cotisationsGrouped).map(([key, group]) => (
-                    <button
-                      key={key}
-                      className="rounded-lg border bg-card p-3 text-center cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => setModalOpen(`cotisations_${key}`)}
-                    >
+                    <button key={key} className="rounded-lg border bg-card p-3 text-center cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setModalOpen(`cotisations_${key}`)}>
                       <div className="text-2xl mb-1">{group.icon}</div>
                       <div className="text-xs font-semibold text-foreground">{group.label}</div>
                       <div className="text-sm font-bold text-primary mt-1">{fmt(group.total)}</div>
@@ -381,16 +378,6 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
               </AccordionContent>
             </AccordionItem>
 
-            {/* Éléments variables */}
-            <AccordionItem value="variables" className="border rounded-lg overflow-hidden">
-              <AccordionTrigger className="px-4 py-3 hover:no-underline text-sm font-semibold">
-                💰 Éléments variables & primes
-              </AccordionTrigger>
-              <AccordionContent className="px-4 pb-4">
-                <VariablesList data={d} />
-              </AccordionContent>
-            </AccordionItem>
-
             {/* Conseils d'optimisation */}
             {d.conseils_optimisation && d.conseils_optimisation.length > 0 && (
               <AccordionItem value="conseils" className="border rounded-lg overflow-hidden">
@@ -431,9 +418,7 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
 
       {/* ═══════════ DISCLAIMER ═══════════ */}
       <Card className="p-4 border-accent/30 bg-accent/5">
-        <p className="text-xs font-semibold text-foreground flex items-center gap-1.5 mb-1">
-          ⚠️ Avertissement
-        </p>
+        <p className="text-xs font-semibold text-foreground flex items-center gap-1.5 mb-1">⚠️ Avertissement</p>
         <p className="text-xs text-muted-foreground leading-relaxed">
           Cette analyse est générée automatiquement par intelligence artificielle à titre informatif et pédagogique uniquement.
           Les montants peuvent contenir des imprécisions. MyFinCare décline toute responsabilité quant aux décisions prises sur cette base.
@@ -454,7 +439,6 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
         )}
       </div>
 
-      {/* ═══════════ MODALS ═══════════ */}
       <PayslipDetailModal
         open={!!modalOpen}
         onClose={() => { setModalOpen(null); setModalPoint(null); }}
@@ -494,45 +478,19 @@ function EquityDetail({ data }: { data: PayslipData }) {
 
   const items: { icon: string; label: string; value: string; detail?: string }[] = [];
 
-  // Simple format detection
-  if (eq.rsu_detected && eq.rsu_montant_brut) {
-    items.push({ icon: "📈", label: "RSU", value: fmt(eq.rsu_montant_brut) });
-  }
-  if (eq.actions_gratuites_detected && eq.actions_gratuites_nb) {
-    items.push({
-      icon: "🎁",
-      label: `${eq.actions_gratuites_nb} actions gratuites`,
-      value: eq.actions_gratuites_valeur ? fmt(eq.actions_gratuites_valeur) : "—",
-    });
-  }
-
-  // Advanced format
-  if (eq.rsu_restricted_stock_units?.gain_brut_total) {
-    const rsu = eq.rsu_restricted_stock_units;
+  // V3 RSU
+  if (eq.rsu?.detected && eq.rsu.gain_brut) {
     items.push({
       icon: "📈",
-      label: `RSU (${rsu.variante || "—"})`,
-      value: fmt(rsu.gain_brut_total),
-      detail: rsu.mecanisme_description || undefined,
+      label: `RSU${eq.rsu.variante ? ` (${eq.rsu.variante})` : ""}`,
+      value: fmt(eq.rsu.gain_brut),
+      detail: eq.rsu.mecanisme_description || undefined,
     });
-    if (rsu.nb_actions_conservees) {
-      items.push({
-        icon: "📦",
-        label: "Actions conservées",
-        value: `${rsu.nb_actions_conservees} (${fmt(rsu.valeur_actions_conservees)})`,
-      });
-    }
-    if (rsu.remboursement_stc_ou_broker) {
-      items.push({
-        icon: "💶",
-        label: "Cash reçu (STC/Broker)",
-        value: fmt(rsu.remboursement_stc_ou_broker),
-      });
-    }
   }
 
-  if (eq.actions_gratuites_acquises && eq.actions_gratuites_acquises.length > 0) {
-    eq.actions_gratuites_acquises.forEach((ag, i) => {
+  // V3 Actions gratuites
+  if (eq.actions_gratuites && eq.actions_gratuites.length > 0) {
+    eq.actions_gratuites.forEach((ag) => {
       if (!ag.nb_actions) return;
       items.push({
         icon: "🎁",
@@ -543,31 +501,43 @@ function EquityDetail({ data }: { data: PayslipData }) {
     });
   }
 
-  if (eq.espp_detected && eq.espp_contribution) {
-    items.push({ icon: "🏪", label: "ESPP contribution", value: fmt(eq.espp_contribution) });
-  }
-  if (eq.espp_employee_stock_purchase_plan?.contribution_mensuelle) {
-    items.push({
-      icon: "🏪",
-      label: `ESPP${eq.espp_employee_stock_purchase_plan.periode ? ` (${eq.espp_employee_stock_purchase_plan.periode})` : ""}`,
-      value: fmt(eq.espp_employee_stock_purchase_plan.contribution_mensuelle),
-    });
+  // V3 ESPP
+  if (eq.espp?.detected && eq.espp.contribution_mensuelle) {
+    items.push({ icon: "🏪", label: "ESPP contribution", value: fmt(eq.espp.contribution_mensuelle) });
   }
 
-  if (eq.avantages_nature_detected && eq.avantages_nature_montant) {
-    items.push({ icon: "🍽️", label: "Avantages en nature", value: fmt(eq.avantages_nature_montant) });
-  }
-  if (eq.avantages_nature_compenses?.total_brut) {
-    items.push({
-      icon: "🍽️",
-      label: "Avantages compensés (gross-up)",
-      value: fmt(eq.avantages_nature_compenses.total_brut),
-    });
+  // V2 legacy compat
+  if (items.length === 0) {
+    if (eq.rsu_detected && eq.rsu_montant_brut) {
+      items.push({ icon: "📈", label: "RSU", value: fmt(eq.rsu_montant_brut) });
+    }
+    if (eq.rsu_restricted_stock_units?.gain_brut_total) {
+      const rsu = eq.rsu_restricted_stock_units;
+      items.push({
+        icon: "📈", label: `RSU (${rsu.variante || "—"})`, value: fmt(rsu.gain_brut_total),
+        detail: rsu.mecanisme_description || undefined,
+      });
+    }
+    if (eq.actions_gratuites_acquises && eq.actions_gratuites_acquises.length > 0) {
+      eq.actions_gratuites_acquises.forEach((ag) => {
+        if (!ag.nb_actions) return;
+        items.push({
+          icon: "🎁",
+          label: `${ag.nb_actions} actions gratuites${ag.type_plan ? ` (${ag.type_plan})` : ""}`,
+          value: ag.valeur_fiscale_totale ? fmt(ag.valeur_fiscale_totale) : "—",
+        });
+      });
+    }
+    if (eq.espp_detected && eq.espp_contribution) {
+      items.push({ icon: "🏪", label: "ESPP contribution", value: fmt(eq.espp_contribution) });
+    }
+    if (eq.espp_employee_stock_purchase_plan?.contribution_mensuelle) {
+      items.push({ icon: "🏪", label: "ESPP", value: fmt(eq.espp_employee_stock_purchase_plan.contribution_mensuelle) });
+    }
   }
 
   if (items.length === 0) return <p className="text-sm text-muted-foreground italic">Aucun dispositif equity détecté.</p>;
 
-  // Pedagogical explanation
   const equityExpl = data.explications_pedagogiques?.equity_explication;
 
   return (
@@ -581,12 +551,9 @@ function EquityDetail({ data }: { data: PayslipData }) {
             </span>
             <span className="font-bold text-primary">{item.value}</span>
           </div>
-          {item.detail && (
-            <p className="text-xs text-muted-foreground ml-7">{item.detail}</p>
-          )}
+          {item.detail && <p className="text-xs text-muted-foreground ml-7">{item.detail}</p>}
         </div>
       ))}
-
       {equityExpl && typeof equityExpl === "object" && (
         <div className="mt-3 space-y-2">
           {Object.entries(equityExpl).map(([key, expl]) => {
@@ -599,46 +566,6 @@ function EquityDetail({ data }: { data: PayslipData }) {
           })}
         </div>
       )}
-    </div>
-  );
-}
-
-function VariablesList({ data }: { data: PayslipData }) {
-  const d = data.remuneration_brute;
-  if (!d) return <p className="text-sm text-muted-foreground italic">Aucun élément variable.</p>;
-
-  const items = [
-    ["Salaire de base", d.salaire_base],
-    ["Heures supplémentaires", d.heures_supplementaires],
-    ["Prime ancienneté", d.prime_anciennete],
-    ["Prime objectifs", d.prime_objectifs],
-    ["Prime exceptionnelle", d.prime_exceptionnelle],
-    ["Avantages en nature", d.avantages_en_nature],
-    ["Tickets restaurant (part patronale)", d.tickets_restaurant_part_patronale],
-  ].filter(([, v]) => v != null && v !== 0) as [string, number][];
-
-  const extras = d.autres_elements_bruts || [];
-
-  if (items.length === 0 && extras.length === 0) {
-    return <p className="text-sm text-muted-foreground italic">Aucun élément variable ce mois-ci.</p>;
-  }
-
-  return (
-    <div className="space-y-1">
-      {items.map(([label, val], i) => (
-        <div key={i} className="flex justify-between text-sm py-1.5 border-b">
-          <span className="text-muted-foreground">{label}</span>
-          <span className="font-semibold text-accent">{fmt(val)}</span>
-        </div>
-      ))}
-      {extras.map((item: any, i: number) => (
-        <div key={`e-${i}`} className="flex justify-between text-sm py-1.5 border-b">
-          <span className="text-muted-foreground">{typeof item === "string" ? item : item.label || "Autre"}</span>
-          <span className="font-semibold text-accent">
-            {typeof item === "object" && item.montant ? fmt(item.montant) : ""}
-          </span>
-        </div>
-      ))}
     </div>
   );
 }
