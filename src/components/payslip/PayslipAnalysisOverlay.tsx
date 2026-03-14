@@ -48,6 +48,7 @@ export function PayslipAnalysisOverlay({
   const [visible, setVisible] = useState(false);
   const startTimeRef = useRef(0);
   const rafRef = useRef<number>(0);
+  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const steps = mode === "simple"
     ? SIMPLE_STEPS
@@ -115,11 +116,11 @@ export function PayslipAnalysisOverlay({
   useEffect(() => {
     if (progressValue >= 99 && apiDone && !showSuccess) {
       setShowSuccess(true);
-      const timer = setTimeout(() => {
+      // Use ref-based timer so cleanup on re-render won't cancel it
+      completionTimerRef.current = setTimeout(() => {
         setVisible(false);
         onComplete();
       }, 1200);
-      return () => clearTimeout(timer);
     }
   }, [progressValue, apiDone, showSuccess, onComplete]);
 
@@ -132,6 +133,13 @@ export function PayslipAnalysisOverlay({
       return () => clearTimeout(safety);
     }
   }, [apiDone, visible, showSuccess]);
+
+  // Cleanup completion timer on unmount only
+  useEffect(() => {
+    return () => {
+      if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+    };
+  }, []);
 
   if (!visible) return null;
 
