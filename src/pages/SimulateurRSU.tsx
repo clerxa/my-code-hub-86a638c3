@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { SimulatorHeader } from '@/components/simulators/SimulatorHeader';
 import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer';
@@ -20,10 +20,12 @@ type Screen = 'intro' | 'dashboard' | 'editor' | 'cession' | 'results';
 
 const SimulateurRSU = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const loadSimId = searchParams.get('load');
   const { default_tmi, isLoading: settingsLoading } = useSimulationDefaults();
 
   const introSeen = useRef(false);
-  const [screen, setScreen] = useState<Screen>('intro');
+  const [screen, setScreen] = useState<Screen>(loadSimId ? 'dashboard' : 'intro');
   const [plans, setPlans] = useState<RSUPlan[]>([]);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [cessionParams, setCessionParams] = useState<CessionParamsType>({
@@ -33,6 +35,35 @@ const SimulateurRSU = () => {
     date_cession: new Date().toISOString().split('T')[0],
   });
   const [result, setResult] = useState<RSUSimulationResult | null>(null);
+  const [loadedSimId, setLoadedSimId] = useState<string | null>(null);
+
+  // Load saved simulation from URL param
+  useEffect(() => {
+    if (!loadSimId || loadedSimId === loadSimId) return;
+    const loadSavedSim = async () => {
+      try {
+        const { data, error } = await (await import('@/integrations/supabase/client')).supabase
+          .from('simulations')
+          .select('data')
+          .eq('id', loadSimId)
+          .maybeSingle();
+        if (error || !data?.data) return;
+        const simData = data.data as any;
+        if (Array.isArray(simData.plans)) {
+          setPlans(simData.plans);
+          if (simData.cession_params) {
+            setCessionParams(prev => ({ ...prev, ...simData.cession_params }));
+          }
+          introSeen.current = true;
+          setScreen('dashboard');
+        }
+        setLoadedSimId(loadSimId);
+      } catch (e) {
+        console.error('Failed to load simulation:', e);
+      }
+    };
+    loadSavedSim();
+  }, [loadSimId, loadedSimId]);
 
   // Mettre à jour le TMI par défaut quand les settings sont chargés
   useEffect(() => {
@@ -80,15 +111,16 @@ const SimulateurRSU = () => {
   }, [result, plans, cessionParams, saveSimulation]);
 
   // Navigation handlers
+  const backTarget = loadSimId ? '/employee/vega' : '/employee/simulations';
   const handleBack = useCallback(() => {
     switch (screen) {
       case 'editor': setScreen('dashboard'); setEditingPlanId(null); break;
       case 'cession': setScreen('dashboard'); break;
       case 'results': setScreen('cession'); break;
-      case 'dashboard': navigate('/employee/simulations'); break;
-      default: navigate('/employee/simulations');
+      case 'dashboard': navigate(backTarget); break;
+      default: navigate(backTarget);
     }
-  }, [screen, navigate]);
+  }, [screen, navigate, backTarget]);
 
   const handleIntroComplete = useCallback(() => {
     introSeen.current = true;

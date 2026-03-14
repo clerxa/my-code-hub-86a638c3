@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Header } from '@/components/Header';
 import { SimulatorHeader } from '@/components/simulators/SimulatorHeader';
@@ -28,14 +28,42 @@ type Screen = 'intro' | 'dashboard' | 'editor' | 'tmi' | 'results';
 
 const SimulateurESPP = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const loadSimId = searchParams.get('load');
   const { default_tmi, isLoading: settingsLoading } = useSimulationDefaults();
 
-  const [screen, setScreen] = useState<Screen>('intro');
+  const [screen, setScreen] = useState<Screen>(loadSimId ? 'dashboard' : 'intro');
   const [periods, setPeriods] = useState<ESPPPeriod[]>([]);
   const [editingPeriodId, setEditingPeriodId] = useState<string | null>(null);
   const [tmi, setTmi] = useState(30);
   const [result, setResult] = useState<ESPPSimulationResult | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [loadedSimId, setLoadedSimId] = useState<string | null>(null);
+
+  // Load saved simulation from URL param
+  useEffect(() => {
+    if (!loadSimId || loadedSimId === loadSimId) return;
+    const loadSavedSim = async () => {
+      try {
+        const { data, error } = await (await import('@/integrations/supabase/client')).supabase
+          .from('simulations')
+          .select('data')
+          .eq('id', loadSimId)
+          .maybeSingle();
+        if (error || !data?.data) return;
+        const simData = data.data as any;
+        if (Array.isArray(simData.periodes)) {
+          setPeriods(simData.periodes);
+          if (simData.tmi) setTmi(simData.tmi);
+          setScreen('dashboard');
+        }
+        setLoadedSimId(loadSimId);
+      } catch (e) {
+        console.error('Failed to load simulation:', e);
+      }
+    };
+    loadSavedSim();
+  }, [loadSimId, loadedSimId]);
 
   // Sync TMI depuis les settings globaux
   useEffect(() => {
@@ -77,15 +105,16 @@ const SimulateurESPP = () => {
   }, [result, periods, tmi, saveSimulation]);
 
   // Navigation
+  const backTarget = loadSimId ? '/employee/vega' : '/employee/simulations';
   const handleBack = useCallback(() => {
     switch (screen) {
       case 'editor': setScreen('dashboard'); setEditingPeriodId(null); break;
       case 'tmi': setScreen('dashboard'); break;
       case 'results': setScreen('tmi'); break;
-      case 'dashboard': navigate('/employee/simulations'); break;
-      default: navigate('/employee/simulations');
+      case 'dashboard': navigate(backTarget); break;
+      default: navigate(backTarget);
     }
-  }, [screen, navigate]);
+  }, [screen, navigate, backTarget]);
 
   const screenTitle = {
     intro: 'Simulateur ESPP',
