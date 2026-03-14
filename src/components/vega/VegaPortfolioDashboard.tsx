@@ -225,22 +225,26 @@ function StockTickers({ portfolio }: { portfolio: PortfolioSummary }) {
           <p className="text-xs text-muted-foreground mb-3">Cours de l'action</p>
           <div className="flex flex-wrap gap-4">
             {portfolio.tickers.map((t) => {
-              const change = t.summary.changePercent ?? 0;
-              const isUp = change >= 0;
+              const currencySymbol = t.summary.currency === 'USD' ? '$' : '€';
+              const nativePrice = t.summary.currentPrice ?? 0;
+              const fmtNative = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(nativePrice);
               return (
                 <div key={t.ticker} className="flex items-center gap-3 min-w-[200px]">
                   <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <Activity className="h-3.5 w-3.5 text-primary" />
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-bold font-mono text-foreground">
-                      {fmtCurrencyPrecise(t.priceEur)}
-                    </span>
-                    <Badge variant="outline" className="font-mono text-[10px]">{t.ticker}</Badge>
-                  </div>
-                  <div className={`flex items-center gap-0.5 text-xs font-medium ml-auto ${isUp ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
-                    {isUp ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
-                    {change > 0 ? '+' : ''}{change.toFixed(2)}%
+                  <div className="flex flex-col">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-lg font-bold font-mono text-foreground">
+                        {fmtNative} {currencySymbol}
+                      </span>
+                      <Badge variant="outline" className="font-mono text-[10px]">{t.ticker}</Badge>
+                    </div>
+                    {t.summary.currency !== 'EUR' && (
+                      <span className="text-[11px] text-muted-foreground font-mono">
+                        ≈ {fmtCurrencyPrecise(t.priceEur)}
+                      </span>
+                    )}
                   </div>
                 </div>
               );
