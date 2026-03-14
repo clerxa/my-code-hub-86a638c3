@@ -194,10 +194,11 @@ function VestingStatus({ plan }: { plan: PortfolioPlan }) {
   );
 }
 
-function PlanCard({ plan, currentPriceEur }: { plan: PortfolioPlan; currentPriceEur: number | null }) {
+function PlanCard({ plan, getPriceEur }: { plan: PortfolioPlan; getPriceEur: (ticker: string) => number | null }) {
   const navigate = useNavigate();
-  const currentValue = currentPriceEur !== null && plan.type !== 'bspce'
-    ? plan.nbActions * currentPriceEur
+  const priceEur = plan.ticker ? getPriceEur(plan.ticker) : null;
+  const currentValue = priceEur !== null && plan.type !== 'bspce'
+    ? plan.nbActions * priceEur
     : null;
   const pv = currentValue !== null ? currentValue - plan.prixAcquisitionEur : null;
 
