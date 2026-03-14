@@ -452,4 +452,5 @@ export const SIMULATION_TYPE_URLS: Record<SimulationType, { edit: string; view: 
   gestion_pilotee: { edit: '/simulateur-gestion-pilotee', view: '/simulateur-gestion-pilotee' },
   rsu: { edit: '/simulateur-rsu', view: '/simulateur-rsu' },
   bspce: { edit: '/simulateur-bspce', view: '/simulateur-bspce' },
+  budget: { edit: '/employee/budget', view: '/employee/budget' },
 };
