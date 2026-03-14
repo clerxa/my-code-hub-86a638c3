@@ -261,7 +261,14 @@ const SidebarEditor = ({ type }: SidebarEditorProps) => {
     }
 
     if (data) {
-      setMenuItems(data.menu_items as unknown as MenuItem[]);
+      const dbItems = data.menu_items as unknown as MenuItem[];
+      const defaults = type === "employee" ? defaultEmployeeItems : defaultCompanyItems;
+      
+      // Merge missing default items that aren't in DB config
+      const dbIds = new Set(dbItems.map((item) => item.id));
+      const missingDefaults = defaults.filter((d) => !dbIds.has(d.id));
+      
+      setMenuItems([...dbItems, ...missingDefaults]);
       setCategories(data.categories as unknown as Category[]);
     } else {
       // Use defaults
