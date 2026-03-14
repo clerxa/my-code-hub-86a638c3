@@ -710,7 +710,7 @@ const OcrAvisImposition = () => {
       console.error("Save error:", err);
       toast.error("Erreur lors de la sauvegarde");
     }
-  }, [user?.id]);
+  }, [user?.id, toDbNumber]);
 
   // Load a saved analysis
   const loadSavedAnalysis = useCallback(async (id: string) => {
