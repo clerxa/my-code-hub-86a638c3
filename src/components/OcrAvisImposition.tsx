@@ -1479,6 +1479,18 @@ const OcrAvisImposition = () => {
               </Card>
             </div>
 
+            {/* ── Mini-simulateur PER interactif ── */}
+            {revenuImposable != null && impotNet != null && data.plafonds_per?.plafond_restant != null && data.plafonds_per.plafond_restant > 0 && (
+              <PerSimulatorSlider
+                revenuImposable={revenuImposable}
+                nombreParts={nombreParts}
+                impotNetActuel={impotNet}
+                plafondRestant={data.plafonds_per.plafond_restant}
+                tmi={computedTmi}
+                reductionsCredits={(reductions || 0) + (credits || 0)}
+              />
+            )}
+
             {/* ── Autres conseils d'optimisation ── */}
             {conseils.length > 0 && (
               <div className="space-y-3">
