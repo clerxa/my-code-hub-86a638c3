@@ -174,8 +174,8 @@ FORMAT points_attention :
     "id": "prime_exceptionnelle",
     "priorite": 1,
     "titre": "Prime exceptionnelle élevée",
-    "resume": "Augmente ton brut mais aussi ton impôt ce mois",
-    "explication_detaillee": "Une prime de X € représente Y% de ton salaire de base...",
+    "resume": "Augmente votre brut mais aussi votre impôt ce mois",
+    "explication_detaillee": "Une prime de X € représente Y% de votre salaire de base...",
     "a_modal": false
   }
 ]
