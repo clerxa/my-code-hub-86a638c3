@@ -4,15 +4,18 @@
  */
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, TrendingDown, Activity, Layers, BarChart3, ArrowUpRight, ArrowDownRight, Minus, CheckCircle2, Clock, Sparkles, Zap } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Layers, BarChart3, ArrowUpRight, ArrowDownRight, Minus, CheckCircle2, Clock, Sparkles, Zap, Banknote, AlertTriangle, Lock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { useNavigate } from 'react-router-dom';
 import type { PortfolioSummary, PortfolioPlan } from '@/hooks/useVegaPortfolio';
-import { differenceInDays, differenceInMonths, format, parseISO, isPast } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { differenceInDays, differenceInMonths, parseISO, isPast } from 'date-fns';
 import { useUserFinancialProfile } from '@/hooks/useUserFinancialProfile';
 
 const fmtCurrency = (v: number) =>
@@ -20,9 +23,6 @@ const fmtCurrency = (v: number) =>
 
 const fmtCurrencyPrecise = (v: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
-
-const fmtPercent = (v: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(v / 100);
 
 const TYPE_LABELS: Record<string, string> = {
   rsu: 'RSU',
@@ -52,13 +52,12 @@ interface QuickCessionResult {
 function simulateCessionToday(
   plan: PortfolioPlan,
   priceEur: number | null,
-  tmi: number, // e.g. 30
-  fxRate: number, // USD/EUR rate
+  tmi: number,
+  fxRate: number,
 ): QuickCessionResult | null {
   if (!priceEur || priceEur <= 0) return null;
 
   const tmiRate = tmi / 100;
-  const today = new Date().toISOString().split('T')[0];
 
   if (plan.type === 'rsu') {
     const regimeCode = plan.regimeCode || 'R1';
@@ -76,7 +75,6 @@ function simulateCessionToday(
       psGa = (trancheA * 0.172) + (trancheB * 0.097);
       contribSal = trancheB * 0.10;
     } else if (regimeCode === 'R2') {
-      // Abattement based on holding duration from last vesting
       let abattement = 0;
       if (plan.vestingEndDate) {
         const lastVesting = new Date(plan.vestingEndDate);
@@ -88,13 +86,11 @@ function simulateCessionToday(
       irGa = gainAcq * (1 - abattement) * tmiRate;
       psGa = gainAcq * 0.172;
     } else {
-      // R3 — Non qualifié
       irGa = gainAcq * tmiRate;
       psGa = gainAcq * 0.097;
       contribSal = gainAcq * 0.10;
     }
 
-    // PV cession — PFU 30%
     const irPv = pvCession * 0.128;
     const psPv = pvCession * 0.172;
 
@@ -121,18 +117,15 @@ function simulateCessionToday(
     const p = plan.rawEsppPeriod;
     if (!p) return null;
 
-    // Rabais
     const taux = plan.devise === 'USD' ? (p.taux_change_achat || 1) : 1;
     const coursRef = Math.min(p.cours_debut_offre_devise || Infinity, p.cours_achat_devise || Infinity);
     const safeRef = isFinite(coursRef) ? coursRef : 0;
     const prixAchatEffectif = safeRef * (1 - (p.taux_rabais || 15) / 100);
     const rabaisEur = Math.max(0, plan.nbActions * ((p.cours_achat_devise || 0) - prixAchatEffectif) * taux);
 
-    // PV cession
     const coursAchatEur = (p.cours_achat_devise || 0) / fxRate;
     const pvBrute = Math.max(0, plan.nbActions * (priceEur - coursAchatEur));
 
-    // Fiscal
     const irRabais = rabaisEur * tmiRate;
     const psRabais = rabaisEur * 0.097;
     const pfuPv = pvBrute * 0.30;
@@ -157,7 +150,6 @@ function simulateCessionToday(
     const prixExercice = d.prix_exercice || 0;
     const gainBrut = Math.max(0, (priceEur - prixExercice) * plan.nbActions);
 
-    // Regime based on seniority
     const dateEntree = d.date_entree_societe ? new Date(d.date_entree_societe) : new Date();
     const diffMs = new Date().getTime() - dateEntree.getTime();
     const ancienneteMois = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.44));
@@ -165,9 +157,9 @@ function simulateCessionToday(
 
     let totalImpots: number;
     if (isPfu) {
-      totalImpots = gainBrut * 0.30; // PFU
+      totalImpots = gainBrut * 0.30;
     } else {
-      totalImpots = gainBrut * (tmiRate + 0.172); // Barème + PS
+      totalImpots = gainBrut * (tmiRate + 0.172);
     }
 
     const gainNet = gainBrut - totalImpots;
@@ -182,6 +174,40 @@ function simulateCessionToday(
   }
 
   return null;
+}
+
+// ─── FIFO helper: compute which vestings are affected ───
+function computeFifoDetail(plan: PortfolioPlan, nbToSell: number): { date: string; nb: number }[] {
+  if (plan.type === 'rsu' && plan.rawVestings) {
+    const sorted = [...plan.rawVestings]
+      .filter((v: any) => v.date)
+      .sort((a: any, b: any) => a.date.localeCompare(b.date));
+
+    // Account for already sold shares
+    let alreadySold = plan.nbActionsCedees;
+    const available: { date: string; nb: number }[] = [];
+    for (const v of sorted) {
+      const nb = v.nb_rsu || 0;
+      if (alreadySold >= nb) {
+        alreadySold -= nb;
+        continue;
+      }
+      available.push({ date: v.date, nb: nb - alreadySold });
+      alreadySold = 0;
+    }
+
+    // Now consume from available for the new sale
+    let remaining = nbToSell;
+    const result: { date: string; nb: number }[] = [];
+    for (const a of available) {
+      if (remaining <= 0) break;
+      const take = Math.min(remaining, a.nb);
+      result.push({ date: a.date, nb: take });
+      remaining -= take;
+    }
+    return result;
+  }
+  return [{ date: plan.vestingStartDate || plan.createdAt, nb: nbToSell }];
 }
 
 function StockTickers({ portfolio }: { portfolio: PortfolioSummary }) {
@@ -239,7 +265,6 @@ function SummaryCards({ portfolio }: { portfolio: PortfolioSummary }) {
       transition={{ delay: 0.2 }}
       className="grid gap-4 sm:grid-cols-3"
     >
-      {/* Total value */}
       <Card className="bg-card/80 border-border/40 backdrop-blur-sm">
         <CardContent className="pt-5 pb-4 px-5 space-y-1">
           <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Valeur totale</p>
@@ -252,7 +277,6 @@ function SummaryCards({ portfolio }: { portfolio: PortfolioSummary }) {
         </CardContent>
       </Card>
 
-      {/* +/- Value latente */}
       <Card className="bg-card/80 border-border/40 backdrop-blur-sm">
         <CardContent className="pt-5 pb-4 px-5 space-y-1">
           <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">+/- Value latente</p>
@@ -282,7 +306,6 @@ function SummaryCards({ portfolio }: { portfolio: PortfolioSummary }) {
         </CardContent>
       </Card>
 
-      {/* Coût d'acquisition */}
       <Card className="bg-card/80 border-border/40 backdrop-blur-sm">
         <CardContent className="pt-5 pb-4 px-5 space-y-1">
           <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Coût d'acquisition</p>
@@ -299,9 +322,8 @@ function VestingStatus({ plan }: { plan: PortfolioPlan }) {
 
   const now = new Date();
   const endDate = parseISO(plan.vestingEndDate);
-  const isComplete = isPast(endDate);
 
-  if (isComplete) {
+  if (plan.isVestingComplete) {
     const daysSince = differenceInDays(now, endDate);
     const monthsSince = differenceInMonths(now, endDate);
     const timeAgo = monthsSince >= 1
@@ -351,6 +373,32 @@ function CessionReveal({ plan, getPriceEur, tmi, fxRate }: { plan: PortfolioPlan
     setRevealed(true);
   };
 
+  // Block if vesting not complete
+  if (!plan.isVestingComplete) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled
+                className="w-full text-xs gap-1.5 border-border/50 text-muted-foreground cursor-not-allowed opacity-50"
+              >
+                <Lock className="h-3.5 w-3.5" />
+                Simuler la cession ce jour
+              </Button>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Le vesting doit être terminé pour simuler une cession</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
   if (!revealed) {
     return (
       <Button
@@ -383,13 +431,11 @@ function CessionReveal({ plan, getPriceEur, tmi, fxRate }: { plan: PortfolioPlan
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         className="relative overflow-hidden rounded-xl"
       >
-        {/* Gradient background */}
         <div className={`absolute inset-0 ${isPositive
           ? 'bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-teal-500/10 dark:from-green-500/20 dark:via-emerald-500/10 dark:to-teal-500/20'
           : 'bg-gradient-to-br from-red-500/10 via-orange-500/5 to-red-500/10 dark:from-red-500/20 dark:via-orange-500/10 dark:to-red-500/20'
         }`} />
 
-        {/* Sparkle particles */}
         {isPositive && (
           <>
             <motion.div
@@ -410,7 +456,6 @@ function CessionReveal({ plan, getPriceEur, tmi, fxRate }: { plan: PortfolioPlan
         )}
 
         <div className="relative p-3 space-y-2">
-          {/* Gain net — hero number */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -430,7 +475,6 @@ function CessionReveal({ plan, getPriceEur, tmi, fxRate }: { plan: PortfolioPlan
             </motion.p>
           </motion.div>
 
-          {/* Detail row */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -451,7 +495,6 @@ function CessionReveal({ plan, getPriceEur, tmi, fxRate }: { plan: PortfolioPlan
             </div>
           </motion.div>
 
-          {/* Regime badge */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -468,7 +511,122 @@ function CessionReveal({ plan, getPriceEur, tmi, fxRate }: { plan: PortfolioPlan
   );
 }
 
-function PlanCard({ plan, getPriceEur, tmi, fxRate }: { plan: PortfolioPlan; getPriceEur: (ticker: string) => number | null; tmi: number; fxRate: number }) {
+// ─── Declare Cession Dialog ───
+function DeclareCessionDialog({ plan, portfolio }: { plan: PortfolioPlan; portfolio: PortfolioSummary }) {
+  const [open, setOpen] = useState(false);
+  const [nbActions, setNbActions] = useState<string>('');
+  const nbParsed = parseInt(nbActions) || 0;
+
+  const fifoDetail = nbParsed > 0 ? computeFifoDetail(plan, nbParsed) : [];
+  const isValid = nbParsed > 0 && nbParsed <= plan.nbActions;
+
+  const handleSubmit = async () => {
+    if (!isValid) return;
+    const priceEur = plan.ticker ? portfolio.getPriceEur(plan.ticker) : null;
+    await portfolio.declareCession(plan.id, plan.simulationId, nbParsed, priceEur || undefined);
+    setOpen(false);
+    setNbActions('');
+  };
+
+  if (!plan.isVestingComplete || plan.nbActions <= 0) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full text-xs gap-1.5 border-accent/30 text-accent-foreground hover:bg-accent/10 transition-all"
+        >
+          <Banknote className="h-3.5 w-3.5" />
+          Déclarer une cession
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Banknote className="h-5 w-5 text-primary" />
+            Déclarer une cession
+          </DialogTitle>
+          <DialogDescription>
+            <span className="font-medium text-foreground">{plan.label}</span>
+            {' · '}{plan.nbActions} action{plan.nbActions > 1 ? 's' : ''} restante{plan.nbActions > 1 ? 's' : ''}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="nb-actions">Nombre d'actions cédées</Label>
+            <Input
+              id="nb-actions"
+              type="number"
+              min={1}
+              max={plan.nbActions}
+              value={nbActions}
+              onChange={(e) => setNbActions(e.target.value)}
+              placeholder={`Max ${plan.nbActions}`}
+              className="font-mono"
+            />
+            {nbParsed > plan.nbActions && (
+              <p className="text-xs text-destructive flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                Maximum {plan.nbActions} actions disponibles
+              </p>
+            )}
+          </div>
+
+          {/* FIFO preview */}
+          {fifoDetail.length > 0 && isValid && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-2"
+            >
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Détail FIFO (First In, First Out)
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                Les actions les plus anciennes sont cédées en priorité
+              </p>
+              <div className="space-y-1">
+                {fifoDetail.map((d, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      Vesting du {new Date(d.date).toLocaleDateString('fr-FR')}
+                    </span>
+                    <Badge variant="secondary" className="text-[10px] font-mono">
+                      {d.nb} action{d.nb > 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {plan.nbActionsCedees > 0 && (
+            <p className="text-[10px] text-muted-foreground italic">
+              {plan.nbActionsCedees} action{plan.nbActionsCedees > 1 ? 's' : ''} déjà cédée{plan.nbActionsCedees > 1 ? 's' : ''} sur ce plan
+            </p>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" size="sm" onClick={() => setOpen(false)}>Annuler</Button>
+          <Button
+            size="sm"
+            disabled={!isValid || portfolio.isDeclaring}
+            onClick={handleSubmit}
+            className="gap-1.5"
+          >
+            {portfolio.isDeclaring ? 'Enregistrement…' : 'Confirmer la cession'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function PlanCard({ plan, getPriceEur, tmi, fxRate, portfolio }: { plan: PortfolioPlan; getPriceEur: (ticker: string) => number | null; tmi: number; fxRate: number; portfolio: PortfolioSummary }) {
   const navigate = useNavigate();
   const priceEur = plan.ticker ? getPriceEur(plan.ticker) : null;
   const currentValue = priceEur !== null && plan.type !== 'bspce'
@@ -487,7 +645,6 @@ function PlanCard({ plan, getPriceEur, tmi, fxRate }: { plan: PortfolioPlan; get
     navigate(`${base}?load=${plan.simulationId}`);
   };
 
-  // Vesting duration
   let vestingDuration: string | null = null;
   if (plan.vestingStartDate && plan.vestingEndDate) {
     const months = differenceInMonths(parseISO(plan.vestingEndDate), parseISO(plan.vestingStartDate));
@@ -511,9 +668,13 @@ function PlanCard({ plan, getPriceEur, tmi, fxRate }: { plan: PortfolioPlan; get
               {plan.regime && (
                 <Badge variant="secondary" className="text-[10px]">{plan.regime}</Badge>
               )}
+              {plan.nbActionsCedees > 0 && (
+                <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-600 dark:text-amber-400">
+                  {plan.nbActionsCedees} cédée{plan.nbActionsCedees > 1 ? 's' : ''}
+                </Badge>
+              )}
             </div>
             <CardTitle className="text-sm font-medium truncate">{plan.label}</CardTitle>
-            {/* Vesting status */}
             <div className="flex items-center gap-3 flex-wrap">
               <VestingStatus plan={plan} />
               {vestingDuration && (
@@ -529,7 +690,14 @@ function PlanCard({ plan, getPriceEur, tmi, fxRate }: { plan: PortfolioPlan; get
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <p className="text-[10px] text-muted-foreground uppercase">Actions</p>
-            <p className="font-semibold font-mono text-foreground">{plan.nbActions}</p>
+            <p className="font-semibold font-mono text-foreground">
+              {plan.nbActions}
+              {plan.nbActionsCedees > 0 && (
+                <span className="text-muted-foreground font-normal text-[10px] ml-1">
+                  / {plan.nbActionsOriginal}
+                </span>
+              )}
+            </p>
           </div>
           <div>
             <p className="text-[10px] text-muted-foreground uppercase">Coût acquisition</p>
@@ -554,6 +722,9 @@ function PlanCard({ plan, getPriceEur, tmi, fxRate }: { plan: PortfolioPlan; get
         {/* Simulate sale today */}
         <CessionReveal plan={plan} getPriceEur={getPriceEur} tmi={tmi} fxRate={fxRate} />
 
+        {/* Declare cession */}
+        <DeclareCessionDialog plan={plan} portfolio={portfolio} />
+
         <Button
           variant="ghost"
           size="sm"
@@ -571,9 +742,7 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
   const navigate = useNavigate();
   const { profile } = useUserFinancialProfile();
 
-  // Get user TMI from financial profile, default 30%
   const tmi = profile?.tmi || 30;
-  // Get FX rate from portfolio tickers
   const fxRate = portfolio.tickers.find(t => t.fxRate !== 1)?.fxRate || 1;
 
   if (portfolio.isLoading) {
@@ -590,7 +759,6 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
     );
   }
 
-  // Group plans by type
   const grouped = portfolio.plans.reduce<Record<string, PortfolioPlan[]>>((acc, p) => {
     acc[p.type] = acc[p.type] || [];
     acc[p.type].push(p);
@@ -599,13 +767,10 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
 
   return (
     <div className="space-y-6">
-      {/* Stock tickers */}
       {portfolio.tickers.length > 0 && <StockTickers portfolio={portfolio} />}
 
-      {/* Summary */}
       <SummaryCards portfolio={portfolio} />
 
-      {/* Plans by type */}
       {Object.entries(grouped).map(([type, plans], idx) => (
         <motion.div
           key={type}
@@ -634,13 +799,12 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {plans.map(plan => (
-              <PlanCard key={plan.id} plan={plan} getPriceEur={portfolio.getPriceEur} tmi={tmi} fxRate={fxRate} />
+              <PlanCard key={plan.id} plan={plan} getPriceEur={portfolio.getPriceEur} tmi={tmi} fxRate={fxRate} portfolio={portfolio} />
             ))}
           </div>
         </motion.div>
       ))}
 
-      {/* Note */}
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
