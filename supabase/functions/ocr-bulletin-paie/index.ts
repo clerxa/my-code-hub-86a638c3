@@ -386,33 +386,33 @@ FORMAT points_attention :
     "priorite": 1,
     "titre": "RSU vesting détecté",
     "resume": "Actions devenues acquises ce mois-ci",
-    "explication_detaillee": "Il semble que des actions (RSU) d'une valeur d'environ X € soient devenues acquises. Le mécanisme exact sera détaillé dans l'analyse avancée.",
-    "a_modal": false
-  },
-  {
-    "id": "actions_gratuites_detected",
-    "priorite": 1,
-    "titre": "X actions gratuites acquises",
-    "resume": "Actions définitivement acquises",
-    "explication_detaillee": "Il semble que X actions gratuites (valeur environ Y €) soient devenues acquises. L'impact fiscal dépend du type de plan. L'analyse avancée te dira si impôt immédiat ou seulement à la vente.",
-    "a_modal": false
-  },
-  {
-    "id": "espp_contribution",
-    "priorite": 2,
-    "titre": "Contribution ESPP : X €",
-    "resume": "Épargne pour achat d'actions à prix réduit",
-    "explication_detaillee": "Il semble que X € soient prélevés ce mois pour un plan d'achat d'actions. Généralement, une décote d'environ 15% est appliquée à l'achat.",
-    "a_modal": false
-  },
-  {
-    "id": "avantages_nature",
-    "priorite": 2,
-    "titre": "Avantages en nature compensés : X €",
-    "resume": "L'employeur semble payer l'impôt pour toi",
-    "explication_detaillee": "Ton employeur semble te fournir des avantages compensés fiscalement via gross-up. Impact net ≈ 0.",
-    "a_modal": false
-  }
+     "explication_detaillee": "Il semble que des actions (RSU) d'une valeur d'environ X € soient devenues acquises. Le mécanisme exact sera détaillé dans l'analyse avancée.",
+     "a_modal": false
+   },
+   {
+     "id": "actions_gratuites_detected",
+     "priorite": 1,
+     "titre": "X actions gratuites acquises",
+     "resume": "Actions définitivement acquises",
+     "explication_detaillee": "Il semble que X actions gratuites (valeur environ Y €) soient devenues acquises. L'impact fiscal dépend du type de plan. L'analyse avancée vous dira si impôt immédiat ou seulement à la vente.",
+     "a_modal": false
+   },
+   {
+     "id": "espp_contribution",
+     "priorite": 2,
+     "titre": "Contribution ESPP : X €",
+     "resume": "Épargne pour achat d'actions à prix réduit",
+     "explication_detaillee": "Il semble que X € soient prélevés ce mois pour un plan d'achat d'actions. Généralement, une décote d'environ 15% est appliquée à l'achat.",
+     "a_modal": false
+   },
+   {
+     "id": "avantages_nature",
+     "priorite": 2,
+     "titre": "Avantages en nature compensés : X €",
+     "resume": "L'employeur semble payer l'impôt pour vous",
+     "explication_detaillee": "Votre employeur semble vous fournir des avantages compensés fiscalement via gross-up. Impact net ≈ 0.",
+     "a_modal": false
+   }
 ]
 
 Inclus aussi les anomalies classiques (primes, absences, taux PAS, lignes inconnues).
