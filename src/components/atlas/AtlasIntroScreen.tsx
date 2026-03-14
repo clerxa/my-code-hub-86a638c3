@@ -75,8 +75,8 @@ const STEPS = [
   {
     step: 3,
     icon: Lightbulb,
-    title: 'Des pistes d'optimisation concrètes',
-    subtitle: 'Passez de l'analyse à l'action',
+    title: "Des pistes d'optimisation concrètes",
+    subtitle: "Passez de l'analyse à l'action",
     description:
       "Au-delà du diagnostic, ATLAS identifie les leviers d'optimisation adaptés à votre profil : versements PER pour réduire votre impôt, utilisation optimale de vos plafonds, et simulation en temps réel de l'impact fiscal de vos décisions. Un véritable copilote pour votre stratégie patrimoniale.",
     tip: "Si votre TMI est de 30% ou plus, ATLAS active automatiquement un simulateur PER pour visualiser les économies potentielles.",
