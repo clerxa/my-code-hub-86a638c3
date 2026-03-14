@@ -175,10 +175,17 @@ function BudgetSliderItem({
 /*  Main component                                                     */
 /* ------------------------------------------------------------------ */
 
-export function BudgetSimulator() {
+interface BudgetSimulatorProps {
+  savedData?: Record<string, any>;
+  savedSimId?: string;
+  startInResults?: boolean;
+  onEdit?: () => void;
+}
+
+export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit }: BudgetSimulatorProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(startInResults ? STEPS_CONFIG.length : 0);
   const [salaire, setSalaire] = useState(2600);
   const [autres, setAutres] = useState(400);
   const [values, setValues] = useState<Record<string, number>>(() => {
@@ -194,7 +201,7 @@ export function BudgetSimulator() {
 
   // Validation overlay state
   const [showValidation, setShowValidation] = useState(false);
-  const [validationComplete, setValidationComplete] = useState(false);
+  const [validationComplete, setValidationComplete] = useState(startInResults || false);
 
   // Expert booking
   const [companyId, setCompanyId] = useState<string | null>(null);
