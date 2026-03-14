@@ -50,6 +50,7 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
   const tauxPas = safe(d, "net", "taux_pas_pct");
   const cotPct = getCotisationsPct(d);
   const cotisationsGrouped = useMemo(() => getCotisationsGrouped(d), [d]);
+  const rembLines = useMemo(() => getRemboursementsDeductionsLines(d), [d]);
 
   // TOUS les points d'attention (pas de limite)
   const points = useMemo(
