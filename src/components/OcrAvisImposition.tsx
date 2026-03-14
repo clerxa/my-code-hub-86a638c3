@@ -1031,6 +1031,45 @@ const OcrAvisImposition = () => {
             </div>
           </div>
 
+          {/* ═══════════════ ZONE 1.5 — Composition du foyer fiscal ═══════════════ */}
+          {(data.contribuable?.situation_familiale || nombreParts) && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-bold text-foreground">
+                Votre foyer fiscal
+              </h3>
+              <Card className="overflow-hidden">
+                <CardContent className="pt-5 pb-5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {data.contribuable?.situation_familiale && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground font-medium">Situation familiale</p>
+                        <p className="text-sm font-semibold text-foreground">{data.contribuable.situation_familiale}</p>
+                      </div>
+                    )}
+                    {nombreParts != null && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground font-medium">Nombre de parts</p>
+                        <p className="text-sm font-semibold text-foreground">{nombreParts} {nombreParts > 1 ? "parts" : "part"}</p>
+                      </div>
+                    )}
+                    {revenuImposable != null && nombreParts > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground font-medium">Quotient familial</p>
+                        <p className="text-sm font-semibold text-foreground">{fmt(Math.round(revenuImposable / nombreParts))}</p>
+                      </div>
+                    )}
+                  </div>
+                  {data.explications_pedagogiques?.quotient_familial_explication && (
+                    <p className="mt-3 text-xs text-muted-foreground leading-relaxed border-t pt-3">
+                      <Info className="h-3.5 w-3.5 inline-block mr-1.5 text-primary" />
+                      {data.explications_pedagogiques.quotient_familial_explication}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {/* ═══════════════ ZONE 2 — Le parcours de votre impôt ═══════════════ */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-foreground">
