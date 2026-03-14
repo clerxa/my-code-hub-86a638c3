@@ -77,6 +77,24 @@ Ignorez les pages de synthèse avec graphiques circulaires.
 2️⃣ ENSUITE vérifier mots-clés ÉPARGNE : "intéressement", "participation", "PEE", "PERCO" → epargne_salariale
 NE JAMAIS confondre les deux !
 
+⚠️ RÈGLE ANTI-DUPLICATION : AVANTAGES EN NATURE / BIK
+Quand le bulletin contient des lignes individuelles de type BIK (Benefit In Kind) :
+- "Food BIK", "Car BIK", "Housing BIK", "Logement BIK", etc. → ce sont les COMPOSANTS
+- "Food GU BIK", "Gross-Up BIK", "GU BIK" → ce sont les COMPENSATIONS fiscales (gross-up)
+- "Avantages en nature" (ligne totale) → c'est la SOMME des composants ci-dessus
+
+RÈGLE : NE JAMAIS compter en double !
+1️⃣ Si des lignes BIK individuelles existent → les mettre dans remuneration_equity.avantages_nature_compenses
+2️⃣ La ligne "Avantages en nature" totale → mettre dans remuneration_brute.avantages_en_nature
+3️⃣ NE PAS re-lister les lignes BIK individuelles dans autres_elements_bruts si elles sont déjà dans avantages_nature_compenses
+4️⃣ Vérification : avantages_en_nature ≈ food_bik + gross_up + autres BIK (la somme doit coller)
+
+Exemple concret :
+- "Food BIK 631,23 €" → remuneration_equity.avantages_nature_compenses.food_bik_benefit_in_kind = 631.23
+- "Food GU BIK 714,68 €" → remuneration_equity.avantages_nature_compenses.gross_up_compensation = 714.68
+- "Avantages en nature 1 345,91 €" → remuneration_brute.avantages_en_nature = 1345.91
+- NE PAS ajouter "Food BIK" et "Food GU BIK" dans autres_elements_bruts (déjà comptés !)
+
 ═══════════════════════════════════════════════════════════════
 EXTRACTION COMPLÈTE (JSON STRUCTURE)
 ═══════════════════════════════════════════════════════════════
