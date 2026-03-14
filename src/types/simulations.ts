@@ -366,6 +366,7 @@ export const SimulationType = z.enum([
   'gestion_pilotee',
   'rsu',
   'bspce',
+  'budget',
 ]);
 
 export type SimulationType = z.infer<typeof SimulationType>;
