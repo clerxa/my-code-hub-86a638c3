@@ -51,6 +51,13 @@ interface AvisData {
     montant_preleve_annee_n: number | null;
     solde_a_payer_ou_rembourser: number | null;
   };
+  plafonds_per: {
+    plafond_declarant_1: number | null;
+    plafond_declarant_2: number | null;
+    montant_verse_per: number | null;
+    plafond_restant: number | null;
+    analyse_personnalisee: string;
+  };
   explications_pedagogiques: {
     introduction: string;
     revenu_fiscal_reference_explication: string;
