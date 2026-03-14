@@ -7,7 +7,9 @@ const corsHeaders = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// PROMPT UNIQUE v2.0 — EXTRACTION COMPLÈTE EN 1 SEUL APPEL
+// PROMPT UNIQUE v3.0 — EXTRACTION COMPLÈTE EN 1 SEUL APPEL
+// Corrections V3: has_equity conditionnel, avantages nature séparés,
+// absences en jours, primes_commissions array, généricité RGPD max
 // ═══════════════════════════════════════════════════════════════
 const PROMPT_ANALYSE_COMPLETE = `Vous êtes un expert en analyse de bulletins de paie français.
 
@@ -44,20 +46,16 @@ RÈGLES GÉNÉRALES DE DÉTECTION
    - Utilisez : "année N", "année précédente", "septembre de l'année suivante"
    - Deadline congés N-1 = "31 mai de l'année N" (règle légale française)
 
-6. PROTECTION DONNÉES (RGPD)
-   - JAMAIS mentionner une entreprise spécifique
+6. PROTECTION DONNÉES (RGPD ULTRA-STRICT)
+   - JAMAIS mentionner une entreprise spécifique (aucun nom de société)
    - TOUJOURS dire "votre employeur", "l'entreprise", "la société"
    - Le prompt ne doit PAS pouvoir identifier l'employeur du bulletin
+   - Éviter les libellés propriétaires → utiliser des termes génériques
+   - Ex: "avantage repas" au lieu de noms spécifiques
 
 7. VOUVOIEMENT IMPÉRATIF
    - TOUJOURS vouvoyer : "vous", "votre", "vos"
    - JAMAIS tutoyer : "tu", "ton", "tes"
-   - Exemples :
-     ✅ "Votre employeur semble vous fournir..."
-     ✅ "Vous avez acquis X actions..."
-     ✅ "Prenez vos congés avant..."
-     ❌ "Ton employeur te fournit..."
-     ❌ "Tu as acquis..."
 
 8. TON SUGGESTIF OBLIGATOIRE
    - "il semble que", "d'après notre analyse", "il apparaît que"
@@ -72,54 +70,27 @@ RÈGLES GÉNÉRALES DE DÉTECTION
 Le taux PAS est TOUJOURS affiché avec un signe "-" (moins) sur les bulletins de paie français.
 C'est une CONVENTION COMPTABLE pour indiquer une déduction, PAS un taux négatif mathématique.
 
-EXEMPLES RÉELS DE BULLETINS :
-- Taux PAS affiché : -0,0% → Taux réel : 0% (aucun prélèvement)
-- Taux PAS affiché : -12,5% → Taux réel : 12,5% (NORMAL)
-- Taux PAS affiché : -18,3% → Taux réel : 18,3% (NORMAL)
-- Taux PAS affiché : -30,1% → Taux réel : 30,1% (NORMAL)
-- Taux PAS affiché : -43,8% → Taux réel : 43,8% (élevé mais possible)
-
 ⚠️ RÈGLE ABSOLUE : IGNORER LE SIGNE DU TAUX
 
 1. Le signe "-" est une CONVENTION D'AFFICHAGE uniquement
 2. Utilisez TOUJOURS la valeur absolue : abs(taux_pas_pct)
 3. Stockez dans taux_pas_pct la valeur POSITIVE (ex: 18.3, PAS -18.3)
-4. NE JAMAIS générer d'alerte sur "taux négatif" ou "taux inhabituel à cause du signe"
-5. Un taux affiché "-18,3%" est parfaitement NORMAL (taux réel : 18,3%)
+4. NE JAMAIS générer d'alerte sur "taux négatif"
 
 DÉTECTION TAUX INHABITUEL (seuls cas légitimes) :
-✅ Taux à 0% (abs(taux_pas_pct) = 0) ET net imposable > 3000€ → Sous-prélèvement probable
-✅ Taux > 40% (abs(taux_pas_pct) > 40) → Sur-prélèvement possible
+✅ Taux à 0% ET net imposable > 3000€ → Sous-prélèvement probable
+✅ Taux > 40% → Mention neutre (pas d'alerte négative)
 ❌ Taux entre 0,1% et 40% → TOTALEMENT NORMAL (aucune alerte)
-❌ NE JAMAIS alerter sur le signe "-" du taux
-
-FORMULATION CORRECTE DANS LES EXPLICATIONS :
-✅ "Votre taux de prélèvement à la source est de 18,3%"
-❌ "Votre taux est négatif"
-❌ "Un taux de -18,3% est inhabituel"
-❌ TOUTE alerte mentionnant le signe "-" du taux
 
 ═══════════════════════════════════════════════════════════════
 GESTION MULTI-PAGES
 ═══════════════════════════════════════════════════════════════
 
-Si le bulletin contient plusieurs pages, utilisez TOUJOURS la page qui contient le tableau détaillé complet des cotisations (colonnes : Désignation, Base, Taux, Montant salarié, Montant patronal) pour extraire les montants.
+Si le bulletin contient plusieurs pages, utilisez TOUJOURS la page qui contient le tableau détaillé complet des cotisations pour extraire les montants.
 Ignorez les pages de synthèse avec graphiques circulaires.
 
-⚠️ DISTINCTION CRITIQUE : EQUITY vs ÉPARGNE SALARIALE
-1️⃣ D'ABORD vérifier mots-clés EQUITY : "action", "share", "stock", "RSU", "AGA", "ESPP", "BSPCE", "free share", "vesting" → remuneration_equity
-2️⃣ ENSUITE vérifier mots-clés ÉPARGNE : "intéressement", "participation", "PEE", "PERCO" → epargne_salariale
-NE JAMAIS confondre les deux !
-
-⚠️ RÈGLE ANTI-DUPLICATION : AVANTAGES EN NATURE / BIK
-Quand le bulletin contient des lignes individuelles de type BIK (Benefit In Kind) :
-- Les composants individuels (BIK, GU BIK, etc.) → remuneration_equity.avantages_nature_compenses
-- La ligne totale "Avantages en nature" → remuneration_brute.avantages_en_nature
-- NE PAS re-lister les composants BIK dans autres_elements_bruts
-- Vérification : avantages_en_nature ≈ somme des composants BIK
-
 ═══════════════════════════════════════════════════════════════
-EXTRACTION COMPLÈTE (JSON STRUCTURE)
+EXTRACTION COMPLÈTE (JSON STRUCTURE V3)
 ═══════════════════════════════════════════════════════════════
 
 Extrayez TOUTES les données suivantes en JSON structuré :
@@ -130,16 +101,11 @@ Extrayez TOUTES les données suivantes en JSON structuré :
     "prenom": null,
     "matricule": null,
     "poste": null,
-    "statut": "cadre | non_cadre | inconnu",
-    "classification": null,
-    "anciennete_annees": null,
-    "date_entree": null,
-    "convention_collective": null
+    "statut": "cadre | non_cadre | inconnu"
   },
   "employeur": {
     "nom": null,
-    "siret": null,
-    "code_naf": null
+    "siret": null
   },
   "periode": {
     "mois": null,
@@ -148,17 +114,22 @@ Extrayez TOUTES les données suivantes en JSON structuré :
   },
   "remuneration_brute": {
     "salaire_base": null,
-    "taux_horaire_ou_mensuel": null,
-    "heures_travaillees": null,
     "total_brut": null,
-    "heures_supplementaires": null,
-    "prime_anciennete": null,
-    "prime_objectifs": null,
-    "prime_exceptionnelle": null,
+    "primes_commissions": [
+      { "label": "Prime objectifs", "montant": null }
+    ],
     "avantages_en_nature": null,
     "tickets_restaurant_part_patronale": null,
     "autres_elements_bruts": [
       { "label": "", "montant": null }
+    ]
+  },
+  "absences": {
+    "conges_payes_jours": null,
+    "rtt_jours": null,
+    "maladie_jours": null,
+    "autres_absences": [
+      { "label": "", "jours": null }
     ]
   },
   "cotisations_salariales": {
@@ -193,8 +164,14 @@ Extrayez TOUTES les données suivantes en JSON structuré :
   "remboursements_deductions": {
     "remboursement_frais_professionnels": null,
     "tickets_restaurant_part_salarie": null,
-    "avantage_vehicule_deduit": null,
-    "avantage_logement_deduit": null,
+    "avantages_nature": [
+      {
+        "label": "Avantage repas",
+        "montant_brut": null,
+        "grossup": null,
+        "explication": "Votre employeur semble compenser fiscalement cet avantage."
+      }
+    ],
     "reintegration_fiscale": null,
     "autres_remboursements": [],
     "note": "Éléments ajoutés/déduits APRÈS cotisations pour arriver au net avant impôt"
@@ -208,33 +185,13 @@ Extrayez TOUTES les données suivantes en JSON structuré :
     "net_paye": null
   },
   "conges_rtt": {
-    "conges_n_moins_1": {
-      "acquis": null,
-      "pris": null,
-      "solde": null
-    },
-    "conges_n": {
-      "acquis": null,
-      "pris": null,
-      "solde": null
-    },
-    "rtt": {
-      "acquis": null,
-      "pris": null,
-      "solde": null
-    },
-    "conges_pris_mois": null,
-    "rtt_pris_mois": null
-  },
-  "epargne_salariale": {
-    "participation": null,
-    "interessement": null,
-    "pee_versement": null,
-    "perco_versement": null,
-    "abondement_employeur": null
+    "conges_n_minus_1_solde": null,
+    "conges_n_solde": null,
+    "rtt_solde": null
   },
   "remuneration_equity": {
-    "actions_gratuites_acquises": [
+    "has_equity": false,
+    "actions_gratuites": [
       {
         "nb_actions": null,
         "prix_unitaire": null,
@@ -243,38 +200,29 @@ Extrayez TOUTES les données suivantes en JSON structuré :
         "impact_pas_immediat": false
       }
     ],
-    "rsu_restricted_stock_units": {
-      "variante": "simple | sell_to_cover_45pct | indetermine",
-      "gain_brut_total": null,
+    "rsu": {
+      "detected": false,
+      "variante": null,
+      "gain_brut": null,
       "nb_actions_acquises": null,
-      "nb_actions_vendues": null,
-      "nb_actions_conservees": null,
-      "valeur_actions_vendues": null,
-      "valeur_actions_conservees": null,
-      "remboursement_stc_ou_broker": null,
       "mecanisme_description": ""
     },
-    "espp_employee_stock_purchase_plan": {
-      "contribution_mensuelle": null,
-      "contribution_periode": null,
-      "periode": ""
-    },
-    "avantages_nature_compenses": {
-      "food_bik_benefit_in_kind": null,
-      "gross_up_compensation": null,
-      "total_brut": null
+    "espp": {
+      "detected": false,
+      "contribution_mensuelle": null
     }
   },
   "cumuls_annuels": {
     "brut_cumule": null,
     "net_imposable_cumule": null,
-    "pas_cumule": null,
-    "heures_ou_jours_travailles_cumule": null
+    "pas_cumule": null
   },
-  "informations_complementaires": {
-    "plafond_securite_sociale_mensuel": null,
-    "cout_total_employeur": null,
-    "allegements_cotisations": null
+  "epargne_salariale": {
+    "participation": null,
+    "interessement": null,
+    "pee_versement": null,
+    "perco_versement": null,
+    "abondement_employeur": null
   },
   
   "points_attention": [
@@ -294,249 +242,152 @@ Extrayez TOUTES les données suivantes en JSON structuré :
       "priorite": 1,
       "texte": "Texte de l'action recommandée avec vouvoiement",
       "cta_label": "Label du bouton",
-      "cta_url": "/path-or-url"
+      "cta_url": null
     }
   ],
   
   "explications_pedagogiques": {
     "brut_explication": "Votre salaire brut de X € comprend...",
     "cotisations_explication": "Vos cotisations sociales (Y € soit Z%) financent...",
-    "net_imposable_explication": "Votre net imposable de X € sert de base...",
     "pas_explication": "Votre prélèvement à la source (PAS) de X €...",
-    "net_paye_explication": "Votre net payé de X € correspond à...",
-    "conges_rtt_explication": "Vous disposez de X jours de congés...",
-    "epargne_salariale_explication": "Votre épargne salariale comprend...",
     "equity_explication": {
-      "actions_gratuites_qualifie": "Vos actions gratuites bénéficient...",
-      "rsu_sell_to_cover": "Le mécanisme Sell-To-Cover signifie...",
-      "espp": "Votre plan d'achat d'actions (ESPP)...",
-      "avantages_nature_compenses": "Votre employeur compense fiscalement..."
+      "rsu": "",
+      "actions_gratuites": "",
+      "espp": ""
     }
   },
   
-  "conseils_optimisation": [
-    "Si votre taux PAS est supérieur à 30%, vous pouvez envisager...",
-    "Avec vos X € d'equity, consultez un expert patrimonial...",
-    "Vos congés N-1 expirent le 31 mai : planifiez-les rapidement."
-  ],
+  "conseils_optimisation": [],
   
   "cas_particuliers_mois": {
-    "taux_pas_zero": {
-      "detecte": false,
-      "explication": ""
-    },
-    "prime_exceptionnelle": {
-      "detecte": false,
-      "montant": null,
-      "explication": ""
-    },
-    "absence_longue_duree": {
-      "detecte": false,
-      "nb_jours": null,
-      "explication": ""
-    },
-    "conges_pris": {
-      "detecte": false,
-      "nb_jours": null,
-      "explication": ""
-    },
-    "actions_gratuites_vesting": {
-      "detecte": false,
-      "nb_actions": null,
-      "valeur_fiscale": null,
-      "explication": ""
-    },
-    "rsu_massif": {
-      "detecte": false,
-      "montant": null,
-      "explication": ""
-    },
-    "entree_ou_sortie_mois": {
-      "detecte": false,
-      "type": "entree | sortie",
-      "date": "",
-      "explication": ""
-    },
-    "changement_taux_pas": {
-      "detecte": false,
-      "ancien_taux": null,
-      "nouveau_taux": null,
-      "explication": ""
-    }
+    "taux_pas_zero": { "detecte": false, "explication": "" },
+    "prime_exceptionnelle": { "detecte": false, "montant": null, "explication": "" },
+    "absence_longue_duree": { "detecte": false, "nb_jours": null, "explication": "" }
   }
 }
 
 ═══════════════════════════════════════════════════════════════
-MAPPING COTISATIONS (PATTERNS INCLUSIFS, exemples NON EXHAUSTIFS)
+RÈGLES DE MAPPING CRITIQUES
+═══════════════════════════════════════════════════════════════
+
+1. PRIMES ET COMMISSIONS → remuneration_brute.primes_commissions[]
+   Toute ligne de type prime, bonus, commission, gratification, 13ème mois, variable.
+   NE PAS mettre dans autres_elements_bruts.
+
+2. ABSENCES → absences{} (EN JOURS, PAS EN EUROS)
+   ⚠️ RÈGLE CRITIQUE : Les absences sont en JOURS
+   Format sur bulletin : "RTT pris (2 jours)" avec montant "-2.00"
+   Le "-2.00" = 2 JOURS, PAS -2 euros
+   → Extraire le NOMBRE de jours (valeur absolue)
+   
+   Si 2 lignes se compensent (montants opposés) :
+   - "Absence CP" (négatif) + "Indemnité CP" (positif) → mécanisme comptable neutre
+   - NE PAS inclure dans autres_elements_bruts, noter dans absences{}
+
+3. AVANTAGES EN NATURE → remboursements_deductions.avantages_nature[]
+   ⚠️ NE PAS CONFONDRE avec equity !
+   Mots-clés : "BIK", "Benefit", "Avantage", "Repas", "Food", "Cantine", "Logement", "Véhicule"
+   Compensation : "GU", "Gross-up", "Compensation", "Offset", "Neutralisation"
+   Structure typique : 1 ligne avantage + 1 ligne compensation (gross-up)
+   → Stocker dans remboursements_deductions.avantages_nature[] avec label générique
+   → JAMAIS dans remuneration_equity
+
+4. EQUITY → remuneration_equity{} (UNIQUEMENT RSU/Actions/ESPP)
+   ⚠️ has_equity = true UNIQUEMENT si RSU, Actions gratuites ou ESPP détectés
+   Mots-clés RSU : "RSU", "Restricted Stock", "Stock Units", "Vesting", "Taxable Gain"
+   Mots-clés Actions : "Actions gratuites", "AGA", "Free shares", "BSPCE"
+   Mots-clés ESPP : "ESPP", "Plan d'achat", "Stock purchase"
+   Si AUCUN de ces mots-clés → has_equity = false
+
+5. MÉCANISMES COMPTABLES (Offsets, Compensations)
+   Lignes type "RSU Offset", "Taxable Gain Offset" → mécanismes internes
+   → NE PAS les afficher comme éléments bruts séparés
+   → Les mentionner dans mecanisme_description de l'equity concernée
+
+6. CUMULS ANNUELS → Valeurs EXACTES lues sur le bulletin
+   brut_cumule, net_imposable_cumule, pas_cumule
+   NE PAS calculer, lire directement
+
+═══════════════════════════════════════════════════════════════
+MAPPING COTISATIONS (PATTERNS INCLUSIFS)
 ═══════════════════════════════════════════════════════════════
 
 RETRAITE :
-- Mots-clés contenant "vieillesse", "SS", "Sécu" + "plaf" → vieillesse_plafonnee
-- Mots-clés contenant "vieillesse", "SS", "Sécu" + "déplaf" → vieillesse_deplafonnee
-- Mots-clés contenant "complémentaire", "AGIRC", "ARRCO" + "T1" ou "Tranche 1" → retraite_complementaire_tranche1
-- Mots-clés contenant "complémentaire", "AGIRC", "ARRCO" + "T2" ou "Tranche 2" → retraite_complementaire_tranche2
-- "CEG" → ceg_salarie
-- "CET" (Contribution Équilibre Technique) → cet_salarie
-- "APEC" → apec_ou_agirc_arrco
+- "vieillesse" + "plaf" → vieillesse_plafonnee
+- "vieillesse" + "déplaf" → vieillesse_deplafonnee
+- "complémentaire" + "T1" → retraite_complementaire_tranche1
+- "complémentaire" + "T2" → retraite_complementaire_tranche2
+- "CEG" → ceg_salarie | "CET" → cet_salarie | "APEC" → apec_ou_agirc_arrco
 
 SANTÉ :
-- Mots-clés contenant "maladie", "Mat Inval Décès" → sante_maladie
-- Mots-clés contenant "mutuelle", "complémentaire santé", "frais de santé" → complementaire_sante_salarie
-- Mots-clés contenant "prévoyance", "incapacité", "invalidité" → prevoyance_salarie
-
-CHÔMAGE :
-- Mots-clés contenant "chômage", "Pôle Emploi", "France Travail" → assurance_chomage
+- "maladie" → sante_maladie
+- "mutuelle", "complémentaire santé" → complementaire_sante_salarie
+- "prévoyance", "incapacité" → prevoyance_salarie
 
 CSG/CRDS :
 - "CSG déductible" → csg_deductible
 - "CSG/CRDS non déductible" → csg_crds_non_deductible
 
-⚠️ RÈGLE CRITIQUE SALARIALE vs PATRONALE :
-Les fiches de paie ont TOUJOURS deux colonnes : "Part salariale" et "Part patronale".
-Extrais SÉPARÉMENT. NE JAMAIS dupliquer le même montant.
-- sante_maladie (salariale) = 0 ou null dans 99% des cas (seule part patronale existe)
-- assurance_chomage (salariale) = 0 ou null (seule part patronale existe)
+⚠️ SALARIALE vs PATRONALE : Extraire SÉPARÉMENT, ne JAMAIS dupliquer.
+sante_maladie (salariale) = 0 dans 99% des cas
+assurance_chomage (salariale) = 0 dans 99% des cas
 
 ═══════════════════════════════════════════════════════════════
-REMBOURSEMENTS ET DÉDUCTIONS (CRITIQUES pour calcul net avant impôt)
+FORMULE NET AVANT IMPÔT (CRITIQUE)
 ═══════════════════════════════════════════════════════════════
-
-⚠️ FORMULE CALCUL NET AVANT IMPÔT (CRITIQUE) :
 
 Net avant impôt = Brut 
                 - Cotisations salariales
                 + Remboursements frais professionnels
-                - Tickets restaurant (part salarié, c'est une DÉDUCTION)
+                - Tickets restaurant (part salarié = déduction)
                 - Avantages en nature déduits
                 + Réintégrations fiscales
                 + Autres remboursements
 
-Si le net avant impôt affiché sur le bulletin NE CORRESPOND PAS à "Brut - Cotisations",
-c'est qu'il y a des remboursements/déductions → CHERCHEZ-LES et remplissez remboursements_deductions{}
-
-Détection REMBOURSEMENTS (ajoutés au net) :
-Mots-clés INCLUSIFS (exemples NON EXHAUSTIFS) :
-- Frais pro : "Remboursement", "Frais professionnels", "Note de frais", "Indemnité km", "Déplacement", "Expenses"
-- Transports : "Navigo", "Transport", "Mobilité durable"
-
-Détection DÉDUCTIONS (retirées du net) :
-Mots-clés INCLUSIFS :
-- Tickets restaurant : "Tickets restaurant", "Titres restaurant", "TR", "Chèques déjeuner" (part salarié = déduction)
-- Avantages déduits : "Avantage véhicule", "Avantage logement", "AN véhicule", "Voiture de fonction"
-- Réintégrations : "Réintégration fiscale", "Base PAS", "Ajustement fiscal"
-
-═══════════════════════════════════════════════════════════════
-ABSENCE + INDEMNITÉ (MÉCANISME COMPTABLE NEUTRE)
-═══════════════════════════════════════════════════════════════
-
-Si 2 lignes se compensent (montants opposés) :
-- "Absence CP" (négatif) + "Indemnité CP" (positif) → NE PAS inclure dans autres_elements_bruts, noter dans conges_pris_mois
-- "Absence RTT" (négatif) + "Indemnité RTT" (positif) → noter dans rtt_pris_mois
+Si le net avant impôt NE CORRESPOND PAS à "Brut - Cotisations",
+→ CHERCHEZ les remboursements/déductions et remplissez remboursements_deductions{}
 
 ═══════════════════════════════════════════════════════════════
 DÉTECTION EQUITY AVANCÉE
 ═══════════════════════════════════════════════════════════════
 
 A. ACTIONS GRATUITES — 2 TYPES DE PLANS
+TYPE 1 QUALIFIÉ : montant dans brut MAIS base PAS reste proche du net social habituel
+TYPE 2 NON QUALIFIÉ : base PAS inclut la valeur des actions
+En cas de doute → type_plan = "indetermine"
 
-TYPE 1 : PLAN QUALIFIÉ (majoritaire en France)
-- Ligne avec mots-clés : "actions gratuites", "AGA", "free shares", "attribution", "acquisition actions", "vesting"
-- Le montant apparaît dans le brut MAIS la base PAS reste proche du net social habituel
-→ type_plan = "qualifie", impact_pas_immediat = false
+B. RSU — VARIANTE SIMPLE / SELL TO COVER
+Simple : ligne gain + ligne reprise/offset + remboursement broker
+Sell-To-Cover : 4 lignes, ratio vente ≈ 45% (± 5%)
 
-TYPE 2 : PLAN NON QUALIFIÉ
-- Même détection, mais la base PAS inclut la valeur des actions
-→ type_plan = "non_qualifie", impact_pas_immediat = true
-
-DÉTECTION AUTOMATIQUE :
-- Si base PAS ≈ net social (hors actions) → Plan qualifié probable
-- Si base PAS = net social + valeur actions → Plan non qualifié
-- En cas de doute → type_plan = "indetermine"
-
-B. RSU — VARIANTE A : SIMPLE AVEC REMBOURSEMENT BROKER
-Pattern : ligne gain + ligne reprise/offset (négatif) + ligne remboursement broker (positif)
-→ variante = "simple"
-
-C. RSU — VARIANTE B : SELL TO COVER
-Pattern : 4 lignes (gain + taxes + reprise + cash final), ratio vente ≈ 45% (± 5%)
-→ variante = "sell_to_cover_45pct"
-
-D. ESPP (EMPLOYEE STOCK PURCHASE PLAN)
-Mots-clés : "ESPP", "Plan d'achat", "Stock purchase", "Contribution actions"
-
-E. AVANTAGES EN NATURE AVEC GROSS-UP
-Pattern : 2 lignes complémentaires (avantage en nature + compensation fiscale)
+C. ESPP : "ESPP", "Plan d'achat", "Stock purchase"
 
 ═══════════════════════════════════════════════════════════════
-POINTS D'ATTENTION (OBJETS STRUCTURÉS)
+POINTS D'ATTENTION (max 5)
 ═══════════════════════════════════════════════════════════════
 
-Maximum 5 points d'attention triés par priorité (1=urgent, 2=important, 3=info).
-Chaque point est un objet avec : id, priorite, titre, resume, explication_detaillee, a_modal.
-
-Détectez :
-1. PRIMES EXCEPTIONNELLES : prime > 50% salaire base OU > 5000€
-2. ABSENCES : congés pris > 5 jours, maladie, paternité, maternité
-3. TAUX PAS INHABITUEL : abs(taux) = 0% avec revenus > 3000€ OU abs(taux) > 40%
-4. LIGNES NON IDENTIFIÉES : proposer hypothèses + inviter à vérifier RH
-5. ANOMALIES DE CALCUL : net ≠ brut - cotisations (± 50€) — SAUF si remboursements/déductions expliquent l'écart
-6. EQUITY : RSU, actions gratuites, ESPP détectés → expliquer le mécanisme
+Triés par priorité (1=urgent, 2=important, 3=info).
+Détectez : primes exceptionnelles, absences, taux PAS inhabituel,
+lignes non identifiées, anomalies de calcul, equity.
 
 ═══════════════════════════════════════════════════════════════
-ACTIONS RECOMMANDÉES (OBJETS STRUCTURÉS)
+ACTIONS RECOMMANDÉES (max 3)
 ═══════════════════════════════════════════════════════════════
 
-Maximum 3 actions triées par priorité.
-Chaque action a : id, priorite, texte, cta_label, cta_url.
-
-Critères :
-1. Congés N-1 > 0 → Action urgente (avant 31 mai)
-2. Equity détecté → Suggérer consultation expert patrimonial
-3. Taux PAS inhabituel → Vérifier sur impots.gouv.fr
-4. Ligne inconnue → Vérifier avec RH
-
-═══════════════════════════════════════════════════════════════
-EXPLICATIONS PÉDAGOGIQUES
-═══════════════════════════════════════════════════════════════
-
-Français clair, vouvoiement, montants réels. TON SUGGESTIF obligatoire.
-Remplissez TOUTES les clés de explications_pedagogiques avec des phrases concrètes utilisant les montants réels du bulletin.
-Pour equity_explication : ne remplir QUE les sous-clés pertinentes.
-
-═══════════════════════════════════════════════════════════════
-CONSEILS D'OPTIMISATION (4-6 STRINGS simples)
-═══════════════════════════════════════════════════════════════
-
-- Si taux PAS > 30% → possibilité de moduler
-- Si épargne salariale disponible → PEE/PERCO/PERCOL
-- Si equity détecté → consulter expert patrimonial
-- JAMAIS de conseil d'achat/vente → renvoyer vers expert
-
-⚠️ RÈGLE ABSOLUE : PAS (Prélèvement à la Source)
-- Le PAS est TOUJOURS une CHARGE, JAMAIS un crédit
-- C'est un acompte d'impôt prélevé chaque mois
-- Le montant est TOUJOURS négatif (déduction du salaire)
-- Le TAUX est affiché avec "-" (convention comptable), stockez abs(taux_pas_pct)
-- NE JAMAIS parler de "crédit d'impôt" lié au PAS
-- NE JAMAIS alerter sur "taux négatif" (c'est juste la convention d'affichage)
-
-⚠️ VOUVOIEMENT IMPÉRATIF
-Dans TOUTES les explications (points_attention, actions_recommandees, explications_pedagogiques, conseils_optimisation) :
-- TOUJOURS : "Vous", "Votre", "Vos", "Prenez", "Vérifiez"
-- JAMAIS : "Tu", "Ton", "Tes", "Prends", "Vérifie"
+Critères : congés N-1 > 0, equity détecté (→ expert patrimonial),
+taux PAS inhabituel (→ impots.gouv.fr), ligne inconnue (→ RH).
 
 ═══════════════════════════════════════════════════════════════
 VÉRIFICATION DE COHÉRENCE
 ═══════════════════════════════════════════════════════════════
 
-1. Vérifiez : Brut - Cotisations +/- Remboursements/Déductions ≈ Net avant impôt (± 100€)
-   Si incohérence ET pas de remboursements_deductions remplis → cherchez les lignes manquantes
-2. Vérifiez : Net avant impôt - PAS ≈ Net payé (± 50€)
+1. Brut - Cotisations +/- Remboursements ≈ Net avant impôt (± 100€)
+2. Net avant impôt - PAS ≈ Net payé (± 50€)
 3. Si incohérence persistante → point_attention
 
-VÉRIFICATION EQUITY :
-- Si epargne_salariale.interessement > 10000 ET remuneration_equity vide → possible confusion, relire
-- Si variante = "sell_to_cover_45pct" → vérifier quotite ≈ 45% (± 5%)
+⚠️ RÈGLE ABSOLUE : PAS = TOUJOURS une CHARGE, JAMAIS un crédit
+⚠️ VOUVOIEMENT IMPÉRATIF dans TOUTES les explications
+⚠️ RGPD : AUCUN nom d'entreprise dans les résultats
 
 FORMAT FINAL : JSON brut, sans markdown, sans backticks.`;
 
@@ -563,7 +414,7 @@ serve(async (req) => {
     const content: any[] = [
       { 
         type: "text", 
-        text: "Analysez ce bulletin de paie français et extrayez TOUTES les informations en suivant SCRUPULEUSEMENT la structure JSON demandée. Extraction complète : données, cotisations détaillées, remboursements/déductions, equity, explications pédagogiques, points d'attention et conseils d'optimisation." 
+        text: "Analysez ce bulletin de paie français et extrayez TOUTES les informations en suivant SCRUPULEUSEMENT la structure JSON V3 demandée. Extraction complète : données, cotisations détaillées, remboursements/déductions, equity (si présent), absences en jours, primes séparées, explications pédagogiques, points d'attention et conseils d'optimisation." 
       },
     ];
 
@@ -579,7 +430,7 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Processing ${images.length} page(s) with claude-haiku-4-5-20251001 | SINGLE complete analysis v2.0`);
+    console.log(`Processing ${images.length} page(s) with claude-haiku-4-5-20251001 | SINGLE complete analysis v3.0`);
 
     // UN SEUL appel Claude avec max_tokens élevé pour TOUT extraire
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -662,14 +513,18 @@ serve(async (req) => {
       parsed.net.montant_pas = -parsed.net.montant_pas;
     }
 
-    // Detect equity presence
+    // Detect equity presence (V3: use has_equity flag from response, or compute)
     const eq = parsed.remuneration_equity || {};
-    const hasEquity = !!(
-      (eq.actions_gratuites_acquises && eq.actions_gratuites_acquises.length > 0 && eq.actions_gratuites_acquises[0]?.nb_actions) ||
-      eq.rsu_restricted_stock_units?.gain_brut_total ||
-      eq.espp_employee_stock_purchase_plan?.contribution_mensuelle ||
-      eq.avantages_nature_compenses?.total_brut
+    const hasEquity = eq.has_equity === true || !!(
+      eq.rsu?.detected ||
+      (eq.actions_gratuites && eq.actions_gratuites.length > 0 && eq.actions_gratuites[0]?.nb_actions) ||
+      eq.espp?.detected
     );
+    
+    // Ensure has_equity is set in the response
+    if (parsed.remuneration_equity) {
+      parsed.remuneration_equity.has_equity = hasEquity;
+    }
 
     // Calculate cost
     const usage = result.usage || {};
