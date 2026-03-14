@@ -245,6 +245,13 @@ const App = () => (
               }
             />
             <Route
+              path="/employee/vega/recap"
+              element={
+                <ProtectedRoute>
+                  <VegaRecapPage />
+                </ProtectedRoute>
+              }
+            <Route
               path="/employee/onboarding"
               element={
                 <ProtectedRoute>
