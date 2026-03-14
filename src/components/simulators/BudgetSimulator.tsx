@@ -640,13 +640,29 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
           </Card>
         </motion.div>
 
-        {/* Reset */}
-        <div className="flex justify-center">
+        {/* Edit / Reset */}
+        <div className="flex justify-center gap-3">
           <Button variant="outline" className="gap-2" onClick={() => {
             setCurrentStep(0);
             setValidationComplete(false);
+            onEdit?.();
           }}>
-            <RotateCcw className="h-4 w-4" /> Recommencer la simulation
+            <ArrowLeft className="h-4 w-4" /> Modifier mes données
+          </Button>
+          <Button variant="ghost" className="gap-2 text-muted-foreground" onClick={() => {
+            setCurrentStep(0);
+            setValidationComplete(false);
+            // Reset to defaults
+            setSalaire(2600);
+            setAutres(400);
+            const v: Record<string, number> = {};
+            Object.values(EXPENSE_ITEMS).forEach((items) =>
+              items.forEach((i) => { v[i.key] = i.defaultVal; })
+            );
+            setValues(v);
+            onEdit?.();
+          }}>
+            <RotateCcw className="h-4 w-4" /> Recommencer à zéro
           </Button>
         </div>
       </div>
