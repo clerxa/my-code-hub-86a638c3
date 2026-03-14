@@ -455,13 +455,15 @@ export default function OcrFicheDePaie() {
           </DialogContent>
         </Dialog>
 
-        {/* Detail Modals */}
-        <PayslipDetailModal
-          open={!!modalOpen}
-          onClose={() => setModalOpen(null)}
-          modalType={modalOpen}
-          data={activeData}
-        />
+        {/* Detail Modals — only used by SimpleResultView now */}
+        {modalOpen && (
+          <PayslipDetailModal
+            open={!!modalOpen}
+            onClose={() => setModalOpen(null)}
+            modalType={modalOpen}
+            data={activeData}
+          />
+        )}
       </div>
     </div>
   );
