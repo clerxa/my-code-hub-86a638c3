@@ -111,29 +111,26 @@ export default function OcrFicheDePaie() {
   // ─── Step 1: Simple analysis ────────────────────────
   const [showSimpleOverlay, setShowSimpleOverlay] = useState(false);
   const [showAdvancedOverlay, setShowAdvancedOverlay] = useState(false);
+  const [apiDone, setApiDone] = useState<"simple" | "advanced" | null>(null);
   const simpleResultRef = useRef<any>(null);
   const advancedResultRef = useRef<any>(null);
 
   const analyzeSimple = useCallback(async () => {
     if (!file) return;
-    setLoading(true);
     setError(null);
     setStep("uploading");
+    setApiDone(null);
+    setShowSimpleOverlay(true);
     try {
       const images = await convertPdfToImages(file);
       setPdfImages(images);
-      setProgress("Analyse en cours…");
-      setShowSimpleOverlay(true);
       const result = await callAnalysis(images, "simple");
       simpleResultRef.current = result;
-      // Overlay will call onComplete which transitions to result
+      setApiDone("simple");
     } catch (e: any) {
       setError(e.message || "Erreur inconnue");
       setStep("question");
       setShowSimpleOverlay(false);
-    } finally {
-      setLoading(false);
-      setProgress("");
     }
   }, [file, convertPdfToImages, callAnalysis]);
 
@@ -148,21 +145,18 @@ export default function OcrFicheDePaie() {
   // ─── Step 2: Advanced analysis ──────────────────────
   const analyzeAdvanced = useCallback(async () => {
     if (pdfImages.length === 0) return;
-    setLoading(true);
     setError(null);
     setStep("advanced_loading");
+    setApiDone(null);
     setShowAdvancedOverlay(true);
     try {
       const result = await callAnalysis(pdfImages, "advanced");
       advancedResultRef.current = result;
-      // Overlay will call onComplete which transitions to result
+      setApiDone("advanced");
     } catch (e: any) {
       setError(e.message || "Erreur inconnue");
       setStep("simple_result");
       setShowAdvancedOverlay(false);
-    } finally {
-      setLoading(false);
-      setProgress("");
     }
   }, [pdfImages, callAnalysis]);
 
