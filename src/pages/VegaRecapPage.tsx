@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
 import { EmployeeLayout } from '@/components/employee/EmployeeLayout';
-import { useVegaPortfolio, type PortfolioPlan } from '@/hooks/useVegaPortfolio';
+import { useVegaPortfolio, type PortfolioPlan, type TickerSummary } from '@/hooks/useVegaPortfolio';
 import { Skeleton } from '@/components/ui/skeleton';
 import { parseISO, isPast, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -37,6 +37,7 @@ interface VestingLine {
   coursAcquisition: number;
   devise: string;
   valorisationEur: number | null;
+  valorisationJourEur: number | null; // current price × nbActions attribuées
   isVested: boolean;
 }
 
@@ -45,12 +46,10 @@ function extractVestingLines(plans: PortfolioPlan[], getPriceEur: (ticker: strin
 
   for (const plan of plans) {
     if (plan.type === 'rsu' && plan.rawVestings) {
-      // Sort vestings chronologically
       const sorted = [...plan.rawVestings]
         .filter((v: any) => v.date)
         .sort((a: any, b: any) => a.date.localeCompare(b.date));
 
-      // Compute FIFO cessions consumed per vesting
       let remaining = plan.nbActionsCedees;
 
       for (const v of sorted) {
@@ -78,6 +77,7 @@ function extractVestingLines(plans: PortfolioPlan[], getPriceEur: (ticker: strin
           coursAcquisition: v.cours || 0,
           devise: plan.devise,
           valorisationEur: priceEur && nbRestantes > 0 ? nbRestantes * priceEur : null,
+          valorisationJourEur: priceEur ? nbOrig * priceEur : null,
           isVested,
         });
       }
@@ -104,6 +104,7 @@ function extractVestingLines(plans: PortfolioPlan[], getPriceEur: (ticker: strin
         coursAcquisition: p.cours_achat_devise || 0,
         devise: plan.devise,
         valorisationEur: priceEur && plan.nbActions > 0 ? plan.nbActions * priceEur : null,
+        valorisationJourEur: priceEur ? plan.nbActionsOriginal * priceEur : null,
         isVested,
       });
     }
@@ -128,6 +129,7 @@ function extractVestingLines(plans: PortfolioPlan[], getPriceEur: (ticker: strin
         coursAcquisition: d.prix_exercice || 0,
         devise: 'EUR',
         valorisationEur: null,
+        valorisationJourEur: null,
         isVested,
       });
     }
@@ -136,12 +138,12 @@ function extractVestingLines(plans: PortfolioPlan[], getPriceEur: (ticker: strin
   return lines;
 }
 
-type SortField = 'dateAcquisition' | 'nbActions' | 'entreprise';
+type SortField = 'dateAcquisition' | 'nbActions' | 'ticker';
 
 export default function VegaRecapPage() {
   const navigate = useNavigate();
   const portfolio = useVegaPortfolio();
-  const [filterEntreprise, setFilterEntreprise] = useState<string>('all');
+  const [filterTicker, setFilterTicker] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('dateAcquisition');
   const [sortAsc, setSortAsc] = useState(true);
 
@@ -150,27 +152,31 @@ export default function VegaRecapPage() {
     [portfolio.plans, portfolio.getPriceEur],
   );
 
-  // Unique entreprises for filter
-  const entreprises = useMemo(() => {
-    const set = new Set(allLines.map(l => l.entreprise));
-    return Array.from(set).sort();
-  }, [allLines]);
+  // Unique tickers for filter — with company name from portfolio.tickers
+  const tickerOptions = useMemo(() => {
+    const tickerSet = new Set(allLines.map(l => l.ticker).filter(t => t && t !== '-'));
+    return Array.from(tickerSet).map(t => {
+      const tickerInfo = portfolio.tickers.find(ts => ts.ticker === t.toUpperCase());
+      const name = tickerInfo?.summary?.shortName || '';
+      return { ticker: t.toUpperCase(), label: name ? `${t.toUpperCase()} — ${name}` : t.toUpperCase() };
+    }).sort((a, b) => a.ticker.localeCompare(b.ticker));
+  }, [allLines, portfolio.tickers]);
 
   const filteredLines = useMemo(() => {
-    let lines = filterEntreprise === 'all'
+    let lines = filterTicker === 'all'
       ? allLines
-      : allLines.filter(l => l.entreprise === filterEntreprise);
+      : allLines.filter(l => l.ticker.toUpperCase() === filterTicker);
 
     lines.sort((a, b) => {
       let cmp = 0;
       if (sortField === 'dateAcquisition') cmp = a.dateAcquisition.localeCompare(b.dateAcquisition);
       else if (sortField === 'nbActions') cmp = a.nbActions - b.nbActions;
-      else if (sortField === 'entreprise') cmp = a.entreprise.localeCompare(b.entreprise);
+      else if (sortField === 'ticker') cmp = a.ticker.localeCompare(b.ticker);
       return sortAsc ? cmp : -cmp;
     });
 
     return lines;
-  }, [allLines, filterEntreprise, sortField, sortAsc]);
+  }, [allLines, filterTicker, sortField, sortAsc]);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -183,6 +189,7 @@ export default function VegaRecapPage() {
 
   const totalActions = filteredLines.reduce((s, l) => s + l.nbActionsRestantes, 0);
   const totalValo = filteredLines.reduce((s, l) => s + (l.valorisationEur || 0), 0);
+  const totalValoJour = filteredLines.reduce((s, l) => s + (l.valorisationJourEur || 0), 0);
 
   const formatDate = (d: string) => {
     try {
@@ -226,14 +233,14 @@ export default function VegaRecapPage() {
         >
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select value={filterEntreprise} onValueChange={setFilterEntreprise}>
-              <SelectTrigger className="w-[220px] h-9 text-sm">
-                <SelectValue placeholder="Toutes les entreprises" />
+            <Select value={filterTicker} onValueChange={setFilterTicker}>
+              <SelectTrigger className="w-[280px] h-9 text-sm">
+                <SelectValue placeholder="Tous les tickers" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Toutes les entreprises</SelectItem>
-                {entreprises.map(e => (
-                  <SelectItem key={e} value={e}>{e}</SelectItem>
+                <SelectItem value="all">Tous les tickers</SelectItem>
+                {tickerOptions.map(o => (
+                  <SelectItem key={o.ticker} value={o.ticker}>{o.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -278,8 +285,8 @@ export default function VegaRecapPage() {
                         Attribution
                       </th>
                       <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                        <button onClick={() => toggleSort('entreprise')} className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
-                          Entreprise
+                        <button onClick={() => toggleSort('ticker')} className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
+                          Ticker
                           <ArrowUpDown className="h-3 w-3" />
                         </button>
                       </th>
@@ -301,7 +308,8 @@ export default function VegaRecapPage() {
                       <th className="px-4 py-3 text-right text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Cédées</th>
                       <th className="px-4 py-3 text-right text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Restantes</th>
                       <th className="px-4 py-3 text-right text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Cours acquisition</th>
-                      <th className="px-4 py-3 text-right text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Valorisation</th>
+                      <th className="px-4 py-3 text-right text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Valeur du jour</th>
+                      <th className="px-4 py-3 text-right text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Valorisation restante</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
@@ -321,7 +329,7 @@ export default function VegaRecapPage() {
                             {line.ticker && line.ticker !== '-' && (
                               <Badge variant="outline" className="font-mono text-[9px] px-1.5">{line.ticker}</Badge>
                             )}
-                            <span className="truncate">{line.entreprise}</span>
+                            <span className="truncate text-muted-foreground text-[10px]">{line.entreprise}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -366,13 +374,15 @@ export default function VegaRecapPage() {
                         <td className="px-4 py-3 text-right font-mono text-xs text-foreground">
                           {line.devise === 'USD' ? fmtCurrencyUSD(line.coursAcquisition) : fmtCurrency(line.coursAcquisition)}
                         </td>
+                        <td className="px-4 py-3 text-right font-mono text-xs font-semibold text-foreground">
+                          {line.valorisationJourEur !== null ? fmtCurrency(line.valorisationJourEur) : '-'}
+                        </td>
                         <td className="px-4 py-3 text-right font-mono text-xs font-semibold text-primary">
                           {line.valorisationEur !== null ? fmtCurrency(line.valorisationEur) : '-'}
                         </td>
                       </motion.tr>
                     ))}
                   </tbody>
-                  {/* Totals row */}
                   <tfoot>
                     <tr className="border-t-2 border-border/60 bg-muted/20">
                       <td colSpan={6} className="px-4 py-3 text-xs font-semibold text-foreground uppercase tracking-wider">
@@ -388,6 +398,9 @@ export default function VegaRecapPage() {
                         {totalActions}
                       </td>
                       <td className="px-4 py-3" />
+                      <td className="px-4 py-3 text-right font-mono font-bold text-foreground">
+                        {totalValoJour > 0 ? fmtCurrency(totalValoJour) : '-'}
+                      </td>
                       <td className="px-4 py-3 text-right font-mono font-bold text-primary">
                         {totalValo > 0 ? fmtCurrency(totalValo) : '-'}
                       </td>
