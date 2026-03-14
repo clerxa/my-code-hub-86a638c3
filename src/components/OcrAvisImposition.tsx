@@ -606,6 +606,20 @@ const OcrAvisImposition = () => {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
+  const toDbNumber = useCallback((value: unknown): number | null => {
+    if (value === null || value === undefined || value === "") return null;
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (typeof value !== "string") return null;
+
+    const normalized = value.replace(/\u00A0/g, " ").trim();
+    const match = normalized.match(/-?\d[\d\s.,]*/);
+    if (!match) return null;
+
+    const numeric = match[0].replace(/\s/g, "").replace(/,/g, ".");
+    const parsed = Number.parseFloat(numeric);
+    return Number.isFinite(parsed) ? parsed : null;
+  }, []);
+
   // Load history on mount
   useEffect(() => {
     if (!user?.id) return;
@@ -672,9 +686,9 @@ const OcrAvisImposition = () => {
         total_a_payer: analysisData.impot?.total_a_payer,
         mensualisation_ou_prelevement: analysisData.impot?.mensualisation_ou_prelevement,
         // Prélèvement à la source
-        taux_pas_pct: analysisData.prelevement_source?.taux_pas_pct,
-        montant_preleve_annee_n: analysisData.prelevement_source?.montant_preleve_annee_n,
-        solde: analysisData.prelevement_source?.solde_a_payer_ou_rembourser,
+        taux_pas_pct: toDbNumber(analysisData.prelevement_source?.taux_pas_pct),
+        montant_preleve_annee_n: toDbNumber(analysisData.prelevement_source?.montant_preleve_annee_n),
+        solde: toDbNumber(analysisData.prelevement_source?.solde_a_payer_ou_rembourser),
         // Meta
         type_document: analysisData.meta?.type_document,
         confidence: analysisData.meta?.confidence,
@@ -696,7 +710,7 @@ const OcrAvisImposition = () => {
       console.error("Save error:", err);
       toast.error("Erreur lors de la sauvegarde");
     }
-  }, [user?.id]);
+  }, [user?.id, toDbNumber]);
 
   // Load a saved analysis
   const loadSavedAnalysis = useCallback(async (id: string) => {
