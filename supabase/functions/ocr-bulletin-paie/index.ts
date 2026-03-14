@@ -199,14 +199,14 @@ FORMAT actions_recommandees :
   {
     "id": "conges_n_minus_1",
     "priorite": 1,
-    "texte": "Il semble que tu aies X jours de congés N-1 restants. D'après la règle légale, ils doivent être pris avant le 31 mai de l'année N, sinon ils risquent d'être perdus.",
+    "texte": "Il semble que vous ayez X jours de congés N-1 restants. D'après la règle légale, ils doivent être pris avant le 31 mai de l'année N, sinon ils risquent d'être perdus.",
     "cta_label": "Ajouter un rappel",
     "cta_url": "/calendar/add-reminder"
   },
   {
     "id": "verifier_taux_pas",
     "priorite": 2,
-    "texte": "Ton taux PAS semble inhabituel. Tu peux vérifier ta situation sur impots.gouv.fr.",
+    "texte": "Votre taux PAS semble inhabituel. Vous pouvez vérifier votre situation sur impots.gouv.fr.",
     "cta_label": "Accéder à impots.gouv.fr",
     "cta_url": "https://impots.gouv.fr"
   }
