@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +30,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { PerSimulatorSlider } from "./ocr/PerSimulatorSlider";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -815,6 +816,14 @@ const OcrAvisImposition = () => {
   const conseils = data?.explications_pedagogiques?.conseils_optimisation || [];
   const pointsAttention = data?.explications_pedagogiques?.points_attention || [];
 
+  // Compute TMI at parent level for PER simulator
+  const computedTmi = useMemo(() => {
+    if (!revenuImposable || !nombreParts) return 0;
+    const quotient = revenuImposable / nombreParts;
+    const active = TRANCHES_2024.filter((t) => quotient > t.seuil);
+    return active.length > 0 ? active[active.length - 1].taux : 0;
+  }, [revenuImposable, nombreParts]);
+
   return (
     <div className="max-w-3xl mx-auto space-y-6 px-4 pb-20">
       {/* ─── Upload State ─── */}
@@ -1469,6 +1478,18 @@ const OcrAvisImposition = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* ── Mini-simulateur PER interactif ── */}
+            {revenuImposable != null && impotNet != null && data.plafonds_per?.plafond_restant != null && data.plafonds_per.plafond_restant > 0 && (
+              <PerSimulatorSlider
+                revenuImposable={revenuImposable}
+                nombreParts={nombreParts}
+                impotNetActuel={impotNet}
+                plafondRestant={data.plafonds_per.plafond_restant}
+                tmi={computedTmi}
+                reductionsCredits={(reductions || 0) + (credits || 0)}
+              />
+            )}
 
             {/* ── Autres conseils d'optimisation ── */}
             {conseils.length > 0 && (
