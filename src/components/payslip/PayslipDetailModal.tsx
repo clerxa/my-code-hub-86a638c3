@@ -39,6 +39,8 @@ export default function PayslipDetailModal({ open, onClose, modalType, data }: P
       case "cotisations_chomage":
       case "cotisations_csg":
         return <CotisationsDetailModal data={data} type={modalType.replace("cotisations_", "")} />;
+      case "brut_net_explication":
+        return <BrutNetModal data={data} />;
       default:
         return null;
     }
