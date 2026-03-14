@@ -994,9 +994,7 @@ const OcrAvisImposition = () => {
                 )}
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                {prenom
-                  ? `Bonjour ${prenom}. Voici ce que nous avons trouvé dans votre avis d'imposition${annee ? ` ${annee}` : ""}.`
-                  : `Voici ce que nous avons trouvé dans votre avis d'imposition${annee ? ` ${annee}` : ""}.`}
+                {`Voici ce que nous avons trouvé dans votre avis d'imposition${annee ? ` ${annee}` : ""}.`}
               </h2>
             </div>
 
