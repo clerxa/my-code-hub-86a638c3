@@ -452,41 +452,47 @@ const TranchesBar = ({
   const activeTranches = TRANCHES_2024.filter((t) => quotient > t.seuil);
   const tmi = activeTranches.length > 0 ? activeTranches[activeTranches.length - 1].taux : 0;
 
-  return (
-    <div className="space-y-3">
-      <div className="relative h-8 rounded-full overflow-hidden flex">
-        {TRANCHES_2024.map((tranche, i) => {
-          const nextSeuil = TRANCHES_2024[i + 1]?.seuil || maxDisplay;
-          const start = tranche.seuil;
-          const end = Math.min(nextSeuil, maxDisplay);
-          const width = ((end - start) / maxDisplay) * 100;
-          const isActive = quotient > start;
-          const filledWidth = isActive
-            ? Math.min(((Math.min(quotient, nextSeuil) - start) / (end - start)) * 100, 100)
-            : 0;
+  // Calculate segment boundaries for label positioning
+  const segments = TRANCHES_2024.filter((t) => t.seuil < maxDisplay).map((tranche, i) => {
+    const nextSeuil = TRANCHES_2024[i + 1]?.seuil || maxDisplay;
+    const start = tranche.seuil;
+    const end = Math.min(nextSeuil, maxDisplay);
+    const startPct = (start / maxDisplay) * 100;
+    const width = ((end - start) / maxDisplay) * 100;
+    return { ...tranche, startPct, width, isActive: quotient > start };
+  });
 
-          return (
+  return (
+    <div className="space-y-1">
+      <div className="relative h-8 rounded-full overflow-hidden flex">
+        {segments.map((seg, i) => (
+          <div
+            key={i}
+            className="relative h-full"
+            style={{ width: `${seg.width}%` }}
+          >
             <div
-              key={i}
-              className="relative h-full"
-              style={{ width: `${width}%` }}
-            >
-              <div
-                className="absolute inset-0 transition-all duration-700"
-                style={{
-                  background: tranche.couleur,
-                  opacity: isActive ? 0.8 : 0.15,
-                  width: isActive ? `${filledWidth}%` : "100%",
-                }}
-              />
-            </div>
-          );
-        })}
+              className="absolute inset-0 transition-all duration-700"
+              style={{
+                background: seg.couleur,
+                opacity: seg.isActive ? 0.8 : 0.15,
+                width: seg.isActive
+                  ? `${Math.min(((Math.min(quotient, TRANCHES_2024[i + 1]?.seuil || maxDisplay) - seg.seuil) / ((Math.min(TRANCHES_2024[i + 1]?.seuil || maxDisplay, maxDisplay)) - seg.seuil)) * 100, 100)}%`
+                  : "100%",
+              }}
+            />
+          </div>
+        ))}
       </div>
-      <div className="flex justify-between text-[10px] text-muted-foreground">
-        {TRANCHES_2024.filter((t) => t.seuil < maxDisplay).map((t, i) => (
-          <span key={i} className={quotient > t.seuil ? "font-semibold text-foreground" : ""}>
-            {t.label}
+      {/* Labels positioned at segment start boundaries */}
+      <div className="relative h-5">
+        {segments.map((seg, i) => (
+          <span
+            key={i}
+            className={`absolute text-[10px] ${seg.isActive ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+            style={{ left: `${seg.startPct}%`, transform: i > 0 ? "translateX(-50%)" : "none" }}
+          >
+            {seg.label}
           </span>
         ))}
       </div>
