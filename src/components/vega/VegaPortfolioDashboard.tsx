@@ -349,7 +349,7 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {plans.map(plan => (
-              <PlanCard key={plan.id} plan={plan} currentPriceEur={portfolio.currentPriceEur} />
+              <PlanCard key={plan.id} plan={plan} getPriceEur={portfolio.getPriceEur} />
             ))}
           </div>
         </motion.div>
