@@ -59,6 +59,8 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
       navigate("/employee/horizon");
     } else if (section === "budget") {
       navigate("/employee/budget");
+    } else if (section === "atlas") {
+      navigate("/employee/atlas");
     } else if (["profile-info", "progression", "leaderboard", "invitations", "contacts", "appointments", "webinars"].includes(section)) {
       navigate(`/employee?section=${section}`);
     }

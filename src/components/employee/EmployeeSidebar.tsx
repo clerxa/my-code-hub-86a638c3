@@ -101,8 +101,8 @@ export const EmployeeSidebar = ({
       return;
     }
 
-    // Vega, Horizon & Budget (Zenith) locked for non-partner users
-    if (["vega", "horizon", "budget"].includes(itemId) && isLocked) {
+    // Vega, Horizon, Budget (Zenith) & Atlas locked for non-partner users
+    if (["vega", "horizon", "budget", "atlas"].includes(itemId) && isLocked) {
       navigate("/proposer-partenariat");
       return;
     }
@@ -151,6 +151,9 @@ export const EmployeeSidebar = ({
         break;
       case "budget":
         navigate("/employee/budget");
+        break;
+      case "atlas":
+        navigate("/employee/atlas");
         break;
       case "offers":
         navigate("/employee");

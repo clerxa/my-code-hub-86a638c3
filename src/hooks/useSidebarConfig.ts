@@ -48,8 +48,9 @@ const defaultEmployeeItems: SidebarMenuItem[] = [
   { id: "company", label: "Mon entreprise", icon: "Building2", order: 14, visible: true },
   { id: "forum", label: "Communauté", icon: "MessageSquareText", order: 15, visible: true },
   { id: "pension-tracker", label: "PensionTracker", icon: "Search", order: 16, visible: true, categoryId: "programme-fincare" },
-  { id: "decryptez-per", label: "Décryptez votre PER", icon: "FileText", order: 17, visible: true, categoryId: "programme-fincare" },
-  { id: "feedback", label: "Feedback", icon: "MessageSquarePlus", order: 18, visible: true },
+  { id: "atlas", label: "ATLAS by FinCare", icon: "FileText", order: 17, visible: true, categoryId: "programme-fincare" },
+  { id: "decryptez-per", label: "Décryptez votre PER", icon: "FileText", order: 18, visible: true, categoryId: "programme-fincare" },
+  { id: "feedback", label: "Feedback", icon: "MessageSquarePlus", order: 19, visible: true },
 ];
 
 const defaultCompanyItems: SidebarMenuItem[] = [
