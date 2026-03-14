@@ -733,6 +733,21 @@ const OcrAvisImposition = () => {
       return;
     }
 
+    // Check daily upload limit (1 per day)
+    if (user?.id) {
+      const today = new Date().toISOString().slice(0, 10);
+      const { count } = await supabase
+        .from("ocr_avis_imposition_analyses")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .gte("created_at", `${today}T00:00:00`)
+        .lte("created_at", `${today}T23:59:59`);
+      if (count != null && count >= 1) {
+        toast.error("Vous avez déjà effectué une analyse aujourd'hui. Revenez demain !");
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
     setData(null);
@@ -994,9 +1009,7 @@ const OcrAvisImposition = () => {
                 )}
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                {prenom
-                  ? `Bonjour ${prenom}. Voici ce que nous avons trouvé dans votre avis d'imposition${annee ? ` ${annee}` : ""}.`
-                  : `Voici ce que nous avons trouvé dans votre avis d'imposition${annee ? ` ${annee}` : ""}.`}
+                {`Voici ce que nous avons trouvé dans votre avis d'imposition${annee ? ` ${annee}` : ""}.`}
               </h2>
             </div>
 
@@ -1032,6 +1045,45 @@ const OcrAvisImposition = () => {
               />
             </div>
           </div>
+
+          {/* ═══════════════ ZONE 1.5 — Composition du foyer fiscal ═══════════════ */}
+          {(data.contribuable?.situation_familiale || nombreParts) && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-bold text-foreground">
+                Votre foyer fiscal
+              </h3>
+              <Card className="overflow-hidden">
+                <CardContent className="pt-5 pb-5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {data.contribuable?.situation_familiale && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground font-medium">Situation familiale</p>
+                        <p className="text-sm font-semibold text-foreground">{data.contribuable.situation_familiale}</p>
+                      </div>
+                    )}
+                    {nombreParts != null && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground font-medium">Nombre de parts</p>
+                        <p className="text-sm font-semibold text-foreground">{nombreParts} {nombreParts > 1 ? "parts" : "part"}</p>
+                      </div>
+                    )}
+                    {revenuImposable != null && nombreParts > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground font-medium">Quotient familial</p>
+                        <p className="text-sm font-semibold text-foreground">{fmt(Math.round(revenuImposable / nombreParts))}</p>
+                      </div>
+                    )}
+                  </div>
+                  {data.explications_pedagogiques?.quotient_familial_explication && (
+                    <p className="mt-3 text-xs text-muted-foreground leading-relaxed border-t pt-3">
+                      <Info className="h-3.5 w-3.5 inline-block mr-1.5 text-primary" />
+                      {data.explications_pedagogiques.quotient_familial_explication}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* ═══════════════ ZONE 2 — Le parcours de votre impôt ═══════════════ */}
           <div className="space-y-4">
