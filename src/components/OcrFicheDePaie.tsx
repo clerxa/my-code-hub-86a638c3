@@ -1,120 +1,51 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useRef } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { BookOpen, ChevronRight, Lock, Upload, FileText, Sparkles, Info } from "lucide-react";
 import PayslipProgressiveView from "./payslip/PayslipProgressiveView";
+import PayslipDetailModal from "./payslip/PayslipDetailModal";
+import { fmt, safe, getMonthLabel } from "./payslip/payslipUtils";
 
 const SUPABASE_FUNCTION_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/ocr-bulletin-paie`;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// ─── Helpers ──────────────────────────────────────────────────────
-const fmt = (n: number | null | undefined): string => {
+// ─── Helpers ──────────────────────────────────────────
+const fmtShort = (n: number | null | undefined): string => {
   if (n === null || n === undefined) return "—";
-  return n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
-};
-
-const fmtPct = (n: number | null | undefined): string => {
-  if (n === null || n === undefined) return "—";
-  return n.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " %";
-};
-
-const MONTHS = ["", "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
-
-// ─── Styles ───────────────────────────────────────────────────────
-const colors = {
-  primary: "#1e40af",
-  violet: "#7c3aed",
-  green: "#065f46",
-  gold: "#d97706",
-  orange: "#ea580c",
-  teal: "#0d9488",
-  slate: "#475569",
-  red: "#dc2626",
-  bg: "#f8fafc",
-  cardBg: "#ffffff",
-  border: "#e2e8f0",
-};
-
-const font = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
-
-// ─── Default prompt ──────────────────────────────────────────
-const DEFAULT_PROMPT = `Tu es un expert en droit du travail français, en paie et en fiscalité des salariés. Tu analyses des bulletins de paie français.
-
-Tu dois faire DEUX choses simultanément :
-1. Extraire toutes les données de la fiche de paie de façon structurée
-2. Expliquer chaque section en langage clair et pédagogique pour un salarié qui ne comprend pas sa fiche de paie
-
-Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
-
-IMPORTANT — GESTION MULTI-PAGES :
-Si le bulletin contient plusieurs pages, utilise TOUJOURS la page qui contient le tableau détaillé complet des cotisations pour extraire les montants.
-Ignore les pages de synthèse avec graphiques circulaires ou camemberts — elles sont jolies mais imprécises.
-
-⚠️ CORRECTION CRITIQUE : DISTINCTION ACTIONS GRATUITES vs ÉPARGNE SALARIALE
-- Actions gratuites/RSU/ESPP/BSPCE → remuneration_equity (JAMAIS dans epargne_salariale)
-- Intéressement/Participation/PEE/PERCO → epargne_salariale
-
-⚠️ ACTIONS GRATUITES — 2 TYPES DE PLANS :
-- PLAN QUALIFIÉ (~95% des cas) : AUCUN impact PAS au vesting, imposition à la VENTE uniquement
-- PLAN NON QUALIFIÉ (~5%) : Valeur ajoutée au net imposable → PAS immédiat
-- Algorithme : comparer base_pas avec/sans valeur actions pour déterminer type_plan (qualifie/non_qualifie/indetermine_probablement_qualifie)
-- Champ type_plan et impact_pas_immediat obligatoires dans actions_gratuites_acquises[]
-
-⚠️ CAS 2 — CRÉDIT D'IMPÔT vs DÉDUCTION NORMALE :
-- Le taux PAS est TOUJOURS affiché avec un signe "-" sur les fiches de paie (convention d'affichage)
-- IGNORER TOTALEMENT le signe du taux
-- SEUL le signe du MONTANT détermine : montant_pas > 0 → CRÉDIT D'IMPÔT | montant_pas < 0 → DÉDUCTION normale
-- NE JAMAIS alerter sur un "taux négatif" → c'est l'affichage NORMAL
-- Toujours afficher le taux en VALEUR ABSOLUE
-
-IMPORTANT : Les champs points_attention et conseils_optimisation doivent contenir des STRINGS simples, pas des objets.
-
-Structure JSON : salarie, employeur, periode, remuneration_brute, cotisations_salariales, cotisations_patronales, net, conges_rtt, epargne_salariale, remuneration_equity (avec type_plan et impact_pas_immediat dans actions_gratuites_acquises), explications_pedagogiques, points_attention, conseils_optimisation, cas_particuliers_mois (avec credit_impot), cumuls_annuels, informations_complementaires.
-
-(Prompt complet identique côté serveur — modifiez ci-dessous pour personnaliser)`;
-
-// ─── Workflow config ──────────────────────────────────────────
-const WORKFLOW_CONFIG = {
-  model: "claude-haiku-4-5-20251001",
-  max_tokens: 16000,
-  api_endpoint: "https://api.anthropic.com/v1/messages",
-  anthropic_version: "2023-06-01",
-  edge_function: "ocr-bulletin-paie",
-  pdf_scale: 2.0,
-  image_format: "JPEG 85%",
-  max_pages: 6,
-  json_recovery: true,
-  cost_input_per_mtok: 1.0,
-  cost_output_per_mtok: 5.0,
+  return Math.round(n).toLocaleString("fr-FR") + " €";
 };
 
 export default function OcrFicheDePaie() {
+  // ─── Step management ─────────────────────────────────
+  const [step, setStep] = useState<"question" | "uploading" | "simple_result" | "advanced_loading" | "advanced_result">("question");
+  const [hasEquity, setHasEquity] = useState<string>("no");
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState("");
-  const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"data" | "explain" | "raw">("data");
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [customPrompt, setCustomPrompt] = useState("");
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [showWorkflow, setShowWorkflow] = useState(false);
 
-  const toggleSection = (key: string) => {
-    setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
-  };
+  // ─── Data ────────────────────────────────────────────
+  const [simpleData, setSimpleData] = useState<any>(null);
+  const [advancedData, setAdvancedData] = useState<any>(null);
+  const [pdfImages, setPdfImages] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (data) {
-      setOpenSections({
-        identity: true, waterfall: true, cotisations: true,
-        variables: true, epargne: true, equity: true, conges: true,
-        cumuls: true, casParticuliers: true, infos: true,
-      });
-    }
-  }, [data]);
+  // ─── Modals ──────────────────────────────────────────
+  const [modalOpen, setModalOpen] = useState<string | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [showRawData, setShowRawData] = useState(false);
 
-  // ─── PDF → Images ───────────────────────────────────────────
+  // ─── PDF → Images ───────────────────────────────────
   const convertPdfToImages = useCallback(async (pdfFile: File): Promise<string[]> => {
     setProgress("Chargement de pdf.js…");
     if (!(window as any).__pdfjsLib3) {
@@ -154,43 +85,90 @@ export default function OcrFicheDePaie() {
     return images;
   }, []);
 
-  // ─── Analyze ────────────────────────────────────────────────
-  const analyze = useCallback(async () => {
+  // ─── API Call ───────────────────────────────────────
+  const callAnalysis = useCallback(async (images: string[], mode: "simple" | "advanced") => {
+    const res = await fetch(SUPABASE_FUNCTION_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        images: images.map(img => img.split(",")[1]),
+        mode,
+        has_equity: hasEquity === "yes",
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Erreur ${res.status}`);
+    }
+    return res.json();
+  }, [hasEquity]);
+
+  // ─── Step 1: Simple analysis ────────────────────────
+  const analyzeSimple = useCallback(async () => {
     if (!file) return;
     setLoading(true);
     setError(null);
-    setData(null);
+    setStep("uploading");
     try {
       const images = await convertPdfToImages(file);
+      setPdfImages(images);
       setProgress("Analyse en cours…");
-      const res = await fetch(SUPABASE_FUNCTION_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          images: images.map(img => img.split(",")[1]),
-          ...(customPrompt.trim() ? { custom_prompt: customPrompt.trim() } : {}),
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `Erreur ${res.status}`);
-      }
-      setProgress("Extraction des données…");
-      const result = await res.json();
-      setData(result);
+      const result = await callAnalysis(images, "simple");
+      setSimpleData(result);
+      setStep("simple_result");
     } catch (e: any) {
       setError(e.message || "Erreur inconnue");
+      setStep("question");
     } finally {
       setLoading(false);
       setProgress("");
     }
-  }, [file, convertPdfToImages, customPrompt]);
+  }, [file, convertPdfToImages, callAnalysis]);
 
-  // ─── Drop handlers ─────────────────────────────────────────
+  // ─── Step 2: Advanced analysis ──────────────────────
+  const analyzeAdvanced = useCallback(async () => {
+    if (pdfImages.length === 0) return;
+    setLoading(true);
+    setError(null);
+    setStep("advanced_loading");
+    try {
+      setProgress("Analyse avancée en cours…");
+      const result = await callAnalysis(pdfImages, "advanced");
+      setAdvancedData(result);
+      setStep("advanced_result");
+    } catch (e: any) {
+      setError(e.message || "Erreur inconnue");
+      setStep("simple_result");
+    } finally {
+      setLoading(false);
+      setProgress("");
+    }
+  }, [pdfImages, callAnalysis]);
+
+  // ─── Handle CTA click ──────────────────────────────
+  const handleAdvancedClick = useCallback(() => {
+    // TODO: Check if user is premium
+    // For now, directly launch advanced analysis (no paywall)
+    // In production: if (user.plan === 'free') setShowPaywall(true); else analyzeAdvanced();
+    analyzeAdvanced();
+  }, [analyzeAdvanced]);
+
+  // ─── Reset ──────────────────────────────────────────
+  const reset = useCallback(() => {
+    setStep("question");
+    setFile(null);
+    setSimpleData(null);
+    setAdvancedData(null);
+    setPdfImages([]);
+    setError(null);
+    setHasEquity("no");
+  }, []);
+
+  // ─── Drop handlers ─────────────────────────────────
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -203,913 +181,525 @@ export default function OcrFicheDePaie() {
     setIsDragging(true);
   }, []);
 
-  const copyJson = () => {
-    if (data) navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-  };
+  // ─── Get active data ───────────────────────────────
+  const activeData = advancedData || simpleData;
 
-  // ─── Render helpers ─────────────────────────────────────────
-  const AccordionSection = ({ id, title, borderColor, icon, children }: {
-    id: string; title: string; borderColor: string; icon: string; children: React.ReactNode;
-  }) => {
-    const isOpen = openSections[id] ?? false;
-    return (
-      <div style={{ borderLeft: `4px solid ${borderColor}`, borderRadius: 8, background: colors.cardBg, marginBottom: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-        <button onClick={() => toggleSection(id)} style={{
-          width: "100%", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between",
-          background: "none", border: "none", cursor: "pointer", fontFamily: font, fontSize: 15, fontWeight: 600, color: "#1e293b",
-        }}>
-          <span>{icon} {title}</span>
-          <span style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", fontSize: 12 }}>▼</span>
-        </button>
-        {isOpen && <div style={{ padding: "0 20px 20px" }}>{children}</div>}
-      </div>
-    );
-  };
-
-  const InfoTooltip = ({ id, text }: { id: string; text: string }) => (
-    <span style={{ position: "relative", display: "inline-block" }}>
-      <button onClick={() => setActiveTooltip(activeTooltip === id ? null : id)} style={{
-        background: "none", border: "1px solid " + colors.border, borderRadius: "50%", width: 22, height: 22,
-        cursor: "pointer", fontSize: 11, color: colors.primary, fontWeight: 700, lineHeight: "20px",
-      }}>ℹ</button>
-      {activeTooltip === id && (
-        <div style={{
-          position: "absolute", bottom: 30, left: "50%", transform: "translateX(-50%)", background: "#1e293b",
-          color: "#fff", padding: "10px 14px", borderRadius: 8, fontSize: 13, lineHeight: 1.5, width: 300,
-          zIndex: 100, boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-        }}>
-          {text}
-          <div style={{ position: "absolute", bottom: -6, left: "50%", transform: "translateX(-50%) rotate(45deg)", width: 12, height: 12, background: "#1e293b" }} />
-        </div>
-      )}
-    </span>
-  );
-
-  const StatCard = ({ label, value, color }: { label: string; value: string; color: string }) => (
-    <div style={{
-      background: color + "10", border: `1px solid ${color}30`, borderRadius: 10, padding: "14px 18px", flex: 1, minWidth: 160,
-    }}>
-      <div style={{ fontSize: 12, color: colors.slate, marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color }}>{value}</div>
-    </div>
-  );
-
-  const DataRow = ({ label, value, color = "#1e293b" }: { label: string; value: any; color?: string }) => {
-    if (value === null || value === undefined) return null;
-    return (
-      <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
-        <span style={{ color: colors.slate }}>{label}</span>
-        <span style={{ fontWeight: 500, color }}>{typeof value === "number" ? fmt(value) : String(value)}</span>
-      </div>
-    );
-  };
-
-  // Helper to safely get nested values
-  const safe = (obj: any, ...keys: string[]): any => {
-    let val = obj;
-    for (const k of keys) {
-      if (val == null) return null;
-      val = val[k];
-    }
-    return val;
-  };
-
-  // ─── Tab 1: Ma fiche de paie ───────────────────────────────
-  const renderDataTab = () => {
-    if (!data) return null;
-    const d = data;
-    const netPaye = safe(d, "net", "net_paye");
-    const brut = safe(d, "remuneration_brute", "total_brut");
-    const cotSal = safe(d, "cotisations_salariales", "total_cotisations_salariales");
-    const netAvantImpot = safe(d, "net", "net_avant_impot");
-    const basePas = safe(d, "net", "base_pas");
-    const pas = safe(d, "net", "montant_pas");
-    const tauxPas = safe(d, "net", "taux_pas_pct");
-
-    // Congés N-1 solde (new structure)
-    const congesN1Solde = safe(d, "conges_rtt", "conges_n_moins_1", "solde");
-
-    return (
-      <div>
-        {/* Banner */}
-        <div style={{
-          background: netPaye && netPaye > 3000 ? `linear-gradient(135deg, ${colors.green}, #059669)` : `linear-gradient(135deg, ${colors.primary}, #3b82f6)`,
-          color: "#fff", borderRadius: 12, padding: "20px 24px", marginBottom: 16, fontFamily: font,
-        }}>
-          <div style={{ fontSize: 14, opacity: 0.9 }}>
-            {d.periode?.mois && d.periode?.annee ? `${MONTHS[d.periode.mois] || ""} ${d.periode.annee}` : "Ce mois-ci"}
-          </div>
-          <div style={{ fontSize: 28, fontWeight: 800 }}>{fmt(netPaye)} nets</div>
-          {d.periode?.date_paiement && <div style={{ fontSize: 13, opacity: 0.8, marginTop: 4 }}>Versés le {d.periode.date_paiement}</div>}
-        </div>
-
-        {/* Alerts */}
-        {tauxPas === 0 && netAvantImpot > 3000 && (
-          <div style={{ background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "12px 16px", marginBottom: 12, fontSize: 13, color: "#92400e" }}>
-            ⚠️ Votre taux PAS est à 0% — vérifiez que c'est intentionnel
-          </div>
-        )}
-
-        {congesN1Solde != null && congesN1Solde > 5 && (
-          <div style={{ background: "#fef2f2", border: "1px solid #ef4444", borderRadius: 8, padding: "12px 16px", marginBottom: 12, fontSize: 13, color: "#991b1b" }}>
-            ⚠️ Vous avez {congesN1Solde} jours de congés N-1 à solder avant le 31 mai
-          </div>
-        )}
-
-        {/* Points d'attention */}
-        {Array.isArray(d.points_attention) && d.points_attention.length > 0 && (
-          <div style={{ marginBottom: 12 }}>
-            {d.points_attention.map((pt: any, i: number) => (
-              <div key={i} style={{ background: "#fef3c7", border: "1px solid #f59e0b", borderRadius: 8, padding: "10px 14px", marginBottom: 6, fontSize: 13, color: "#92400e", lineHeight: 1.6 }}>
-                {typeof pt === "string" ? pt : pt?.message || JSON.stringify(pt)}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Section 1 — Identité */}
-        <AccordionSection id="identity" title="Identité & employeur" borderColor={colors.primary} icon="👤">
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-            <div>
-              <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.primary, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Salarié</h4>
-              {[
-                ["Nom", `${d.salarie?.prenom || ""} ${d.salarie?.nom || ""}`],
-                ["Emploi", d.salarie?.emploi],
-                ["Statut", d.salarie?.statut],
-                ["Classification", d.salarie?.classification],
-                ["Convention", d.salarie?.convention_collective],
-                ["Entrée", d.salarie?.date_entree],
-                ["Ancienneté", d.salarie?.anciennete_annees ? `${d.salarie.anciennete_annees} ans` : null],
-                ["N° SS", d.salarie?.numero_securite_sociale],
-                ["Matricule", d.salarie?.matricule],
-              ].map(([label, val], i) => val ? (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
-                  <span style={{ color: colors.slate }}>{label}</span>
-                  <span style={{ fontWeight: 500 }}>{val}</span>
-                </div>
-              ) : null)}
-            </div>
-            <div>
-              <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.primary, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Employeur</h4>
-              {[
-                ["Raison sociale", d.employeur?.nom],
-                ["SIRET", d.employeur?.siret],
-                ["Code NAF", d.employeur?.code_naf],
-                ["URSSAF", d.employeur?.urssaf],
-                ["Adresse", d.employeur?.adresse],
-              ].map(([label, val], i) => val ? (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
-                  <span style={{ color: colors.slate }}>{label}</span>
-                  <span style={{ fontWeight: 500, textAlign: "right", maxWidth: 200 }}>{val}</span>
-                </div>
-              ) : null)}
-            </div>
-          </div>
-        </AccordionSection>
-
-        {/* Section 2 — Waterfall brut → net */}
-        <AccordionSection id="waterfall" title="Décomposition brut → net" borderColor={colors.violet} icon="📊">
-          <div style={{ background: "#faf5ff", borderRadius: 10, padding: 20 }}>
-            {[
-              { label: "SALAIRE BRUT", value: brut, color: colors.primary, sign: "" },
-              { label: "Cotisations salariales", value: cotSal, color: colors.orange, sign: "−" },
-            ].map((row, i) => (
-              <div key={i} style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px",
-                background: i % 2 === 0 ? "#fff" : "transparent", borderRadius: 6, marginBottom: 2,
-              }}>
-                <span style={{ fontSize: 14, color: "#64748b" }}>{row.label}</span>
-                <span style={{ fontSize: 16, fontWeight: 600, color: row.color }}>
-                  {row.sign} {fmt(row.value)}
-                </span>
-              </div>
-            ))}
-
-            <div style={{ borderTop: `2px dashed ${colors.violet}`, margin: "8px 0", padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: colors.violet }}>= NET AVANT IMPÔT</span>
-              <span style={{ fontSize: 16, fontWeight: 700, color: colors.violet }}>{fmt(netAvantImpot)}</span>
-            </div>
-
-            {basePas != null && basePas !== netAvantImpot && (
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 14px", fontSize: 13, color: colors.slate }}>
-                <span>Base PAS (net imposable)</span>
-                <span style={{ fontWeight: 600, color: colors.violet }}>{fmt(basePas)}</span>
-              </div>
-            )}
-
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px",
-              background: "#fff", borderRadius: 6, marginBottom: 2,
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 14, color: "#64748b" }}>Prélèvement à la source</span>
-                {tauxPas !== null && tauxPas !== undefined && (
-                  <span style={{ background: colors.violet + "20", color: colors.violet, fontSize: 11, padding: "2px 8px", borderRadius: 10, fontWeight: 600 }}>
-                    taux {fmtPct(tauxPas)}
-                  </span>
-                )}
-              </div>
-              <span style={{ fontSize: 16, fontWeight: 600, color: colors.violet }}>− {fmt(pas)}</span>
-            </div>
-
-            <div style={{ borderTop: `2px solid ${colors.green}`, margin: "8px 0" }} />
-
-            <div style={{
-              background: `linear-gradient(135deg, ${colors.green}15, ${colors.green}08)`, border: `2px solid ${colors.green}40`,
-              borderRadius: 10, padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center",
-            }}>
-              <span style={{ fontSize: 16, fontWeight: 700, color: colors.green }}>= NET PAYÉ</span>
-              <span style={{ fontSize: 24, fontWeight: 800, color: colors.green }}>{fmt(netPaye)}</span>
-            </div>
-          </div>
-        </AccordionSection>
-
-        {/* Section 3 — Cotisations */}
-        <AccordionSection id="cotisations" title="Détail des cotisations" borderColor={colors.orange} icon="📋">
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-            <div>
-              <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.orange, marginBottom: 8 }}>Cotisations salariales</h4>
-              {d.cotisations_salariales && Object.entries(d.cotisations_salariales)
-                .filter(([k, v]) => k !== "total_cotisations_salariales" && k !== "autres_cotisations_salariales" && v !== null && v !== 0)
-                .map(([key, val]) => (
-                  <div key={key} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
-                    <span style={{ color: colors.slate }}>{key.replace(/_/g, " ")}</span>
-                    <span style={{ fontWeight: 500 }}>{fmt(val as number)}</span>
-                  </div>
-                ))}
-              {/* Autres cotisations salariales (tableau) */}
-              {Array.isArray(d.cotisations_salariales?.autres_cotisations_salariales) && d.cotisations_salariales.autres_cotisations_salariales.length > 0 && (
-                <>
-                  {d.cotisations_salariales.autres_cotisations_salariales.map((item: any, i: number) => (
-                    <div key={`acs-${i}`} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
-                      <span style={{ color: colors.slate }}>{item.label || "Autre"}</span>
-                      <span style={{ fontWeight: 500 }}>{fmt(item.montant)}</span>
-                    </div>
-                  ))}
-                </>
-              )}
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontSize: 14, fontWeight: 700, color: colors.orange }}>
-                <span>Total</span><span>{fmt(d.cotisations_salariales?.total_cotisations_salariales)}</span>
-              </div>
-            </div>
-            <div>
-              <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.primary, marginBottom: 8 }}>Cotisations patronales</h4>
-              {d.cotisations_patronales && Object.entries(d.cotisations_patronales)
-                .filter(([k, v]) => k !== "total_cotisations_patronales" && k !== "autres_contributions_patronales" && v !== null && v !== 0)
-                .map(([key, val]) => (
-                  <div key={key} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
-                    <span style={{ color: colors.slate }}>{key.replace(/_/g, " ")}</span>
-                    <span style={{ fontWeight: 500 }}>{fmt(val as number)}</span>
-                  </div>
-                ))}
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontSize: 14, fontWeight: 700, color: colors.primary }}>
-                <span>Total</span><span>{fmt(d.cotisations_patronales?.total_cotisations_patronales)}</span>
-              </div>
-            </div>
-          </div>
-          {/* Coût employeur */}
-          {d.informations_complementaires?.cout_total_employeur && (
-            <div style={{ marginTop: 12, display: "flex", gap: 12, alignItems: "center", justifyContent: "center" }}>
-              <StatCard label="Coût employeur total" value={fmt(d.informations_complementaires.cout_total_employeur)} color={colors.primary} />
-            </div>
-          )}
-        </AccordionSection>
-
-        {/* Section 4 — Variables & primes */}
-        <AccordionSection id="variables" title="Éléments variables & primes" borderColor={colors.gold} icon="💰">
-          {(() => {
-            const items = [
-              ["Salaire de base", d.remuneration_brute?.salaire_base],
-              ["Heures supplémentaires", d.remuneration_brute?.heures_supplementaires],
-              ["Prime ancienneté", d.remuneration_brute?.prime_anciennete],
-              ["Prime objectifs", d.remuneration_brute?.prime_objectifs],
-              ["Prime exceptionnelle", d.remuneration_brute?.prime_exceptionnelle],
-              ["Avantages en nature", d.remuneration_brute?.avantages_en_nature],
-              ["Tickets restaurant (part patronale)", d.remuneration_brute?.tickets_restaurant_part_patronale],
-            ].filter(([, v]) => v !== null && v !== undefined && v !== 0);
-            const extras = d.remuneration_brute?.autres_elements_bruts || [];
-            if (items.length === 0 && extras.length === 0) {
-              return <div style={{ color: colors.slate, fontSize: 13, fontStyle: "italic" }}>Aucun élément variable ce mois-ci.</div>;
-            }
-            return (
-              <div>
-                {items.map(([label, val], i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
-                    <span style={{ color: colors.slate }}>{label as string}</span>
-                    <span style={{ fontWeight: 600, color: colors.gold }}>{fmt(val as number)}</span>
-                  </div>
-                ))}
-                {extras.map((item: any, i: number) => (
-                  <div key={`extra-${i}`} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
-                    <span style={{ color: colors.slate }}>{typeof item === "string" ? item : item.label || JSON.stringify(item)}</span>
-                    <span style={{ fontWeight: 600, color: colors.gold }}>{typeof item === "object" && item.montant ? fmt(item.montant) : ""}</span>
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
-        </AccordionSection>
-
-        {/* Section 5 — Épargne salariale */}
-        <AccordionSection id="epargne" title="Épargne salariale" borderColor={colors.green} icon="🏦">
-          {(() => {
-            const ep = d.epargne_salariale;
-            const items = [
-              ["Intéressement", ep?.interessement],
-              ["Participation", ep?.participation],
-              ["Versement PEE", ep?.pee_versement],
-              ["Versement PERCO", ep?.perco_versement],
-              ["Abondement employeur", ep?.abondement_employeur],
-            ].filter(([, v]) => v !== null && v !== undefined && v !== 0);
-            if (items.length === 0) {
-              return (
-                <div style={{ background: `${colors.green}08`, border: `1px dashed ${colors.green}40`, borderRadius: 8, padding: 16, fontSize: 13, color: colors.green }}>
-                  💡 Votre entreprise propose peut-être un PEE ou PERCO — renseignez-vous auprès des RH.
-                </div>
-              );
-            }
-            return items.map(([label, val], i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 13, borderBottom: `1px solid ${colors.border}` }}>
-                <span style={{ color: colors.slate }}>{label as string}</span>
-                <span style={{ fontWeight: 600, color: colors.green }}>{fmt(val as number)}</span>
-              </div>
-            ));
-          })()}
-        </AccordionSection>
-
-        {/* Section 6 — Rémunération Equity */}
-        {d.remuneration_equity && (
-          <AccordionSection id="equity" title="Rémunération Equity (actions / RSU / ESPP)" borderColor={colors.violet} icon="📈">
-            {/* Actions gratuites */}
-            {Array.isArray(d.remuneration_equity.actions_gratuites_acquises) && d.remuneration_equity.actions_gratuites_acquises.length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.violet, marginBottom: 8 }}>🎯 Actions gratuites acquises (vesting)</h4>
-                {d.remuneration_equity.actions_gratuites_acquises.map((ag: any, i: number) => (
-                  <div key={i} style={{ background: colors.violet + "08", border: `1px solid ${colors.violet}20`, borderRadius: 8, padding: 12, marginBottom: 6 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
-                      <span style={{ fontWeight: 600 }}>{ag.nb_actions} actions {ag.societe || ""}</span>
-                      <span style={{ fontWeight: 700, color: colors.violet }}>{fmt(ag.valeur_fiscale_totale)}</span>
-                    </div>
-                    {ag.prix_unitaire && (
-                      <div style={{ fontSize: 12, color: colors.slate }}>Prix unitaire : {fmt(ag.prix_unitaire)}</div>
-                    )}
-                    {ag.type_plan && (
-                      <div style={{
-                        display: "inline-block", marginTop: 4, padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600,
-                        background: ag.type_plan === "qualifie" ? "#dcfce7" : ag.type_plan === "non_qualifie" ? "#fef2f2" : "#fef9c3",
-                        color: ag.type_plan === "qualifie" ? "#166534" : ag.type_plan === "non_qualifie" ? "#991b1b" : "#854d0e",
-                      }}>
-                        {ag.type_plan === "qualifie" ? "✅ Plan qualifié" : ag.type_plan === "non_qualifie" ? "⚠️ Plan non qualifié" : "ℹ️ Type incertain (prob. qualifié)"}
-                        {ag.impact_pas_immediat === true && " — Impact PAS immédiat"}
-                        {ag.impact_pas_immediat === false && " — Pas d'impact PAS"}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* RSU */}
-            {d.remuneration_equity.rsu_restricted_stock_units?.gain_brut_total && (
-              <div style={{ marginBottom: 16 }}>
-                <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.violet, marginBottom: 8 }}>📊 RSU (Restricted Stock Units)</h4>
-                <div style={{ background: colors.violet + "08", border: `1px solid ${colors.violet}20`, borderRadius: 8, padding: 12 }}>
-                  {(() => {
-                    const rsu = d.remuneration_equity.rsu_restricted_stock_units;
-                    return (
-                      <>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: colors.violet, marginBottom: 8 }}>
-                          Variante : {rsu.variante || "indéterminée"}
-                        </div>
-                        <DataRow label="Gain brut total" value={rsu.gain_brut_total} color={colors.violet} />
-                        <DataRow label="Actions acquises" value={rsu.nb_actions_acquises} />
-                        <DataRow label="Actions vendues" value={rsu.nb_actions_vendues} />
-                        <DataRow label="Actions conservées" value={rsu.nb_actions_conservees} />
-                        <DataRow label="Valeur actions vendues" value={rsu.valeur_actions_vendues} />
-                        <DataRow label="Valeur actions conservées" value={rsu.valeur_actions_conservees} />
-                        <DataRow label="Reprise RSU" value={rsu.reprise_rsu_et_taxes} color={colors.red} />
-                        <DataRow label="Remboursement STC/broker" value={rsu.remboursement_stc_ou_broker} color={colors.green} />
-                        <DataRow label="Cotisations supp. estimées" value={rsu.cotisations_supplementaires_estimees} color={colors.orange} />
-                        <DataRow label="Impôt supp. estimé" value={rsu.impot_supplementaire_estime} color={colors.orange} />
-                        {rsu.mecanisme_description && (
-                          <div style={{ marginTop: 8, fontSize: 12, color: colors.slate, lineHeight: 1.6, fontStyle: "italic" }}>
-                            💡 {rsu.mecanisme_description}
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-            )}
-
-            {/* ESPP */}
-            {d.remuneration_equity.espp_employee_stock_purchase_plan?.contribution_mensuelle && (
-              <div style={{ marginBottom: 16 }}>
-                <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.teal, marginBottom: 8 }}>💳 ESPP (Plan d'achat d'actions)</h4>
-                <div style={{ background: colors.teal + "08", border: `1px solid ${colors.teal}20`, borderRadius: 8, padding: 12 }}>
-                  <DataRow label="Contribution mensuelle" value={d.remuneration_equity.espp_employee_stock_purchase_plan.contribution_mensuelle} color={colors.teal} />
-                  {d.remuneration_equity.espp_employee_stock_purchase_plan.periode && (
-                    <DataRow label="Période" value={d.remuneration_equity.espp_employee_stock_purchase_plan.periode} />
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Avantages en nature compensés */}
-            {d.remuneration_equity.avantages_nature_compenses?.total_brut && (
-              <div>
-                <h4 style={{ fontSize: 13, fontWeight: 700, color: colors.gold, marginBottom: 8 }}>🍽️ Avantages en nature compensés</h4>
-                <div style={{ background: colors.gold + "08", border: `1px solid ${colors.gold}20`, borderRadius: 8, padding: 12 }}>
-                  <DataRow label="Avantage en nature (BIK)" value={d.remuneration_equity.avantages_nature_compenses.food_bik_benefit_in_kind} color={colors.gold} />
-                  <DataRow label="Compensation gross-up" value={d.remuneration_equity.avantages_nature_compenses.gross_up_compensation} color={colors.gold} />
-                  <DataRow label="Total brut" value={d.remuneration_equity.avantages_nature_compenses.total_brut} color={colors.gold} />
-                </div>
-              </div>
-            )}
-          </AccordionSection>
-        )}
-
-        {/* Section 7 — Congés & RTT */}
-        <AccordionSection id="conges" title="Congés & RTT" borderColor={colors.teal} icon="🏖️">
-          {(() => {
-            const c = d.conges_rtt;
-            if (!c) return <div style={{ color: colors.slate, fontSize: 13, fontStyle: "italic" }}>Aucune donnée de congés détectée.</div>;
-
-            const renderCongesBlock = (label: string, block: any, max: number) => {
-              if (!block) return null;
-              const solde = block.solde;
-              if (solde == null) return null;
-              return (
-                <div style={{ marginBottom: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
-                    <span style={{ color: colors.slate }}>{label}</span>
-                    <span style={{ fontWeight: 600, color: colors.teal }}>{solde} jours</span>
-                  </div>
-                  {block.acquis != null && (
-                    <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>
-                      Acquis : {block.acquis} | Pris : {block.pris ?? 0}
-                    </div>
-                  )}
-                  <div style={{ background: colors.border, borderRadius: 4, height: 6, overflow: "hidden" }}>
-                    <div style={{ width: `${Math.min((solde / max) * 100, 100)}%`, height: "100%", background: colors.teal, borderRadius: 4, transition: "width 0.5s" }} />
-                  </div>
-                </div>
-              );
-            };
-
-            return (
-              <div>
-                {renderCongesBlock("Congés payés N-1", c.conges_n_moins_1, 25)}
-                {renderCongesBlock("Congés payés N", c.conges_n, 25)}
-                {renderCongesBlock("RTT", c.rtt, 12)}
-                {c.conges_pris_mois != null && c.conges_pris_mois > 0 && (
-                  <div style={{ marginTop: 8, fontSize: 13, color: colors.teal }}>
-                    📅 {c.conges_pris_mois} jour(s) de congés pris ce mois-ci
-                  </div>
-                )}
-                {c.rtt_pris_mois != null && c.rtt_pris_mois > 0 && (
-                  <div style={{ fontSize: 13, color: colors.teal }}>
-                    📅 {c.rtt_pris_mois} jour(s) de RTT pris ce mois-ci
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-        </AccordionSection>
-
-        {/* Section 8 — Cas particuliers */}
-        {d.cas_particuliers_mois && (
-          <AccordionSection id="casParticuliers" title="Cas particuliers du mois" borderColor={colors.red} icon="⚡">
-            {(() => {
-              const cas = d.cas_particuliers_mois;
-              const detected: { label: string; expl: string }[] = [];
-              
-              const checks = [
-                { key: "taux_pas_zero", label: "Taux PAS à 0%" },
-                { key: "credit_impot", label: "Crédit d'impôt" },
-                { key: "conge_paternite", label: "Congé paternité" },
-                { key: "absence_longue_duree", label: "Absence longue durée" },
-                { key: "conges_pris", label: "Congés pris" },
-                { key: "prime_exceptionnelle", label: "Prime exceptionnelle" },
-                { key: "entree_ou_sortie_mois", label: "Entrée/Sortie en cours de mois" },
-                { key: "changement_taux_pas", label: "Changement taux PAS" },
-                { key: "actions_gratuites_vesting", label: "Vesting actions gratuites" },
-                { key: "rsu_massif", label: "RSU massif" },
-              ];
-
-              for (const check of checks) {
-                const val = cas[check.key];
-                if (val?.detecte) {
-                  detected.push({ label: check.label, expl: val.explication || "" });
-                }
-              }
-
-              if (detected.length === 0) {
-                return <div style={{ color: colors.slate, fontSize: 13, fontStyle: "italic" }}>Aucun cas particulier détecté ce mois-ci. ✅</div>;
-              }
-
-              return detected.map((item, i) => (
-                <div key={i} style={{ background: colors.red + "08", border: `1px solid ${colors.red}20`, borderRadius: 8, padding: 12, marginBottom: 8 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: colors.red, marginBottom: 4 }}>⚡ {item.label}</div>
-                  {item.expl && <div style={{ fontSize: 13, color: colors.slate, lineHeight: 1.6 }}>{item.expl}</div>}
-                </div>
-              ));
-            })()}
-          </AccordionSection>
-        )}
-
-        {/* Section 9 — Cumuls annuels */}
-        <AccordionSection id="cumuls" title="Cumuls annuels" borderColor={colors.slate} icon="📅">
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-            <StatCard label="Brut cumulé" value={fmt(d.cumuls_annuels?.brut_cumule)} color={colors.primary} />
-            <StatCard label="Net imposable cumulé" value={fmt(d.cumuls_annuels?.net_imposable_cumule)} color={colors.violet} />
-            <StatCard label="PAS cumulé" value={fmt(d.cumuls_annuels?.pas_cumule)} color={colors.orange} />
-          </div>
-        </AccordionSection>
-
-        {/* Section 10 — Informations complémentaires */}
-        {d.informations_complementaires && (
-          <AccordionSection id="infos" title="Informations complémentaires" borderColor={colors.slate} icon="ℹ️">
-            <DataRow label="Plafond SS mensuel" value={d.informations_complementaires.plafond_securite_sociale_mensuel} />
-            <DataRow label="Plafond SS annuel" value={d.informations_complementaires.plafond_securite_sociale_annuel} />
-            <DataRow label="Coût total employeur" value={d.informations_complementaires.cout_total_employeur} color={colors.primary} />
-            <DataRow label="Allègements cotisations" value={d.informations_complementaires.allegements_cotisations} />
-          </AccordionSection>
-        )}
-
-        {/* Conseils d'optimisation */}
-        {Array.isArray(d.conseils_optimisation) && d.conseils_optimisation.length > 0 && (
-          <div style={{ marginTop: 8 }}>
-            {d.conseils_optimisation.map((conseil: any, i: number) => (
-              <div key={i} style={{ background: "#ecfdf5", border: "1px solid #10b981", borderRadius: 8, padding: "10px 14px", marginBottom: 6, fontSize: 13, color: "#065f46", lineHeight: 1.6 }}>
-                {typeof conseil === "string" ? conseil : conseil?.message || JSON.stringify(conseil)}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Disclaimer */}
-        <div style={{ fontSize: 11, color: "#94a3b8", textAlign: "center", padding: "16px 0", lineHeight: 1.5, fontStyle: "italic" }}>
-          Ces informations sont extraites automatiquement. MyFinCare n'est pas un éditeur de logiciel de paie — en cas de doute, contactez votre service RH.
-        </div>
-      </div>
-    );
-  };
-
-  // ─── Tab 2: Comprendre ma paie (Progressive Disclosure) ────
-  const renderExplainTab = () => {
-    if (!data) return null;
-    return <PayslipProgressiveView data={data} />;
-  };
-
-  // ─── Tab 3: Données brutes ─────────────────────────────────
-  const renderRawTab = () => {
-    if (!data) return null;
-
-    const renderValue = (val: any): string => {
-      if (val === null || val === undefined) return "—";
-      if (typeof val === "number") return val.toLocaleString("fr-FR");
-      if (typeof val === "boolean") return val ? "✅ Oui" : "❌ Non";
-      if (typeof val === "string") return val || "—";
-      if (Array.isArray(val)) return val.length === 0 ? "(vide)" : JSON.stringify(val, null, 2);
-      if (typeof val === "object") return JSON.stringify(val, null, 2);
-      return String(val);
-    };
-
-    const renderSection = (sectionKey: string, sectionData: any, title: string, color: string) => {
-      if (!sectionData || typeof sectionData !== "object") return null;
-      const entries = Object.entries(sectionData);
-      if (entries.length === 0) return null;
-
-      return (
-        <div key={sectionKey} style={{ background: colors.cardBg, borderRadius: 10, marginBottom: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-          <div style={{ background: color + "12", borderBottom: `2px solid ${color}30`, padding: "10px 16px" }}>
-            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color }}>{title}</h3>
-          </div>
-          <div style={{ padding: "4px 0" }}>
-            {entries.map(([key, val]) => {
-              if (val && typeof val === "object" && !Array.isArray(val)) {
-                return (
-                  <div key={key} style={{ padding: "6px 16px" }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: colors.slate, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                      {key.replace(/_/g, " ")}
-                    </div>
-                    {Object.entries(val).map(([subKey, subVal]) => (
-                      <div key={subKey} style={{
-                        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-                        padding: "4px 0 4px 12px", fontSize: 12, borderBottom: `1px solid ${colors.border}`,
-                      }}>
-                        <span style={{ color: colors.slate, minWidth: 180 }}>{subKey.replace(/_/g, " ")}</span>
-                        <span style={{ fontWeight: 500, textAlign: "right", wordBreak: "break-word", maxWidth: "60%" }}>
-                          {renderValue(subVal)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                );
-              }
-
-              if (Array.isArray(val)) {
-                return (
-                  <div key={key} style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-                    padding: "6px 16px", fontSize: 13, borderBottom: `1px solid ${colors.border}`,
-                  }}>
-                    <span style={{ color: colors.slate }}>{key.replace(/_/g, " ")}</span>
-                    <span style={{ fontWeight: 500, textAlign: "right", maxWidth: "60%" }}>
-                      {val.length === 0 ? <span style={{ color: "#94a3b8", fontStyle: "italic" }}>(vide)</span> : (
-                        <pre style={{ margin: 0, fontSize: 11, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>
-                          {JSON.stringify(val, null, 2)}
-                        </pre>
-                      )}
-                    </span>
-                  </div>
-                );
-              }
-
-              return (
-                <div key={key} style={{
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                  padding: "6px 16px", fontSize: 13, borderBottom: `1px solid ${colors.border}`,
-                }}>
-                  <span style={{ color: colors.slate }}>{key.replace(/_/g, " ")}</span>
-                  <span style={{ fontWeight: 500, color: val === null || val === undefined ? "#94a3b8" : "#1e293b" }}>
-                    {renderValue(val)}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
-    };
-
-    // Build sections dynamically from actual data keys
-    const sectionConfig: [string, string, string][] = [
-      ["salarie", "👤 Salarié", colors.primary],
-      ["employeur", "🏢 Employeur", colors.primary],
-      ["periode", "📅 Période", colors.slate],
-      ["remuneration_brute", "💶 Rémunération brute", colors.green],
-      ["cotisations_salariales", "📋 Cotisations salariales", colors.orange],
-      ["cotisations_patronales", "📋 Cotisations patronales", colors.primary],
-      ["net", "💰 Net", colors.green],
-      ["conges_rtt", "🏖️ Congés & RTT", colors.teal],
-      ["epargne_salariale", "🏦 Épargne salariale", colors.green],
-      ["remuneration_equity", "📈 Rémunération Equity", colors.violet],
-      ["explications_pedagogiques", "💡 Explications pédagogiques", colors.violet],
-      ["points_attention", "⚠️ Points d'attention", colors.gold],
-      ["conseils_optimisation", "💡 Conseils d'optimisation", colors.green],
-      ["cas_particuliers_mois", "⚡ Cas particuliers du mois", colors.red],
-      ["cumuls_annuels", "📊 Cumuls annuels", colors.slate],
-      ["informations_complementaires", "ℹ️ Informations complémentaires", colors.slate],
-    ];
-
-    return (
-      <div>
-        <div style={{ fontSize: 13, color: colors.slate, marginBottom: 12, fontStyle: "italic" }}>
-          Toutes les données extraites par l'IA, champ par champ.
-        </div>
-        {sectionConfig.map(([key, title, color]) => {
-          const val = (data as any)[key];
-          if (!val) return null;
-          // Arrays at root level
-          if (Array.isArray(val)) {
-            if (val.length === 0) return null;
-            return (
-              <div key={key} style={{ background: colors.cardBg, borderRadius: 10, marginBottom: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                <div style={{ background: color + "12", borderBottom: `2px solid ${color}30`, padding: "10px 16px" }}>
-                  <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color }}>{title}</h3>
-                </div>
-                <div style={{ padding: 16 }}>
-                  {val.map((item: any, i: number) => (
-                    <div key={i} style={{ background: "#f8fafc", borderRadius: 6, padding: "8px 12px", marginBottom: 4, fontSize: 13, lineHeight: 1.6 }}>
-                      {typeof item === "string" ? item : <pre style={{ margin: 0, fontSize: 11, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{JSON.stringify(item, null, 2)}</pre>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          }
-          return renderSection(key, val, title, color);
-        })}
-
-        {/* Usage / meta */}
-        {data._usage && renderSection("_usage", data._usage, "📊 Consommation API", colors.slate)}
-      </div>
-    );
-  };
-
-  // ─── Main render ────────────────────────────────────────────
   return (
-    <div style={{ fontFamily: font, background: colors.bg, minHeight: "100vh", padding: "24px 16px" }}>
-      <div style={{ maxWidth: 800, margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: "#1e293b", marginBottom: 6 }}>
+    <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* ═══════════════════════════════════════════ */}
+        {/* HEADER */}
+        {/* ═══════════════════════════════════════════ */}
+        <div className="text-center">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-foreground">
             📄 Analyseur de bulletin de paie
           </h1>
-          <p style={{ fontSize: 14, color: colors.slate }}>
-            Importez votre fiche de paie (PDF) et comprenez chaque ligne en langage clair
+          <p className="text-sm text-muted-foreground mt-1">
+            Importez votre fiche de paie et obtenez une analyse claire en quelques secondes
           </p>
         </div>
 
-        {/* Upload zone */}
-        {!data && (
-          <div
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            onDragLeave={() => setIsDragging(false)}
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              border: `2px dashed ${isDragging ? colors.primary : colors.border}`,
-              borderRadius: 12, padding: "48px 24px", textAlign: "center", cursor: "pointer",
-              background: isDragging ? colors.primary + "08" : colors.cardBg,
-              transition: "all 0.2s", marginBottom: 16,
-            }}
-          >
-            <input ref={fileInputRef} type="file" accept=".pdf" style={{ display: "none" }}
-              onChange={(e) => { if (e.target.files?.[0]) setFile(e.target.files[0]); }} />
-            <div style={{ fontSize: 40, marginBottom: 12 }}>📎</div>
-            {file ? (
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "#1e293b" }}>{file.name}</div>
-                <div style={{ fontSize: 12, color: colors.slate, marginTop: 4 }}>{(file.size / 1024).toFixed(0)} Ko</div>
-              </div>
-            ) : (
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "#1e293b" }}>Glissez votre bulletin de paie ici</div>
-                <div style={{ fontSize: 13, color: colors.slate, marginTop: 4 }}>ou cliquez pour sélectionner un PDF</div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Workflow & Prompt panels */}
-        {!data && (
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-              <button onClick={() => setShowWorkflow(!showWorkflow)} style={{
-                padding: "8px 14px", background: showWorkflow ? colors.primary + "12" : colors.cardBg,
-                border: `1px solid ${showWorkflow ? colors.primary + "40" : colors.border}`, borderRadius: 8,
-                fontSize: 13, cursor: "pointer", color: showWorkflow ? colors.primary : colors.slate, fontWeight: 600,
-              }}>⚙️ Workflow & config</button>
-              <button onClick={() => setShowPrompt(!showPrompt)} style={{
-                padding: "8px 14px", background: showPrompt ? colors.violet + "12" : colors.cardBg,
-                border: `1px solid ${showPrompt ? colors.violet + "40" : colors.border}`, borderRadius: 8,
-                fontSize: 13, cursor: "pointer", color: showPrompt ? colors.violet : colors.slate, fontWeight: 600,
-              }}>📝 Prompt système</button>
-            </div>
-
-            {showWorkflow && (
-              <div style={{ background: colors.cardBg, border: `1px solid ${colors.border}`, borderRadius: 10, padding: 16, marginBottom: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                <h3 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 700, color: "#1e293b" }}>⚙️ Configuration du workflow OCR</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  {[
-                    ["Modèle IA", WORKFLOW_CONFIG.model],
-                    ["Max tokens", WORKFLOW_CONFIG.max_tokens.toLocaleString("fr-FR")],
-                    ["API endpoint", WORKFLOW_CONFIG.api_endpoint],
-                    ["API version", WORKFLOW_CONFIG.anthropic_version],
-                    ["Edge Function", WORKFLOW_CONFIG.edge_function],
-                    ["Échelle PDF", `×${WORKFLOW_CONFIG.pdf_scale}`],
-                    ["Format images", WORKFLOW_CONFIG.image_format],
-                    ["Pages max", String(WORKFLOW_CONFIG.max_pages)],
-                    ["Récupération JSON", WORKFLOW_CONFIG.json_recovery ? "✅ Activée" : "❌ Désactivée"],
-                    ["Coût input", `$${WORKFLOW_CONFIG.cost_input_per_mtok}/MTok`],
-                    ["Coût output", `$${WORKFLOW_CONFIG.cost_output_per_mtok}/MTok`],
-                  ].map(([label, value], i) => (
-                    <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 10px", fontSize: 12, background: i % 2 === 0 ? "#f8fafc" : "transparent", borderRadius: 4 }}>
-                      <span style={{ color: colors.slate, fontWeight: 600 }}>{label}</span>
-                      <span style={{ fontFamily: "monospace", fontSize: 11, color: "#1e293b", textAlign: "right", maxWidth: "60%", wordBreak: "break-all" }}>{value}</span>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ marginTop: 12, padding: 10, background: "#eff6ff", borderRadius: 6, fontSize: 11, color: colors.primary, lineHeight: 1.6 }}>
-                  <strong>Pipeline :</strong> PDF → pdf.js v3.11.174 (CDN isolé) → Canvas (scale {WORKFLOW_CONFIG.pdf_scale}) → JPEG {WORKFLOW_CONFIG.image_format.split(" ")[1]} → base64 → Edge Function → Anthropic API ({WORKFLOW_CONFIG.model}) → JSON → Parsing + récupération auto si tronqué → Affichage 3 onglets
-                </div>
-              </div>
-            )}
-
-            {showPrompt && (
-              <div style={{ background: colors.cardBg, border: `1px solid ${colors.border}`, borderRadius: 10, padding: 16, marginBottom: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                  <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#1e293b" }}>📝 Prompt système (envoyé à Claude)</h3>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {customPrompt.trim() && (
-                      <span style={{ background: colors.violet + "15", color: colors.violet, padding: "3px 10px", borderRadius: 10, fontSize: 11, fontWeight: 600 }}>
-                        ✏️ Modifié
-                      </span>
-                    )}
-                    <button onClick={() => setCustomPrompt("")} style={{
-                      padding: "4px 10px", background: "transparent", border: `1px solid ${colors.border}`, borderRadius: 6,
-                      fontSize: 11, cursor: "pointer", color: colors.slate,
-                    }}>🔄 Réinitialiser</button>
-                  </div>
-                </div>
-                <div style={{ fontSize: 11, color: colors.slate, marginBottom: 8, lineHeight: 1.5 }}>
-                  ⚠️ Si vous modifiez le prompt ci-dessous, votre version personnalisée sera envoyée à la place du prompt par défaut côté serveur.
-                </div>
-                <textarea
-                  value={customPrompt}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="Laissez vide pour utiliser le prompt par défaut du serveur. Collez ici un prompt personnalisé pour le tester..."
-                  style={{
-                    width: "100%", minHeight: 300, padding: 12, border: `1px solid ${colors.border}`, borderRadius: 8,
-                    fontFamily: "'JetBrains Mono', 'Fira Code', monospace", fontSize: 12, lineHeight: 1.6,
-                    resize: "vertical", color: "#1e293b", background: "#fafbfc",
-                  }}
-                />
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, fontSize: 11, color: "#94a3b8" }}>
-                  <span>{customPrompt.length > 0 ? `${customPrompt.length} caractères` : "Prompt par défaut du serveur"}</span>
-                  <button onClick={() => {
-                    navigator.clipboard.writeText(customPrompt || DEFAULT_PROMPT);
-                  }} style={{
-                    padding: "4px 10px", background: "transparent", border: `1px solid ${colors.border}`, borderRadius: 6,
-                    fontSize: 11, cursor: "pointer", color: colors.slate,
-                  }}>📋 Copier</button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Analyze button */}
-        {file && !data && !loading && (
-          <button onClick={analyze} style={{
-            width: "100%", padding: "14px", background: `linear-gradient(135deg, ${colors.primary}, ${colors.violet})`,
-            color: "#fff", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", marginBottom: 16,
-          }}>
-            🔍 Analyser mon bulletin de paie {customPrompt.trim() ? "(prompt personnalisé)" : ""}
-          </button>
-        )}
-
-        {/* Loading */}
-        {loading && (
-          <div style={{ textAlign: "center", padding: "40px 0" }}>
-            <div style={{
-              width: 40, height: 40, border: `3px solid ${colors.border}`, borderTopColor: colors.primary,
-              borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 16px",
-            }} />
-            <div style={{ fontSize: 14, color: colors.primary, fontWeight: 600 }}>{progress}</div>
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          </div>
-        )}
-
-        {/* Error */}
-        {error && (
-          <div style={{ background: "#fef2f2", border: "1px solid #ef4444", borderRadius: 8, padding: 16, marginBottom: 16 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: colors.red }}>❌ Erreur</div>
-            <div style={{ fontSize: 13, color: "#991b1b", marginTop: 4 }}>{error}</div>
-            <button onClick={() => { setError(null); setFile(null); }} style={{
-              marginTop: 8, padding: "6px 14px", background: colors.red, color: "#fff", border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer",
-            }}>Réessayer</button>
-          </div>
-        )}
-
-        {/* Results */}
-        {data && (
+        {/* ═══════════════════════════════════════════ */}
+        {/* ÉTAPE 1: QUESTION + UPLOAD */}
+        {/* ═══════════════════════════════════════════ */}
+        {step === "question" && (
           <>
-            <div style={{ display: "flex", gap: 4, marginBottom: 16, background: colors.border, borderRadius: 10, padding: 4 }}>
-              {[
-                { key: "data" as const, label: "📋 Ma fiche de paie" },
-                { key: "explain" as const, label: "💡 Comprendre ma paie" },
-                { key: "raw" as const, label: "🗂️ Données brutes" },
-              ].map(tab => (
-                <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
-                  flex: 1, padding: "10px 16px", border: "none", borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: "pointer",
-                  background: activeTab === tab.key ? colors.cardBg : "transparent",
-                  color: activeTab === tab.key ? "#1e293b" : colors.slate,
-                  boxShadow: activeTab === tab.key ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-                  transition: "all 0.2s",
-                }}>{tab.label}</button>
-              ))}
+            {/* Equity Question */}
+            <Card className="p-5">
+              <div className="flex items-start gap-3 mb-4">
+                <span className="text-xl">💼</span>
+                <div>
+                  <h2 className="text-sm font-bold text-foreground">
+                    Recevez-vous des actions ou stock-options ?
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    RSU, actions gratuites, ESPP, BSPCE — proposés par certaines entreprises tech et multinationales
+                  </p>
+                </div>
+              </div>
+
+              <RadioGroup
+                value={hasEquity}
+                onValueChange={setHasEquity}
+                className="flex gap-4"
+              >
+                <label
+                  className={`flex-1 flex items-center gap-3 rounded-lg border-2 p-3 cursor-pointer transition-colors ${
+                    hasEquity === "no"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-muted-foreground/40"
+                  }`}
+                >
+                  <RadioGroupItem value="no" />
+                  <span className="text-sm font-medium">Non</span>
+                </label>
+                <label
+                  className={`flex-1 flex items-center gap-3 rounded-lg border-2 p-3 cursor-pointer transition-colors ${
+                    hasEquity === "yes"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-muted-foreground/40"
+                  }`}
+                >
+                  <RadioGroupItem value="yes" />
+                  <div>
+                    <span className="text-sm font-medium">Oui</span>
+                    <span className="text-xs text-muted-foreground ml-1">(RSU, AGA, ESPP…)</span>
+                  </div>
+                </label>
+              </RadioGroup>
+
+              <div className="flex items-start gap-2 mt-3 text-xs text-muted-foreground bg-muted/30 rounded-lg p-2.5">
+                <Info className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+                <span>
+                  Les RSU, actions gratuites et ESPP sont des rémunérations en actions. Si vous n'êtes pas sûr, sélectionnez "Non".
+                </span>
+              </div>
+            </Card>
+
+            {/* Upload Zone */}
+            <div
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              onDragLeave={() => setIsDragging(false)}
+              onClick={() => fileInputRef.current?.click()}
+              className={`rounded-xl border-2 border-dashed p-8 text-center cursor-pointer transition-all ${
+                isDragging
+                  ? "border-primary bg-primary/5"
+                  : file
+                  ? "border-green-500 bg-green-50/50 dark:bg-green-950/20"
+                  : "border-border hover:border-muted-foreground/50 bg-card"
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={(e) => { if (e.target.files?.[0]) setFile(e.target.files[0]); }}
+              />
+              {file ? (
+                <div className="space-y-1">
+                  <FileText className="h-8 w-8 mx-auto text-green-600 dark:text-green-400" />
+                  <div className="text-sm font-semibold text-foreground">{file.name}</div>
+                  <div className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(0)} Ko</div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
+                  <div className="text-sm font-semibold text-foreground">Glissez votre bulletin de paie ici</div>
+                  <div className="text-xs text-muted-foreground">ou cliquez pour sélectionner un PDF</div>
+                </div>
+              )}
             </div>
 
-            {activeTab === "data" ? renderDataTab() : activeTab === "explain" ? renderExplainTab() : renderRawTab()}
-
-            {/* Usage info */}
-            {data._usage && (
-              <div style={{ marginTop: 12, background: colors.cardBg, border: `1px solid ${colors.border}`, borderRadius: 8, padding: "10px 16px", display: "flex", gap: 16, fontSize: 12, color: colors.slate, flexWrap: "wrap" }}>
-                <span>🤖 {data._usage.model}</span>
-                <span>📥 {data._usage.input_tokens?.toLocaleString()} tokens in</span>
-                <span>📤 {data._usage.output_tokens?.toLocaleString()} tokens out</span>
-                <span>💰 ${data._usage.cost_total_usd}</span>
-              </div>
+            {/* Analyze Button */}
+            {file && (
+              <Button
+                onClick={analyzeSimple}
+                className="w-full py-5 text-base font-bold"
+                size="lg"
+              >
+                🔍 Analyser mon bulletin de paie
+              </Button>
             )}
 
-            <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
-              <button onClick={copyJson} style={{
-                padding: "8px 16px", background: colors.cardBg, border: `1px solid ${colors.border}`, borderRadius: 8,
-                fontSize: 13, cursor: "pointer", color: colors.slate,
-              }}>📋 Copier le JSON</button>
-              <button onClick={() => { setData(null); setFile(null); }} style={{
-                padding: "8px 16px", background: colors.cardBg, border: `1px solid ${colors.border}`, borderRadius: 8,
-                fontSize: 13, cursor: "pointer", color: colors.slate,
-              }}>🔄 Nouvelle analyse</button>
-            </div>
+            {/* Error */}
+            {error && (
+              <Card className="p-4 border-destructive bg-destructive/5">
+                <div className="text-sm font-semibold text-destructive">❌ Erreur</div>
+                <p className="text-sm text-destructive/80 mt-1">{error}</p>
+                <Button variant="destructive" size="sm" className="mt-2" onClick={() => setError(null)}>
+                  Réessayer
+                </Button>
+              </Card>
+            )}
           </>
         )}
+
+        {/* ═══════════════════════════════════════════ */}
+        {/* LOADING STATE */}
+        {/* ═══════════════════════════════════════════ */}
+        {(step === "uploading" || step === "advanced_loading") && (
+          <Card className="p-12 text-center">
+            <div className="w-10 h-10 border-3 border-muted border-t-primary rounded-full animate-spin mx-auto mb-4" />
+            <div className="text-sm font-semibold text-primary">{progress}</div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {step === "advanced_loading"
+                ? "Analyse détaillée en cours… (~15 secondes)"
+                : "Extraction des données essentielles…"
+              }
+            </p>
+          </Card>
+        )}
+
+        {/* ═══════════════════════════════════════════ */}
+        {/* RÉSULTAT SIMPLE (1.5 écrans max) */}
+        {/* ═══════════════════════════════════════════ */}
+        {step === "simple_result" && simpleData && (
+          <SimpleResultView
+            data={simpleData}
+            hasEquity={hasEquity === "yes"}
+            onAdvancedClick={handleAdvancedClick}
+            onModalOpen={setModalOpen}
+            onReset={reset}
+          />
+        )}
+
+        {/* ═══════════════════════════════════════════ */}
+        {/* RÉSULTAT AVANCÉ (accordéons) */}
+        {/* ═══════════════════════════════════════════ */}
+        {step === "advanced_result" && advancedData && (
+          <>
+            {/* Simple view header stays visible */}
+            <SimpleResultView
+              data={simpleData || advancedData}
+              hasEquity={hasEquity === "yes"}
+              onAdvancedClick={null}
+              onModalOpen={setModalOpen}
+              onReset={reset}
+            />
+
+            {/* Full detailed view */}
+            <Card className="p-1">
+              <div className="p-3 border-b flex items-center justify-between">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Analyse avancée
+                  <Badge variant="secondary" className="text-xs">Premium</Badge>
+                </h3>
+              </div>
+              <div className="p-2">
+                <PayslipProgressiveView data={advancedData} />
+              </div>
+            </Card>
+
+            {/* Raw data button */}
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="outline" size="sm" onClick={() => setShowRawData(true)}>
+                🗂️ Données brutes
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(JSON.stringify(advancedData, null, 2))}>
+                📋 Copier JSON
+              </Button>
+              <Button variant="outline" size="sm" onClick={reset}>
+                🔄 Nouvelle analyse
+              </Button>
+            </div>
+
+            {/* Usage */}
+            {advancedData._usage && (
+              <div className="flex gap-3 flex-wrap text-xs text-muted-foreground bg-card rounded-lg border p-3">
+                <span>🤖 {advancedData._usage.model}</span>
+                <span>📥 {advancedData._usage.input_tokens?.toLocaleString()} in</span>
+                <span>📤 {advancedData._usage.output_tokens?.toLocaleString()} out</span>
+                <span>💰 ${advancedData._usage.cost_total_usd}</span>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ═══════════════════════════════════════════ */}
+        {/* PAYWALL MODAL */}
+        {/* ═══════════════════════════════════════════ */}
+        <Dialog open={showPaywall} onOpenChange={setShowPaywall}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                Analyse avancée — Réservée Premium
+              </DialogTitle>
+              <DialogDescription>
+                L'analyse simple t'a montré l'essentiel. Avec Premium, tu obtiens beaucoup plus.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-2">
+              {[
+                "Décomposition détaillée brut → net",
+                "Explications de chaque cotisation",
+                "Optimisation fiscale personnalisée",
+                hasEquity === "yes" && "Stratégie RSU/actions gratuites",
+                "Conseils patrimoniaux sur-mesure",
+                "Analyse illimitée de toutes tes fiches",
+              ].filter(Boolean).map((item, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm">
+                  <span className="text-green-500">✅</span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+            <div className="text-center py-4">
+              <div className="text-3xl font-extrabold text-foreground">9,90€<span className="text-base font-normal text-muted-foreground">/mois</span></div>
+              <p className="text-xs text-muted-foreground mt-1">Satisfait ou remboursé 30 jours</p>
+            </div>
+            <Button className="w-full" size="lg" onClick={() => { setShowPaywall(false); /* TODO: navigate to upgrade */ }}>
+              🚀 Passer à Premium
+            </Button>
+            <Button variant="ghost" className="w-full" onClick={() => setShowPaywall(false)}>
+              ← Retour
+            </Button>
+          </DialogContent>
+        </Dialog>
+
+        {/* ═══════════════════════════════════════════ */}
+        {/* RAW DATA MODAL */}
+        {/* ═══════════════════════════════════════════ */}
+        <Dialog open={showRawData} onOpenChange={setShowRawData}>
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>🗂️ Données brutes</DialogTitle>
+              <DialogDescription>JSON complet de l'analyse</DialogDescription>
+            </DialogHeader>
+            <pre className="text-xs bg-muted rounded-lg p-4 overflow-x-auto whitespace-pre-wrap font-mono">
+              {JSON.stringify(activeData, null, 2)}
+            </pre>
+          </DialogContent>
+        </Dialog>
+
+        {/* Detail Modals */}
+        <PayslipDetailModal
+          open={!!modalOpen}
+          onClose={() => setModalOpen(null)}
+          modalType={modalOpen}
+          data={activeData}
+        />
       </div>
     </div>
   );
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIMPLE RESULT VIEW — The ultra-simplified 1.5-screen view
+// ═══════════════════════════════════════════════════════════
+function SimpleResultView({
+  data,
+  hasEquity,
+  onAdvancedClick,
+  onModalOpen,
+  onReset,
+}: {
+  data: any;
+  hasEquity: boolean;
+  onAdvancedClick: (() => void) | null;
+  onModalOpen: (id: string) => void;
+  onReset: () => void;
+}) {
+  const netPaye = safe(data, "net", "net_paye");
+  const brut = safe(data, "remuneration_brute", "total_brut");
+  const monthLabel = getMonthLabel(data?.periode?.mois, data?.periode?.annee);
+
+  // Get explications_cles from simple analysis, or build from cas_particuliers for advanced
+  const explications = data.explications_cles || [];
+  const actions = data.actions_urgentes || [];
+
+  // Build alerts from advanced data if no explications_cles
+  const alerts = explications.length > 0 ? explications : buildAlertsFromAdvancedData(data);
+  const urgentActions = actions.length > 0 ? actions : buildActionsFromAdvancedData(data);
+
+  return (
+    <div className="space-y-4">
+      {/* ─── BLOC 1: NET PAYÉ HERO ─── */}
+      <Card className="overflow-hidden">
+        <div className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 text-primary-foreground text-center">
+          <div className="text-xs opacity-80 mb-1">{monthLabel}</div>
+          <div className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-1">
+            {fmtShort(netPaye)}
+          </div>
+          <div className="text-sm opacity-80">nets</div>
+          {data.periode?.date_paiement && (
+            <div className="text-xs opacity-60 mt-2">
+              Versés le {data.periode.date_paiement}
+            </div>
+          )}
+        </div>
+        <div className="p-2 border-t bg-card">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full text-xs text-muted-foreground hover:text-foreground"
+            onClick={() => onModalOpen("brut_net_explication")}
+          >
+            <BookOpen className="h-3.5 w-3.5 mr-1.5" />
+            D'où viennent ces {fmtShort(netPaye)} ?
+          </Button>
+        </div>
+      </Card>
+
+      {/* ─── BLOC 2: EXPLICATIONS CLÉS (3 max) ─── */}
+      {alerts.length > 0 && (
+        <Card className="p-4">
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
+            <span>💡</span>
+            Ce qui explique ta paie
+          </h3>
+          <div className="space-y-2.5">
+            {alerts.slice(0, 3).map((alert: any, index: number) => (
+              <div key={index} className="flex items-start gap-3">
+                <span className="text-base flex-shrink-0 mt-0.5">{alert.icon || "📌"}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-foreground leading-tight">
+                    {alert.titre || alert.title}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {alert.one_liner || alert.oneLiner || ""}
+                  </p>
+                  {(alert.modal_id || alert.modalId) && (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="p-0 h-auto mt-0.5 text-xs text-primary"
+                      onClick={() => onModalOpen(alert.modal_id || alert.modalId)}
+                    >
+                      {alert.modal_cta || "Comment ça marche ?"} →
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          {alerts.length > 3 && (
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              + {alerts.length - 3} autre{alerts.length - 3 > 1 ? "s" : ""} point{alerts.length - 3 > 1 ? "s" : ""}
+            </p>
+          )}
+        </Card>
+      )}
+
+      {/* ─── BLOC 3: ACTIONS URGENTES (2 max) ─── */}
+      {urgentActions.length > 0 && (
+        <Card className="p-4">
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
+            <span>⏰</span>
+            À faire
+          </h3>
+          <div className="space-y-2">
+            {urgentActions.slice(0, 2).map((action: any, index: number) => (
+              <div
+                key={index}
+                className="flex items-start gap-3 rounded-lg bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/60 dark:border-amber-800/40 p-3"
+              >
+                <span className="text-base flex-shrink-0 mt-0.5">{action.icon || "⏰"}</span>
+                <p className="text-sm text-foreground leading-snug flex-1">{action.texte || action.text}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* ─── CTA: ANALYSE AVANCÉE ─── */}
+      {onAdvancedClick && (
+        <Button
+          onClick={onAdvancedClick}
+          className="w-full py-5 text-sm font-bold"
+          variant="default"
+          size="lg"
+        >
+          <Sparkles className="h-4 w-4 mr-2" />
+          Analyse avancée
+          <ChevronRight className="h-4 w-4 ml-1" />
+        </Button>
+      )}
+
+      {/* ─── FOOTER ACTIONS ─── */}
+      <div className="flex gap-2 flex-wrap">
+        {!onAdvancedClick && null}
+        <Button variant="outline" size="sm" onClick={onReset}>
+          🔄 Nouvelle analyse
+        </Button>
+        {data._usage && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground ml-auto">
+            <span>💰 ${data._usage.cost_total_usd}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Disclaimer */}
+      <p className="text-xs text-muted-foreground text-center italic">
+        Données extraites automatiquement. En cas de doute, contactez votre service RH.
+      </p>
+    </div>
+  );
+}
+
+// ─── Fallback: build alerts from advanced data when no explications_cles ───
+function buildAlertsFromAdvancedData(data: any): any[] {
+  const alerts: any[] = [];
+  const cas = data.cas_particuliers_mois || {};
+
+  if (cas.prime_exceptionnelle?.detecte) {
+    alerts.push({
+      icon: "💰",
+      titre: `Prime exceptionnelle : ${fmt(cas.prime_exceptionnelle.montant)}`,
+      one_liner: "→ Augmente ton brut mais aussi ton impôt ce mois",
+    });
+  }
+
+  if (cas.rsu_massif?.detecte) {
+    alerts.push({
+      icon: "📈",
+      titre: `Vesting RSU : ${fmt(cas.rsu_massif.montant)}`,
+      one_liner: "→ Actions vendues automatiquement pour couvrir les impôts",
+      modal_id: "rsu_sell_to_cover",
+    });
+  }
+
+  if (cas.actions_gratuites_vesting?.detecte) {
+    alerts.push({
+      icon: "🎁",
+      titre: `${cas.actions_gratuites_vesting.nb_actions} actions acquises`,
+      one_liner: "→ Vesting d'actions gratuites ce mois-ci",
+      modal_id: "actions_gratuites_qualifie",
+    });
+  }
+
+  const avantages = data.remuneration_equity?.avantages_nature_compenses;
+  if (avantages?.total_brut) {
+    alerts.push({
+      icon: "🍽️",
+      titre: `Repas compensés : ${fmt(avantages.total_brut)}`,
+      one_liner: "→ L'employeur paie l'impôt pour toi, impact net = 0",
+      modal_id: "avantages_nature",
+    });
+  }
+
+  if (cas.changement_taux_pas?.detecte) {
+    alerts.push({
+      icon: "📊",
+      titre: `Taux PAS ajusté`,
+      one_liner: "→ Vérifie sur impots.gouv.fr",
+    });
+  }
+
+  // Points d'attention from AI
+  if (Array.isArray(data.points_attention)) {
+    data.points_attention.slice(0, 2).forEach((pt: any) => {
+      const text = typeof pt === "string" ? pt : pt?.message || "";
+      if (text) {
+        alerts.push({ icon: "⚠️", titre: "Point d'attention", one_liner: text.substring(0, 60) });
+      }
+    });
+  }
+
+  return alerts;
+}
+
+function buildActionsFromAdvancedData(data: any): any[] {
+  const actions: any[] = [];
+
+  const congesN1 = safe(data, "conges_rtt", "conges_n_moins_1", "solde");
+  if (congesN1 != null && congesN1 > 0) {
+    actions.push({
+      icon: "⏰",
+      texte: `Prends tes ${congesN1} jours de congés N-1 avant le 31 mai`,
+    });
+  }
+
+  if (Array.isArray(data.conseils_optimisation) && data.conseils_optimisation.length > 0) {
+    const conseil = data.conseils_optimisation[0];
+    const text = typeof conseil === "string" ? conseil : conseil?.message || "";
+    if (text) {
+      actions.push({ icon: "💡", texte: text.substring(0, 80) });
+    }
+  }
+
+  return actions;
 }

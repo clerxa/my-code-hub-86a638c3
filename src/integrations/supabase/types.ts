@@ -4184,6 +4184,60 @@ export type Database = {
         }
         Relationships: []
       }
+      payslip_analyses: {
+        Row: {
+          advanced_cost_usd: number | null
+          advanced_tokens_used: number | null
+          analyse_avancee: Json | null
+          analyse_simple: Json | null
+          created_at: string
+          employeur_nom: string | null
+          has_equity: boolean
+          id: string
+          pdf_file_name: string | null
+          periode_annee: number | null
+          periode_mois: number | null
+          simple_cost_usd: number | null
+          simple_tokens_used: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          advanced_cost_usd?: number | null
+          advanced_tokens_used?: number | null
+          analyse_avancee?: Json | null
+          analyse_simple?: Json | null
+          created_at?: string
+          employeur_nom?: string | null
+          has_equity?: boolean
+          id?: string
+          pdf_file_name?: string | null
+          periode_annee?: number | null
+          periode_mois?: number | null
+          simple_cost_usd?: number | null
+          simple_tokens_used?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          advanced_cost_usd?: number | null
+          advanced_tokens_used?: number | null
+          analyse_avancee?: Json | null
+          analyse_simple?: Json | null
+          created_at?: string
+          employeur_nom?: string | null
+          has_equity?: boolean
+          id?: string
+          pdf_file_name?: string | null
+          periode_annee?: number | null
+          periode_mois?: number | null
+          simple_cost_usd?: number | null
+          simple_tokens_used?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       per_quiz_results: {
         Row: {
           answers: Json
