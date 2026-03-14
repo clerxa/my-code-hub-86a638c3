@@ -3,13 +3,15 @@
  * with live stock price, total value, and +/- latent gains.
  */
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Activity, Layers, BarChart3, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Layers, BarChart3, ArrowUpRight, ArrowDownRight, Minus, CheckCircle2, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import type { PortfolioSummary, PortfolioPlan } from '@/hooks/useVegaPortfolio';
+import { differenceInDays, differenceInMonths, format, parseISO, isPast } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const fmtCurrency = (v: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
