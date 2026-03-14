@@ -55,6 +55,16 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
           0,
         );
         if (totalShares > 0) {
+          // Compute vesting date range
+          const vestingDates = vestings
+            .map((v: any) => v.date)
+            .filter((d: string) => !!d)
+            .sort();
+          const regimeLabels: Record<string, string> = {
+            R1: 'Qualifié (post 30/12/2016)',
+            R2: 'Qualifié (08/2015 - 12/2016)',
+            R3: 'Non qualifié',
+          };
           plans.push({
             id: `${sim.id}-${plan.id}`,
             simulationId: sim.id,
@@ -66,6 +76,9 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
             nbActions: totalShares,
             prixAcquisitionEur: totalGainEur,
             createdAt: sim.created_at,
+            regime: regimeLabels[plan.regime] || plan.regime || undefined,
+            vestingStartDate: vestingDates[0] || undefined,
+            vestingEndDate: vestingDates[vestingDates.length - 1] || undefined,
           });
         }
       }
