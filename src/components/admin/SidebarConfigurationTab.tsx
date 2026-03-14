@@ -59,6 +59,7 @@ const defaultEmployeeItems = [
   { id: "invitations", label: "Mes invitations", icon: "Users", categoryId: null, dataCoach: "invitations" },
   { id: "company", label: "Mon entreprise", icon: "Building2", categoryId: null, dataCoach: "company" },
   { id: "forum", label: "Communauté", icon: "MessageSquareText", categoryId: null, dataCoach: "forum" },
+  { id: "atlas", label: "ATLAS by FinCare", icon: "FileText", categoryId: null, dataCoach: "" },
 ];
 
 const defaultCompanyItems = [
