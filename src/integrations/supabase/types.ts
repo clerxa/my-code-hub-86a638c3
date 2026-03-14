@@ -3638,6 +3638,62 @@ export type Database = {
         }
         Relationships: []
       }
+      ocr_avis_imposition_analyses: {
+        Row: {
+          analysis_data: Json
+          annee_imposition: number | null
+          annee_revenus: number | null
+          created_at: string
+          id: string
+          impot_net_total: number | null
+          nom: string | null
+          prenom: string | null
+          revenu_fiscal_reference: number | null
+          solde: number | null
+          taux_moyen_pct: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_data: Json
+          annee_imposition?: number | null
+          annee_revenus?: number | null
+          created_at?: string
+          id?: string
+          impot_net_total?: number | null
+          nom?: string | null
+          prenom?: string | null
+          revenu_fiscal_reference?: number | null
+          solde?: number | null
+          taux_moyen_pct?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_data?: Json
+          annee_imposition?: number | null
+          annee_revenus?: number | null
+          created_at?: string
+          id?: string
+          impot_net_total?: number | null
+          nom?: string | null
+          prenom?: string | null
+          revenu_fiscal_reference?: number | null
+          solde?: number | null
+          taux_moyen_pct?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocr_avis_imposition_analyses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offers: {
         Row: {
           category: string

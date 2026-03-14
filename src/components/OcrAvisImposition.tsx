@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/AuthProvider";
 import { Card, CardContent } from "@/components/ui/card";
 import { TaxNoticeAnalysisOverlay } from "./ocr/TaxNoticeAnalysisOverlay";
 import { Button } from "@/components/ui/button";
@@ -287,7 +288,7 @@ const MetricCard = ({
   return (
     <div
       ref={ref}
-      className="bg-card border border-[hsl(var(--card-border))] rounded-xl p-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+      className="bg-card border border-[hsl(var(--card-border))] rounded-xl p-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between min-h-[100px]"
     >
       <div className="flex items-center gap-1.5 mb-2">
         <p className="text-xs text-muted-foreground font-medium">
@@ -298,9 +299,9 @@ const MetricCard = ({
           )}
         </p>
       </div>
-      <div className="flex items-baseline gap-1">
+      <div className="flex items-baseline gap-1 mt-auto">
         {icon}
-        <p className={`text-xl font-bold tabular-nums ${colorClass}`}>
+        <p className={`text-2xl font-bold tabular-nums ${colorClass}`}>
           {value != null
             ? suffix
               ? `${Math.abs(displayValue).toLocaleString("fr-FR")}${suffix}`
@@ -451,41 +452,47 @@ const TranchesBar = ({
   const activeTranches = TRANCHES_2024.filter((t) => quotient > t.seuil);
   const tmi = activeTranches.length > 0 ? activeTranches[activeTranches.length - 1].taux : 0;
 
-  return (
-    <div className="space-y-3">
-      <div className="relative h-8 rounded-full overflow-hidden flex">
-        {TRANCHES_2024.map((tranche, i) => {
-          const nextSeuil = TRANCHES_2024[i + 1]?.seuil || maxDisplay;
-          const start = tranche.seuil;
-          const end = Math.min(nextSeuil, maxDisplay);
-          const width = ((end - start) / maxDisplay) * 100;
-          const isActive = quotient > start;
-          const filledWidth = isActive
-            ? Math.min(((Math.min(quotient, nextSeuil) - start) / (end - start)) * 100, 100)
-            : 0;
+  // Calculate segment boundaries for label positioning
+  const segments = TRANCHES_2024.filter((t) => t.seuil < maxDisplay).map((tranche, i) => {
+    const nextSeuil = TRANCHES_2024[i + 1]?.seuil || maxDisplay;
+    const start = tranche.seuil;
+    const end = Math.min(nextSeuil, maxDisplay);
+    const startPct = (start / maxDisplay) * 100;
+    const width = ((end - start) / maxDisplay) * 100;
+    return { ...tranche, startPct, width, isActive: quotient > start };
+  });
 
-          return (
+  return (
+    <div className="space-y-1">
+      <div className="relative h-8 rounded-full overflow-hidden flex">
+        {segments.map((seg, i) => (
+          <div
+            key={i}
+            className="relative h-full"
+            style={{ width: `${seg.width}%` }}
+          >
             <div
-              key={i}
-              className="relative h-full"
-              style={{ width: `${width}%` }}
-            >
-              <div
-                className="absolute inset-0 transition-all duration-700"
-                style={{
-                  background: tranche.couleur,
-                  opacity: isActive ? 0.8 : 0.15,
-                  width: isActive ? `${filledWidth}%` : "100%",
-                }}
-              />
-            </div>
-          );
-        })}
+              className="absolute inset-0 transition-all duration-700"
+              style={{
+                background: seg.couleur,
+                opacity: seg.isActive ? 0.8 : 0.15,
+                width: seg.isActive
+                  ? `${Math.min(((Math.min(quotient, TRANCHES_2024[i + 1]?.seuil || maxDisplay) - seg.seuil) / ((Math.min(TRANCHES_2024[i + 1]?.seuil || maxDisplay, maxDisplay)) - seg.seuil)) * 100, 100)}%`
+                  : "100%",
+              }}
+            />
+          </div>
+        ))}
       </div>
-      <div className="flex justify-between text-[10px] text-muted-foreground">
-        {TRANCHES_2024.filter((t) => t.seuil < maxDisplay).map((t, i) => (
-          <span key={i} className={quotient > t.seuil ? "font-semibold text-foreground" : ""}>
-            {t.label}
+      {/* Labels positioned at segment start boundaries */}
+      <div className="relative h-5">
+        {segments.map((seg, i) => (
+          <span
+            key={i}
+            className={`absolute text-[10px] ${seg.isActive ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+            style={{ left: `${seg.startPct}%`, transform: i > 0 ? "translateX(-50%)" : "none" }}
+          >
+            {seg.label}
           </span>
         ))}
       </div>
@@ -565,6 +572,7 @@ const SimpleDataRow = ({ label, value }: { label: string; value: string }) => (
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const OcrAvisImposition = () => {
+  const { user } = useAuth();
   const [data, setData] = useState<AvisData | null>(null);
   const [loading, setLoading] = useState(false);
   const [progressMsg, setProgressMsg] = useState("");
@@ -575,14 +583,80 @@ const OcrAvisImposition = () => {
   const [apiDone, setApiDone] = useState(false);
   const pendingDataRef = useRef<AvisData | null>(null);
 
+  // History state
+  const [history, setHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Load history on mount
+  useEffect(() => {
+    if (!user?.id) return;
+    const loadHistory = async () => {
+      setLoadingHistory(true);
+      const { data: rows } = await supabase
+        .from("ocr_avis_imposition_analyses")
+        .select("id, annee_revenus, annee_imposition, prenom, nom, revenu_fiscal_reference, impot_net_total, taux_moyen_pct, solde, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      setHistory(rows || []);
+      setLoadingHistory(false);
+    };
+    loadHistory();
+  }, [user?.id, data]); // reload after new analysis
+
+  // Save analysis to DB
+  const saveAnalysis = useCallback(async (analysisData: AvisData) => {
+    if (!user?.id) return;
+    try {
+      await supabase.from("ocr_avis_imposition_analyses").insert({
+        user_id: user.id,
+        analysis_data: analysisData as any,
+        annee_revenus: analysisData.annees?.annee_revenus,
+        annee_imposition: analysisData.annees?.annee_imposition,
+        prenom: analysisData.contribuable?.prenom,
+        nom: analysisData.contribuable?.nom,
+        revenu_fiscal_reference: analysisData.revenus?.revenu_fiscal_reference,
+        impot_net_total: analysisData.impot?.impot_net_total,
+        taux_moyen_pct: analysisData.impot?.taux_moyen_imposition_pct,
+        solde: analysisData.prelevement_source?.solde_a_payer_ou_rembourser,
+      });
+      toast.success("Analyse sauvegardée dans votre espace");
+    } catch (err) {
+      console.error("Save error:", err);
+    }
+  }, [user?.id]);
+
+  // Load a saved analysis
+  const loadSavedAnalysis = useCallback(async (id: string) => {
+    const { data: row } = await supabase
+      .from("ocr_avis_imposition_analyses")
+      .select("analysis_data")
+      .eq("id", id)
+      .single();
+    if (row?.analysis_data) {
+      setData(row.analysis_data as unknown as AvisData);
+      setShowHistory(false);
+    }
+  }, []);
+
+  // Delete a saved analysis
+  const deleteSavedAnalysis = useCallback(async (id: string) => {
+    await supabase.from("ocr_avis_imposition_analyses").delete().eq("id", id);
+    setHistory((prev) => prev.filter((h) => h.id !== id));
+    toast.success("Analyse supprimée");
+  }, []);
+
   const handleOverlayComplete = useCallback(() => {
     setShowOverlay(false);
     setLoading(false);
     if (pendingDataRef.current) {
-      setData(pendingDataRef.current);
+      const analysisResult = pendingDataRef.current;
+      setData(analysisResult);
       pendingDataRef.current = null;
+      // Auto-save if logged in
+      saveAnalysis(analysisResult);
     }
-  }, []);
+  }, [saveAnalysis]);
 
   const analyzeFile = useCallback(async (file: File) => {
     if (file.type !== "application/pdf") {
@@ -732,6 +806,61 @@ const OcrAvisImposition = () => {
               <GraduationCap className="h-4 w-4" /> Explications adaptées à tous
             </div>
           </div>
+
+          {/* ─── History ─── */}
+          {user && history.length > 0 && (
+            <div className="space-y-3">
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              >
+                📂 Mes analyses précédentes ({history.length})
+                <ChevronDown className={`h-4 w-4 transition-transform ${showHistory ? "rotate-180" : ""}`} />
+              </button>
+              {showHistory && (
+                <div className="space-y-2">
+                  {history.map((h) => (
+                    <Card key={h.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4 flex items-center justify-between gap-4">
+                        <button
+                          onClick={() => loadSavedAnalysis(h.id)}
+                          className="flex-1 text-left space-y-1"
+                        >
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-semibold text-foreground">
+                              {h.prenom ? `${h.prenom} ${h.nom || ""}` : "Avis d'imposition"}
+                            </span>
+                            {h.annee_revenus && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-secondary/15 text-secondary">
+                                {h.annee_revenus}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            {h.revenu_fiscal_reference && (
+                              <span>RFR : {Number(h.revenu_fiscal_reference).toLocaleString("fr-FR")} €</span>
+                            )}
+                            {h.impot_net_total && (
+                              <span>Impôt : {Number(h.impot_net_total).toLocaleString("fr-FR")} €</span>
+                            )}
+                            <span>{new Date(h.created_at).toLocaleDateString("fr-FR")}</span>
+                          </div>
+                        </button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive shrink-0"
+                          onClick={(e) => { e.stopPropagation(); deleteSavedAnalysis(h.id); }}
+                        >
+                          ✕
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
