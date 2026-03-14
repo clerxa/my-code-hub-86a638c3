@@ -49,6 +49,7 @@ export function PayslipAnalysisOverlay({
   const [visible, setVisible] = useState(false);
   const startTimeRef = useRef(0);
   const rafRef = useRef<number>(0);
+  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const steps = mode === "simple"
     ? SIMPLE_STEPS
