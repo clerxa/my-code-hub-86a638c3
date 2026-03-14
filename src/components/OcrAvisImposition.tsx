@@ -45,7 +45,9 @@ interface AvisData {
   };
   annees: { annee_revenus: number | null; annee_imposition: number | null };
   revenus: Record<string, number | null>;
-  impot: Record<string, number | null>;
+  impot: Record<string, number | null> & {
+    impot_sans_dispositifs?: number | null;
+  };
   prelevement_source: {
     taux_pas_pct: number | null;
     montant_preleve_annee_n: number | null;
