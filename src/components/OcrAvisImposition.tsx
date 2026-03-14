@@ -1222,58 +1222,106 @@ const OcrAvisImposition = () => {
           </div>
 
           {/* ═══════════════ ZONE 4 — Ce que vous pourriez faire ═══════════════ */}
-          {(conseils.length > 0 || pointsAttention.length > 0) && (
-            <div className="space-y-4">
-              {/* Optimization opportunities */}
-              {conseils.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-lg font-bold text-foreground">
-                    Des pistes pour optimiser votre situation
-                  </h3>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {conseils.slice(0, 3).map((conseil, i) => (
-                      <Card key={i} className="hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
-                        <CardContent className="p-4 space-y-3">
-                          <div className="flex items-start gap-2">
-                            <Lightbulb className="h-5 w-5 text-accent shrink-0 mt-0.5" />
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {conseil}
-                            </p>
-                          </div>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-success/15 text-success">
-                            Économie potentielle
-                          </span>
-                          <a
-                            href="/expert-booking"
-                            className="flex items-center gap-1 text-xs text-primary hover:underline"
-                          >
-                            En parler à un conseiller <ArrowRight className="h-3 w-3" />
-                          </a>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
+          <div className="space-y-4">
+            {/* ── PER Focus Card (toujours affiché) ── */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                🎯 Focus : votre plafond épargne retraite (PER)
+              </h3>
+              <Card className="border-l-4 border-l-primary bg-gradient-to-r from-primary/5 to-transparent">
+                <CardContent className="p-5 space-y-4">
+                  {/* Chiffres clés PER */}
+                  {(data.plafonds_per?.plafond_declarant_1 != null || data.plafonds_per?.plafond_restant != null) && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {data.plafonds_per?.plafond_declarant_1 != null && (
+                        <div className="text-center p-3 rounded-lg bg-background border">
+                          <p className="text-xs text-muted-foreground">Plafond déclarant 1</p>
+                          <p className="text-lg font-bold text-foreground tabular-nums">{fmtCompact(data.plafonds_per.plafond_declarant_1)}</p>
+                        </div>
+                      )}
+                      {data.plafonds_per?.plafond_declarant_2 != null && (
+                        <div className="text-center p-3 rounded-lg bg-background border">
+                          <p className="text-xs text-muted-foreground">Plafond déclarant 2</p>
+                          <p className="text-lg font-bold text-foreground tabular-nums">{fmtCompact(data.plafonds_per.plafond_declarant_2)}</p>
+                        </div>
+                      )}
+                      {data.plafonds_per?.montant_verse_per != null && (
+                        <div className="text-center p-3 rounded-lg bg-background border">
+                          <p className="text-xs text-muted-foreground">Déjà versé</p>
+                          <p className="text-lg font-bold text-muted-foreground tabular-nums">{fmtCompact(data.plafonds_per.montant_verse_per)}</p>
+                        </div>
+                      )}
+                      {data.plafonds_per?.plafond_restant != null && (
+                        <div className="text-center p-3 rounded-lg bg-success/10 border border-success/20">
+                          <p className="text-xs text-success font-medium">Plafond restant</p>
+                          <p className="text-lg font-bold text-success tabular-nums">{fmtCompact(data.plafonds_per.plafond_restant)}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {/* Analyse personnalisée */}
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                    {data.plafonds_per?.analyse_personnalisee || "Les plafonds de déduction épargne retraite ne sont pas visibles sur ce document. Ils figurent généralement en page 2 de votre avis d'imposition. Nous vous recommandons de vérifier ce point avec un conseiller."}
+                  </p>
+                  <a
+                    href="/expert-booking"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                  >
+                    En parler à un conseiller patrimonial <ArrowRight className="h-4 w-4" />
+                  </a>
+                </CardContent>
+              </Card>
+            </div>
 
-              {/* Points d'attention */}
-              {pointsAttention.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-lg font-bold text-foreground">
-                    Points importants à vérifier
-                  </h3>
-                  {pointsAttention.map((point, i) => (
-                    <Card key={i} className="border-l-4 border-l-destructive">
-                      <CardContent className="p-4 flex items-start gap-3">
-                        <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-                        <p className="text-sm text-muted-foreground leading-relaxed">{point}</p>
+            {/* ── Autres conseils d'optimisation ── */}
+            {conseils.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-foreground">
+                  Autres pistes pour optimiser votre situation
+                </h3>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {conseils.slice(0, 3).map((conseil, i) => (
+                    <Card key={i} className="hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start gap-2">
+                          <Lightbulb className="h-5 w-5 text-accent shrink-0 mt-0.5" />
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {conseil}
+                          </p>
+                        </div>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-success/15 text-success">
+                          Économie potentielle
+                        </span>
+                        <a
+                          href="/expert-booking"
+                          className="flex items-center gap-1 text-xs text-primary hover:underline"
+                        >
+                          En parler à un conseiller <ArrowRight className="h-3 w-3" />
+                        </a>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+
+            {/* Points d'attention */}
+            {pointsAttention.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-foreground">
+                  Points importants à vérifier
+                </h3>
+                {pointsAttention.map((point, i) => (
+                  <Card key={i} className="border-l-4 border-l-destructive">
+                    <CardContent className="p-4 flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                      <p className="text-sm text-muted-foreground leading-relaxed">{point}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* ═══════════════ ZONE 5 — Données complètes (accordéon) ═══════════════ */}
           <Collapsible open={rawDataOpen} onOpenChange={setRawDataOpen}>
