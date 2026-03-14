@@ -18,6 +18,8 @@ import {
   getPriorityStyle,
   getPointIcon,
   getCotisationsGrouped,
+  normalizePointsAttention,
+  normalizeActions,
 } from "./payslipUtils";
 import PayslipDetailModal from "./PayslipDetailModal";
 import { BookOpen, ChevronUp } from "lucide-react";
