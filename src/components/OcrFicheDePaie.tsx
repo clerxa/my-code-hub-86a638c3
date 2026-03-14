@@ -367,28 +367,13 @@ export default function OcrFicheDePaie() {
         {/* ═══════════════════════════════════════════ */}
         {step === "advanced_result" && advancedData && (
           <>
-            {/* Simple view header stays visible */}
-            <SimpleResultView
-              data={simpleData || advancedData}
-              hasEquity={hasEquity === "yes"}
-              onAdvancedClick={null}
-              onModalOpen={setModalOpen}
-              onReset={reset}
+            {/* Full detailed view using the new PayslipProgressiveView */}
+            <PayslipProgressiveView
+              data={advancedData}
+              onActionClick={(action) => {
+                if (!action.cta_url) setShowPaywall(true);
+              }}
             />
-
-            {/* Full detailed view */}
-            <Card className="p-1">
-              <div className="p-3 border-b flex items-center justify-between">
-                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  Analyse avancée
-                  <Badge variant="secondary" className="text-xs">Premium</Badge>
-                </h3>
-              </div>
-              <div className="p-2">
-                <PayslipProgressiveView data={advancedData} />
-              </div>
-            </Card>
 
             {/* Raw data button */}
             <div className="flex gap-2 flex-wrap">
