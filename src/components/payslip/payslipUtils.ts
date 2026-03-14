@@ -1,7 +1,9 @@
 /**
  * Payslip formatting & helper utilities
- * Simplified for Option 2 Hybrid — backend now provides points_attention & actions_recommandees directly.
+ * v2.0 — includes remboursements/deductions helpers and PAS sign normalization.
  */
+
+import type { PayslipData, RemboursementsDeductions } from "@/types/payslip";
 
 const MONTHS = [
   "", "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -20,7 +22,7 @@ export const fmtShort = (n: number | null | undefined): string => {
   return Math.round(n).toLocaleString("fr-FR") + " €";
 };
 
-/** Format a percentage (e.g. "22,5 %") */
+/** Format a percentage — always absolute value (e.g. "22,5 %") */
 export const fmtPct = (n: number | null | undefined): string => {
   if (n === null || n === undefined) return "—";
   return Math.abs(n).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " %";
@@ -79,6 +81,7 @@ export const getPriorityStyle = (priorite: number): { border: string; bg: string
 export const getPointIcon = (id: string | null | undefined): string => {
   if (!id) return "📌";
   if (id.includes("actions_gratuites")) return "🎁";
+  if (id.includes("rsu")) return "📈";
   if (id.includes("espp")) return "🏪";
   if (id.includes("prime")) return "💰";
   if (id.includes("taux_pas") || id.includes("pas_zero")) return "⚠️";
@@ -88,10 +91,11 @@ export const getPointIcon = (id: string | null | undefined): string => {
   if (id.includes("ligne_inconnue")) return "❓";
   if (id.includes("entree") || id.includes("sortie")) return "📅";
   if (id.includes("changement")) return "📊";
+  if (id.includes("remboursement") || id.includes("frais")) return "💳";
   return "📌";
 };
 
-/** Normalize points_attention: handles both string[] (advanced prompts) and object[] (simple prompts) */
+/** Normalize points_attention: handles both string[] and object[] */
 export function normalizePointsAttention(raw: any[]): Array<{id: string; priorite: number; titre: string; resume: string; explication_detaillee?: string; a_modal?: boolean}> {
   if (!Array.isArray(raw)) return [];
   return raw.map((item, i) => {
@@ -105,7 +109,6 @@ export function normalizePointsAttention(raw: any[]): Array<{id: string; priorit
         a_modal: false,
       };
     }
-    // Object format — ensure all fields exist
     return {
       id: item.id || `point_${i}`,
       priorite: item.priorite ?? 2,
@@ -156,4 +159,51 @@ export function getCotisationsGrouped(data: any) {
     chomage: { total: chomage, label: "Chômage", icon: "🛡️" },
     csg: { total: csg, label: "CSG/CRDS", icon: "📋" },
   };
+}
+
+/** Extract displayable remboursements/deductions lines with sign */
+export interface RembDeductionLine {
+  label: string;
+  montant: number;
+  sign: "+" | "-";
+}
+
+export function getRemboursementsDeductionsLines(data: PayslipData): RembDeductionLine[] {
+  const rd = data.remboursements_deductions;
+  if (!rd) return [];
+
+  const lines: RembDeductionLine[] = [];
+
+  if (rd.remboursement_frais_professionnels && rd.remboursement_frais_professionnels !== 0) {
+    lines.push({ label: "Remboursement frais", montant: Math.abs(rd.remboursement_frais_professionnels), sign: "+" });
+  }
+  if (rd.tickets_restaurant_part_salarie && rd.tickets_restaurant_part_salarie !== 0) {
+    lines.push({ label: "Tickets restaurant (part salarié)", montant: Math.abs(rd.tickets_restaurant_part_salarie), sign: "-" });
+  }
+  if (rd.avantage_vehicule_deduit && rd.avantage_vehicule_deduit !== 0) {
+    lines.push({ label: "Avantage véhicule déduit", montant: Math.abs(rd.avantage_vehicule_deduit), sign: "-" });
+  }
+  if (rd.avantage_logement_deduit && rd.avantage_logement_deduit !== 0) {
+    lines.push({ label: "Avantage logement déduit", montant: Math.abs(rd.avantage_logement_deduit), sign: "-" });
+  }
+  if (rd.reintegration_fiscale && rd.reintegration_fiscale !== 0) {
+    lines.push({ label: "Réintégration fiscale", montant: Math.abs(rd.reintegration_fiscale), sign: rd.reintegration_fiscale > 0 ? "+" : "-" });
+  }
+
+  // Autres remboursements
+  if (rd.autres_remboursements && Array.isArray(rd.autres_remboursements)) {
+    for (const item of rd.autres_remboursements) {
+      if (typeof item === "string") {
+        lines.push({ label: item, montant: 0, sign: "+" });
+      } else if (item && item.montant) {
+        lines.push({
+          label: item.label || "Autre",
+          montant: Math.abs(item.montant),
+          sign: item.montant >= 0 ? "+" : "-",
+        });
+      }
+    }
+  }
+
+  return lines.filter(l => l.montant > 0);
 }
