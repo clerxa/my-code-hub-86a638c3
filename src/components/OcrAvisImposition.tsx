@@ -1471,7 +1471,7 @@ const OcrAvisImposition = () => {
                         <div className="flex items-start gap-2">
                           <Lightbulb className="h-5 w-5 text-accent shrink-0 mt-0.5" />
                           <p className="text-sm text-muted-foreground leading-relaxed">
-                            {conseil}
+                            {typeof conseil === 'string' ? conseil : (conseil as any)?.conseil || (conseil as any)?.detail || JSON.stringify(conseil)}
                           </p>
                         </div>
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-success/15 text-success">
