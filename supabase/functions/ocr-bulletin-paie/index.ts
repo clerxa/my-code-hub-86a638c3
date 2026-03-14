@@ -993,9 +993,9 @@ DÉTECTION via PATTERN (2 lignes complémentaires, exemples NON EXHAUSTIFS) :
 - Ligne 1 : Avantage en nature (mots-clés : "BIK", "Benefit", "Avantage", "AN", "Repas", "Tickets", "Cantine", "Logement", "Véhicule", "Transport")
 - Ligne 2 : Compensation fiscale (mots-clés : "GU", "Gross-up", "Gross Up", "Compensation", "Neutralisation", "Remb")
 
-EXPLICATION (ton suggestif) :
-"D'après notre analyse, ton employeur semble te fournir des avantages en nature d'une valeur d'environ {montant_bik} €/mois, avec une compensation fiscale (gross-up) d'environ {montant_grossup} €.
-Résultat apparent : tu sembles profiter de ces avantages sans impact net significatif sur ton salaire. Impact net ≈ 0€."
+EXPLICATION (ton suggestif, vouvoiement) :
+"D'après notre analyse, votre employeur semble vous fournir des avantages en nature d'une valeur d'environ {montant_bik} €/mois, avec une compensation fiscale (gross-up) d'environ {montant_grossup} €.
+Résultat apparent : vous semblez profiter de ces avantages sans impact net significatif sur votre salaire. Impact net ≈ 0€."
 
 ═══════════════════════════════════════════════════════════════
 CAS PARTICULIERS MOIS : DÉTECTION
