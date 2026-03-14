@@ -655,23 +655,26 @@ serve(async (req) => {
 
     let parsed;
     try {
-      parsed = JSON.parse(textContent);
-    } catch {
-      let cleaned = textContent
-        .replace(/```json\s*/gi, "")
-        .replace(/```\s*/g, "")
-        .trim();
-
-      const jsonStart = cleaned.indexOf("{");
-      if (jsonStart === -1) {
-        throw new Error("Could not find JSON in API response");
+      // Strip markdown code fences before first parse attempt
+      let cleaned = textContent.trim();
+      if (cleaned.startsWith("```")) {
+        cleaned = cleaned.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?\s*```\s*$/g, "").trim();
       }
-      cleaned = cleaned.substring(jsonStart);
+      parsed = JSON.parse(cleaned);
+    } catch {
+      // Extract JSON object from any surrounding text
+      const jsonMatch = textContent.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.error("Raw response (first 500 chars):", textContent.substring(0, 500));
+        throw new Error("Could not find JSON object in API response");
+      }
 
+      let extracted = jsonMatch[0];
       try {
-        parsed = JSON.parse(cleaned);
+        parsed = JSON.parse(extracted);
       } catch {
-        let repaired = cleaned.replace(/,\s*$/g, "");
+        // Repair truncated JSON
+        let repaired = extracted.replace(/,\s*$/g, "");
 
         const openBraces = (repaired.match(/{/g) || []).length;
         const closeBraces = (repaired.match(/}/g) || []).length;
