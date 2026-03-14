@@ -13,6 +13,7 @@ import {
 import { BookOpen, ChevronRight, Lock, Upload, FileText, Sparkles, Info } from "lucide-react";
 import PayslipProgressiveView from "./payslip/PayslipProgressiveView";
 import PayslipDetailModal from "./payslip/PayslipDetailModal";
+import { PayslipAnalysisOverlay } from "./payslip/PayslipAnalysisOverlay";
 import { fmt, safe, getMonthLabel } from "./payslip/payslipUtils";
 
 const SUPABASE_FUNCTION_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/ocr-bulletin-paie`;
