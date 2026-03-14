@@ -611,11 +611,12 @@ const OcrAvisImposition = () => {
     if (!user?.id) return;
     const loadHistory = async () => {
       setLoadingHistory(true);
-      const { data: rows } = await supabase
-        .from("ocr_avis_imposition_analyses")
+      const { data: rows, error: histErr } = await supabase
+        .from("ocr_avis_imposition_analyses" as any)
         .select("id, annee_revenus, annee_imposition, prenom, nom, revenu_fiscal_reference, impot_net_total, taux_moyen_pct, solde, created_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
+      if (histErr) console.error("Load history error:", histErr);
       setHistory(rows || []);
       setLoadingHistory(false);
     };
@@ -626,7 +627,7 @@ const OcrAvisImposition = () => {
   const saveAnalysis = useCallback(async (analysisData: AvisData) => {
     if (!user?.id) return;
     try {
-      await supabase.from("ocr_avis_imposition_analyses").insert({
+      const { error: insertError } = await supabase.from("ocr_avis_imposition_analyses" as any).insert({
         user_id: user.id,
         analysis_data: analysisData as any,
         // Contribuable
@@ -684,29 +685,35 @@ const OcrAvisImposition = () => {
         plafond_per_verse: analysisData.plafonds_per?.montant_verse_per,
         plafond_per_restant: analysisData.plafonds_per?.plafond_restant,
         per_analyse_personnalisee: analysisData.plafonds_per?.analyse_personnalisee,
-      });
+      } as any);
+      if (insertError) {
+        console.error("Save analysis DB error:", insertError);
+        toast.error("Erreur lors de la sauvegarde de l'analyse");
+        return;
+      }
       toast.success("Analyse sauvegardée dans votre espace");
     } catch (err) {
       console.error("Save error:", err);
+      toast.error("Erreur lors de la sauvegarde");
     }
   }, [user?.id]);
 
   // Load a saved analysis
   const loadSavedAnalysis = useCallback(async (id: string) => {
     const { data: row } = await supabase
-      .from("ocr_avis_imposition_analyses")
+      .from("ocr_avis_imposition_analyses" as any)
       .select("analysis_data")
       .eq("id", id)
       .single();
-    if (row?.analysis_data) {
-      setData(row.analysis_data as unknown as AvisData);
+    if ((row as any)?.analysis_data) {
+      setData((row as any).analysis_data as unknown as AvisData);
       setShowHistory(false);
     }
   }, []);
 
   // Delete a saved analysis
   const deleteSavedAnalysis = useCallback(async (id: string) => {
-    await supabase.from("ocr_avis_imposition_analyses").delete().eq("id", id);
+    await supabase.from("ocr_avis_imposition_analyses" as any).delete().eq("id", id);
     setHistory((prev) => prev.filter((h) => h.id !== id));
     toast.success("Analyse supprimée");
   }, []);
@@ -745,7 +752,7 @@ const OcrAvisImposition = () => {
       if (!isAdmin) {
         const today = new Date().toISOString().slice(0, 10);
         const { count } = await supabase
-          .from("ocr_avis_imposition_analyses")
+          .from("ocr_avis_imposition_analyses" as any)
           .select("id", { count: "exact", head: true })
           .eq("user_id", user.id)
           .gte("created_at", `${today}T00:00:00`)
