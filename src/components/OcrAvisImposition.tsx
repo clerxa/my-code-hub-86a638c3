@@ -1305,6 +1305,69 @@ const OcrAvisImposition = () => {
               </div>
             )}
 
+            {/* ── Bloc optimisation fiscale globale (TMI >= 30%) ── */}
+            {(data.impot?.taux_marginal_imposition_pct ?? 0) >= 30 && (
+              <Card className="border-l-4 border-l-accent bg-gradient-to-r from-accent/5 to-transparent">
+                <CardContent className="p-5 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">🏆</span>
+                    <div className="space-y-2">
+                      <h4 className="font-bold text-foreground">
+                        Votre taux marginal est de {pct(data.impot?.taux_marginal_imposition_pct)} — vous avez un vrai levier d'optimisation
+                      </h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Avec un taux marginal d'imposition à {pct(data.impot?.taux_marginal_imposition_pct)}, chaque euro déduit de votre revenu imposable vous fait économiser {(data.impot?.taux_marginal_imposition_pct ?? 30) >= 41 ? "41" : "30"} centimes d'impôt. Un bilan d'optimisation fiscale complet pourrait vous permettre d'identifier des dispositifs adaptés à votre situation : PER, investissement immobilier, dons, emploi à domicile, et bien d'autres.
+                      </p>
+                      <p className="text-xs text-muted-foreground italic">
+                        À valider avec un conseiller patrimonial agréé.
+                      </p>
+                      <a
+                        href="/expert-booking"
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline mt-1"
+                      >
+                        Réserver un bilan d'optimisation fiscale <ArrowRight className="h-4 w-4" />
+                      </a>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* ── Bloc réductions / crédits d'impôt significatifs ── */}
+            {(() => {
+              const reductions = data.impot?.reductions_impot ?? 0;
+              const credits = data.impot?.credits_impot ?? 0;
+              const totalAvantages = reductions + credits;
+              if (totalAvantages < 500) return null;
+              return (
+                <Card className="border-l-4 border-l-secondary bg-gradient-to-r from-secondary/5 to-transparent">
+                  <CardContent className="p-5 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">🔍</span>
+                      <div className="space-y-2">
+                        <h4 className="font-bold text-foreground">
+                          Nous avons identifié {fmtCompact(totalAvantages)} de réductions et crédits d'impôt
+                        </h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          Vous bénéficiez actuellement de{" "}
+                          {reductions > 0 && <>{fmtCompact(reductions)} de réductions d'impôt</>}
+                          {reductions > 0 && credits > 0 && " et de "}
+                          {credits > 0 && <>{fmtCompact(credits)} de crédits d'impôt</>}.
+                          {" "}C'est un montant significatif. Un conseiller peut vous aider à vérifier que vous exploitez pleinement ces dispositifs et qu'ils restent les plus adaptés à votre situation actuelle.
+                        </p>
+                        <a
+                          href="/expert-booking"
+                          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline mt-1"
+                        >
+                          Faire le point sur vos dispositifs fiscaux <ArrowRight className="h-4 w-4" />
+                        </a>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
+
             {/* Points d'attention */}
             {pointsAttention.length > 0 && (
               <div className="space-y-3">
