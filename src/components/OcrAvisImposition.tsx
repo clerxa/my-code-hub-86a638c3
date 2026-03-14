@@ -713,7 +713,7 @@ const OcrAvisImposition = () => {
 
   // Delete a saved analysis
   const deleteSavedAnalysis = useCallback(async (id: string) => {
-    await supabase.from("ocr_avis_imposition_analyses").delete().eq("id", id);
+    await supabase.from("ocr_avis_imposition_analyses" as any).delete().eq("id", id);
     setHistory((prev) => prev.filter((h) => h.id !== id));
     toast.success("Analyse supprimée");
   }, []);
