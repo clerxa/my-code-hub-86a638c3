@@ -251,7 +251,7 @@ const App = () => (
                   <VegaRecapPage />
                 </ProtectedRoute>
               }
-            <Route
+            />
               path="/employee/onboarding"
               element={
                 <ProtectedRoute>
