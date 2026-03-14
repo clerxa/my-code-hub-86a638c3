@@ -344,9 +344,43 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
     setShowValidation(true);
   };
 
-  const handleValidationComplete = () => {
+  const handleValidationComplete = async () => {
     setShowValidation(false);
     setValidationComplete(true);
+    // Auto-save budget simulation
+    await autoSaveBudget();
+  };
+
+  const autoSaveBudget = async () => {
+    if (!user) return;
+    const budgetData = {
+      salaire,
+      autres,
+      values,
+      revenus,
+      totalByCategory,
+      pctByCat,
+      solde,
+    };
+    try {
+      if (savedSimId) {
+        // Update existing
+        await supabase
+          .from('simulations')
+          .update({ data: budgetData as any, updated_at: new Date().toISOString() })
+          .eq('id', savedSimId);
+      } else {
+        // Insert new
+        await supabase.from('simulations').insert({
+          user_id: user.id,
+          type: 'budget',
+          name: `ZENITH - ${new Date().toLocaleDateString('fr-FR')}`,
+          data: budgetData as any,
+        });
+      }
+    } catch (e) {
+      console.error('Auto-save budget failed:', e);
+    }
   };
 
   /* ---------------------------------------------------------------- */
