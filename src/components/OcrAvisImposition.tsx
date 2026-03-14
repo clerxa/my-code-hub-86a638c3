@@ -621,7 +621,7 @@ const OcrAvisImposition = () => {
     return Number.isFinite(parsed) ? parsed : null;
   }, []);
 
-  // Load history on mount
+  // Load history on mount + auto-load latest analysis if exists
   useEffect(() => {
     if (!user?.id) return;
     const loadHistory = async () => {
@@ -634,9 +634,22 @@ const OcrAvisImposition = () => {
       if (histErr) console.error("Load history error:", histErr);
       setHistory(rows || []);
       setLoadingHistory(false);
+
+      // Auto-load most recent analysis if no data currently displayed
+      if (!data && rows && rows.length > 0) {
+        const latestId = (rows[0] as any).id;
+        const { data: row } = await supabase
+          .from("ocr_avis_imposition_analyses" as any)
+          .select("analysis_data")
+          .eq("id", latestId)
+          .single();
+        if ((row as any)?.analysis_data) {
+          setData((row as any).analysis_data as unknown as AvisData);
+        }
+      }
     };
     loadHistory();
-  }, [user?.id, data]); // reload after new analysis
+  }, [user?.id]); // reload only on user change, not on data change to avoid loops
 
   // Save analysis to DB
   const saveAnalysis = useCallback(async (analysisData: AvisData) => {
