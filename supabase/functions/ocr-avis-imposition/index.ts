@@ -70,6 +70,13 @@ Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
     "montant_preleve_annee_n": null,
     "solde_a_payer_ou_rembourser": null
   },
+  "plafonds_per": {
+    "plafond_declarant_1": null,
+    "plafond_declarant_2": null,
+    "montant_verse_per": null,
+    "plafond_restant": null,
+    "analyse_personnalisee": "Analyse détaillée et personnalisée du plafond PER : combien a été versé, combien il reste, quel serait l'avantage fiscal concret en euros si le contribuable utilisait tout son plafond restant (calcul basé sur son TMI), et recommandation claire."
+  },
   "explications_pedagogiques": {
     "introduction": "Phrase d'accroche expliquant en 2 lignes ce qu'est un avis d'imposition et à quoi il sert",
     "revenu_fiscal_reference_explication": "Explication claire du RFR",
@@ -96,7 +103,17 @@ Règles importantes :
 - conseils_optimisation : 2-3 pistes concrètes adaptées à la situation — toujours avec la mention "à valider avec un conseiller"
 - points_attention : alertes importantes
 - Tous les montants en euros, nombres décimaux
-- confidence : "high" si document complet et lisible, "medium" si partiellement lisible, "low" si illisible`;
+- confidence : "high" si document complet et lisible, "medium" si partiellement lisible, "low" si illisible
+
+RÈGLE CRITIQUE — PLAFONDS PER (Plan d'Épargne Retraite) :
+- Sur chaque avis d'imposition, cherche OBLIGATOIREMENT les plafonds de déduction épargne retraite (souvent indiqués en bas ou en page 2 sous "Plafond de déduction épargne retraite").
+- Extrais : le plafond du déclarant 1, le plafond du déclarant 2 (si applicable), le montant déjà versé/déduit sur un PER, et le plafond restant disponible.
+- Dans analyse_personnalisee, rédige un texte pédagogique en vouvoiement qui :
+  1. Rappelle le plafond total et ce qui a déjà été utilisé
+  2. Calcule précisément l'économie d'impôt potentielle si le contribuable versait le restant sur un PER (= plafond_restant × TMI / 100)
+  3. Donne un exemple concret : "Si vous versiez X € sur un PER avant le 31 décembre, vous pourriez réduire votre impôt de Y €."
+  4. Mentionne que cela est à valider avec un conseiller patrimonial
+- Si les plafonds PER ne sont pas visibles sur le document, mets les champs numériques à null et indique dans analyse_personnalisee : "Les plafonds de déduction épargne retraite ne sont pas visibles sur ce document. Ils figurent généralement en page 2 de votre avis d'imposition. Nous vous recommandons de vérifier ce point avec un conseiller."`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
