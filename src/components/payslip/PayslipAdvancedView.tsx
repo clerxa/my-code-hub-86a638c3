@@ -25,6 +25,7 @@ import {
   getCotisationsGrouped,
   normalizePointsAttention,
   normalizeActions,
+  getRemboursementsDeductionsLines,
 } from "./payslipUtils";
 import PayslipDetailModal from "./PayslipDetailModal";
 import type { PayslipData, PointAttention, ActionRecommandee } from "@/types/payslip";
