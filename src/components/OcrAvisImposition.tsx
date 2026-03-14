@@ -288,7 +288,7 @@ const MetricCard = ({
   return (
     <div
       ref={ref}
-      className="bg-card border border-[hsl(var(--card-border))] rounded-xl p-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+      className="bg-card border border-[hsl(var(--card-border))] rounded-xl p-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between min-h-[100px]"
     >
       <div className="flex items-center gap-1.5 mb-2">
         <p className="text-xs text-muted-foreground font-medium">
@@ -299,9 +299,9 @@ const MetricCard = ({
           )}
         </p>
       </div>
-      <div className="flex items-baseline gap-1">
+      <div className="flex items-baseline gap-1 mt-auto">
         {icon}
-        <p className={`text-xl font-bold tabular-nums ${colorClass}`}>
+        <p className={`text-2xl font-bold tabular-nums ${colorClass}`}>
           {value != null
             ? suffix
               ? `${Math.abs(displayValue).toLocaleString("fr-FR")}${suffix}`
