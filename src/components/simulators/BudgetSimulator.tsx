@@ -23,6 +23,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
