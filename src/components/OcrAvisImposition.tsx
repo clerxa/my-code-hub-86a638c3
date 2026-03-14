@@ -816,6 +816,14 @@ const OcrAvisImposition = () => {
   const conseils = data?.explications_pedagogiques?.conseils_optimisation || [];
   const pointsAttention = data?.explications_pedagogiques?.points_attention || [];
 
+  // Compute TMI at parent level for PER simulator
+  const computedTmi = useMemo(() => {
+    if (!revenuImposable || !nombreParts) return 0;
+    const quotient = revenuImposable / nombreParts;
+    const active = TRANCHES_2024.filter((t) => quotient > t.seuil);
+    return active.length > 0 ? active[active.length - 1].taux : 0;
+  }, [revenuImposable, nombreParts]);
+
   return (
     <div className="max-w-3xl mx-auto space-y-6 px-4 pb-20">
       {/* ─── Upload State ─── */}
