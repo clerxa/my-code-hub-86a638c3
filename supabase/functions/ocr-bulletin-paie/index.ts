@@ -1049,9 +1049,9 @@ RAPPELS FINAUX
 1. Distinguer ABSOLUMENT actions gratuites (equity) vs intéressement (épargne salariale)
 2. Le PAS est TOUJOURS une charge, JAMAIS un crédit — NE JAMAIS parler de "crédit d'impôt PAS"
 3. Détecter les mécanismes RSU (variante A ou B) via PATTERNS inclusifs
-4. Explications ultra-concrètes avec montants réels, en TON SUGGESTIF
+4. Explications ultra-concrètes avec montants réels, en TON SUGGESTIF + VOUVOIEMENT
 5. JAMAIS de conseil d'achat/vente → renvoyer vers expert patrimonial
-6. JAMAIS de noms d'entreprises → "ton employeur"
+6. JAMAIS de noms d'entreprises → "votre employeur"
 7. JAMAIS de dates en dur → "année N", "année N+1"
 
 FORMAT FINAL : JSON brut, sans markdown, sans backticks.`;
