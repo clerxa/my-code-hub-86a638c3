@@ -232,7 +232,7 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
   const [profileApplied, setProfileApplied] = useState(false);
 
   useEffect(() => {
-    if (!isProfileLoading && hasProfile && !profileApplied) {
+    if (!isProfileLoading && hasProfile && !profileApplied && !savedLoaded) {
       const data = getPrefillData();
       const filledMap = new Map<string, string>();
 
