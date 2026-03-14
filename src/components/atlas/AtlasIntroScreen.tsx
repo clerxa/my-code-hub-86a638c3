@@ -12,7 +12,7 @@ const STEPS = [
   {
     step: 1,
     icon: FileText,
-    title: 'Votre avis d'imposition décrypté',
+    title: "Votre avis d'imposition décrypté",
     subtitle: 'Comprendre chaque ligne de votre fiscalité',
     description:
       "Votre avis d'imposition contient une mine d'informations, mais il est souvent difficile à lire. ATLAS analyse automatiquement votre document et en extrait les données clés : revenus imposables, nombre de parts, tranches marginales, crédits et réductions d'impôts.",
