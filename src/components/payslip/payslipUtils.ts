@@ -53,17 +53,7 @@ export function prioritizeAlerts(data: any): PayslipAlert[] {
   const cas = data.cas_particuliers_mois || {};
 
   // PRIORITY 1: URGENT
-  const congesN1Solde = safe(data, "conges_rtt", "conges_n_moins_1", "solde");
-  if (congesN1Solde != null && congesN1Solde > 0) {
-    alerts.push({
-      id: "conges_n_moins_1",
-      priority: 1,
-      icon: "⏰",
-      title: `Congés N-1 à consommer : ${congesN1Solde} jours`,
-      summary: `Tes congés de l'année précédente doivent être pris avant fin mai, sinon ils seront perdus !`,
-      hasDetails: false,
-    });
-  }
+  // Removed: Congés N-1 alert (not important per user request)
 
   if (cas.taux_pas_zero?.detecte) {
     alerts.push({
@@ -191,16 +181,7 @@ export function prioritizeAlerts(data: any): PayslipAlert[] {
     });
   }
 
-  if (cas.conges_pris?.detecte) {
-    alerts.push({
-      id: "conges_pris",
-      priority: 3,
-      icon: "🏖️",
-      title: `${cas.conges_pris.nb_jours || ""} jour(s) de congés pris`,
-      summary: cas.conges_pris.explication || "Tu as pris des congés ce mois-ci. Ton salaire n'est pas réduit.",
-      hasDetails: false,
-    });
-  }
+  // Removed: conges_pris alert (not important per user request)
 
   // Points d'attention from AI
   if (Array.isArray(data.points_attention)) {
@@ -226,48 +207,34 @@ export function prioritizeActions(data: any): PayslipAction[] {
   const actions: PayslipAction[] = [];
   const cas = data.cas_particuliers_mois || {};
 
-  // Congés N-1 urgents
-  const congesN1Solde = safe(data, "conges_rtt", "conges_n_moins_1", "solde");
-  if (congesN1Solde != null && congesN1Solde > 0) {
-    actions.push({
-      id: "conges_urgent",
-      priority: 1,
-      icon: "⏰",
-      text: `Prends tes ${congesN1Solde} jours de congés N-1 avant le 31 mai, sinon ils seront perdus !`,
-    });
-  }
+  // Removed: congés N-1 action (not important per user request)
 
-  // RSU strategy
+  // RSU → suggest expert
   const rsu = data.remuneration_equity?.rsu_restricted_stock_units;
-  if (rsu?.nb_actions_conservees > 0) {
+  if (rsu?.gain_brut_total > 0) {
     actions.push({
       id: "strategie_rsu",
       priority: 2,
       icon: "💡",
-      text: `Tu conserves ${rsu.nb_actions_conservees} actions ${data.employeur?.nom || ""}. Garde-les au moins 2 ans pour bénéficier d'un abattement de 50% sur la plus-value.`,
+      text: `Un lot de RSU de ${fmt(rsu.gain_brut_total)} a été acquis ce mois-ci. Pour bien comprendre l'impact fiscal et patrimonial, prends rendez-vous avec un expert.`,
+      ctaLabel: "Prendre rendez-vous",
+      ctaUrl: "/expert-booking",
     });
   }
 
-  // Actions gratuites strategy
+  // Actions gratuites → suggest expert
   const ag = data.remuneration_equity?.actions_gratuites_acquises;
   if (Array.isArray(ag) && ag.length > 0) {
     const totalActions = ag.reduce((acc: number, a: any) => acc + (a.nb_actions || 0), 0);
-    const typePlan = ag[0]?.type_plan;
-    if (typePlan === "qualifie") {
-      actions.push({
-        id: "strategie_ag_qualifie",
-        priority: 2,
-        icon: "💡",
-        text: `Tes ${totalActions} actions gratuites sont en plan qualifié. Garde-les au moins 2 ans pour profiter de l'abattement fiscal de 50%.`,
-      });
-    } else if (typePlan === "non_qualifie") {
-      actions.push({
-        id: "strategie_ag_non_qualifie",
-        priority: 1,
-        icon: "💡",
-        text: `Vends 10-15% de tes ${totalActions} actions gratuites rapidement pour compenser l'impôt supplémentaire payé ce mois-ci.`,
-      });
-    }
+    const totalVal = ag.reduce((acc: number, a: any) => acc + (a.valeur_fiscale_totale || 0), 0);
+    actions.push({
+      id: "strategie_ag",
+      priority: 2,
+      icon: "💡",
+      text: `${totalActions} actions gratuites acquises (${fmt(totalVal)}). Un expert patrimonial peut t'aider à optimiser la fiscalité de tes actions.`,
+      ctaLabel: "Consulter un expert",
+      ctaUrl: "/expert-booking",
+    });
   }
 
   // Commission optimization
@@ -282,14 +249,16 @@ export function prioritizeActions(data: any): PayslipAction[] {
     });
   }
 
-  // ESPP
+  // ESPP → suggest expert
   const espp = data.remuneration_equity?.espp_employee_stock_purchase_plan;
   if (espp?.contribution_mensuelle) {
     actions.push({
       id: "strategie_espp",
       priority: 3,
       icon: "💡",
-      text: `Tu contribues ${fmt(espp.contribution_mensuelle)}/mois à l'ESPP. Tu peux revendre les actions dès réception pour sécuriser le gain de 15%.`,
+      text: `Tu contribues ${fmt(espp.contribution_mensuelle)}/mois à l'ESPP. Pour optimiser la gestion de tes actions, consulte un expert patrimonial.`,
+      ctaLabel: "Prendre rendez-vous",
+      ctaUrl: "/expert-booking",
     });
   }
 

@@ -60,7 +60,7 @@ export default function PayslipProgressiveView({ data }: PayslipProgressiveViewP
 
   // Generate one-liner summaries for alerts
   const getOneLiner = (alert: any): string => {
-    if (alert.id === "conges_n_moins_1") return "→ Avant fin mai, sinon perdus";
+    if (alert.id === "conges_n_moins_1") return "";
     if (alert.id === "prime_exceptionnelle") return "→ Augmente ton brut mais aussi ton impôt ce mois";
     if (alert.id === "rsu_massif") {
       const rsu = d.remuneration_equity?.rsu_restricted_stock_units;
@@ -81,7 +81,7 @@ export default function PayslipProgressiveView({ data }: PayslipProgressiveViewP
     if (alert.id === "absence_longue_duree") return "→ Prévoyance peut compenser partiellement";
     if (alert.id === "entree_ou_sortie_mois") return "→ Salaire proratisé ce mois-ci";
     if (alert.id === "changement_taux_pas") return "→ Vérifie sur impots.gouv.fr";
-    if (alert.id === "conges_pris") return "→ Ton salaire n'est pas réduit";
+    if (alert.id === "conges_pris") return "";
     // For AI-generated points_attention
     return "";
   };
@@ -387,15 +387,7 @@ export default function PayslipProgressiveView({ data }: PayslipProgressiveViewP
                 </AccordionContent>
               </AccordionItem>
 
-              {/* Congés & RTT */}
-              <AccordionItem value="conges" className="border rounded-lg overflow-hidden">
-                <AccordionTrigger className="px-4 py-3 hover:no-underline text-sm font-semibold">
-                  🏖️ Mes congés & RTT
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <CongesSection data={data} />
-                </AccordionContent>
-              </AccordionItem>
+              {/* Congés & RTT removed — not relevant for target users */}
 
               {/* Épargne salariale */}
               <AccordionItem value="epargne" className="border rounded-lg overflow-hidden">
