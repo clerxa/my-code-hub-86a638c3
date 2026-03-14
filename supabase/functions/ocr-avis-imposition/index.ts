@@ -90,6 +90,14 @@ Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
     "conseils_optimisation": [],
     "points_attention": []
   },
+  "niches_fiscales": {
+    "total_niches": null,
+    "plafond_atteint": false,
+    "girardin_detecte": false,
+    "plafond_applicable": 10000,
+    "marge_restante": null,
+    "cas_detecte": "A | B | C | D | aucun"
+  },
   "meta": {
     "type_document": "avis_imposition | avis_non_imposition | avis_tiers_provisionnel | inconnu",
     "confidence": "high | medium | low",
