@@ -662,6 +662,17 @@ SANTÉ :
 CHÔMAGE :
 - "Assurance chômage" = "Chômage" = "Pôle Emploi" → assurance_chomage (généralement 0 depuis 2018 pour le salarié)
 
+⚠️ RÈGLE CRITIQUE SALARIALE vs PATRONALE :
+Les fiches de paie françaises ont TOUJOURS deux colonnes distinctes : "Part salariale" et "Part patronale".
+Tu DOIS extraire les montants de chaque colonne SÉPARÉMENT. NE JAMAIS copier le même montant dans les deux champs.
+
+RAPPELS DROIT FRANÇAIS 2024 :
+- sante_maladie (part salariale) = 0 € dans 99% des cas depuis 2018. Seule la part patronale (environ 7% ou 13%) existe.
+  → Si tu trouves un montant "Maladie" sur la fiche, c'est PROBABLEMENT la part patronale uniquement. Mets 0 ou null dans sante_maladie (salariale).
+- assurance_chomage (part salariale) = 0 € depuis octobre 2018. Seule la part patronale (4.05%) existe.
+  → Mets 0 ou null dans assurance_chomage (salariale). Le montant va dans assurance_chomage_patronale.
+- Si la fiche n'affiche qu'UNE colonne de montant pour une cotisation, vérifie si c'est salariale ou patronale en regardant l'en-tête du tableau.
+
 CSG/CRDS :
 - "CSG déductible" = "CSG déduct." → csg_deductible
 - "CSG/CRDS non déductible" = "CSG non déduct." → csg_crds_non_deductible

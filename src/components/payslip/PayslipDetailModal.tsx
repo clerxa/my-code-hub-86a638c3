@@ -307,6 +307,22 @@ function CotisationsDetailModal({ data, type }: { data: any; type: string }) {
   const cs = data.cotisations_salariales || {};
   const cp = data.cotisations_patronales || {};
 
+  // Sanitize: if salariale === patronale for a line, it's likely a duplication error
+  const sanitize = (sal: number | null, pat: number | null, expectSalZero = false): { sal: number | null; pat: number | null } => {
+    // If both are identical and non-null, likely extraction error — keep only patronale
+    if (sal && pat && sal === pat && expectSalZero) {
+      return { sal: null, pat };
+    }
+    // Known French rule: if salariale should be 0 and we got a value, move to patronale
+    if (expectSalZero && sal && !pat) {
+      return { sal: null, pat: sal };
+    }
+    return { sal, pat };
+  };
+
+  const maladieFixed = sanitize(cs.sante_maladie, cp.sante_maladie_patronale, true);
+  const chomageFixed = sanitize(cs.assurance_chomage, cp.assurance_chomage_patronale, true);
+
   const details: Record<string, { label: string; sal: number | null; pat: number | null }[]> = {
     retraite: [
       { label: "Vieillesse plafonnée", sal: cs.vieillesse_plafonnee, pat: cp.vieillesse_patronale },
@@ -318,12 +334,12 @@ function CotisationsDetailModal({ data, type }: { data: any; type: string }) {
       { label: "APEC", sal: cs.apec_ou_agirc_arrco, pat: null },
     ],
     sante: [
-      { label: "Maladie", sal: cs.sante_maladie, pat: cp.sante_maladie_patronale },
+      { label: "Maladie", sal: maladieFixed.sal, pat: maladieFixed.pat },
       { label: "Complémentaire santé", sal: cs.complementaire_sante_salarie, pat: cp.complementaire_sante_patronale },
       { label: "Prévoyance", sal: cs.prevoyance_salarie, pat: cp.prevoyance_patronale },
     ],
     chomage: [
-      { label: "Assurance chômage", sal: cs.assurance_chomage, pat: cp.assurance_chomage_patronale },
+      { label: "Assurance chômage", sal: chomageFixed.sal, pat: chomageFixed.pat },
     ],
     csg: [
       { label: "CSG déductible", sal: cs.csg_deductible, pat: null },
@@ -349,6 +365,9 @@ function CotisationsDetailModal({ data, type }: { data: any; type: string }) {
           </div>
         ))}
       </div>
+      <p className="text-xs text-muted-foreground italic">
+        ⚠️ Les montants affichés sont extraits automatiquement et peuvent contenir des approximations.
+      </p>
     </div>
   );
 }
