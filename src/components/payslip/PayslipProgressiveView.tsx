@@ -60,7 +60,7 @@ export default function PayslipProgressiveView({ data }: PayslipProgressiveViewP
 
   // Generate one-liner summaries for alerts
   const getOneLiner = (alert: any): string => {
-    if (alert.id === "conges_n_moins_1") return "→ Avant fin mai, sinon perdus";
+    if (alert.id === "conges_n_moins_1") return "";
     if (alert.id === "prime_exceptionnelle") return "→ Augmente ton brut mais aussi ton impôt ce mois";
     if (alert.id === "rsu_massif") {
       const rsu = d.remuneration_equity?.rsu_restricted_stock_units;
