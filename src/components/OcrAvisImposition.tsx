@@ -701,7 +701,7 @@ const OcrAvisImposition = () => {
   // Load a saved analysis
   const loadSavedAnalysis = useCallback(async (id: string) => {
     const { data: row } = await supabase
-      .from("ocr_avis_imposition_analyses")
+      .from("ocr_avis_imposition_analyses" as any)
       .select("analysis_data")
       .eq("id", id)
       .single();
