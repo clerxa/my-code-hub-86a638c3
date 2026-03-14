@@ -247,7 +247,7 @@ function GenericModal({ data, modalType }: { data: PayslipData; modalType: strin
         Les détails pour cette section seront disponibles avec l'analyse avancée.
       </p>
       <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
-        💡 Lance l'analyse avancée pour obtenir des explications détaillées et personnalisées.
+        💡 Passez à la vue avancée pour obtenir des explications détaillées et personnalisées.
       </div>
     </div>
   );
