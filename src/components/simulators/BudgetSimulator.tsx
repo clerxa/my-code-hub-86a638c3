@@ -214,6 +214,19 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
     }
   }, [user]);
 
+  // Load saved simulation data
+  const [savedLoaded, setSavedLoaded] = useState(false);
+  useEffect(() => {
+    if (savedData && !savedLoaded) {
+      if (savedData.salaire != null) setSalaire(savedData.salaire);
+      if (savedData.autres != null) setAutres(savedData.autres);
+      if (savedData.values) {
+        setValues(prev => ({ ...prev, ...savedData.values }));
+      }
+      setSavedLoaded(true);
+    }
+  }, [savedData, savedLoaded]);
+
   // Financial profile prefill
   const { getPrefillData, hasProfile, isLoading: isProfileLoading } = useFinancialProfilePrefill();
   const [profileApplied, setProfileApplied] = useState(false);
