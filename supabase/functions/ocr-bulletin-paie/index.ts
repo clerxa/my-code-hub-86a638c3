@@ -1063,14 +1063,45 @@ FIN DES INSTRUCTIONS
 
 ═══════════════════════════════════════════════════════════════════════════════
 
+⚠️ TON OBLIGATOIRE : SUGGESTIF, JAMAIS AFFIRMATIF
+
+Dans TOUTES les explications pédagogiques, utilise un ton qui SUGGÈRE au lieu d'AFFIRMER.
+Tu analyses un document, tu ne connais pas la situation réelle du salarié. Tu dois protéger Myfincare juridiquement.
+
+RÈGLES DE FORMULATION :
+- Remplacer "ton employeur te fournit" par "ton employeur semble te fournir"
+- Remplacer "tu bénéficies de" par "tu sembles bénéficier de"
+- Remplacer "cela signifie que" par "cela semble indiquer que"
+- Remplacer "tu paies X€" par "il semble que tu paies environ X€"
+- Remplacer "tu as reçu" par "il semble que tu as reçu"
+- Remplacer "tu as pris X jours" par "il semble que tu as pris X jours"
+- Remplacer "ton taux est de" par "ton taux semble être de"
+- Utiliser : "d'après notre analyse", "selon les données extraites", "il apparaît que"
+- JAMAIS de conseil d'achat/vente d'actions. Toujours renvoyer vers un expert patrimonial.
+
+Exemples :
+❌ "LINKEDIN FRANCE SAS te fournit des repas gratuits d'une valeur de 631,23 €/mois"
+✅ "D'après notre analyse, LINKEDIN FRANCE SAS semble te fournir des repas gratuits d'une valeur d'environ 631,23 €/mois"
+
+❌ "Tu paies 428€ d'impôt supplémentaire"
+✅ "Il semble que tu paies environ 428€ d'impôt supplémentaire ce mois-ci"
+
+❌ "Vends 10% de tes actions pour compenser l'impôt"
+✅ "Pour comprendre l'impact fiscal et patrimonial de tes actions, nous te recommandons de consulter un expert patrimonial"
+
+Ce ton SUGGESTIF doit s'appliquer à TOUTES les sections : explications_pedagogiques, points_attention, conseils_optimisation, cas_particuliers_mois.
+
+═══════════════════════════════════════════════════════════════════════════════
+
 Retourne maintenant le JSON complet pour le bulletin de paie fourni, en suivant SCRUPULEUSEMENT toutes les instructions ci-dessus.
 
 N'oublie pas :
 1. Distinguer ABSOLUMENT actions gratuites (equity) vs intéressement (épargne salariale)
 2. Le PAS est TOUJOURS une charge, JAMAIS un crédit
 3. Détecter les mécanismes RSU (variante A ou B) correctement
-4. Générer des explications ultra-concrètes avec montants réels
-5. Ajouter points d'attention et conseils personnalisés pour equity`;
+4. Générer des explications ultra-concrètes avec montants réels, en TON SUGGESTIF
+5. Ajouter points d'attention et conseils personnalisés pour equity
+6. JAMAIS de conseil d'achat/vente d'actions → renvoyer vers un expert patrimonial`;
 
 
 function selectPrompt(mode: string, hasEquity: boolean): string {

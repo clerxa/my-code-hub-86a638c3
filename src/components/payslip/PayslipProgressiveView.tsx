@@ -454,10 +454,27 @@ export default function PayslipProgressiveView({ data }: PayslipProgressiveViewP
         </>
       )}
 
-      {/* Disclaimer */}
-      <p className="text-xs text-muted-foreground text-center italic py-2">
-        Ces informations sont extraites automatiquement. En cas de doute, contactez votre service RH.
-      </p>
+      {/* Disclaimer légal */}
+      <Card className="p-4 border-amber-200 bg-amber-50/50 dark:bg-amber-950/10 dark:border-amber-800/40">
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+            ⚠️ Avertissement important
+          </p>
+          <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+            Cette analyse est générée automatiquement par intelligence artificielle à partir de votre bulletin de paie. 
+            Elle est fournie <strong>à titre informatif et pédagogique uniquement</strong> et ne constitue en aucun cas un conseil 
+            financier, fiscal ou juridique personnalisé.
+          </p>
+          <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+            Les montants et interprétations présentés peuvent contenir des imprécisions liées à l'extraction automatique. 
+            <strong> Myfincare décline toute responsabilité</strong> quant aux décisions prises sur la base de cette analyse.
+          </p>
+          <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+            Pour toute question sur votre situation personnelle, nous vous recommandons de consulter votre service RH, 
+            un expert-comptable ou un conseiller patrimonial.
+          </p>
+        </div>
+      </Card>
 
       {/* Detail Modals */}
       <PayslipDetailModal
