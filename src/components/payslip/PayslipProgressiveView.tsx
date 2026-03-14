@@ -81,7 +81,7 @@ export default function PayslipProgressiveView({ data }: PayslipProgressiveViewP
     if (alert.id === "absence_longue_duree") return "→ Prévoyance peut compenser partiellement";
     if (alert.id === "entree_ou_sortie_mois") return "→ Salaire proratisé ce mois-ci";
     if (alert.id === "changement_taux_pas") return "→ Vérifie sur impots.gouv.fr";
-    if (alert.id === "conges_pris") return "→ Ton salaire n'est pas réduit";
+    if (alert.id === "conges_pris") return "";
     // For AI-generated points_attention
     return "";
   };
