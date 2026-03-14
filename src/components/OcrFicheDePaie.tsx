@@ -336,26 +336,18 @@ export default function OcrFicheDePaie() {
         )}
 
         {/* ═══════════════════════════════════════════ */}
-        {/* LOADING STATE (fallback text only) */}
-        {/* ═══════════════════════════════════════════ */}
-        {(step === "uploading" || step === "advanced_loading") && !showSimpleOverlay && !showAdvancedOverlay && (
-          <Card className="p-12 text-center">
-            <div className="w-10 h-10 border-3 border-muted border-t-primary rounded-full animate-spin mx-auto mb-4" />
-            <div className="text-sm font-semibold text-primary">{progress}</div>
-          </Card>
-        )}
-
-        {/* ═══════════════════════════════════════════ */}
         {/* ANALYSIS OVERLAYS */}
         {/* ═══════════════════════════════════════════ */}
         <PayslipAnalysisOverlay
-          isAnalyzing={showSimpleOverlay && !simpleResultRef.current}
+          isAnalyzing={showSimpleOverlay}
+          apiDone={apiDone === "simple"}
           onComplete={handleSimpleOverlayComplete}
           mode="simple"
           hasEquity={hasEquity === "yes"}
         />
         <PayslipAnalysisOverlay
-          isAnalyzing={showAdvancedOverlay && !advancedResultRef.current}
+          isAnalyzing={showAdvancedOverlay}
+          apiDone={apiDone === "advanced"}
           onComplete={handleAdvancedOverlayComplete}
           mode="advanced"
           hasEquity={hasEquity === "yes"}
