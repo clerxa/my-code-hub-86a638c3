@@ -42,7 +42,8 @@ export default function PayslipDetailModal({ open, onClose, modalType, data }: P
       case "brut_net_explication":
         return <BrutNetModal data={data} />;
       default:
-        return null;
+        // Try to show pedagogical explanation from data if available
+        return <GenericExplanationModal data={data} modalType={modalType} />;
     }
   };
 
