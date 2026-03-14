@@ -4,7 +4,7 @@
  */
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, TrendingDown, Activity, Layers, BarChart3, ArrowUpRight, ArrowDownRight, Minus, CheckCircle2, Clock, Sparkles, Zap, Banknote, AlertTriangle, Lock } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Layers, BarChart3, ArrowUpRight, ArrowDownRight, Minus, CheckCircle2, Clock, Sparkles, Zap, Banknote, AlertTriangle, Lock, Table2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -536,7 +536,7 @@ function DeclareCessionDialog({ plan, portfolio }: { plan: PortfolioPlan; portfo
         <Button
           variant="outline"
           size="sm"
-          className="w-full text-xs gap-1.5 border-accent/30 text-accent-foreground hover:bg-accent/10 transition-all"
+          className="w-full text-xs gap-1.5 border-primary/30 text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all"
         >
           <Banknote className="h-3.5 w-3.5" />
           Déclarer une cession
@@ -770,6 +770,23 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
       {portfolio.tickers.length > 0 && <StockTickers portfolio={portfolio} />}
 
       <SummaryCards portfolio={portfolio} />
+
+      {/* Recap link */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 text-xs"
+          onClick={() => navigate('/employee/vega/recap')}
+        >
+          <Table2 className="h-3.5 w-3.5" />
+          Voir le récapitulatif complet des vestings
+        </Button>
+      </motion.div>
 
       {Object.entries(grouped).map(([type, plans], idx) => (
         <motion.div

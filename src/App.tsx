@@ -60,6 +60,7 @@ import Employee from "./pages/Employee";
 import EmployeeProfile from "./pages/EmployeeProfile";
 import EmployeeSimulations from "./pages/EmployeeSimulations";
 import VegaPage from "./pages/VegaPage";
+import VegaRecapPage from "./pages/VegaRecapPage";
 import Parcours from "./pages/Parcours";
 import ParcoursPreview from "./pages/ParcoursPreview";
 import Forum from "./pages/Forum";
@@ -240,6 +241,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <VegaPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/vega/recap"
+              element={
+                <ProtectedRoute>
+                  <VegaRecapPage />
                 </ProtectedRoute>
               }
             />
