@@ -352,7 +352,11 @@ serve(async (req) => {
     }
 
     const result = await response.json();
-    const textContent = result.content?.find((c: any) => c.type === "text")?.text;
+    const textBlocks = (result.content || [])
+      .filter((c: any) => c?.type === "text")
+      .map((c: any) => c?.text || "")
+      .filter(Boolean);
+    const textContent = textBlocks.join("\n");
 
     if (!textContent) {
       throw new Error("No text content in API response");
@@ -362,70 +366,31 @@ serve(async (req) => {
     try {
       parsed = JSON.parse(textContent);
     } catch {
-      let cleaned = textContent
-        .replace(/```json\s*/gi, "")
-        .replace(/```\s*/g, "")
-        .trim();
+      const normalized = normalizeModelText(textContent);
+      const extracted = extractFirstBalancedJson(normalized);
 
-      const jsonStart = cleaned.search(/[\{\[]/);
-      if (jsonStart === -1) throw new Error("No JSON found in API response");
-      cleaned = cleaned.substring(jsonStart);
-
-      // Fix control characters
-      cleaned = cleaned.replace(/[\x00-\x1F\x7F]/g, (ch) => ch === '\n' || ch === '\t' ? ' ' : '');
-
-      // Check if truncated (unbalanced braces)
-      const count = (s: string) => {
-        let b = 0, k = 0, inStr = false, esc = false;
-        for (const c of s) {
-          if (esc) { esc = false; continue; }
-          if (c === '\\') { esc = true; continue; }
-          if (c === '"') { inStr = !inStr; continue; }
-          if (inStr) continue;
-          if (c === '{') b++; else if (c === '}') b--;
-          if (c === '[') k++; else if (c === ']') k--;
-        }
-        return { b, k, inStr };
-      };
-
-      let state = count(cleaned);
-
-      if (state.b > 0 || state.k > 0 || state.inStr) {
-        // Close open string if needed
-        if (state.inStr) {
-          // Find last quote, trim partial content after it
-          const lastQuote = cleaned.lastIndexOf('"');
-          // Check if this quote opens an unfinished string value
-          cleaned = cleaned.substring(0, lastQuote + 1);
-          state = count(cleaned);
-        }
-
-        // Remove trailing partial key-value pairs
-        // Find last cleanly ended value (ends with ", null, }, ], number, true, false)
-        const trailingPartial = cleaned.match(/,\s*"[^"]*"\s*:\s*("[^"]*)?$/);
-        if (trailingPartial) {
-          cleaned = cleaned.substring(0, cleaned.length - trailingPartial[0].length);
-          state = count(cleaned);
-        }
-
-        // Remove trailing commas
-        cleaned = cleaned.replace(/,\s*$/, "");
-
-        // Re-count and close
-        state = count(cleaned);
-        while (state.k > 0) { cleaned += "]"; state.k--; }
-        while (state.b > 0) { cleaned += "}"; state.b--; }
+      if (!extracted) {
+        throw new Error("No JSON found in API response");
       }
 
-      // Fix trailing commas inside structures
-      cleaned = cleaned.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
-
+      // 1) Try exact first balanced JSON (handles trailing text after valid JSON)
       try {
-        parsed = JSON.parse(cleaned);
-        console.warn("JSON repaired successfully after truncation");
-      } catch (finalErr) {
-        console.error("JSON repair failed:", finalErr.message, "Last 200 chars:", cleaned.substring(cleaned.length - 200));
-        throw new Error("Could not parse JSON from API response");
+        parsed = JSON.parse(extracted);
+      } catch {
+        // 2) Fallback: repair truncated JSON and parse
+        const repaired = repairTruncatedJson(extracted);
+        try {
+          parsed = JSON.parse(repaired);
+          console.warn("JSON repaired successfully after truncation");
+        } catch (finalErr) {
+          console.error(
+            "JSON repair failed:",
+            finalErr.message,
+            "Extracted tail:",
+            extracted.substring(Math.max(0, extracted.length - 200))
+          );
+          throw new Error("Could not parse JSON from API response");
+        }
       }
     }
 
