@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
+import { TaxNoticeAnalysisOverlay } from "./ocr/TaxNoticeAnalysisOverlay";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -570,6 +571,18 @@ const OcrAvisImposition = () => {
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [rawDataOpen, setRawDataOpen] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [apiDone, setApiDone] = useState(false);
+  const pendingDataRef = useRef<AvisData | null>(null);
+
+  const handleOverlayComplete = useCallback(() => {
+    setShowOverlay(false);
+    setLoading(false);
+    if (pendingDataRef.current) {
+      setData(pendingDataRef.current);
+      pendingDataRef.current = null;
+    }
+  }, []);
 
   const analyzeFile = useCallback(async (file: File) => {
     if (file.type !== "application/pdf") {
@@ -584,6 +597,9 @@ const OcrAvisImposition = () => {
     setLoading(true);
     setError(null);
     setData(null);
+    setApiDone(false);
+    setShowOverlay(true);
+    pendingDataRef.current = null;
 
     try {
       const images = await pdfToImages(file, setProgressMsg);
@@ -597,14 +613,13 @@ const OcrAvisImposition = () => {
       if (result?.error) throw new Error(result.error);
 
       const { _usage, ...ocrData } = result;
-      setData(ocrData as AvisData);
-      toast.success("Analyse terminée !");
+      pendingDataRef.current = ocrData as AvisData;
+      setApiDone(true);
     } catch (err: any) {
       console.error("OCR error:", err);
       setError(err.message || "Une erreur est survenue lors de l'analyse.");
-    } finally {
+      setShowOverlay(false);
       setLoading(false);
-      setProgressMsg("");
     }
   }, []);
 
@@ -629,6 +644,9 @@ const OcrAvisImposition = () => {
   const reset = () => {
     setData(null);
     setError(null);
+    setShowOverlay(false);
+    setApiDone(false);
+    setLoading(false);
   };
 
   // ─── Computed values ───
@@ -717,8 +735,12 @@ const OcrAvisImposition = () => {
         </div>
       )}
 
-      {/* ─── Loading ─── */}
-      {loading && <LoadingStepper progressMsg={progressMsg} />}
+      {/* ─── Analysis Overlay ─── */}
+      <TaxNoticeAnalysisOverlay
+        isAnalyzing={showOverlay}
+        apiDone={apiDone}
+        onComplete={handleOverlayComplete}
+      />
 
       {/* ─── Error ─── */}
       {error && (
