@@ -1,29 +1,31 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Upload,
-  FileText,
   ChevronDown,
-  Copy,
   AlertTriangle,
   Lightbulb,
-  BarChart3,
-  User,
-  Wallet,
-  Calculator,
   RefreshCw,
   CheckCircle,
   Info,
-  ArrowDown,
   Loader2,
+  Lock,
+  Zap,
+  GraduationCap,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -77,20 +79,22 @@ interface UsageData {
   model: string;
 }
 
-type ModelKey = "haiku-4.5" | "sonnet-4" | "both";
-
-const MODEL_LABELS: Record<string, string> = {
-  "haiku-4.5": "Haiku 4.5",
-  "sonnet-4": "Sonnet 4",
-};
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const fmt = (v: number | null | undefined) =>
-  v != null ? v.toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + " €" : "—";
+  v != null
+    ? v.toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + " €"
+    : "—";
+
+const fmtCompact = (v: number | null | undefined) =>
+  v != null
+    ? v.toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + " €"
+    : "—";
 
 const pct = (v: number | null | undefined) =>
-  v != null ? v.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 2 }) + " %" : "—";
+  v != null
+    ? v.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " %"
+    : "—";
 
 const REVENUE_LABELS: Record<string, string> = {
   salaires_traitements_bruts: "Salaires et traitements bruts",
@@ -98,7 +102,7 @@ const REVENUE_LABELS: Record<string, string> = {
   salaires_nets_imposables: "Salaires nets imposables",
   revenus_fonciers_nets: "Revenus fonciers nets",
   revenus_capitaux_mobiliers: "Revenus de capitaux mobiliers",
-  "plus_values_mobilières": "Plus-values mobilières",
+  plus_values_mobilières: "Plus-values mobilières",
   bic_bnc_ba: "BIC / BNC / BA",
   pensions_retraites: "Pensions et retraites",
   autres_revenus: "Autres revenus",
@@ -123,6 +127,15 @@ const TAX_LABELS: Record<string, string> = {
   total_a_payer: "Total à payer",
   mensualisation_ou_prelevement: "Mensualisation / Prélèvement",
 };
+
+// Tax brackets 2024 (per part)
+const TRANCHES_2024 = [
+  { seuil: 0, taux: 0, couleur: "hsl(var(--muted))", label: "0 %" },
+  { seuil: 11294, taux: 11, couleur: "hsl(var(--success))", label: "11 %" },
+  { seuil: 28797, taux: 30, couleur: "hsl(38 92% 50%)", label: "30 %" },
+  { seuil: 82341, taux: 41, couleur: "hsl(25 95% 53%)", label: "41 %" },
+  { seuil: 177106, taux: 45, couleur: "hsl(var(--destructive))", label: "45 %" },
+];
 
 // ─── PDF to Images conversion ─────────────────────────────────────────────────
 
@@ -173,221 +186,390 @@ const pdfToImages = async (
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-const DualDataRow = ({
-  label,
-  value1,
-  value2,
-  highlight,
-  dualMode,
-}: {
-  label: string;
-  value1: string;
-  value2?: string;
-  highlight?: boolean;
-  dualMode: boolean;
-}) => (
-  <div
-    className={`grid items-center py-2.5 px-3 rounded-lg transition-colors ${
-      highlight ? "bg-accent/10 border border-accent/30" : "hover:bg-muted/50"
-    } ${dualMode ? "grid-cols-[1fr_auto_auto]" : "grid-cols-[1fr_auto]"} gap-4`}
-  >
-    <span className="text-sm text-muted-foreground">{label}</span>
-    <span className={`text-sm font-semibold tabular-nums text-right ${highlight ? "text-accent" : "text-foreground"}`}>
-      {value1}
-    </span>
-    {dualMode && (
-      <span className={`text-sm font-semibold tabular-nums text-right min-w-[100px] ${highlight ? "text-accent" : "text-foreground"}`}>
-        {value2 || "—"}
-      </span>
-    )}
-  </div>
+// Counter animation hook
+function useCountUp(target: number | null | undefined, duration = 1000) {
+  const [value, setValue] = useState(0);
+  const [started, setStarted] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!ref.current || target == null) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting && !started) setStarted(true); },
+      { threshold: 0.3 }
+    );
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target, started]);
+
+  useEffect(() => {
+    if (!started || target == null) return;
+    const startTime = performance.now();
+    const absTarget = Math.abs(target);
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      setValue(Math.round(absTarget * eased));
+      if (progress < 1) requestAnimationFrame(animate);
+      else setValue(absTarget);
+    };
+    requestAnimationFrame(animate);
+  }, [started, target, duration]);
+
+  return { ref, displayValue: target != null && target < 0 ? -value : value };
+}
+
+// Intersection observer hook for fade-in
+function useInView(delay = 0) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => setVisible(true), delay);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [delay]);
+
+  return { ref, visible };
+}
+
+// Fiscal tooltip inline
+const FiscalTooltip = ({ term, explanation }: { term: string; explanation: string }) => (
+  <TooltipProvider delayDuration={150}>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="underline decoration-dotted decoration-muted-foreground/50 underline-offset-4 cursor-help">
+          {term}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs text-sm" side="top">
+        <p>{explanation}</p>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
 );
 
-const ColumnHeaders = ({ dualMode }: { dualMode: boolean }) => {
-  if (!dualMode) return null;
+// Metric card with counter
+const MetricCard = ({
+  label,
+  value,
+  tooltip,
+  variant = "default",
+  suffix,
+  icon,
+}: {
+  label: string;
+  value: number | null | undefined;
+  tooltip?: string;
+  variant?: "default" | "success" | "primary";
+  suffix?: string;
+  icon?: React.ReactNode;
+}) => {
+  const { ref, displayValue } = useCountUp(value);
+  const colorClass =
+    variant === "success"
+      ? "text-success"
+      : variant === "primary"
+      ? "text-primary"
+      : "text-foreground";
+
   return (
-    <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-3 py-2 mb-1">
-      <span />
-      <span className="text-[10px] font-bold uppercase tracking-widest text-primary text-right">Haiku 4.5</span>
-      <span className="text-[10px] font-bold uppercase tracking-widest text-secondary text-right min-w-[100px]">Haiku 3.5</span>
+    <div
+      ref={ref}
+      className="bg-card border border-[hsl(var(--card-border))] rounded-xl p-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+    >
+      <div className="flex items-center gap-1.5 mb-2">
+        <p className="text-xs text-muted-foreground font-medium">
+          {tooltip ? (
+            <FiscalTooltip term={label} explanation={tooltip} />
+          ) : (
+            label
+          )}
+        </p>
+      </div>
+      <div className="flex items-baseline gap-1">
+        {icon}
+        <p className={`text-xl font-bold tabular-nums ${colorClass}`}>
+          {value != null
+            ? suffix
+              ? `${Math.abs(displayValue).toLocaleString("fr-FR")}${suffix}`
+              : fmtCompact(displayValue)
+            : "—"}
+        </p>
+      </div>
     </div>
   );
 };
 
-const WaterfallStep = ({
-  label,
-  value,
-  isPositive,
-  isLast,
-}: {
-  label: string;
-  value: string;
-  isPositive?: boolean;
-  isLast?: boolean;
-}) => (
-  <div className="relative">
-    <div
-      className={`flex items-center justify-between p-3 rounded-lg border ${
-        isLast ? "bg-primary/10 border-primary/30" : "bg-card border-border"
-      }`}
-    >
-      <span className="text-sm text-foreground">{label}</span>
-      <span
-        className={`text-sm font-bold tabular-nums ${
-          isPositive === true ? "text-success" : isPositive === false ? "text-destructive" : "text-foreground"
-        }`}
-      >
-        {value}
-      </span>
-    </div>
-    {!isLast && (
-      <div className="flex justify-center py-1">
-        <ArrowDown className="h-4 w-4 text-muted-foreground" />
-      </div>
-    )}
-  </div>
-);
-
-const PedagogicalCard = ({
-  icon,
+// Stepper step
+const StepperStep = ({
+  index,
   title,
-  text,
-  text2,
-  dualMode,
-  variant = "info",
+  amount,
+  amountColor,
+  children,
+  isLast,
+  delay,
 }: {
-  icon: React.ReactNode;
+  index: number;
   title: string;
-  text: string;
-  text2?: string;
-  dualMode: boolean;
-  variant?: "info" | "tip" | "warning";
+  amount: string;
+  amountColor?: string;
+  children: React.ReactNode;
+  isLast?: boolean;
+  delay: number;
 }) => {
-  const borderColor =
-    variant === "warning" ? "border-l-destructive" : variant === "tip" ? "border-l-accent" : "border-l-primary";
-
-  if (dualMode && text2) {
-    return (
-      <Card className={`border-l-4 ${borderColor}`}>
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3 mb-3">
-            <div className="mt-0.5 shrink-0">{icon}</div>
-            <h4 className="font-semibold text-foreground">{title}</h4>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Haiku 4.5</span>
-              <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-secondary">Haiku 3.5</span>
-              <p className="text-sm text-muted-foreground leading-relaxed">{text2}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const { ref, visible } = useInView(delay);
 
   return (
-    <Card className={`border-l-4 ${borderColor}`}>
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 shrink-0">{icon}</div>
-          <div>
-            <h4 className="font-semibold text-foreground mb-1">{title}</h4>
-            <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
+    <div ref={ref} className="relative flex gap-4">
+      {/* Vertical line */}
+      <div className="flex flex-col items-center">
+        <div
+          className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all duration-500 ${
+            visible
+              ? "bg-primary text-primary-foreground scale-100"
+              : "bg-muted text-muted-foreground scale-75"
+          }`}
+        >
+          {index}
+        </div>
+        {!isLast && (
+          <div className="w-px flex-1 border-l-2 border-dashed border-border my-1" />
+        )}
+      </div>
+
+      {/* Content */}
+      <div
+        className={`flex-1 pb-8 transition-all duration-500 ${
+          visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        }`}
+      >
+        <div className="bg-card border border-[hsl(var(--card-border))] rounded-xl p-5 shadow-sm">
+          <div className="flex items-start justify-between flex-wrap gap-2 mb-3">
+            <h4 className="font-semibold text-foreground">{title}</h4>
+            <span className={`text-lg font-bold tabular-nums ${amountColor || "text-foreground"}`}>
+              {amount}
+            </span>
           </div>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// SVG Gauge
+const GaugeChart = ({
+  value,
+  maxValue = 40,
+}: {
+  value: number;
+  maxValue?: number;
+}) => {
+  const { ref, visible } = useInView(200);
+  const clampedValue = Math.min(Math.max(value, 0), maxValue);
+  const angle = (clampedValue / maxValue) * 180;
+
+  // Gauge labels
+  const getLabel = (v: number) => {
+    if (v <= 5) return "Très faible";
+    if (v <= 15) return "Dans la moyenne";
+    if (v <= 25) return "Élevé";
+    return "Très élevé";
+  };
+
+  return (
+    <div ref={ref} className="flex flex-col items-center">
+      <svg viewBox="0 0 200 120" className="w-48 h-auto">
+        {/* Background arc */}
+        <path
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          fill="none"
+          stroke="hsl(var(--muted))"
+          strokeWidth="12"
+          strokeLinecap="round"
+        />
+        {/* Colored segments */}
+        <path d="M 20 100 A 80 80 0 0 1 55 35" fill="none" stroke="hsl(var(--success))" strokeWidth="12" strokeLinecap="round" opacity="0.4" />
+        <path d="M 55 35 A 80 80 0 0 1 100 20" fill="none" stroke="hsl(38 92% 50%)" strokeWidth="12" opacity="0.4" />
+        <path d="M 100 20 A 80 80 0 0 1 145 35" fill="none" stroke="hsl(25 95% 53%)" strokeWidth="12" opacity="0.4" />
+        <path d="M 145 35 A 80 80 0 0 1 180 100" fill="none" stroke="hsl(var(--destructive))" strokeWidth="12" strokeLinecap="round" opacity="0.4" />
+        {/* Needle */}
+        <line
+          x1="100"
+          y1="100"
+          x2={100 + 65 * Math.cos(((180 - (visible ? angle : 0)) * Math.PI) / 180)}
+          y2={100 - 65 * Math.sin(((180 - (visible ? angle : 0)) * Math.PI) / 180)}
+          stroke="hsl(var(--foreground))"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          style={{ transition: "all 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+        />
+        {/* Center dot */}
+        <circle cx="100" cy="100" r="5" fill="hsl(var(--foreground))" />
+        {/* Value */}
+        <text x="100" y="90" textAnchor="middle" className="text-lg font-bold" fill="hsl(var(--foreground))" fontSize="18">
+          {visible ? value.toFixed(1) : "0.0"}%
+        </text>
+      </svg>
+      <p className="text-sm font-medium text-muted-foreground mt-1">{getLabel(value)}</p>
+      {/* Legend */}
+      <div className="flex gap-3 mt-2 text-[10px] text-muted-foreground">
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-success" />0-5%</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(38 92% 50%)" }} />5-15%</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(25 95% 53%)" }} />15-25%</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive" />25%+</span>
+      </div>
+    </div>
+  );
+};
+
+// Tax bracket bar
+const TranchesBar = ({
+  revenuImposable,
+  nombreParts,
+}: {
+  revenuImposable: number;
+  nombreParts: number;
+}) => {
+  const quotient = revenuImposable / (nombreParts || 1);
+  const maxDisplay = Math.max(quotient * 1.15, TRANCHES_2024[3].seuil);
+
+  // Determine which tranches are hit
+  const activeTranches = TRANCHES_2024.filter((t) => quotient > t.seuil);
+  const tmi = activeTranches.length > 0 ? activeTranches[activeTranches.length - 1].taux : 0;
+
+  return (
+    <div className="space-y-3">
+      <div className="relative h-8 rounded-full overflow-hidden flex">
+        {TRANCHES_2024.map((tranche, i) => {
+          const nextSeuil = TRANCHES_2024[i + 1]?.seuil || maxDisplay;
+          const start = tranche.seuil;
+          const end = Math.min(nextSeuil, maxDisplay);
+          const width = ((end - start) / maxDisplay) * 100;
+          const isActive = quotient > start;
+          const filledWidth = isActive
+            ? Math.min(((Math.min(quotient, nextSeuil) - start) / (end - start)) * 100, 100)
+            : 0;
+
+          return (
+            <div
+              key={i}
+              className="relative h-full"
+              style={{ width: `${width}%` }}
+            >
+              <div
+                className="absolute inset-0 transition-all duration-700"
+                style={{
+                  background: tranche.couleur,
+                  opacity: isActive ? 0.8 : 0.15,
+                  width: isActive ? `${filledWidth}%` : "100%",
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex justify-between text-[10px] text-muted-foreground">
+        {TRANCHES_2024.filter((t) => t.seuil < maxDisplay).map((t, i) => (
+          <span key={i} className={quotient > t.seuil ? "font-semibold text-foreground" : ""}>
+            {t.label}
+          </span>
+        ))}
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Votre{" "}
+        <FiscalTooltip
+          term="taux marginal d'imposition (TMI)"
+          explanation="C'est le taux qui s'applique à la dernière tranche de vos revenus. Ce n'est pas le taux appliqué à l'ensemble de vos revenus."
+        />{" "}
+        est de <strong className="text-foreground">{tmi} %</strong>.
+      </p>
+    </div>
+  );
+};
+
+// Loading stepper
+const LoadingStepper = ({ progressMsg }: { progressMsg: string }) => {
+  const steps = [
+    { label: "Lecture de votre document…", key: "pdf" },
+    { label: "Identification des données fiscales…", key: "api" },
+    { label: "Rédaction de vos explications personnalisées…", key: "explain" },
+    { label: "Finalisation…", key: "final" },
+  ];
+
+  const getStepIndex = (msg: string) => {
+    if (msg.includes("librairie") || msg.includes("fichier") || msg.includes("page")) return 0;
+    if (msg.includes("Analyse") || msg.includes("Haiku")) return 1;
+    if (msg.includes("Rédaction")) return 2;
+    return msg ? 1 : 0;
+  };
+
+  const currentStep = getStepIndex(progressMsg);
+
+  return (
+    <Card>
+      <CardContent className="p-10">
+        <div className="max-w-md mx-auto space-y-6">
+          <div className="flex justify-center mb-6">
+            <Loader2 className="h-10 w-10 text-primary animate-spin" />
+          </div>
+          {steps.map((step, i) => (
+            <div key={i} className="flex items-center gap-3">
+              {i < currentStep ? (
+                <CheckCircle className="h-5 w-5 text-success shrink-0" />
+              ) : i === currentStep ? (
+                <Loader2 className="h-5 w-5 text-primary animate-spin shrink-0" />
+              ) : (
+                <div className="h-5 w-5 rounded-full border-2 border-muted shrink-0" />
+              )}
+              <span
+                className={`text-sm ${
+                  i < currentStep
+                    ? "text-success line-through"
+                    : i === currentStep
+                    ? "text-foreground font-medium"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {step.label}
+              </span>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>
   );
 };
 
-const CollapsibleSection = ({
-  icon,
-  title,
-  children,
-  defaultOpen = false,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}) => {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="w-full">
-        <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-border hover:bg-muted/30 transition-colors">
-          <div className="flex items-center gap-3">
-            {icon}
-            <span className="font-semibold text-foreground text-sm uppercase tracking-wider">{title}</span>
-          </div>
-          <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
-        </div>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="mt-2 space-y-1 pl-1 pr-1">{children}</CollapsibleContent>
-    </Collapsible>
-  );
-};
-
-const UsageCard = ({ usage, label }: { usage: UsageData; label?: string }) => (
-  <div className="flex-1 space-y-2">
-    {label && <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>}
-    <div className="flex items-center gap-2 mb-2">
-      <span className="text-xs text-muted-foreground">Modèle :</span>
-      <span className="text-xs font-medium text-foreground">{usage.model}</span>
-    </div>
-    <div className="flex items-center gap-6">
-      <div className="text-center">
-        <p className="text-xs text-muted-foreground">Tokens in</p>
-        <p className="text-sm font-semibold tabular-nums text-foreground">{usage.input_tokens.toLocaleString("fr-FR")}</p>
-        <p className="text-[10px] text-muted-foreground">{usage.cost_input_usd.toFixed(4)} $</p>
-      </div>
-      <div className="text-center">
-        <p className="text-xs text-muted-foreground">Tokens out</p>
-        <p className="text-sm font-semibold tabular-nums text-foreground">{usage.output_tokens.toLocaleString("fr-FR")}</p>
-        <p className="text-[10px] text-muted-foreground">{usage.cost_output_usd.toFixed(4)} $</p>
-      </div>
-      <div className="h-8 w-px bg-border" />
-      <div className="text-center">
-        <p className="text-xs text-muted-foreground">Total</p>
-        <p className="text-sm font-bold tabular-nums text-foreground">{usage.total_tokens.toLocaleString("fr-FR")}</p>
-        <p className="text-xs font-semibold text-primary">{usage.cost_total_usd.toFixed(4)} $</p>
-      </div>
-    </div>
+// Simple data row for raw data accordion
+const SimpleDataRow = ({ label, value }: { label: string; value: string }) => (
+  <div className="grid grid-cols-[1fr_auto] gap-4 items-center py-2 px-3 rounded-lg hover:bg-muted/50">
+    <span className="text-sm text-muted-foreground">{label}</span>
+    <span className="text-sm font-semibold tabular-nums text-foreground text-right">{value}</span>
   </div>
 );
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const OcrAvisImposition = () => {
-  const [selectedModel, setSelectedModel] = useState<ModelKey>("both");
-  const [data1, setData1] = useState<AvisData | null>(null);
-  const [data2, setData2] = useState<AvisData | null>(null);
-  const [usage1, setUsage1] = useState<UsageData | null>(null);
-  const [usage2, setUsage2] = useState<UsageData | null>(null);
+  const [data, setData] = useState<AvisData | null>(null);
   const [loading, setLoading] = useState(false);
   const [progressMsg, setProgressMsg] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
-
-  const hasData = data1 || data2;
-  const dualMode = selectedModel === "both" && !!data1 && !!data2;
-  // For display, use whichever data is available (data1 preferred for single-model)
-  const primaryData = data1 || data2;
-
-  const callOcr = async (images: string[], modelKey: string) => {
-    const { data: result, error: fnError } = await supabase.functions.invoke(
-      "ocr-avis-imposition",
-      { body: { images, model: modelKey } }
-    );
-    if (fnError) throw fnError;
-    if (result?.error) throw new Error(result.error);
-    const { _usage, ...ocrData } = result;
-    return { ocrData, usage: _usage };
-  };
+  const [rawDataOpen, setRawDataOpen] = useState(false);
 
   const analyzeFile = useCallback(async (file: File) => {
     if (file.type !== "application/pdf") {
@@ -401,36 +583,21 @@ const OcrAvisImposition = () => {
 
     setLoading(true);
     setError(null);
-    setData1(null);
-    setData2(null);
-    setUsage1(null);
-    setUsage2(null);
+    setData(null);
 
     try {
       const images = await pdfToImages(file, setProgressMsg);
+      setProgressMsg("Analyse par Haiku 4.5…");
 
-      if (selectedModel === "both") {
-        setProgressMsg("Analyse par Haiku 4.5…");
-        const r1 = await callOcr(images, "haiku-4.5");
-        setData1(r1.ocrData);
-        setUsage1(r1.usage);
+      const { data: result, error: fnError } = await supabase.functions.invoke(
+        "ocr-avis-imposition",
+        { body: { images, model: "haiku-4.5" } }
+      );
+      if (fnError) throw fnError;
+      if (result?.error) throw new Error(result.error);
 
-        setProgressMsg("Analyse par Sonnet 4…");
-        const r2 = await callOcr(images, "sonnet-4");
-        setData2(r2.ocrData);
-        setUsage2(r2.usage);
-      } else if (selectedModel === "haiku-4.5") {
-        setProgressMsg("Analyse par Haiku 4.5…");
-        const r = await callOcr(images, "haiku-4.5");
-        setData1(r.ocrData);
-        setUsage1(r.usage);
-      } else {
-        setProgressMsg("Analyse par Sonnet 4…");
-        const r = await callOcr(images, "sonnet-4");
-        setData2(r.ocrData);
-        setUsage2(r.usage);
-      }
-
+      const { _usage, ...ocrData } = result;
+      setData(ocrData as AvisData);
       toast.success("Analyse terminée !");
     } catch (err: any) {
       console.error("OCR error:", err);
@@ -439,7 +606,7 @@ const OcrAvisImposition = () => {
       setLoading(false);
       setProgressMsg("");
     }
-  }, [selectedModel]);
+  }, []);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -459,454 +626,555 @@ const OcrAvisImposition = () => {
     [analyzeFile]
   );
 
-  const copyJson = useCallback(() => {
-    const payload: any = {};
-    if (data1) payload["haiku-4.5"] = data1;
-    if (data2) payload["sonnet-4"] = data2;
-    navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
-    toast.success("JSON copié dans le presse-papier");
-  }, [data1, data2]);
-
   const reset = () => {
-    setData1(null);
-    setData2(null);
-    setUsage1(null);
-    setUsage2(null);
+    setData(null);
     setError(null);
   };
 
-  // Helper to get value from either dataset
-  const getVal = (accessor: (d: AvisData) => number | null | undefined) => {
-    const v1 = data1 ? accessor(data1) : undefined;
-    const v2 = data2 ? accessor(data2) : undefined;
-    return { v1, v2 };
-  };
+  // ─── Computed values ───
+  const prenom = data?.contribuable?.prenom;
+  const annee = data?.annees?.annee_revenus;
+  const anneeImposition = data?.annees?.annee_imposition;
+  const rfr = data?.revenus?.revenu_fiscal_reference;
+  const impotNet = data?.impot?.impot_net_total;
+  const tauxMoyen = data?.impot?.taux_moyen_imposition_pct as number | null | undefined;
+  const solde = data?.prelevement_source?.solde_a_payer_ou_rembourser;
+  const montantPreleve = data?.prelevement_source?.montant_preleve_annee_n;
+  const tauxPas = data?.prelevement_source?.taux_pas_pct;
+  const salaires = data?.revenus?.salaires_traitements_bruts;
+  const abattement = data?.revenus?.abattement_10_pct;
+  const revenuImposable = data?.revenus?.revenu_net_imposable;
+  const impotBrut = data?.impot?.impot_brut_progressif;
+  const reductions = data?.impot?.reductions_impot;
+  const credits = data?.impot?.credits_impot;
+  const nombreParts = data?.contribuable?.nombre_parts || 1;
+
+  const totalReductionsCredits =
+    (reductions || 0) + (credits || 0) > 0 ? (reductions || 0) + (credits || 0) : null;
+
+  const conseils = data?.explications_pedagogiques?.conseils_optimisation || [];
+  const pointsAttention = data?.explications_pedagogiques?.points_attention || [];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 p-4">
-      {/* Model selector */}
-      {!hasData && !loading && (
-        <Card>
-          <CardContent className="p-6">
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
-              Choix du modèle
-            </h3>
-            <div className="flex gap-3">
-              {(["haiku-4.5", "sonnet-4", "both"] as ModelKey[]).map((key) => (
-                <Button
-                  key={key}
-                  variant={selectedModel === key ? "default" : "outline"}
-                  onClick={() => setSelectedModel(key)}
-                  className="flex-1"
-                >
-                  {key === "both" ? "Les deux (comparaison)" : MODEL_LABELS[key]}
-                  {key !== "both" && (
-                    <span className="ml-2 text-xs opacity-70">
-                      {key === "haiku-4.5" ? "$1/$5" : "$3/$15"}
-                    </span>
-                  )}
-                </Button>
-              ))}
+    <div className="max-w-3xl mx-auto space-y-6 px-4 pb-20">
+      {/* ─── Upload State ─── */}
+      {!data && !loading && !error && (
+        <div className="space-y-8 pt-8">
+          <div className="text-center space-y-3">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+              Votre avis d'imposition, enfin expliqué
+            </h1>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Déposez votre document et comprenez chaque ligne en 3 minutes, sans jargon fiscal.
+            </p>
+          </div>
+
+          <Card>
+            <CardContent className="p-8">
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-2xl p-10 sm:p-14 text-center transition-all cursor-pointer ${
+                  dragOver
+                    ? "border-primary bg-primary/5 scale-[1.01]"
+                    : "border-border hover:border-primary/50 hover:bg-muted/30"
+                }`}
+                onClick={() => document.getElementById("pdf-input")?.click()}
+                style={dragOver ? {} : { animation: "pulse 3s ease-in-out infinite" }}
+              >
+                <Upload className="h-12 w-12 mx-auto mb-4 text-primary/60" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  Déposez votre avis d'imposition
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Glissez-déposez votre PDF ici ou cliquez pour parcourir
+                </p>
+                <p className="text-xs text-muted-foreground">PDF uniquement • 8 pages max • 20 Mo max</p>
+                <input
+                  id="pdf-input"
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Reassurance pills */}
+          <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Lock className="h-4 w-4" /> Document traité en toute confidentialité
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Upload zone */}
-      {!hasData && !loading && (
-        <Card>
-          <CardContent className="p-8">
-            <div
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all cursor-pointer ${
-                dragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/30"
-              }`}
-              onClick={() => document.getElementById("pdf-input")?.click()}
-            >
-              <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">Déposez votre avis d'imposition</h3>
-              <p className="text-sm text-muted-foreground mb-4">Glissez-déposez votre PDF ici ou cliquez pour parcourir</p>
-              <p className="text-xs text-muted-foreground">PDF uniquement • 8 pages max • 20 Mo max</p>
-              <input id="pdf-input" type="file" accept="application/pdf,.pdf" onChange={handleFileChange} className="hidden" />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Zap className="h-4 w-4" /> Analyse en moins de 30 secondes
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <GraduationCap className="h-4 w-4" /> Explications adaptées à tous
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Loading */}
-      {loading && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Loader2 className="h-10 w-10 mx-auto mb-4 text-primary animate-spin" />
-            <p className="text-foreground font-medium">{progressMsg}</p>
-            <p className="text-xs text-muted-foreground mt-2">Cette opération peut prendre quelques secondes</p>
-          </CardContent>
-        </Card>
-      )}
+      {/* ─── Loading ─── */}
+      {loading && <LoadingStepper progressMsg={progressMsg} />}
 
-      {/* Error */}
+      {/* ─── Error ─── */}
       {error && (
         <Card className="border-destructive/30">
-          <CardContent className="p-8 text-center">
-            <AlertTriangle className="h-10 w-10 mx-auto mb-4 text-destructive" />
-            <p className="text-foreground font-medium mb-4">{error}</p>
-            <Button onClick={() => { setError(null); }} variant="outline">
+          <CardContent className="p-10 text-center space-y-4">
+            <AlertTriangle className="h-12 w-12 mx-auto text-destructive" />
+            <p className="text-foreground font-medium max-w-md mx-auto">
+              Une erreur est survenue lors de l'analyse de votre document. Veuillez vérifier que
+              votre fichier est bien un avis d'imposition au format PDF et réessayer.
+            </p>
+            <p className="text-sm text-muted-foreground">{error}</p>
+            <Button onClick={() => setError(null)} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" /> Réessayer
             </Button>
           </CardContent>
         </Card>
       )}
 
-      {/* Results */}
-      {hasData && primaryData && (
+      {/* ─── Results ─── */}
+      {data && (
         <>
           {/* Action bar */}
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-2">
-              {primaryData.meta.confidence && (
-                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                  primaryData.meta.confidence === "high" ? "bg-success/10 text-success"
-                    : primaryData.meta.confidence === "medium" ? "bg-accent/10 text-accent"
-                    : "bg-destructive/10 text-destructive"
-                }`}>
-                  Confiance : {primaryData.meta.confidence}
-                </span>
-              )}
-              {dualMode && <span className="text-xs px-2 py-1 bg-secondary/10 text-secondary rounded-full font-medium">Mode comparaison</span>}
+          <div className="flex justify-end pt-4">
+            <Button variant="ghost" size="sm" onClick={reset}>
+              <RefreshCw className="h-4 w-4 mr-1.5" /> Analyser un autre document
+            </Button>
+          </div>
+
+          {/* ═══════════════ ZONE 1 — Bannière & Métriques ═══════════════ */}
+          <div
+            className="rounded-2xl p-6 sm:p-8"
+            style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.08), hsl(var(--secondary) / 0.08))" }}
+          >
+            <div className="space-y-2 mb-6">
+              <div className="flex flex-wrap gap-2">
+                {data.meta.type_document && (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/15 text-primary">
+                    {data.meta.type_document}
+                  </span>
+                )}
+                {data.meta.annee_detectee && (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/15 text-secondary">
+                    {data.meta.annee_detectee}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                {prenom
+                  ? `Bonjour ${prenom}. Voici ce que nous avons trouvé dans votre avis d'imposition${annee ? ` ${annee}` : ""}.`
+                  : `Voici ce que nous avons trouvé dans votre avis d'imposition${annee ? ` ${annee}` : ""}.`}
+              </h2>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={copyJson}>
-                <Copy className="h-3.5 w-3.5 mr-1.5" /> Copier JSON
-              </Button>
-              <Button variant="ghost" size="sm" onClick={reset}>
-                <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Nouveau
-              </Button>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <MetricCard
+                label="Votre revenu de référence"
+                value={rfr}
+                tooltip="Le revenu fiscal de référence (RFR) est le chiffre qui sert de base à de nombreux droits et aides sociales."
+              />
+              <MetricCard
+                label="Votre impôt"
+                value={impotNet}
+              />
+              <MetricCard
+                label="Votre taux réel"
+                value={tauxMoyen != null ? Math.round(tauxMoyen * 10) / 10 : null}
+                suffix=" %"
+                tooltip="C'est le pourcentage de vos revenus que vous avez réellement payé en impôt, toutes tranches confondues."
+              />
+              <MetricCard
+                label="Votre solde"
+                value={solde}
+                variant={solde != null && solde < 0 ? "success" : "primary"}
+                icon={
+                  solde != null ? (
+                    solde < 0 ? (
+                      <CheckCircle className="h-4 w-4 text-success shrink-0" />
+                    ) : solde > 0 ? (
+                      <Info className="h-4 w-4 text-primary shrink-0" />
+                    ) : null
+                  ) : null
+                }
+              />
             </div>
           </div>
 
-          {/* Usage comparison */}
-          {(usage1 || usage2) && (
-            <Card className="bg-muted/30 border-border">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Consommation API</span>
+          {/* ═══════════════ ZONE 2 — Le parcours de votre impôt ═══════════════ */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-foreground">
+              Comment votre impôt a-t-il été calculé ?
+            </h3>
+
+            <div className="relative">
+              {/* Step 1 — Revenus déclarés */}
+              <StepperStep
+                index={1}
+                title="Vos revenus déclarés"
+                amount={fmt(salaires)}
+                amountColor="text-primary"
+                delay={0}
+              >
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {annee
+                    ? `En ${annee}, vous avez déclaré ${fmt(salaires)} de salaires et traitements bruts.`
+                    : `Vous avez déclaré ${fmt(salaires)} de salaires et traitements bruts.`}{" "}
+                  C'est le point de départ du calcul de votre impôt.
+                </p>
+                <div className="mt-3 h-3 rounded-full bg-primary/70 w-full" />
+              </StepperStep>
+
+              {/* Step 2 — Abattement */}
+              <StepperStep
+                index={2}
+                title="L'abattement forfaitaire de 10 %"
+                amount={abattement != null ? `− ${fmt(Math.abs(abattement))}` : "—"}
+                amountColor="text-muted-foreground"
+                delay={100}
+              >
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  L'administration fiscale vous accorde automatiquement un{" "}
+                  <FiscalTooltip
+                    term="abattement de 10 %"
+                    explanation="Cet abattement forfaitaire est censé couvrir vos frais professionnels courants (transport, repas…). Vous pouvez opter pour les frais réels si vos dépenses sont supérieures."
+                  />
+                  {" "}de {fmt(Math.abs(abattement || 0))}, censé représenter vos frais professionnels.
+                  Vous n'avez rien à faire pour en bénéficier.
+                </p>
+                <div className="mt-3 flex h-3 rounded-full overflow-hidden">
+                  <div className="bg-primary/70 flex-1" />
+                  <div className="bg-muted w-[10%]" />
                 </div>
-                <div className={`flex ${dualMode ? "gap-8" : ""}`}>
-                  {usage1 && <UsageCard usage={usage1} label={dualMode ? "Haiku 4.5" : undefined} />}
-                  {dualMode && <div className="w-px bg-border" />}
-                  {usage2 && <UsageCard usage={usage2} label={dualMode ? "Haiku 3.5" : undefined} />}
+              </StepperStep>
+
+              {/* Step 3 — Revenu imposable */}
+              <StepperStep
+                index={3}
+                title="Votre revenu net imposable"
+                amount={fmt(revenuImposable)}
+                amountColor="text-secondary"
+                delay={200}
+              >
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Après abattement, votre{" "}
+                  <FiscalTooltip
+                    term="revenu net imposable"
+                    explanation="C'est le montant sur lequel l'impôt est effectivement calculé, après déduction de l'abattement de 10 % et d'éventuelles charges déductibles."
+                  />{" "}
+                  s'établit à {fmt(revenuImposable)}. C'est cette base — et non votre salaire brut
+                  — que l'administration utilise pour calculer votre impôt.
+                </p>
+                <div className="mt-3 h-3 rounded-full bg-secondary/70 w-[90%]" />
+              </StepperStep>
+
+              {/* Step 4 — Barème progressif */}
+              <StepperStep
+                index={4}
+                title="Le calcul par tranches"
+                amount={fmt(impotBrut)}
+                amountColor="text-foreground"
+                delay={300}
+              >
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                  Contrairement à une idée reçue, votre{" "}
+                  <FiscalTooltip
+                    term="taux marginal"
+                    explanation="C'est le taux qui s'applique à la dernière tranche de vos revenus. Seule la part qui dépasse le seuil de cette tranche est taxée à ce taux."
+                  />{" "}
+                  ne s'applique pas à l'ensemble de vos revenus. Chaque tranche est taxée à un taux
+                  différent.
+                </p>
+                {revenuImposable != null && (
+                  <TranchesBar revenuImposable={revenuImposable} nombreParts={nombreParts} />
+                )}
+              </StepperStep>
+
+              {/* Step 5 — Réductions / crédits (conditionnel) */}
+              {totalReductionsCredits != null && totalReductionsCredits > 0 && (
+                <StepperStep
+                  index={5}
+                  title="Vos réductions et crédits d'impôt"
+                  amount={`− ${fmt(totalReductionsCredits)}`}
+                  amountColor="text-success"
+                  delay={400}
+                >
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Vous bénéficiez de {fmt(totalReductionsCredits)} de réductions et/ou crédits
+                    d'impôt qui viennent directement diminuer votre impôt calculé.
+                  </p>
+                  {reductions != null && reductions > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      • Réductions d'impôt : {fmt(reductions)}
+                    </p>
+                  )}
+                  {credits != null && credits > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      • Crédits d'impôt : {fmt(credits)}
+                    </p>
+                  )}
+                </StepperStep>
+              )}
+
+              {/* Step 6 — Impôt final */}
+              <StepperStep
+                index={totalReductionsCredits ? 6 : 5}
+                title="Votre impôt sur le revenu"
+                amount={fmt(impotNet)}
+                amountColor="text-primary"
+                isLast
+                delay={totalReductionsCredits ? 500 : 400}
+              >
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                  Votre{" "}
+                  <FiscalTooltip
+                    term="taux moyen réel"
+                    explanation="C'est le pourcentage effectif de vos revenus consacré à l'impôt. Il est toujours inférieur au taux marginal car les premières tranches sont taxées à des taux plus faibles."
+                  />{" "}
+                  est de {pct(tauxMoyen)}. Concrètement, pour 100 € gagnés, vous avez payé{" "}
+                  {tauxMoyen != null ? tauxMoyen.toFixed(1).replace(".", ",") : "—"} € d'impôt sur
+                  le revenu.
+                </p>
+                {tauxMoyen != null && <GaugeChart value={tauxMoyen} />}
+              </StepperStep>
+            </div>
+          </div>
+
+          {/* ═══════════════ ZONE 3 — Prélèvement à la source ═══════════════ */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-foreground">
+              Votre prélèvement à la source
+            </h3>
+
+            <Card>
+              <CardContent className="p-6 space-y-4">
+                {/* Reconciliation table */}
+                <div className="space-y-3 font-mono text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">
+                      Ce qui a été prélevé en {anneeImposition || annee || "—"}
+                    </span>
+                    <span className="font-semibold text-foreground tabular-nums">
+                      {fmt(montantPreleve)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Ce que vous deviez réellement</span>
+                    <span className="font-semibold text-foreground tabular-nums">
+                      {fmt(impotNet)}
+                    </span>
+                  </div>
+                  <div className="border-t border-border" />
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-foreground">Résultat</span>
+                    <span
+                      className={`font-bold tabular-nums flex items-center gap-2 ${
+                        solde != null && solde < 0 ? "text-success" : "text-primary"
+                      }`}
+                    >
+                      {solde != null && solde < 0
+                        ? `Remboursement ${fmt(Math.abs(solde))}`
+                        : solde != null && solde > 0
+                        ? `Reste à payer ${fmt(solde)}`
+                        : "Rien à régulariser"}
+                      {solde != null && solde < 0 ? (
+                        <CheckCircle className="h-4 w-4" />
+                      ) : solde != null && solde > 0 ? (
+                        <Info className="h-4 w-4" />
+                      ) : null}
+                    </span>
+                  </div>
                 </div>
-                {dualMode && usage1 && usage2 && (
-                  <div className="mt-4 pt-3 border-t border-border">
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="text-muted-foreground">Économie Haiku 3.5 :</span>
-                      <span className="font-bold text-success">
-                        {((1 - usage2.cost_total_usd / usage1.cost_total_usd) * 100).toFixed(0)}% moins cher
-                      </span>
-                      <span className="text-muted-foreground">
-                        ({usage1.cost_total_usd.toFixed(4)}$ → {usage2.cost_total_usd.toFixed(4)}$)
-                      </span>
-                    </div>
+
+                {/* Pedagogical text */}
+                {data.explications_pedagogiques?.prelevement_source_explication && (
+                  <div className="bg-muted/50 rounded-xl p-4">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {data.explications_pedagogiques.prelevement_source_explication}
+                    </p>
+                  </div>
+                )}
+
+                {/* PAS rate badge */}
+                {tauxPas != null && (
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent/15 text-accent">
+                      Votre taux de{" "}
+                      <FiscalTooltip
+                        term="prélèvement à la source"
+                        explanation="Le PAS est une avance sur votre impôt, prélevée chaque mois sur votre salaire. L'avis d'imposition régularise la différence entre ce qui a été prélevé et ce que vous devez réellement."
+                      />
+                      {" "}: {pct(tauxPas)}
+                    </span>
                   </div>
                 )}
               </CardContent>
             </Card>
+          </div>
+
+          {/* ═══════════════ ZONE 4 — Ce que vous pourriez faire ═══════════════ */}
+          {(conseils.length > 0 || pointsAttention.length > 0) && (
+            <div className="space-y-4">
+              {/* Optimization opportunities */}
+              {conseils.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-bold text-foreground">
+                    Des pistes pour optimiser votre situation
+                  </h3>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {conseils.slice(0, 3).map((conseil, i) => (
+                      <Card key={i} className="hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+                        <CardContent className="p-4 space-y-3">
+                          <div className="flex items-start gap-2">
+                            <Lightbulb className="h-5 w-5 text-accent shrink-0 mt-0.5" />
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {conseil}
+                            </p>
+                          </div>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-success/15 text-success">
+                            Économie potentielle
+                          </span>
+                          <a
+                            href="/expert-booking"
+                            className="flex items-center gap-1 text-xs text-primary hover:underline"
+                          >
+                            En parler à un conseiller <ArrowRight className="h-3 w-3" />
+                          </a>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Points d'attention */}
+              {pointsAttention.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-bold text-foreground">
+                    Points importants à vérifier
+                  </h3>
+                  {pointsAttention.map((point, i) => (
+                    <Card key={i} className="border-l-4 border-l-destructive">
+                      <CardContent className="p-4 flex items-start gap-3">
+                        <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                        <p className="text-sm text-muted-foreground leading-relaxed">{point}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
-          {/* Solde banner */}
-          {(() => {
-            const solde = primaryData.prelevement_source?.solde_a_payer_ou_rembourser;
-            if (solde != null && solde < 0) {
-              return (
-                <div className="rounded-xl p-4 bg-success/10 border border-success/30 flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-success shrink-0" />
-                  <p className="text-sm font-semibold text-success">Remboursement : {fmt(Math.abs(solde))}</p>
-                </div>
-              );
-            }
-            if (solde != null && solde > 0) {
-              return (
-                <div className="rounded-xl p-4 bg-primary/10 border border-primary/30 flex items-center gap-3">
-                  <Info className="h-5 w-5 text-primary shrink-0" />
-                  <p className="text-sm font-semibold text-primary">Solde à régler : {fmt(solde)}</p>
-                </div>
-              );
-            }
-            return null;
-          })()}
-
-          {/* Tabs */}
-          <Tabs defaultValue="data">
-            <TabsList className="w-full">
-              <TabsTrigger value="data" className="flex-1">
-                <BarChart3 className="h-4 w-4 mr-2" /> Mes données fiscales
-              </TabsTrigger>
-              <TabsTrigger value="explain" className="flex-1">
-                <Lightbulb className="h-4 w-4 mr-2" /> Comprendre mon avis
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Tab 1: Data */}
-            <TabsContent value="data" className="space-y-4 mt-4">
-              {/* Identité */}
-              <CollapsibleSection icon={<User className="h-5 w-5 text-primary" />} title="Identité & foyer" defaultOpen>
-                <ColumnHeaders dualMode={dualMode} />
-                <div className="space-y-1">
-                  <DualDataRow dualMode={dualMode} label="Nom"
-                    value1={data1 ? `${data1.contribuable.prenom} ${data1.contribuable.nom}` : "—"}
-                    value2={data2 ? `${data2.contribuable.prenom} ${data2.contribuable.nom}` : undefined}
-                  />
-                  <DualDataRow dualMode={dualMode} label="N° fiscal"
-                    value1={data1?.contribuable.numero_fiscal || "—"}
-                    value2={data2?.contribuable.numero_fiscal || undefined}
-                  />
-                  <DualDataRow dualMode={dualMode} label="Situation familiale"
-                    value1={data1?.contribuable.situation_familiale || "—"}
-                    value2={data2?.contribuable.situation_familiale || undefined}
-                  />
-                  <DualDataRow dualMode={dualMode} label="Nombre de parts"
-                    value1={data1?.contribuable.nombre_parts?.toString() || "—"}
-                    value2={data2?.contribuable.nombre_parts?.toString() || undefined}
-                    highlight
-                  />
-                </div>
-              </CollapsibleSection>
-
+          {/* ═══════════════ ZONE 5 — Données complètes (accordéon) ═══════════════ */}
+          <Collapsible open={rawDataOpen} onOpenChange={setRawDataOpen}>
+            <CollapsibleTrigger className="w-full">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-[hsl(var(--card-border))] hover:bg-muted/30 transition-colors">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Voir toutes les données extraites de votre document
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+                    rawDataOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-3 space-y-4">
               {/* Revenus */}
-              <CollapsibleSection icon={<Wallet className="h-5 w-5 text-success" />} title="Revenus déclarés" defaultOpen>
-                <ColumnHeaders dualMode={dualMode} />
-                <div className="space-y-1">
+              <Card>
+                <CardContent className="p-4 space-y-1">
+                  <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
+                    Revenus
+                  </h4>
                   {Object.entries(REVENUE_LABELS).map(([key, label]) => {
-                    const { v1, v2 } = getVal(d => d.revenus[key]);
-                    if (v1 == null && v2 == null) return null;
-                    const isRfr = key === "revenu_fiscal_reference";
-                    return (
-                      <DualDataRow key={key} dualMode={dualMode} label={label}
-                        value1={fmt(v1)} value2={dualMode ? fmt(v2) : undefined} highlight={isRfr}
-                      />
-                    );
+                    const val = data.revenus[key];
+                    if (val == null) return null;
+                    return <SimpleDataRow key={key} label={label} value={fmt(val)} />;
                   })}
-                </div>
-              </CollapsibleSection>
+                </CardContent>
+              </Card>
 
-              {/* Calcul impôt */}
-              <CollapsibleSection icon={<Calculator className="h-5 w-5 text-secondary" />} title="Calcul de l'impôt" defaultOpen>
-                {!dualMode && (
-                  <div className="space-y-0">
-                    {primaryData.revenus.revenu_net_imposable != null && (
-                      <WaterfallStep label="Revenu net imposable" value={fmt(primaryData.revenus.revenu_net_imposable)} />
-                    )}
-                    {primaryData.impot.impot_brut_progressif != null && (
-                      <WaterfallStep label="Impôt brut (barème)" value={fmt(primaryData.impot.impot_brut_progressif)} />
-                    )}
-                    {primaryData.impot.reductions_impot != null && (
-                      <WaterfallStep label="Réductions d'impôt" value={`- ${fmt(primaryData.impot.reductions_impot)}`} isPositive />
-                    )}
-                    {primaryData.impot.credits_impot != null && (
-                      <WaterfallStep label="Crédits d'impôt" value={`- ${fmt(primaryData.impot.credits_impot)}`} isPositive />
-                    )}
-                    {primaryData.impot.impot_net_total != null && (
-                      <WaterfallStep label="Impôt net total" value={fmt(primaryData.impot.impot_net_total)} isLast />
-                    )}
-                  </div>
-                )}
-
-                <ColumnHeaders dualMode={dualMode} />
-                <div className="space-y-1 mt-2">
+              {/* Impôt */}
+              <Card>
+                <CardContent className="p-4 space-y-1">
+                  <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
+                    Impôt
+                  </h4>
                   {Object.entries(TAX_LABELS).map(([key, label]) => {
-                    const { v1, v2 } = getVal(d => d.impot[key]);
-                    if (v1 == null && v2 == null) return null;
-                    return (
-                      <DualDataRow key={key} dualMode={dualMode} label={label}
-                        value1={fmt(v1)} value2={dualMode ? fmt(v2) : undefined}
-                      />
-                    );
+                    const val = data.impot[key];
+                    if (val == null) return null;
+                    return <SimpleDataRow key={key} label={label} value={fmt(val)} />;
                   })}
-                </div>
-
-                {/* TMI vs Taux moyen */}
-                {(primaryData.impot.taux_marginal_imposition_pct != null || primaryData.impot.taux_moyen_imposition_pct != null) && (
-                  <div className="mt-4">
-                    <ColumnHeaders dualMode={dualMode} />
-                    <DualDataRow dualMode={dualMode} label="Taux marginal (TMI)"
-                      value1={pct(data1?.impot.taux_marginal_imposition_pct)}
-                      value2={dualMode ? pct(data2?.impot.taux_marginal_imposition_pct) : undefined}
-                      highlight
+                  {data.impot.taux_marginal_imposition_pct != null && (
+                    <SimpleDataRow
+                      label="Taux marginal (TMI)"
+                      value={pct(data.impot.taux_marginal_imposition_pct)}
                     />
-                    <DualDataRow dualMode={dualMode} label="Taux moyen réel"
-                      value1={pct(data1?.impot.taux_moyen_imposition_pct)}
-                      value2={dualMode ? pct(data2?.impot.taux_moyen_imposition_pct) : undefined}
+                  )}
+                  {data.impot.taux_moyen_imposition_pct != null && (
+                    <SimpleDataRow
+                      label="Taux moyen réel"
+                      value={pct(data.impot.taux_moyen_imposition_pct)}
                     />
-                  </div>
-                )}
-              </CollapsibleSection>
+                  )}
+                </CardContent>
+              </Card>
 
-              {/* PAS */}
-              <CollapsibleSection icon={<FileText className="h-5 w-5 text-accent" />} title="Prélèvement à la source">
-                <ColumnHeaders dualMode={dualMode} />
-                <div className="space-y-1">
-                  <DualDataRow dualMode={dualMode} label="Taux PAS"
-                    value1={pct(data1?.prelevement_source.taux_pas_pct ?? data2?.prelevement_source.taux_pas_pct)}
-                    value2={dualMode ? pct(data2?.prelevement_source.taux_pas_pct) : undefined}
+              {/* Foyer */}
+              <Card>
+                <CardContent className="p-4 space-y-1">
+                  <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
+                    Informations du foyer
+                  </h4>
+                  <SimpleDataRow
+                    label="Contribuable"
+                    value={`${data.contribuable.prenom} ${data.contribuable.nom}`}
                   />
-                  <DualDataRow dualMode={dualMode} label="Montant prélevé"
-                    value1={fmt(data1?.prelevement_source.montant_preleve_annee_n ?? data2?.prelevement_source.montant_preleve_annee_n)}
-                    value2={dualMode ? fmt(data2?.prelevement_source.montant_preleve_annee_n) : undefined}
-                  />
-                  <DualDataRow dualMode={dualMode} label="Solde"
-                    value1={fmt(data1?.prelevement_source.solde_a_payer_ou_rembourser ?? data2?.prelevement_source.solde_a_payer_ou_rembourser)}
-                    value2={dualMode ? fmt(data2?.prelevement_source.solde_a_payer_ou_rembourser) : undefined}
-                    highlight
-                  />
-                </div>
-              </CollapsibleSection>
-            </TabsContent>
+                  {data.contribuable.numero_fiscal && (
+                    <SimpleDataRow label="N° fiscal" value={data.contribuable.numero_fiscal} />
+                  )}
+                  {data.contribuable.situation_familiale && (
+                    <SimpleDataRow
+                      label="Situation familiale"
+                      value={data.contribuable.situation_familiale}
+                    />
+                  )}
+                  {data.contribuable.nombre_parts != null && (
+                    <SimpleDataRow
+                      label="Nombre de parts"
+                      value={data.contribuable.nombre_parts.toString()}
+                    />
+                  )}
+                  {data.annees.annee_revenus != null && (
+                    <SimpleDataRow
+                      label="Année des revenus"
+                      value={data.annees.annee_revenus.toString()}
+                    />
+                  )}
+                  {data.annees.annee_imposition != null && (
+                    <SimpleDataRow
+                      label="Année d'imposition"
+                      value={data.annees.annee_imposition.toString()}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </CollapsibleContent>
+          </Collapsible>
 
-            {/* Tab 2: Pédagogique */}
-            <TabsContent value="explain" className="space-y-4 mt-4">
-              {(data1?.explications_pedagogiques.introduction || data2?.explications_pedagogiques.introduction) && (
-                <PedagogicalCard dualMode={dualMode}
-                  icon={<BarChart3 className="h-5 w-5 text-primary" />}
-                  title="Qu'est-ce qu'un avis d'imposition ?"
-                  text={data1?.explications_pedagogiques.introduction || data2?.explications_pedagogiques.introduction || ""}
-                  text2={data2?.explications_pedagogiques.introduction}
-                />
-              )}
-              {(data1?.explications_pedagogiques.revenu_fiscal_reference_explication || data2?.explications_pedagogiques.revenu_fiscal_reference_explication) && (
-                <PedagogicalCard dualMode={dualMode}
-                  icon={<BarChart3 className="h-5 w-5 text-accent" />}
-                  title="Le revenu fiscal de référence (RFR)"
-                  text={data1?.explications_pedagogiques.revenu_fiscal_reference_explication || data2?.explications_pedagogiques.revenu_fiscal_reference_explication || ""}
-                  text2={data2?.explications_pedagogiques.revenu_fiscal_reference_explication}
-                  variant="tip"
-                />
-              )}
-              {(data1?.explications_pedagogiques.taux_marginal_explication || data2?.explications_pedagogiques.taux_marginal_explication) && (
-                <PedagogicalCard dualMode={dualMode}
-                  icon={<BarChart3 className="h-5 w-5 text-secondary" />}
-                  title="Le taux marginal d'imposition (TMI)"
-                  text={data1?.explications_pedagogiques.taux_marginal_explication || data2?.explications_pedagogiques.taux_marginal_explication || ""}
-                  text2={data2?.explications_pedagogiques.taux_marginal_explication}
-                />
-              )}
-              {(data1?.explications_pedagogiques.quotient_familial_explication || data2?.explications_pedagogiques.quotient_familial_explication) && (
-                <PedagogicalCard dualMode={dualMode}
-                  icon={<User className="h-5 w-5 text-primary" />}
-                  title="Le quotient familial"
-                  text={data1?.explications_pedagogiques.quotient_familial_explication || data2?.explications_pedagogiques.quotient_familial_explication || ""}
-                  text2={data2?.explications_pedagogiques.quotient_familial_explication}
-                />
-              )}
-              {(data1?.explications_pedagogiques.prelevement_source_explication || data2?.explications_pedagogiques.prelevement_source_explication) && (
-                <PedagogicalCard dualMode={dualMode}
-                  icon={<Wallet className="h-5 w-5 text-primary" />}
-                  title="Le prélèvement à la source"
-                  text={data1?.explications_pedagogiques.prelevement_source_explication || data2?.explications_pedagogiques.prelevement_source_explication || ""}
-                  text2={data2?.explications_pedagogiques.prelevement_source_explication}
-                />
-              )}
-
-              {/* Conseils d'optimisation - dual */}
-              {(() => {
-                const c1 = data1?.explications_pedagogiques.conseils_optimisation || [];
-                const c2 = data2?.explications_pedagogiques.conseils_optimisation || [];
-                if (c1.length === 0 && c2.length === 0) return null;
-
-                if (dualMode) {
-                  return (
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                        <Lightbulb className="h-4 w-4 text-accent" /> Pistes d'optimisation
-                      </h3>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Haiku 4.5</span>
-                          {c1.map((c, i) => (
-                            <Card key={i}><CardContent className="p-3"><p className="text-sm text-muted-foreground">💡 {c}</p></CardContent></Card>
-                          ))}
-                        </div>
-                        <div className="space-y-2">
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-secondary">Haiku 3.5</span>
-                          {c2.map((c, i) => (
-                            <Card key={i}><CardContent className="p-3"><p className="text-sm text-muted-foreground">💡 {c}</p></CardContent></Card>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-
-                const list = c1.length > 0 ? c1 : c2;
-                return (
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                      <Lightbulb className="h-4 w-4 text-accent" /> Pistes d'optimisation
-                    </h3>
-                    {list.map((c, i) => (
-                      <Card key={i}><CardContent className="p-4 flex items-start gap-3"><span className="text-lg">💡</span><p className="text-sm text-muted-foreground">{c}</p></CardContent></Card>
-                    ))}
-                  </div>
-                );
-              })()}
-
-              {/* Points d'attention - dual */}
-              {(() => {
-                const p1 = data1?.explications_pedagogiques.points_attention || [];
-                const p2 = data2?.explications_pedagogiques.points_attention || [];
-                if (p1.length === 0 && p2.length === 0) return null;
-
-                if (dualMode) {
-                  return (
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-semibold text-destructive uppercase tracking-wider flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4" /> Points d'attention
-                      </h3>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Haiku 4.5</span>
-                          {p1.map((p, i) => (
-                            <Card key={i} className="border-l-4 border-l-destructive">
-                              <CardContent className="p-3"><p className="text-sm text-muted-foreground">⚠️ {p}</p></CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                        <div className="space-y-2">
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-secondary">Haiku 3.5</span>
-                          {p2.map((p, i) => (
-                            <Card key={i} className="border-l-4 border-l-destructive">
-                              <CardContent className="p-3"><p className="text-sm text-muted-foreground">⚠️ {p}</p></CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-
-                const list = p1.length > 0 ? p1 : p2;
-                return (
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-destructive uppercase tracking-wider flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4" /> Points d'attention
-                    </h3>
-                    {list.map((p, i) => (
-                      <PedagogicalCard key={i} dualMode={false}
-                        icon={<AlertTriangle className="h-5 w-5 text-destructive" />}
-                        title={`Alerte ${i + 1}`} text={p} variant="warning"
-                      />
-                    ))}
-                  </div>
-                );
-              })()}
-            </TabsContent>
-          </Tabs>
-
-          <p className="text-xs text-muted-foreground text-center px-4 py-3 bg-muted/30 rounded-xl">
-            Ces informations sont extraites automatiquement. MyFinCare ne fournit pas de conseil fiscal — rapprochez-vous d'un conseiller.
-          </p>
+          {/* ─── Footer disclaimer ─── */}
+          <div className="bg-muted/30 rounded-xl px-4 py-3">
+            <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+              Ces informations sont extraites automatiquement depuis votre document. MyFinCare ne
+              fournit pas de conseil fiscal. Pour toute décision patrimoniale, rapprochez-vous d'un
+              conseiller agréé.
+            </p>
+          </div>
         </>
       )}
     </div>
