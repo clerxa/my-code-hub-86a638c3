@@ -30,6 +30,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { PerSimulatorSlider } from "./ocr/PerSimulatorSlider";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
