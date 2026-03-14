@@ -268,7 +268,22 @@ export default function PayslipProgressiveView({ data }: PayslipProgressiveViewP
               </Button>
             </div>
 
-            <Accordion type="multiple" className="space-y-1.5">
+            <Accordion type="multiple" defaultValue={hasEquity ? ["equity"] : []} className="space-y-1.5">
+              {/* Equity FIRST when detected — primary block for equity users */}
+              {hasEquity && (
+                <AccordionItem value="equity" className="border-2 border-primary/30 rounded-lg overflow-hidden bg-primary/[0.02]">
+                  <AccordionTrigger className="px-4 py-3 hover:no-underline text-sm font-semibold">
+                    <span className="flex items-center gap-2">
+                      📈 Rémunération Equity
+                      <Badge variant="default" className="text-xs">Actions</Badge>
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <EquitySection data={data} onOpenModal={setModalOpen} />
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+
               {/* Décomposition brut → net */}
               <AccordionItem value="brut-net" className="border rounded-lg overflow-hidden">
                 <AccordionTrigger className="px-4 py-3 hover:no-underline text-sm font-semibold">
@@ -371,21 +386,6 @@ export default function PayslipProgressiveView({ data }: PayslipProgressiveViewP
                   <VariablesList data={data} />
                 </AccordionContent>
               </AccordionItem>
-
-              {/* Equity */}
-              {hasEquity && (
-                <AccordionItem value="equity" className="border rounded-lg overflow-hidden">
-                  <AccordionTrigger className="px-4 py-3 hover:no-underline text-sm font-semibold">
-                    <span className="flex items-center gap-2">
-                      📈 Rémunération Equity
-                      <Badge variant="secondary" className="text-xs">Actions</Badge>
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4">
-                    <EquitySection data={data} onOpenModal={setModalOpen} />
-                  </AccordionContent>
-                </AccordionItem>
-              )}
 
               {/* Congés & RTT */}
               <AccordionItem value="conges" className="border rounded-lg overflow-hidden">

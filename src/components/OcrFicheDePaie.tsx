@@ -13,6 +13,7 @@ import {
 import { BookOpen, ChevronRight, Lock, Upload, FileText, Sparkles, Info } from "lucide-react";
 import PayslipProgressiveView from "./payslip/PayslipProgressiveView";
 import PayslipDetailModal from "./payslip/PayslipDetailModal";
+import { PayslipAnalysisOverlay } from "./payslip/PayslipAnalysisOverlay";
 import { fmt, safe, getMonthLabel } from "./payslip/payslipUtils";
 
 const SUPABASE_FUNCTION_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/ocr-bulletin-paie`;
@@ -108,46 +109,64 @@ export default function OcrFicheDePaie() {
   }, [hasEquity]);
 
   // ─── Step 1: Simple analysis ────────────────────────
+  const [showSimpleOverlay, setShowSimpleOverlay] = useState(false);
+  const [showAdvancedOverlay, setShowAdvancedOverlay] = useState(false);
+  const [apiDone, setApiDone] = useState<"simple" | "advanced" | null>(null);
+  const simpleResultRef = useRef<any>(null);
+  const advancedResultRef = useRef<any>(null);
+
   const analyzeSimple = useCallback(async () => {
     if (!file) return;
-    setLoading(true);
     setError(null);
     setStep("uploading");
+    setApiDone(null);
+    setShowSimpleOverlay(true);
     try {
       const images = await convertPdfToImages(file);
       setPdfImages(images);
-      setProgress("Analyse en cours…");
       const result = await callAnalysis(images, "simple");
-      setSimpleData(result);
-      setStep("simple_result");
+      simpleResultRef.current = result;
+      setApiDone("simple");
     } catch (e: any) {
       setError(e.message || "Erreur inconnue");
       setStep("question");
-    } finally {
-      setLoading(false);
-      setProgress("");
+      setShowSimpleOverlay(false);
     }
   }, [file, convertPdfToImages, callAnalysis]);
+
+  const handleSimpleOverlayComplete = useCallback(() => {
+    setShowSimpleOverlay(false);
+    if (simpleResultRef.current) {
+      setSimpleData(simpleResultRef.current);
+      setStep("simple_result");
+    }
+  }, []);
 
   // ─── Step 2: Advanced analysis ──────────────────────
   const analyzeAdvanced = useCallback(async () => {
     if (pdfImages.length === 0) return;
-    setLoading(true);
     setError(null);
     setStep("advanced_loading");
+    setApiDone(null);
+    setShowAdvancedOverlay(true);
     try {
-      setProgress("Analyse avancée en cours…");
       const result = await callAnalysis(pdfImages, "advanced");
-      setAdvancedData(result);
-      setStep("advanced_result");
+      advancedResultRef.current = result;
+      setApiDone("advanced");
     } catch (e: any) {
       setError(e.message || "Erreur inconnue");
       setStep("simple_result");
-    } finally {
-      setLoading(false);
-      setProgress("");
+      setShowAdvancedOverlay(false);
     }
   }, [pdfImages, callAnalysis]);
+
+  const handleAdvancedOverlayComplete = useCallback(() => {
+    setShowAdvancedOverlay(false);
+    if (advancedResultRef.current) {
+      setAdvancedData(advancedResultRef.current);
+      setStep("advanced_result");
+    }
+  }, []);
 
   // ─── Handle CTA click ──────────────────────────────
   const handleAdvancedClick = useCallback(() => {
@@ -317,20 +336,22 @@ export default function OcrFicheDePaie() {
         )}
 
         {/* ═══════════════════════════════════════════ */}
-        {/* LOADING STATE */}
+        {/* ANALYSIS OVERLAYS */}
         {/* ═══════════════════════════════════════════ */}
-        {(step === "uploading" || step === "advanced_loading") && (
-          <Card className="p-12 text-center">
-            <div className="w-10 h-10 border-3 border-muted border-t-primary rounded-full animate-spin mx-auto mb-4" />
-            <div className="text-sm font-semibold text-primary">{progress}</div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {step === "advanced_loading"
-                ? "Analyse détaillée en cours… (~15 secondes)"
-                : "Extraction des données essentielles…"
-              }
-            </p>
-          </Card>
-        )}
+        <PayslipAnalysisOverlay
+          isAnalyzing={showSimpleOverlay}
+          apiDone={apiDone === "simple"}
+          onComplete={handleSimpleOverlayComplete}
+          mode="simple"
+          hasEquity={hasEquity === "yes"}
+        />
+        <PayslipAnalysisOverlay
+          isAnalyzing={showAdvancedOverlay}
+          apiDone={apiDone === "advanced"}
+          onComplete={handleAdvancedOverlayComplete}
+          mode="advanced"
+          hasEquity={hasEquity === "yes"}
+        />
 
         {/* ═══════════════════════════════════════════ */}
         {/* RÉSULTAT SIMPLE (1.5 écrans max) */}
