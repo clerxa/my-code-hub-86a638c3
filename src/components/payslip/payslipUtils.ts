@@ -53,17 +53,7 @@ export function prioritizeAlerts(data: any): PayslipAlert[] {
   const cas = data.cas_particuliers_mois || {};
 
   // PRIORITY 1: URGENT
-  const congesN1Solde = safe(data, "conges_rtt", "conges_n_moins_1", "solde");
-  if (congesN1Solde != null && congesN1Solde > 0) {
-    alerts.push({
-      id: "conges_n_moins_1",
-      priority: 1,
-      icon: "⏰",
-      title: `Congés N-1 à consommer : ${congesN1Solde} jours`,
-      summary: `Tes congés de l'année précédente doivent être pris avant fin mai, sinon ils seront perdus !`,
-      hasDetails: false,
-    });
-  }
+  // Removed: Congés N-1 alert (not important per user request)
 
   if (cas.taux_pas_zero?.detecte) {
     alerts.push({
