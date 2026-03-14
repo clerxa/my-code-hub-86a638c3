@@ -3640,47 +3640,152 @@ export type Database = {
       }
       ocr_avis_imposition_analyses: {
         Row: {
+          abattement_10_pct: number | null
+          abattements_speciaux: number | null
+          adresse_complete: string | null
           analysis_data: Json
           annee_imposition: number | null
           annee_revenus: number | null
+          autres_revenus: number | null
+          bic_bnc_ba: number | null
+          champs_manquants: string[] | null
+          charges_deductibles: number | null
+          confidence: string | null
+          contributions_sociales_revenus_capital: number | null
           created_at: string
+          credits_impot: number | null
           id: string
+          impot_brut_progressif: number | null
+          impot_net_avant_contributions: number | null
           impot_net_total: number | null
+          mensualisation_ou_prelevement: number | null
+          montant_preleve_annee_n: number | null
           nom: string | null
+          nombre_parts: number | null
+          numero_fiscal: string | null
+          pensions_retraites: number | null
+          plafonnement_quotient_familial: number | null
+          plus_values_mobilieres: number | null
+          prelevement_forfaitaire_unique: number | null
           prenom: string | null
+          reductions_impot: number | null
+          reference_avis: string | null
+          revenu_brut_global: number | null
           revenu_fiscal_reference: number | null
+          revenu_net_global: number | null
+          revenu_net_imposable: number | null
+          revenus_capitaux_mobiliers: number | null
+          revenus_fonciers_nets: number | null
+          salaires_nets_imposables: number | null
+          salaires_traitements_bruts: number | null
+          situation_familiale: string | null
           solde: number | null
+          taux_marginal_imposition_pct: number | null
           taux_moyen_pct: number | null
+          taux_pas_pct: number | null
+          taxe_habitation: number | null
+          total_a_payer: number | null
+          type_document: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          abattement_10_pct?: number | null
+          abattements_speciaux?: number | null
+          adresse_complete?: string | null
           analysis_data: Json
           annee_imposition?: number | null
           annee_revenus?: number | null
+          autres_revenus?: number | null
+          bic_bnc_ba?: number | null
+          champs_manquants?: string[] | null
+          charges_deductibles?: number | null
+          confidence?: string | null
+          contributions_sociales_revenus_capital?: number | null
           created_at?: string
+          credits_impot?: number | null
           id?: string
+          impot_brut_progressif?: number | null
+          impot_net_avant_contributions?: number | null
           impot_net_total?: number | null
+          mensualisation_ou_prelevement?: number | null
+          montant_preleve_annee_n?: number | null
           nom?: string | null
+          nombre_parts?: number | null
+          numero_fiscal?: string | null
+          pensions_retraites?: number | null
+          plafonnement_quotient_familial?: number | null
+          plus_values_mobilieres?: number | null
+          prelevement_forfaitaire_unique?: number | null
           prenom?: string | null
+          reductions_impot?: number | null
+          reference_avis?: string | null
+          revenu_brut_global?: number | null
           revenu_fiscal_reference?: number | null
+          revenu_net_global?: number | null
+          revenu_net_imposable?: number | null
+          revenus_capitaux_mobiliers?: number | null
+          revenus_fonciers_nets?: number | null
+          salaires_nets_imposables?: number | null
+          salaires_traitements_bruts?: number | null
+          situation_familiale?: string | null
           solde?: number | null
+          taux_marginal_imposition_pct?: number | null
           taux_moyen_pct?: number | null
+          taux_pas_pct?: number | null
+          taxe_habitation?: number | null
+          total_a_payer?: number | null
+          type_document?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          abattement_10_pct?: number | null
+          abattements_speciaux?: number | null
+          adresse_complete?: string | null
           analysis_data?: Json
           annee_imposition?: number | null
           annee_revenus?: number | null
+          autres_revenus?: number | null
+          bic_bnc_ba?: number | null
+          champs_manquants?: string[] | null
+          charges_deductibles?: number | null
+          confidence?: string | null
+          contributions_sociales_revenus_capital?: number | null
           created_at?: string
+          credits_impot?: number | null
           id?: string
+          impot_brut_progressif?: number | null
+          impot_net_avant_contributions?: number | null
           impot_net_total?: number | null
+          mensualisation_ou_prelevement?: number | null
+          montant_preleve_annee_n?: number | null
           nom?: string | null
+          nombre_parts?: number | null
+          numero_fiscal?: string | null
+          pensions_retraites?: number | null
+          plafonnement_quotient_familial?: number | null
+          plus_values_mobilieres?: number | null
+          prelevement_forfaitaire_unique?: number | null
           prenom?: string | null
+          reductions_impot?: number | null
+          reference_avis?: string | null
+          revenu_brut_global?: number | null
           revenu_fiscal_reference?: number | null
+          revenu_net_global?: number | null
+          revenu_net_imposable?: number | null
+          revenus_capitaux_mobiliers?: number | null
+          revenus_fonciers_nets?: number | null
+          salaires_nets_imposables?: number | null
+          salaires_traitements_bruts?: number | null
+          situation_familiale?: string | null
           solde?: number | null
+          taux_marginal_imposition_pct?: number | null
           taux_moyen_pct?: number | null
+          taux_pas_pct?: number | null
+          taxe_habitation?: number | null
+          total_a_payer?: number | null
+          type_document?: string | null
           updated_at?: string
           user_id?: string
         }

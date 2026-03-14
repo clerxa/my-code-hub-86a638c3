@@ -611,14 +611,55 @@ const OcrAvisImposition = () => {
       await supabase.from("ocr_avis_imposition_analyses").insert({
         user_id: user.id,
         analysis_data: analysisData as any,
-        annee_revenus: analysisData.annees?.annee_revenus,
-        annee_imposition: analysisData.annees?.annee_imposition,
+        // Contribuable
         prenom: analysisData.contribuable?.prenom,
         nom: analysisData.contribuable?.nom,
+        adresse_complete: analysisData.contribuable?.adresse_complete,
+        numero_fiscal: analysisData.contribuable?.numero_fiscal,
+        reference_avis: analysisData.contribuable?.reference_avis,
+        situation_familiale: analysisData.contribuable?.situation_familiale,
+        nombre_parts: analysisData.contribuable?.nombre_parts,
+        // Années
+        annee_revenus: analysisData.annees?.annee_revenus,
+        annee_imposition: analysisData.annees?.annee_imposition,
+        // Revenus
+        salaires_traitements_bruts: analysisData.revenus?.salaires_traitements_bruts,
+        abattement_10_pct: analysisData.revenus?.abattement_10_pct,
+        salaires_nets_imposables: analysisData.revenus?.salaires_nets_imposables,
+        revenus_fonciers_nets: analysisData.revenus?.revenus_fonciers_nets,
+        revenus_capitaux_mobiliers: analysisData.revenus?.revenus_capitaux_mobiliers,
+        plus_values_mobilieres: analysisData.revenus?.plus_values_mobilières,
+        bic_bnc_ba: analysisData.revenus?.bic_bnc_ba,
+        pensions_retraites: analysisData.revenus?.pensions_retraites,
+        autres_revenus: analysisData.revenus?.autres_revenus,
+        revenu_brut_global: analysisData.revenus?.revenu_brut_global,
+        charges_deductibles: analysisData.revenus?.charges_deductibles,
+        revenu_net_global: analysisData.revenus?.revenu_net_global,
+        abattements_speciaux: analysisData.revenus?.abattements_speciaux,
+        revenu_net_imposable: analysisData.revenus?.revenu_net_imposable,
         revenu_fiscal_reference: analysisData.revenus?.revenu_fiscal_reference,
-        impot_net_total: analysisData.impot?.impot_net_total,
+        // Impôt
+        impot_brut_progressif: analysisData.impot?.impot_brut_progressif,
+        taux_marginal_imposition_pct: analysisData.impot?.taux_marginal_imposition_pct,
         taux_moyen_pct: analysisData.impot?.taux_moyen_imposition_pct,
+        plafonnement_quotient_familial: analysisData.impot?.plafonnement_quotient_familial,
+        reductions_impot: analysisData.impot?.reductions_impot,
+        credits_impot: analysisData.impot?.credits_impot,
+        impot_net_avant_contributions: analysisData.impot?.impot_net_avant_contributions,
+        prelevement_forfaitaire_unique: analysisData.impot?.prelevement_forfaitaire_unique,
+        contributions_sociales_revenus_capital: analysisData.impot?.contributions_sociales_revenus_capital,
+        taxe_habitation: analysisData.impot?.taxe_habitation,
+        impot_net_total: analysisData.impot?.impot_net_total,
+        total_a_payer: analysisData.impot?.total_a_payer,
+        mensualisation_ou_prelevement: analysisData.impot?.mensualisation_ou_prelevement,
+        // Prélèvement à la source
+        taux_pas_pct: analysisData.prelevement_source?.taux_pas_pct,
+        montant_preleve_annee_n: analysisData.prelevement_source?.montant_preleve_annee_n,
         solde: analysisData.prelevement_source?.solde_a_payer_ou_rembourser,
+        // Meta
+        type_document: analysisData.meta?.type_document,
+        confidence: analysisData.meta?.confidence,
+        champs_manquants: analysisData.meta?.champs_manquants,
       });
       toast.success("Analyse sauvegardée dans votre espace");
     } catch (err) {
