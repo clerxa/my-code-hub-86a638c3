@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Sparkles, FileSearch, Brain, TrendingUp, Shield, BarChart3, Layers } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
@@ -19,20 +19,29 @@ const SIMPLE_STEPS = [
 ];
 
 const ADVANCED_STEPS = [
-  { icon: FileSearch, text: "Relecture complète du bulletin…", duration: 3000 },
-  { icon: BarChart3, text: "Décomposition brut → net…", duration: 4000 },
-  { icon: Shield, text: "Vérification des cotisations…", duration: 3500 },
-  { icon: TrendingUp, text: "Analyse des dispositifs equity…", duration: 4000 },
-  { icon: Brain, text: "Calcul des optimisations fiscales…", duration: 3500 },
-  { icon: Sparkles, text: "Rédaction des conseils personnalisés…", duration: 2000 },
+  { icon: FileSearch, text: "Relecture complète du bulletin…", duration: 4000 },
+  { icon: BarChart3, text: "Décomposition brut → net…", duration: 5000 },
+  { icon: Shield, text: "Vérification des cotisations…", duration: 5000 },
+  { icon: TrendingUp, text: "Analyse des dispositifs equity…", duration: 6000 },
+  { icon: Brain, text: "Calcul des optimisations fiscales…", duration: 5000 },
+  { icon: Sparkles, text: "Rédaction des conseils personnalisés…", duration: 5000 },
 ];
 
 const ADVANCED_NO_EQUITY_STEPS = [
-  { icon: FileSearch, text: "Relecture complète du bulletin…", duration: 3000 },
-  { icon: BarChart3, text: "Décomposition brut → net…", duration: 4000 },
-  { icon: Shield, text: "Vérification des cotisations…", duration: 4000 },
-  { icon: Brain, text: "Calcul des optimisations fiscales…", duration: 4000 },
-  { icon: Sparkles, text: "Rédaction des conseils personnalisés…", duration: 2000 },
+  { icon: FileSearch, text: "Relecture complète du bulletin…", duration: 5000 },
+  { icon: BarChart3, text: "Décomposition brut → net…", duration: 6000 },
+  { icon: Shield, text: "Vérification des cotisations…", duration: 6000 },
+  { icon: Brain, text: "Calcul des optimisations fiscales…", duration: 6000 },
+  { icon: Sparkles, text: "Rédaction des conseils personnalisés…", duration: 5000 },
+];
+
+// Extra waiting messages when API takes longer than expected
+const WAITING_MESSAGES = [
+  "Analyse en profondeur des cotisations…",
+  "Vérification croisée des montants…",
+  "Détection des cas particuliers…",
+  "Finalisation de l'analyse…",
+  "Presque terminé, patience…",
 ];
 
 export function PayslipAnalysisOverlay({
@@ -46,9 +55,13 @@ export function PayslipAnalysisOverlay({
   const [progressValue, setProgressValue] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [waitingMessageIndex, setWaitingMessageIndex] = useState(0);
   const startTimeRef = useRef(0);
   const rafRef = useRef<number>(0);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const waitingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   const steps = mode === "simple"
     ? SIMPLE_STEPS
@@ -65,11 +78,12 @@ export function PayslipAnalysisOverlay({
       setShowSuccess(false);
       setCurrentStep(0);
       setProgressValue(0);
+      setWaitingMessageIndex(0);
       startTimeRef.current = Date.now();
     }
   }, [isAnalyzing]);
 
-  // Animation loop
+  // Animation loop — NEVER stops while visible (even past totalDuration)
   useEffect(() => {
     if (!visible || showSuccess) return;
 
@@ -77,32 +91,33 @@ export function PayslipAnalysisOverlay({
       const elapsed = Date.now() - startTimeRef.current;
       const fraction = Math.min(elapsed / totalDuration, 1);
 
-      // Progress: go to 80% over totalDuration, then slow crawl until API done
-      let target: number;
       if (apiDone) {
-        target = 100;
+        // Quickly fill to 100
+        setProgressValue(prev => Math.min(100, prev + 3));
       } else if (fraction < 1) {
-        target = fraction * 80;
+        // Normal progression to 70% during step phases
+        setProgressValue(fraction * 70);
       } else {
-        // Slow crawl from 80 to 95 over extra time
+        // Slow asymptotic crawl from 70% toward 97% — NEVER reaches 100 without API
         const extraTime = elapsed - totalDuration;
-        target = 80 + Math.min(15, extraTime / 2000 * 5);
+        // logarithmic crawl: 70 + 27 * (1 - 1/(1 + extraTime/30000))
+        const crawl = 70 + 27 * (1 - 1 / (1 + extraTime / 30000));
+        setProgressValue(crawl);
       }
 
-      setProgressValue(prev => {
-        if (apiDone) return Math.min(100, prev + 2.5);
-        return target;
-      });
-
-      // Update current step
+      // Update current step (cycle through steps, then cycle waiting messages)
       let accumulated = 0;
+      let foundStep = false;
       for (let i = 0; i < steps.length; i++) {
         accumulated += steps[i].duration;
         if (elapsed < accumulated) {
           setCurrentStep(i);
+          foundStep = true;
           break;
         }
-        if (i === steps.length - 1) setCurrentStep(i);
+      }
+      if (!foundStep) {
+        setCurrentStep(steps.length - 1);
       }
 
       rafRef.current = requestAnimationFrame(animate);
@@ -112,39 +127,63 @@ export function PayslipAnalysisOverlay({
     return () => cancelAnimationFrame(rafRef.current);
   }, [visible, showSuccess, apiDone, steps, totalDuration]);
 
+  // Cycle waiting messages when past totalDuration and API not done
+  useEffect(() => {
+    if (!visible || showSuccess || apiDone) {
+      if (waitingIntervalRef.current) {
+        clearInterval(waitingIntervalRef.current);
+        waitingIntervalRef.current = null;
+      }
+      return;
+    }
+
+    waitingIntervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTimeRef.current;
+      if (elapsed > totalDuration) {
+        setWaitingMessageIndex(prev => (prev + 1) % WAITING_MESSAGES.length);
+      }
+    }, 4000);
+
+    return () => {
+      if (waitingIntervalRef.current) clearInterval(waitingIntervalRef.current);
+    };
+  }, [visible, showSuccess, apiDone, totalDuration]);
+
   // Complete when progress hits 100
   useEffect(() => {
     if (progressValue >= 99 && apiDone && !showSuccess) {
       setShowSuccess(true);
-      // Use ref-based timer so cleanup on re-render won't cancel it
       completionTimerRef.current = setTimeout(() => {
         setVisible(false);
-        onComplete();
+        onCompleteRef.current();
       }, 1200);
     }
-  }, [progressValue, apiDone, showSuccess, onComplete]);
+  }, [progressValue, apiDone, showSuccess]);
 
-  // Safety net: if API is done but animation is stuck, force complete after 2s
-  useEffect(() => {
-    if (apiDone && visible && !showSuccess) {
-      const safety = setTimeout(() => {
-        setProgressValue(100);
-      }, 2000);
-      return () => clearTimeout(safety);
-    }
-  }, [apiDone, visible, showSuccess]);
-
-  // Cleanup completion timer on unmount only
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+      if (waitingIntervalRef.current) clearInterval(waitingIntervalRef.current);
     };
   }, []);
 
   if (!visible) return null;
 
-  const CurrentIcon = showSuccess ? CheckCircle2 : steps[currentStep]?.icon || FileSearch;
-  const currentText = showSuccess ? "Analyse terminée !" : steps[currentStep]?.text || "";
+  const elapsed = Date.now() - startTimeRef.current;
+  const isPastSteps = elapsed > totalDuration && !apiDone;
+
+  const CurrentIcon = showSuccess
+    ? CheckCircle2
+    : isPastSteps
+      ? steps[steps.length - 1].icon
+      : steps[currentStep]?.icon || FileSearch;
+
+  const currentText = showSuccess
+    ? "Analyse terminée !"
+    : isPastSteps
+      ? WAITING_MESSAGES[waitingMessageIndex]
+      : steps[currentStep]?.text || "";
 
   return (
     <AnimatePresence>
@@ -161,9 +200,9 @@ export function PayslipAnalysisOverlay({
           className="bg-card border-2 border-primary/20 rounded-2xl p-8 shadow-2xl max-w-md mx-4 w-full"
         >
           <div className="flex flex-col items-center space-y-6">
-            {/* Animated Icon */}
+            {/* Animated Icon — always pulses */}
             <motion.div
-              key={showSuccess ? "success" : currentStep}
+              key={showSuccess ? "success" : `step-${currentStep}-${waitingMessageIndex}`}
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 200, damping: 15 }}
@@ -173,7 +212,16 @@ export function PayslipAnalysisOverlay({
                   : "bg-primary/10 text-primary"
               }`}
             >
-              <CurrentIcon className="h-10 w-10" />
+              {!showSuccess ? (
+                <motion.div
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                >
+                  <CurrentIcon className="h-10 w-10" />
+                </motion.div>
+              ) : (
+                <CurrentIcon className="h-10 w-10" />
+              )}
             </motion.div>
 
             {/* Title */}
@@ -198,13 +246,18 @@ export function PayslipAnalysisOverlay({
               <div className="w-full space-y-2">
                 <Progress value={progressValue} className="h-2" />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Étape {currentStep + 1}/{steps.length}</span>
+                  <span>
+                    {isPastSteps
+                      ? "Finalisation en cours…"
+                      : `Étape ${currentStep + 1}/${steps.length}`
+                    }
+                  </span>
                   <span>{Math.round(progressValue)}%</span>
                 </div>
               </div>
             )}
 
-            {/* Step dots */}
+            {/* Step dots — pulse animation always active */}
             {!showSuccess && (
               <div className="flex gap-1.5">
                 {steps.map((_, index) => (
@@ -217,7 +270,11 @@ export function PayslipAnalysisOverlay({
                           ? "w-6 bg-primary"
                           : "w-1.5 bg-muted"
                     }`}
-                    animate={index === currentStep ? { opacity: [0.6, 1, 0.6] } : {}}
+                    animate={
+                      index === currentStep || isPastSteps
+                        ? { opacity: [0.5, 1, 0.5] }
+                        : {}
+                    }
                     transition={{ repeat: Infinity, duration: 1.2 }}
                   />
                 ))}
@@ -237,7 +294,7 @@ export function PayslipAnalysisOverlay({
                     animate={{ y: [-4, 4, -4] }}
                     transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.2 }}
                   >
-                    <Sparkles className="h-5 w-5 text-yellow-500" />
+                    <Sparkles className="h-5 w-5 text-amber-500" />
                   </motion.div>
                 ))}
               </motion.div>
