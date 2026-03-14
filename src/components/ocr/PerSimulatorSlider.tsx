@@ -83,11 +83,11 @@ export const PerSimulatorSlider = ({
           </div>
           <div>
             <h4 className="font-bold text-foreground text-sm">
-              Simulez un versement PER
+              Et si vous aviez fait des versements sur un PER ?
             </h4>
             <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-              Le PER est une <strong>enveloppe fiscale et financière</strong> : en plus de réduire votre impôt, 
-              les sommes versées sont investies sur les marchés et peuvent générer de la performance financière jusqu'à votre retraite.
+              Découvrez combien vous auriez pu économiser sur votre impôt en versant sur un <strong>Plan d'Épargne Retraite</strong> — 
+              une enveloppe à la fois fiscale et financière, où vos versements sont investis et peuvent générer de la performance jusqu'à votre retraite.
             </p>
           </div>
         </div>

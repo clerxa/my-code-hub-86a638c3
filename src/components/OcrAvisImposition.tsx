@@ -1480,7 +1480,7 @@ const OcrAvisImposition = () => {
             </div>
 
             {/* ── Mini-simulateur PER interactif ── */}
-            {revenuImposable != null && impotNet != null && (() => {
+            {revenuImposable != null && impotNet != null && computedTmi >= 30 && (() => {
               const plafondRestant = data.plafonds_per?.plafond_restant
                 ?? (data.plafonds_per?.plafond_declarant_1 != null
                   ? (data.plafonds_per.plafond_declarant_1 + (data.plafonds_per.plafond_declarant_2 || 0)) - (data.plafonds_per.montant_verse_per || 0)
