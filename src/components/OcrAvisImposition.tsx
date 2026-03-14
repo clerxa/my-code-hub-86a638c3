@@ -1563,7 +1563,7 @@ const OcrAvisImposition = () => {
                   <Card key={i} className="border-l-4 border-l-destructive">
                     <CardContent className="p-4 flex items-start gap-3">
                       <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-                      <p className="text-sm text-muted-foreground leading-relaxed">{point}</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{typeof point === 'string' ? point : (point as any)?.detail || (point as any)?.point || JSON.stringify(point)}</p>
                     </CardContent>
                   </Card>
                 ))}
