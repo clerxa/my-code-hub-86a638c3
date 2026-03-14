@@ -88,8 +88,10 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
             prixAcquisitionEur: totalGainEur,
             createdAt: sim.created_at,
             regime: regimeLabels[plan.regime] || plan.regime || undefined,
+            regimeCode: plan.regime || undefined,
             vestingStartDate: vestingDates[0] || undefined,
             vestingEndDate: vestingDates[vestingDates.length - 1] || undefined,
+            rawVestings: vestings,
           });
         }
       }
