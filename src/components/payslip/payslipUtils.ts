@@ -181,16 +181,7 @@ export function prioritizeAlerts(data: any): PayslipAlert[] {
     });
   }
 
-  if (cas.conges_pris?.detecte) {
-    alerts.push({
-      id: "conges_pris",
-      priority: 3,
-      icon: "🏖️",
-      title: `${cas.conges_pris.nb_jours || ""} jour(s) de congés pris`,
-      summary: cas.conges_pris.explication || "Tu as pris des congés ce mois-ci. Ton salaire n'est pas réduit.",
-      hasDetails: false,
-    });
-  }
+  // Removed: conges_pris alert (not important per user request)
 
   // Points d'attention from AI
   if (Array.isArray(data.points_attention)) {
