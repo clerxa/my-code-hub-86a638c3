@@ -22,8 +22,13 @@ export interface PortfolioPlan {
   createdAt: string;
   // Vesting / regime info
   regime?: string; // RSU regime label, ESPP n/a
+  regimeCode?: string; // raw regime code (R1, R2, R3, pfu, bareme)
   vestingStartDate?: string; // earliest vesting date
   vestingEndDate?: string; // last vesting date
+  // Raw data for fiscal simulation
+  rawVestings?: any[]; // RSU vestings array
+  rawEsppPeriod?: any; // ESPP period data
+  rawBspceData?: any; // BSPCE simulation data
 }
 
 export interface TickerSummary {
@@ -83,8 +88,10 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
             prixAcquisitionEur: totalGainEur,
             createdAt: sim.created_at,
             regime: regimeLabels[plan.regime] || plan.regime || undefined,
+            regimeCode: plan.regime || undefined,
             vestingStartDate: vestingDates[0] || undefined,
             vestingEndDate: vestingDates[vestingDates.length - 1] || undefined,
+            rawVestings: vestings,
           });
         }
       }
@@ -109,6 +116,7 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
             createdAt: sim.created_at,
             vestingStartDate: p.date_debut_offre || undefined,
             vestingEndDate: p.date_achat || undefined,
+            rawEsppPeriod: p,
           });
         }
       }
@@ -131,6 +139,8 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
           createdAt: sim.created_at,
           vestingEndDate: d.date_entree_societe || undefined,
           regime: d.regime_applicable || undefined,
+          regimeCode: d.regime_applicable || undefined,
+          rawBspceData: d,
         });
       }
     }

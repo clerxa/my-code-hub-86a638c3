@@ -2,8 +2,9 @@
  * VEGA Portfolio Dashboard — Shows a synthetic view of all equity plans
  * with live stock price, total value, and +/- latent gains.
  */
-import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Activity, Layers, BarChart3, ArrowUpRight, ArrowDownRight, Minus, CheckCircle2, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { TrendingUp, TrendingDown, Activity, Layers, BarChart3, ArrowUpRight, ArrowDownRight, Minus, CheckCircle2, Clock, Sparkles, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import type { PortfolioSummary, PortfolioPlan } from '@/hooks/useVegaPortfolio';
 import { differenceInDays, differenceInMonths, format, parseISO, isPast } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useUserFinancialProfile } from '@/hooks/useUserFinancialProfile';
 
 const fmtCurrency = (v: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
@@ -36,6 +38,150 @@ const TYPE_COLORS: Record<string, string> = {
 
 interface VegaPortfolioDashboardProps {
   portfolio: PortfolioSummary;
+}
+
+// ─── Quick fiscal simulation "sell today" ───
+interface QuickCessionResult {
+  gainBrut: number;
+  totalImpots: number;
+  gainNet: number;
+  tauxEffectif: number;
+  regimeLabel: string;
+}
+
+function simulateCessionToday(
+  plan: PortfolioPlan,
+  priceEur: number | null,
+  tmi: number, // e.g. 30
+  fxRate: number, // USD/EUR rate
+): QuickCessionResult | null {
+  if (!priceEur || priceEur <= 0) return null;
+
+  const tmiRate = tmi / 100;
+  const today = new Date().toISOString().split('T')[0];
+
+  if (plan.type === 'rsu') {
+    const regimeCode = plan.regimeCode || 'R1';
+    const gainAcq = plan.prixAcquisitionEur;
+    const prixCessionEur = priceEur;
+    const valeurMoyAcqEur = plan.nbActions > 0 ? gainAcq / plan.nbActions : 0;
+    const pvCession = Math.max(0, plan.nbActions * (prixCessionEur - valeurMoyAcqEur));
+
+    let irGa = 0, psGa = 0, contribSal = 0;
+
+    if (regimeCode === 'R1') {
+      const trancheA = Math.min(gainAcq, 300000);
+      const trancheB = Math.max(0, gainAcq - 300000);
+      irGa = (trancheA * 0.5 * tmiRate) + (trancheB * tmiRate);
+      psGa = (trancheA * 0.172) + (trancheB * 0.097);
+      contribSal = trancheB * 0.10;
+    } else if (regimeCode === 'R2') {
+      // Abattement based on holding duration from last vesting
+      let abattement = 0;
+      if (plan.vestingEndDate) {
+        const lastVesting = new Date(plan.vestingEndDate);
+        const diffMs = new Date().getTime() - lastVesting.getTime();
+        const dureeAnnees = diffMs / (1000 * 60 * 60 * 24 * 365.25);
+        if (dureeAnnees >= 8) abattement = 0.65;
+        else if (dureeAnnees >= 2) abattement = 0.50;
+      }
+      irGa = gainAcq * (1 - abattement) * tmiRate;
+      psGa = gainAcq * 0.172;
+    } else {
+      // R3 — Non qualifié
+      irGa = gainAcq * tmiRate;
+      psGa = gainAcq * 0.097;
+      contribSal = gainAcq * 0.10;
+    }
+
+    // PV cession — PFU 30%
+    const irPv = pvCession * 0.128;
+    const psPv = pvCession * 0.172;
+
+    const totalImpots = irGa + psGa + contribSal + irPv + psPv;
+    const gainBrut = gainAcq + pvCession;
+    const gainNet = gainBrut - totalImpots;
+
+    const regimeLabels: Record<string, string> = {
+      R1: 'Qualifié · seuil 300k€',
+      R2: 'Qualifié · abattement durée',
+      R3: 'Non qualifié · barème',
+    };
+
+    return {
+      gainBrut,
+      totalImpots,
+      gainNet,
+      tauxEffectif: gainBrut > 0 ? (totalImpots / gainBrut) * 100 : 0,
+      regimeLabel: regimeLabels[regimeCode] || regimeCode,
+    };
+  }
+
+  if (plan.type === 'espp') {
+    const p = plan.rawEsppPeriod;
+    if (!p) return null;
+
+    // Rabais
+    const taux = plan.devise === 'USD' ? (p.taux_change_achat || 1) : 1;
+    const coursRef = Math.min(p.cours_debut_offre_devise || Infinity, p.cours_achat_devise || Infinity);
+    const safeRef = isFinite(coursRef) ? coursRef : 0;
+    const prixAchatEffectif = safeRef * (1 - (p.taux_rabais || 15) / 100);
+    const rabaisEur = Math.max(0, plan.nbActions * ((p.cours_achat_devise || 0) - prixAchatEffectif) * taux);
+
+    // PV cession
+    const coursAchatEur = (p.cours_achat_devise || 0) / fxRate;
+    const pvBrute = Math.max(0, plan.nbActions * (priceEur - coursAchatEur));
+
+    // Fiscal
+    const irRabais = rabaisEur * tmiRate;
+    const psRabais = rabaisEur * 0.097;
+    const pfuPv = pvBrute * 0.30;
+
+    const totalImpots = irRabais + psRabais + pfuPv;
+    const gainBrut = rabaisEur + pvBrute;
+    const gainNet = gainBrut - totalImpots;
+
+    return {
+      gainBrut,
+      totalImpots,
+      gainNet,
+      tauxEffectif: gainBrut > 0 ? (totalImpots / gainBrut) * 100 : 0,
+      regimeLabel: 'ESPP §423 · Rabais + PFU',
+    };
+  }
+
+  if (plan.type === 'bspce') {
+    const d = plan.rawBspceData;
+    if (!d) return null;
+
+    const prixExercice = d.prix_exercice || 0;
+    const gainBrut = Math.max(0, (priceEur - prixExercice) * plan.nbActions);
+
+    // Regime based on seniority
+    const dateEntree = d.date_entree_societe ? new Date(d.date_entree_societe) : new Date();
+    const diffMs = new Date().getTime() - dateEntree.getTime();
+    const ancienneteMois = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.44));
+    const isPfu = ancienneteMois >= 36;
+
+    let totalImpots: number;
+    if (isPfu) {
+      totalImpots = gainBrut * 0.30; // PFU
+    } else {
+      totalImpots = gainBrut * (tmiRate + 0.172); // Barème + PS
+    }
+
+    const gainNet = gainBrut - totalImpots;
+
+    return {
+      gainBrut,
+      totalImpots,
+      gainNet,
+      tauxEffectif: gainBrut > 0 ? (totalImpots / gainBrut) * 100 : 0,
+      regimeLabel: isPfu ? 'PFU 30% (> 3 ans)' : `Barème ${tmi}% + PS (< 3 ans)`,
+    };
+  }
+
+  return null;
 }
 
 function StockTickers({ portfolio }: { portfolio: PortfolioSummary }) {
@@ -194,7 +340,135 @@ function VestingStatus({ plan }: { plan: PortfolioPlan }) {
   );
 }
 
-function PlanCard({ plan, getPriceEur }: { plan: PortfolioPlan; getPriceEur: (ticker: string) => number | null }) {
+function CessionReveal({ plan, getPriceEur, tmi, fxRate }: { plan: PortfolioPlan; getPriceEur: (ticker: string) => number | null; tmi: number; fxRate: number }) {
+  const [revealed, setRevealed] = useState(false);
+  const [result, setResult] = useState<QuickCessionResult | null>(null);
+
+  const handleReveal = () => {
+    const priceEur = plan.ticker ? getPriceEur(plan.ticker) : null;
+    const res = simulateCessionToday(plan, priceEur, tmi, fxRate);
+    setResult(res);
+    setRevealed(true);
+  };
+
+  if (!revealed) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full text-xs gap-1.5 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all"
+        onClick={handleReveal}
+      >
+        <Zap className="h-3.5 w-3.5" />
+        Simuler la cession ce jour
+      </Button>
+    );
+  }
+
+  if (!result) {
+    return (
+      <div className="text-[11px] text-muted-foreground italic text-center py-2">
+        Données insuffisantes pour simuler
+      </div>
+    );
+  }
+
+  const isPositive = result.gainNet >= 0;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className="relative overflow-hidden rounded-xl"
+      >
+        {/* Gradient background */}
+        <div className={`absolute inset-0 ${isPositive
+          ? 'bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-teal-500/10 dark:from-green-500/20 dark:via-emerald-500/10 dark:to-teal-500/20'
+          : 'bg-gradient-to-br from-red-500/10 via-orange-500/5 to-red-500/10 dark:from-red-500/20 dark:via-orange-500/10 dark:to-red-500/20'
+        }`} />
+
+        {/* Sparkle particles */}
+        {isPositive && (
+          <>
+            <motion.div
+              className="absolute top-1 right-3 text-yellow-400/60"
+              animate={{ rotate: [0, 180, 360], scale: [0.8, 1.2, 0.8], opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Sparkles className="h-3 w-3" />
+            </motion.div>
+            <motion.div
+              className="absolute bottom-2 left-4 text-yellow-400/40"
+              animate={{ rotate: [360, 180, 0], scale: [1, 0.7, 1], opacity: [0.3, 0.8, 0.3] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+            >
+              <Sparkles className="h-2.5 w-2.5" />
+            </motion.div>
+          </>
+        )}
+
+        <div className="relative p-3 space-y-2">
+          {/* Gain net — hero number */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="text-center"
+          >
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+              Gain net estimé
+            </p>
+            <motion.p
+              initial={{ scale: 0.5 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 15, delay: 0.2 }}
+              className={`text-xl font-black font-mono tracking-tight ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}
+            >
+              {isPositive ? '+' : ''}{fmtCurrency(result.gainNet)}
+            </motion.p>
+          </motion.div>
+
+          {/* Detail row */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
+            className="grid grid-cols-3 gap-1 text-center"
+          >
+            <div>
+              <p className="text-[9px] text-muted-foreground">Brut</p>
+              <p className="text-[11px] font-semibold font-mono text-foreground">{fmtCurrency(result.gainBrut)}</p>
+            </div>
+            <div>
+              <p className="text-[9px] text-muted-foreground">Impôts</p>
+              <p className="text-[11px] font-semibold font-mono text-red-500 dark:text-red-400">-{fmtCurrency(result.totalImpots)}</p>
+            </div>
+            <div>
+              <p className="text-[9px] text-muted-foreground">Taux eff.</p>
+              <p className="text-[11px] font-semibold font-mono text-foreground">{result.tauxEffectif.toFixed(1)}%</p>
+            </div>
+          </motion.div>
+
+          {/* Regime badge */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.45 }}
+            className="text-center"
+          >
+            <Badge variant="outline" className="text-[9px] font-normal text-muted-foreground">
+              {result.regimeLabel}
+            </Badge>
+          </motion.div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+function PlanCard({ plan, getPriceEur, tmi, fxRate }: { plan: PortfolioPlan; getPriceEur: (ticker: string) => number | null; tmi: number; fxRate: number }) {
   const navigate = useNavigate();
   const priceEur = plan.ticker ? getPriceEur(plan.ticker) : null;
   const currentValue = priceEur !== null && plan.type !== 'bspce'
@@ -251,7 +525,7 @@ function PlanCard({ plan, getPriceEur }: { plan: PortfolioPlan; getPriceEur: (ti
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-5 pb-4 pt-0">
+      <CardContent className="px-5 pb-4 pt-0 space-y-3">
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <p className="text-[10px] text-muted-foreground uppercase">Actions</p>
@@ -276,10 +550,14 @@ function PlanCard({ plan, getPriceEur }: { plan: PortfolioPlan; getPriceEur: (ti
             </>
           )}
         </div>
+
+        {/* Simulate sale today */}
+        <CessionReveal plan={plan} getPriceEur={getPriceEur} tmi={tmi} fxRate={fxRate} />
+
         <Button
           variant="ghost"
           size="sm"
-          className="mt-3 w-full text-xs text-muted-foreground hover:text-primary"
+          className="w-full text-xs text-muted-foreground hover:text-primary"
           onClick={handleOpen}
         >
           Ouvrir le plan →
@@ -291,6 +569,12 @@ function PlanCard({ plan, getPriceEur }: { plan: PortfolioPlan; getPriceEur: (ti
 
 export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProps) {
   const navigate = useNavigate();
+  const { profile } = useUserFinancialProfile();
+
+  // Get user TMI from financial profile, default 30%
+  const tmi = profile?.tmi || 30;
+  // Get FX rate from portfolio tickers
+  const fxRate = portfolio.tickers.find(t => t.fxRate !== 1)?.fxRate || 1;
 
   if (portfolio.isLoading) {
     return (
@@ -350,7 +634,7 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {plans.map(plan => (
-              <PlanCard key={plan.id} plan={plan} getPriceEur={portfolio.getPriceEur} />
+              <PlanCard key={plan.id} plan={plan} getPriceEur={portfolio.getPriceEur} tmi={tmi} fxRate={fxRate} />
             ))}
           </div>
         </motion.div>
@@ -363,7 +647,7 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
         transition={{ delay: 0.6 }}
         className="text-[11px] text-muted-foreground/70 italic text-center"
       >
-        Valeurs indicatives basées sur le cours de bourse actuel. Ne constitue pas un conseil fiscal.
+        Valeurs indicatives basées sur le cours de bourse actuel et votre TMI ({tmi}%). Ne constitue pas un conseil fiscal.
       </motion.p>
     </div>
   );
