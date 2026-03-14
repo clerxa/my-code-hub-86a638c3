@@ -473,8 +473,9 @@ RÈGLES GÉNÉRALES DE DÉTECTION
 
 3. CAS EDGE / LIGNES INCONNUES → point_attention avec hypothèses + inviter à vérifier RH
 4. GÉNÉRICITÉ TEMPORELLE (JAMAIS de dates/années en dur → "année N", "année suivante")
-5. PROTECTION DONNÉES (JAMAIS noms d'entreprises → "ton employeur", "la société")
-6. TON SUGGESTIF : "il semble que", "d'après notre analyse", "il apparaît que"
+5. PROTECTION DONNÉES (JAMAIS noms d'entreprises → "votre employeur", "la société")
+6. TON SUGGESTIF + VOUVOIEMENT OBLIGATOIRE : "il semble que", "d'après notre analyse", "il apparaît que"
+   - TOUJOURS le vouvoiement : "vous", "votre", "vos" — JAMAIS "tu", "ton", "tes"
    - JAMAIS de conseil d'achat/vente. Toujours renvoyer vers un expert patrimonial.
 
 ═══════════════════════════════════════════════════════════════
