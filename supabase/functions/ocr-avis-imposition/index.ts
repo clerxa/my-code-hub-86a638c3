@@ -340,6 +340,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: modelConfig.id,
         max_tokens: 16000,
+        temperature: 0,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content }],
       }),
