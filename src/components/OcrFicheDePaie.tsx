@@ -355,9 +355,7 @@ export default function OcrFicheDePaie() {
         {step === "simple_result" && simpleData && (
           <SimpleResultView
             data={simpleData}
-            hasEquity={hasEquity === "yes"}
             onAdvancedClick={handleAdvancedClick}
-            onModalOpen={setModalOpen}
             onReset={reset}
           />
         )}
