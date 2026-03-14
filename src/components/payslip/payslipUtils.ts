@@ -76,8 +76,8 @@ export const getPriorityStyle = (priorite: number): { border: string; bg: string
 };
 
 /** Get an emoji icon based on point d'attention id */
-export const getPointIcon = (id: string): string => {
-  if (id.includes("rsu")) return "📈";
+export const getPointIcon = (id: string | null | undefined): string => {
+  if (!id) return "📌";
   if (id.includes("actions_gratuites")) return "🎁";
   if (id.includes("espp")) return "🏪";
   if (id.includes("prime")) return "💰";
