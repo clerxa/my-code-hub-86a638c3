@@ -14,7 +14,7 @@ import { BookOpen, ChevronRight, Lock, Upload, FileText, Sparkles, Info } from "
 import PayslipProgressiveView from "./payslip/PayslipProgressiveView";
 import PayslipDetailModal from "./payslip/PayslipDetailModal";
 import { PayslipAnalysisOverlay } from "./payslip/PayslipAnalysisOverlay";
-import { fmt, safe, getMonthLabel } from "./payslip/payslipUtils";
+import { fmt, fmtShort, safe, getMonthLabel, getPointIcon, getPriorityStyle } from "./payslip/payslipUtils";
 
 const SUPABASE_FUNCTION_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/ocr-bulletin-paie`;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
