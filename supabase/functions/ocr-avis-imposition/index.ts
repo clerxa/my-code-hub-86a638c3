@@ -177,6 +177,123 @@ RÈGLES DE TON pour les niches fiscales :
 
 Remplir l'objet niches_fiscales avec : total_niches (nombre), plafond_atteint (boolean), girardin_detecte (boolean), plafond_applicable (10000 ou 18000), marge_restante (nombre ou null si cas D), cas_detecte ("A", "B", "C", "D" ou "aucun").`;
 
+function normalizeModelText(text: string): string {
+  return text
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/g, "")
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+    .trim();
+}
+
+function getJsonState(input: string) {
+  const stack: string[] = [];
+  let inString = false;
+  let escaped = false;
+
+  for (const ch of input) {
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (ch === "\\" && inString) {
+      escaped = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (ch === "{" || ch === "[") {
+      stack.push(ch);
+      continue;
+    }
+
+    if (ch === "}" || ch === "]") {
+      const last = stack[stack.length - 1];
+      if ((ch === "}" && last === "{") || (ch === "]" && last === "[")) {
+        stack.pop();
+      }
+    }
+  }
+
+  return { stack, inString };
+}
+
+function extractFirstBalancedJson(input: string): string | null {
+  const start = input.search(/[\{\[]/);
+  if (start === -1) return null;
+
+  const stack: string[] = [];
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < input.length; i++) {
+    const ch = input[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (ch === "\\" && inString) {
+      escaped = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (ch === "{" || ch === "[") {
+      stack.push(ch);
+      continue;
+    }
+
+    if (ch === "}" || ch === "]") {
+      const last = stack[stack.length - 1];
+      if ((ch === "}" && last === "{") || (ch === "]" && last === "[")) {
+        stack.pop();
+      }
+
+      if (stack.length === 0) {
+        return input.substring(start, i + 1);
+      }
+    }
+  }
+
+  return input.substring(start);
+}
+
+function repairTruncatedJson(input: string): string {
+  let cleaned = input
+    .replace(/,\s*}/g, "}")
+    .replace(/,\s*]/g, "]")
+    .replace(/,\s*$/, "")
+    .trim();
+
+  const state = getJsonState(cleaned);
+
+  if (state.inString) {
+    cleaned += '"';
+  }
+
+  for (let i = state.stack.length - 1; i >= 0; i--) {
+    cleaned += state.stack[i] === "{" ? "}" : "]";
+  }
+
+  return cleaned
+    .replace(/,\s*}/g, "}")
+    .replace(/,\s*]/g, "]");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
