@@ -946,14 +946,14 @@ Cherche ce pattern de lignes :
 
 → variante = "simple_avec_remboursement_broker"
 
-EXPLICATION (ton suggestif) :
+EXPLICATION (ton suggestif, vouvoiement) :
 "Il semble que des RSU d'une valeur d'environ {gain} € soient devenues acquises ce mois-ci.
 Mécanisme apparent :
 1. Cette valeur est ajoutée au brut pour calculer les cotisations sociales
 2. Le PAS semble calculé sur un net imposable incluant le RSU
 3. Le gain RSU est ensuite retiré du net à payer (ligne de reprise)
 4. Un remboursement d'environ {remboursement} € d'impôt prélevé par le broker semble versé
-Pour bien comprendre l'impact fiscal et patrimonial, nous te recommandons de consulter un expert patrimonial."
+Pour bien comprendre l'impact fiscal et patrimonial, nous vous recommandons de consulter un expert patrimonial."
 
 C. RSU — VARIANTE B : SELL TO COVER
 
