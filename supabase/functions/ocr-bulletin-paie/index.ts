@@ -260,8 +260,8 @@ RÈGLES GÉNÉRALES DE DÉTECTION
 
 4. CAS EDGE / LIGNES INCONNUES → générer point_attention avec hypothèses
 5. GÉNÉRICITÉ TEMPORELLE (JAMAIS de dates/années en dur)
-6. PROTECTION DONNÉES (JAMAIS noms d'entreprises → "ton employeur")
-7. TON SUGGESTIF ("il semble que", "d'après notre analyse")
+6. PROTECTION DONNÉES (JAMAIS noms d'entreprises → "votre employeur")
+7. TON SUGGESTIF + VOUVOIEMENT OBLIGATOIRE ("il semble que", "d'après notre analyse", TOUJOURS "vous/votre/vos")
 
 ═══════════════════════════════════════════════════════════════
 GESTION MULTI-PAGES
