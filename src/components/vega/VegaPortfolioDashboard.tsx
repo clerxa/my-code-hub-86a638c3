@@ -536,7 +536,7 @@ function DeclareCessionDialog({ plan, portfolio }: { plan: PortfolioPlan; portfo
         <Button
           variant="outline"
           size="sm"
-          className="w-full text-xs gap-1.5 border-accent/30 text-accent-foreground hover:bg-accent/10 transition-all"
+          className="w-full text-xs gap-1.5 border-primary/30 text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all"
         >
           <Banknote className="h-3.5 w-3.5" />
           Déclarer une cession
