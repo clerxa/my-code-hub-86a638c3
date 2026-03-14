@@ -113,15 +113,25 @@ export function PayslipAnalysisOverlay({
 
   // Complete when progress hits 100
   useEffect(() => {
-    if (progressValue >= 99.5 && apiDone && !showSuccess) {
+    if (progressValue >= 99 && apiDone && !showSuccess) {
       setShowSuccess(true);
       const timer = setTimeout(() => {
         setVisible(false);
         onComplete();
-      }, 900);
+      }, 1200);
       return () => clearTimeout(timer);
     }
   }, [progressValue, apiDone, showSuccess, onComplete]);
+
+  // Safety net: if API is done but animation is stuck, force complete after 2s
+  useEffect(() => {
+    if (apiDone && visible && !showSuccess) {
+      const safety = setTimeout(() => {
+        setProgressValue(100);
+      }, 2000);
+      return () => clearTimeout(safety);
+    }
+  }, [apiDone, visible, showSuccess]);
 
   if (!visible) return null;
 
