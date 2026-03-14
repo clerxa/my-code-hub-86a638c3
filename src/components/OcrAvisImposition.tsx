@@ -606,6 +606,20 @@ const OcrAvisImposition = () => {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
+  const toDbNumber = useCallback((value: unknown): number | null => {
+    if (value === null || value === undefined || value === "") return null;
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (typeof value !== "string") return null;
+
+    const normalized = value.replace(/\u00A0/g, " ").trim();
+    const match = normalized.match(/-?\d[\d\s.,]*/);
+    if (!match) return null;
+
+    const numeric = match[0].replace(/\s/g, "").replace(/,/g, ".");
+    const parsed = Number.parseFloat(numeric);
+    return Number.isFinite(parsed) ? parsed : null;
+  }, []);
+
   // Load history on mount
   useEffect(() => {
     if (!user?.id) return;
