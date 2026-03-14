@@ -165,8 +165,8 @@ function BrutNetModal({ data }: { data: PayslipData }) {
 // ═══════════ COTISATIONS DETAIL MODAL ═══════════
 
 function CotisationsDetailModal({ data, type }: { data: PayslipData; type: string }) {
-  const cs = data.cotisations_salariales || {};
-  const cp = (data as any).cotisations_patronales || {};
+  const cs: any = data.cotisations_salariales || {};
+  const cp: any = (data as any).cotisations_patronales || {};
 
   // Sanitize: if salariale === patronale for a line, it's likely a duplication error
   const sanitize = (sal: number | null, pat: number | null, expectSalZero = false) => {
