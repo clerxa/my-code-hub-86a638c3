@@ -427,7 +427,7 @@ FORMAT actions_recommandees :
   {
     "id": "analyse_avancee_equity",
     "priorite": 1,
-    "texte": "Tu as reçu de l'equity ce mois-ci. L'analyse avancée te dira exactement comment c'est géré fiscalement et comment optimiser.",
+    "texte": "Vous avez reçu de l'equity ce mois-ci. L'analyse avancée vous dira exactement comment c'est géré fiscalement et comment optimiser.",
     "cta_label": "Voir l'analyse avancée",
     "cta_url": null
   }
