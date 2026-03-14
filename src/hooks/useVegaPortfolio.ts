@@ -101,6 +101,8 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
             nbActions: nb,
             prixAcquisitionEur: costEur,
             createdAt: sim.created_at,
+            vestingStartDate: p.date_debut_offre || undefined,
+            vestingEndDate: p.date_achat || undefined,
           });
         }
       }
