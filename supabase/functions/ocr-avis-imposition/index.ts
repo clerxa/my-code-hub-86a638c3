@@ -129,7 +129,7 @@ RÈGLE CRITIQUE — PLAFONDS PER (Plan d'Épargne Retraite) :
 - Dans analyse_personnalisee, rédige un texte pédagogique en vouvoiement qui :
   1. Rappelle le plafond total et ce qui a déjà été utilisé
   2. Calcule précisément l'économie d'impôt potentielle si le contribuable versait le restant sur un PER (= plafond_restant × TMI / 100)
-  3. Donne un exemple concret : "Si vous versiez X € sur un PER avant le 31 décembre, vous pourriez réduire votre impôt de Y €."
+  3. IMPORTANT : L'avis d'imposition analysé concerne une année fiscale passée, donc le plafond affiché a déjà expiré. Ne JAMAIS suggérer de verser "avant le 31 décembre" de l'année du document (c'est trop tard). En revanche, indique que ce plafond non utilisé peut être reporté sur les 3 années suivantes et que le contribuable peut en profiter pour l'année en cours ou prochaine. Exemple : "Votre plafond non utilisé de X € peut être reporté. En versant sur un PER cette année, vous pourriez réduire votre prochain impôt d'environ Y € (basé sur votre TMI de Z%)."
   4. Mentionne que cela est à valider avec un conseiller patrimonial
 - Si les plafonds PER ne sont pas visibles sur le document, mets les champs numériques à null et indique dans analyse_personnalisee : "Les plafonds de déduction épargne retraite ne sont pas visibles sur ce document. Ils figurent généralement en page 2 de votre avis d'imposition. Nous vous recommandons de vérifier ce point avec un conseiller."
 
