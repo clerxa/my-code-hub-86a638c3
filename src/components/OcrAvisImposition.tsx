@@ -732,8 +732,12 @@ const OcrAvisImposition = () => {
         </div>
       )}
 
-      {/* ─── Loading ─── */}
-      {loading && <LoadingStepper progressMsg={progressMsg} />}
+      {/* ─── Analysis Overlay ─── */}
+      <TaxNoticeAnalysisOverlay
+        isAnalyzing={showOverlay}
+        apiDone={apiDone}
+        onComplete={handleOverlayComplete}
+      />
 
       {/* ─── Error ─── */}
       {error && (
