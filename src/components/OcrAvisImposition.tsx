@@ -667,6 +667,12 @@ const OcrAvisImposition = () => {
         type_document: analysisData.meta?.type_document,
         confidence: analysisData.meta?.confidence,
         champs_manquants: analysisData.meta?.champs_manquants,
+        // PER
+        plafond_per_declarant_1: analysisData.plafonds_per?.plafond_declarant_1,
+        plafond_per_declarant_2: analysisData.plafonds_per?.plafond_declarant_2,
+        plafond_per_verse: analysisData.plafonds_per?.montant_verse_per,
+        plafond_per_restant: analysisData.plafonds_per?.plafond_restant,
+        per_analyse_personnalisee: analysisData.plafonds_per?.analyse_personnalisee,
       });
       toast.success("Analyse sauvegardée dans votre espace");
     } catch (err) {
