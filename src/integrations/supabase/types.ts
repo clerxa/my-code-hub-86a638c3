@@ -6281,6 +6281,45 @@ export type Database = {
         }
         Relationships: []
       }
+      vega_cessions: {
+        Row: {
+          created_at: string | null
+          date_cession: string
+          devise: string | null
+          id: string
+          nb_actions: number
+          notes: string | null
+          plan_id: string
+          prix_cession_unitaire: number | null
+          simulation_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date_cession?: string
+          devise?: string | null
+          id?: string
+          nb_actions: number
+          notes?: string | null
+          plan_id: string
+          prix_cession_unitaire?: number | null
+          simulation_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date_cession?: string
+          devise?: string | null
+          id?: string
+          nb_actions?: number
+          notes?: string | null
+          plan_id?: string
+          prix_cession_unitaire?: number | null
+          simulation_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ventes_espp: {
         Row: {
           created_at: string | null
