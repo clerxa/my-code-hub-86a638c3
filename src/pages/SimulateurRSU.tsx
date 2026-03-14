@@ -111,15 +111,16 @@ const SimulateurRSU = () => {
   }, [result, plans, cessionParams, saveSimulation]);
 
   // Navigation handlers
+  const backTarget = loadSimId ? '/employee/vega' : '/employee/simulations';
   const handleBack = useCallback(() => {
     switch (screen) {
       case 'editor': setScreen('dashboard'); setEditingPlanId(null); break;
       case 'cession': setScreen('dashboard'); break;
       case 'results': setScreen('cession'); break;
-      case 'dashboard': navigate('/employee/simulations'); break;
-      default: navigate('/employee/simulations');
+      case 'dashboard': navigate(backTarget); break;
+      default: navigate(backTarget);
     }
-  }, [screen, navigate]);
+  }, [screen, navigate, backTarget]);
 
   const handleIntroComplete = useCallback(() => {
     introSeen.current = true;

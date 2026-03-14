@@ -105,15 +105,16 @@ const SimulateurESPP = () => {
   }, [result, periods, tmi, saveSimulation]);
 
   // Navigation
+  const backTarget = loadSimId ? '/employee/vega' : '/employee/simulations';
   const handleBack = useCallback(() => {
     switch (screen) {
       case 'editor': setScreen('dashboard'); setEditingPeriodId(null); break;
       case 'tmi': setScreen('dashboard'); break;
       case 'results': setScreen('tmi'); break;
-      case 'dashboard': navigate('/employee/simulations'); break;
-      default: navigate('/employee/simulations');
+      case 'dashboard': navigate(backTarget); break;
+      default: navigate(backTarget);
     }
-  }, [screen, navigate]);
+  }, [screen, navigate, backTarget]);
 
   const screenTitle = {
     intro: 'Simulateur ESPP',
