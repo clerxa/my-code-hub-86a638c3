@@ -62,6 +62,7 @@ Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
     "contributions_sociales_revenus_capital": null,
     "taxe_habitation": null,
     "impot_net_total": null,
+    "impot_sans_dispositifs": null,
     "total_a_payer": null,
     "mensualisation_ou_prelevement": null
   },
