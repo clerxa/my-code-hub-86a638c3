@@ -19,11 +19,7 @@ import { fmt, fmtShort, safe, getMonthLabel, getPointIcon, getPriorityStyle } fr
 const SUPABASE_FUNCTION_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/ocr-bulletin-paie`;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// ─── Helpers ──────────────────────────────────────────
-const fmtShort = (n: number | null | undefined): string => {
-  if (n === null || n === undefined) return "—";
-  return Math.round(n).toLocaleString("fr-FR") + " €";
-};
+// fmtShort is now imported from payslipUtils
 
 export default function OcrFicheDePaie() {
   // ─── Step management ─────────────────────────────────
