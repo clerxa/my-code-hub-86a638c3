@@ -1265,6 +1265,9 @@ const OcrAvisImposition = () => {
                       <p className="text-lg font-bold text-primary tabular-nums">{fmtCompact(impotNet)}</p>
                     </div>
                   </div>
+                  <p className="text-xs text-muted-foreground text-center mt-4">
+                    Inclut l'impact de vos déductions (PER, charges déductibles), réductions et crédits d'impôt
+                  </p>
                 </CardContent>
               </Card>
             </div>
