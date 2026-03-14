@@ -1013,513 +1013,439 @@ const OcrAvisImposition = () => {
 
       {/* ─── Results ─── */}
       {data && (
-        <>
-          {/* Action bar */}
-          <div className="flex justify-end pt-4">
-            <Button variant="ghost" size="sm" onClick={reset}>
-              <RefreshCw className="h-4 w-4 mr-1.5" /> Analyser un autre document
-            </Button>
-          </div>
-
-          {/* ═══════════════ ZONE 1 — Bannière & Métriques ═══════════════ */}
-          <div
-            className="rounded-2xl p-6 sm:p-8"
-            style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.08), hsl(var(--secondary) / 0.08))" }}
-          >
-            <div className="space-y-2 mb-6">
-              <div className="flex flex-wrap gap-2">
-                {data.meta.type_document && (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/15 text-primary">
-                    {data.meta.type_document}
-                  </span>
-                )}
-                {data.meta.annee_detectee && (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/15 text-secondary">
-                    {data.meta.annee_detectee}
-                  </span>
-                )}
+        <AtlasResultsStepper onReset={reset}>
+          {/* ═══════════════ ÉCRAN 1 — Synthèse & Foyer ═══════════════ */}
+          <div className="space-y-6">
+            {/* Bannière & Métriques */}
+            <div
+              className="rounded-2xl p-6 sm:p-8"
+              style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.08), hsl(var(--secondary) / 0.08))" }}
+            >
+              <div className="space-y-2 mb-6">
+                <div className="flex flex-wrap gap-2">
+                  {data.meta.type_document && (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/15 text-primary">
+                      {data.meta.type_document}
+                    </span>
+                  )}
+                  {data.meta.annee_detectee && (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary/15 text-secondary">
+                      {data.meta.annee_detectee}
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                  {`Voici ce que nous avons trouvé dans votre avis d'imposition${annee ? ` ${annee}` : ""}.`}
+                </h2>
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                {`Voici ce que nous avons trouvé dans votre avis d'imposition${annee ? ` ${annee}` : ""}.`}
-              </h2>
-            </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <MetricCard
-                label="Votre revenu de référence"
-                value={rfr}
-                tooltip="Le revenu fiscal de référence (RFR) est le chiffre qui sert de base à de nombreux droits et aides sociales."
-              />
-              <MetricCard
-                label="Votre impôt"
-                value={impotNet}
-              />
-              <MetricCard
-                label="Votre taux réel"
-                value={tauxMoyen != null ? Math.round(tauxMoyen * 10) / 10 : null}
-                suffix=" %"
-                tooltip="C'est le pourcentage de vos revenus que vous avez réellement payé en impôt, toutes tranches confondues."
-              />
-              <MetricCard
-                label="Votre solde"
-                value={solde}
-                variant={solde != null && solde < 0 ? "success" : "primary"}
-                icon={
-                  solde != null ? (
-                    solde < 0 ? (
-                      <CheckCircle className="h-4 w-4 text-success shrink-0" />
-                    ) : solde > 0 ? (
-                      <Info className="h-4 w-4 text-primary shrink-0" />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <MetricCard
+                  label="Votre revenu de référence"
+                  value={rfr}
+                  tooltip="Le revenu fiscal de référence (RFR) est le chiffre qui sert de base à de nombreux droits et aides sociales."
+                />
+                <MetricCard
+                  label="Votre impôt"
+                  value={impotNet}
+                />
+                <MetricCard
+                  label="Votre taux réel"
+                  value={tauxMoyen != null ? Math.round(tauxMoyen * 10) / 10 : null}
+                  suffix=" %"
+                  tooltip="C'est le pourcentage de vos revenus que vous avez réellement payé en impôt, toutes tranches confondues."
+                />
+                <MetricCard
+                  label="Votre solde"
+                  value={solde}
+                  variant={solde != null && solde < 0 ? "success" : "primary"}
+                  icon={
+                    solde != null ? (
+                      solde < 0 ? (
+                        <CheckCircle className="h-4 w-4 text-success shrink-0" />
+                      ) : solde > 0 ? (
+                        <Info className="h-4 w-4 text-primary shrink-0" />
+                      ) : null
                     ) : null
-                  ) : null
-                }
-              />
+                  }
+                />
+              </div>
             </div>
-          </div>
 
-          {/* ═══════════════ ZONE 1.5 — Composition du foyer fiscal ═══════════════ */}
-          {(data.contribuable?.situation_familiale || nombreParts) && (
-            <div className="space-y-3">
-              <h3 className="text-lg font-bold text-foreground">
-                Votre foyer fiscal
-              </h3>
-              <Card className="overflow-hidden">
-                <CardContent className="pt-5 pb-5">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {data.contribuable?.situation_familiale && (
-                      <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground font-medium">Situation familiale</p>
-                        <p className="text-sm font-semibold text-foreground">{data.contribuable.situation_familiale}</p>
-                      </div>
+            {/* Composition du foyer fiscal */}
+            {(data.contribuable?.situation_familiale || nombreParts) && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-foreground">
+                  Votre foyer fiscal
+                </h3>
+                <Card className="overflow-hidden">
+                  <CardContent className="pt-5 pb-5">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {data.contribuable?.situation_familiale && (
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground font-medium">Situation familiale</p>
+                          <p className="text-sm font-semibold text-foreground">{data.contribuable.situation_familiale}</p>
+                        </div>
+                      )}
+                      {nombreParts != null && (
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground font-medium">Nombre de parts</p>
+                          <p className="text-sm font-semibold text-foreground">{nombreParts} {nombreParts > 1 ? "parts" : "part"}</p>
+                        </div>
+                      )}
+                      {revenuImposable != null && nombreParts > 0 && (
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground font-medium">Quotient familial</p>
+                          <p className="text-sm font-semibold text-foreground">{fmt(Math.round(revenuImposable / nombreParts))}</p>
+                        </div>
+                      )}
+                    </div>
+                    {data.explications_pedagogiques?.quotient_familial_explication && (
+                      <p className="mt-3 text-xs text-muted-foreground leading-relaxed border-t pt-3">
+                        <Info className="h-3.5 w-3.5 inline-block mr-1.5 text-primary" />
+                        {data.explications_pedagogiques.quotient_familial_explication}
+                      </p>
                     )}
-                    {nombreParts != null && (
-                      <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground font-medium">Nombre de parts</p>
-                        <p className="text-sm font-semibold text-foreground">{nombreParts} {nombreParts > 1 ? "parts" : "part"}</p>
-                      </div>
-                    )}
-                    {revenuImposable != null && nombreParts > 0 && (
-                      <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground font-medium">Quotient familial</p>
-                        <p className="text-sm font-semibold text-foreground">{fmt(Math.round(revenuImposable / nombreParts))}</p>
-                      </div>
-                    )}
-                  </div>
-                  {data.explications_pedagogiques?.quotient_familial_explication && (
-                    <p className="mt-3 text-xs text-muted-foreground leading-relaxed border-t pt-3">
-                      <Info className="h-3.5 w-3.5 inline-block mr-1.5 text-primary" />
-                      {data.explications_pedagogiques.quotient_familial_explication}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
-          {/* ═══════════════ ZONE 2 — Le parcours de votre impôt ═══════════════ */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold text-foreground">
-              Comment votre impôt a-t-il été calculé ?
-            </h3>
-
-            <div className="relative">
-              {/* Step 1 — Revenus déclarés */}
-              <StepperStep
-                index={1}
-                title="Vos revenus déclarés"
-                amount={fmt(salaires)}
-                amountColor="text-primary"
-                delay={0}
-              >
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {annee
-                    ? `En ${annee}, vous avez déclaré ${fmt(salaires)} de salaires et traitements bruts.`
-                    : `Vous avez déclaré ${fmt(salaires)} de salaires et traitements bruts.`}{" "}
-                  C'est le point de départ du calcul de votre impôt.
-                </p>
-                <div className="mt-3 h-3 rounded-full bg-primary/70 w-full" />
-              </StepperStep>
-
-              {/* Step 2 — Abattement */}
-              <StepperStep
-                index={2}
-                title="L'abattement forfaitaire de 10 %"
-                amount={abattement != null ? `− ${fmt(Math.abs(abattement))}` : "—"}
-                amountColor="text-muted-foreground"
-                delay={100}
-              >
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  L'administration fiscale vous accorde automatiquement un{" "}
-                  <FiscalTooltip
-                    term="abattement de 10 %"
-                    explanation="Cet abattement forfaitaire est censé couvrir vos frais professionnels courants (transport, repas…). Vous pouvez opter pour les frais réels si vos dépenses sont supérieures."
+            {/* Données complètes (accordéon) */}
+            <Collapsible open={rawDataOpen} onOpenChange={setRawDataOpen}>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-[hsl(var(--card-border))] hover:bg-muted/30 transition-colors">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Voir toutes les données extraites de votre document
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+                      rawDataOpen ? "rotate-180" : ""
+                    }`}
                   />
-                  {" "}de {fmt(Math.abs(abattement || 0))}, censé représenter vos frais professionnels.
-                  Vous n'avez rien à faire pour en bénéficier.
-                </p>
-                <div className="mt-3 flex h-3 rounded-full overflow-hidden">
-                  <div className="bg-primary/70 flex-1" />
-                  <div className="bg-muted w-[10%]" />
                 </div>
-              </StepperStep>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 space-y-4">
+                <Card>
+                  <CardContent className="p-4 space-y-1">
+                    <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">Revenus</h4>
+                    {Object.entries(REVENUE_LABELS).map(([key, label]) => {
+                      const val = data.revenus[key];
+                      if (val == null) return null;
+                      return <SimpleDataRow key={key} label={label} value={fmt(val)} />;
+                    })}
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 space-y-1">
+                    <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">Impôt</h4>
+                    {Object.entries(TAX_LABELS).map(([key, label]) => {
+                      const val = data.impot[key];
+                      if (val == null) return null;
+                      return <SimpleDataRow key={key} label={label} value={fmt(val)} />;
+                    })}
+                    {data.impot.taux_marginal_imposition_pct != null && (
+                      <SimpleDataRow label="Taux marginal (TMI)" value={pct(data.impot.taux_marginal_imposition_pct)} />
+                    )}
+                    {data.impot.taux_moyen_imposition_pct != null && (
+                      <SimpleDataRow label="Taux moyen réel" value={pct(data.impot.taux_moyen_imposition_pct)} />
+                    )}
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 space-y-1">
+                    <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">Informations du foyer</h4>
+                    <SimpleDataRow label="Contribuable" value={`${data.contribuable.prenom} ${data.contribuable.nom}`} />
+                    {data.contribuable.numero_fiscal && <SimpleDataRow label="N° fiscal" value={data.contribuable.numero_fiscal} />}
+                    {data.contribuable.situation_familiale && <SimpleDataRow label="Situation familiale" value={data.contribuable.situation_familiale} />}
+                    {data.contribuable.nombre_parts != null && <SimpleDataRow label="Nombre de parts" value={data.contribuable.nombre_parts.toString()} />}
+                    {data.annees.annee_revenus != null && <SimpleDataRow label="Année des revenus" value={data.annees.annee_revenus.toString()} />}
+                    {data.annees.annee_imposition != null && <SimpleDataRow label="Année d'imposition" value={data.annees.annee_imposition.toString()} />}
+                  </CardContent>
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
 
-              {/* Step 3 — Revenu imposable */}
-              <StepperStep
-                index={3}
-                title="Votre revenu net imposable"
-                amount={fmt(revenuImposable)}
-                amountColor="text-secondary"
-                delay={200}
-              >
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Après abattement, votre{" "}
-                  <FiscalTooltip
-                    term="revenu net imposable"
-                    explanation="C'est le montant sur lequel l'impôt est effectivement calculé, après déduction de l'abattement de 10 % et d'éventuelles charges déductibles."
-                  />{" "}
-                  s'établit à {fmt(revenuImposable)}. C'est cette base — et non votre salaire brut
-                  — que l'administration utilise pour calculer votre impôt.
-                </p>
-                <div className="mt-3 h-3 rounded-full bg-secondary/70 w-[90%]" />
-              </StepperStep>
+          {/* ═══════════════ ÉCRAN 2 — Calcul de l'impôt ═══════════════ */}
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-foreground">
+                Comment votre impôt a-t-il été calculé ?
+              </h3>
 
-              {/* Step 4 — Barème progressif */}
-              <StepperStep
-                index={4}
-                title="Le calcul par tranches"
-                amount={fmt(impotBrut)}
-                amountColor="text-foreground"
-                delay={300}
-              >
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                  Contrairement à une idée reçue, votre{" "}
-                  <FiscalTooltip
-                    term="taux marginal"
-                    explanation="C'est le taux qui s'applique à la dernière tranche de vos revenus. Seule la part qui dépasse le seuil de cette tranche est taxée à ce taux."
-                  />{" "}
-                  ne s'applique pas à l'ensemble de vos revenus. Chaque tranche est taxée à un taux
-                  différent.
-                </p>
-                {revenuImposable != null && (
-                  <TranchesBar revenuImposable={revenuImposable} nombreParts={nombreParts} />
-                )}
-              </StepperStep>
-
-              {/* Step 5 — Réductions / crédits (conditionnel) */}
-              {totalReductionsCredits != null && totalReductionsCredits > 0 && (
-                <StepperStep
-                  index={5}
-                  title="Vos réductions et crédits d'impôt"
-                  amount={`− ${fmt(totalReductionsCredits)}`}
-                  amountColor="text-success"
-                  delay={400}
-                >
+              <div className="relative">
+                <StepperStep index={1} title="Vos revenus déclarés" amount={fmt(salaires)} amountColor="text-primary" delay={0}>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Vous bénéficiez de {fmt(totalReductionsCredits)} de réductions et/ou crédits
-                    d'impôt qui viennent directement diminuer votre impôt calculé.
+                    {annee ? `En ${annee}, vous avez déclaré ${fmt(salaires)} de salaires et traitements bruts.` : `Vous avez déclaré ${fmt(salaires)} de salaires et traitements bruts.`}{" "}
+                    C'est le point de départ du calcul de votre impôt.
                   </p>
-                  {reductions != null && reductions > 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      • Réductions d'impôt : {fmt(reductions)}
-                    </p>
-                  )}
-                  {credits != null && credits > 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      • Crédits d'impôt : {fmt(credits)}
-                    </p>
-                  )}
+                  <div className="mt-3 h-3 rounded-full bg-primary/70 w-full" />
                 </StepperStep>
-              )}
 
-              {/* Step 6 — Impôt final */}
-              <StepperStep
-                index={totalReductionsCredits ? 6 : 5}
-                title="Votre impôt sur le revenu"
-                amount={fmt(impotNet)}
-                amountColor="text-primary"
-                isLast
-                delay={totalReductionsCredits ? 500 : 400}
-              >
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                  Votre{" "}
-                  <FiscalTooltip
-                    term="taux moyen réel"
-                    explanation="C'est le pourcentage effectif de vos revenus consacré à l'impôt. Il est toujours inférieur au taux marginal car les premières tranches sont taxées à des taux plus faibles."
-                  />{" "}
-                  est de {pct(tauxMoyen)}. Concrètement, pour 100 € gagnés, vous avez payé{" "}
-                  {tauxMoyen != null ? tauxMoyen.toFixed(1).replace(".", ",") : "—"} € d'impôt sur
-                  le revenu.
-                </p>
-                {tauxMoyen != null && <GaugeChart value={tauxMoyen} />}
-              </StepperStep>
-            </div>
-          </div>
-
-          {/* ═══════════════ ZONE 2B — Waterfall : comment se construit votre impôt ═══════════════ */}
-          {revenuImposable != null && impotNet != null && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-foreground">
-                De vos revenus à votre impôt : vue d'ensemble
-              </h3>
-              <Card>
-                <CardContent className="p-6">
-                  {(() => {
-                    const rbg = data?.revenus?.revenu_brut_global || 0;
-                    const rni = revenuImposable || 0;
-                    const ded = rbg > 0 && rni > 0 ? rbg - rni : (Math.abs(chargesDeductibles || 0) + Math.abs(abattement || 0));
-                    const baseApresDeductions = rni;
-                    const red = (reductions || 0) + (credits || 0);
-                    const impFinal = impotNet || 0;
-                    const impBrut = impotBrut || 0;
-
-                    // Waterfall steps
-                    const steps = [
-                      { label: "Revenu brut global", value: data?.revenus?.revenu_brut_global || (salaires || 0), color: "hsl(var(--primary))", type: "total" as const },
-                      { label: "Déductions", value: -ded, color: "hsl(var(--muted-foreground))", type: "delta" as const },
-                      { label: "Revenu net imposable", value: baseApresDeductions, color: "hsl(var(--secondary))", type: "total" as const },
-                      { label: "Impôt brut (barème)", value: impBrut, color: "hsl(25 95% 53%)", type: "total" as const },
-                      { label: "Réductions & crédits", value: -red, color: "hsl(var(--success))", type: "delta" as const },
-                      { label: "Impôt à payer", value: impFinal, color: "hsl(var(--primary))", type: "total" as const },
-                    ];
-
-                    const maxVal = Math.max(...steps.map(s => Math.abs(s.value)));
-
-                    return (
-                      <div className="space-y-2">
-                        {steps.map((step, i) => {
-                          const widthPct = maxVal > 0 ? (Math.abs(step.value) / maxVal) * 100 : 0;
-                          const isDelta = step.type === "delta";
-                          return (
-                            <div key={i} className="space-y-1">
-                              <div className="flex items-center justify-between text-sm">
-                                <span className={`${isDelta ? "text-muted-foreground italic" : "font-medium text-foreground"}`}>
-                                  {isDelta ? `↳ ${step.label}` : step.label}
-                                </span>
-                                <span className={`font-bold tabular-nums ${isDelta ? (step.value < 0 ? "text-success" : "text-destructive") : "text-foreground"}`}>
-                                  {step.value < 0 ? "− " : ""}{fmtCompact(Math.abs(step.value))}
-                                </span>
-                              </div>
-                              <div className="h-6 rounded-md overflow-hidden bg-muted/30">
-                                <div
-                                  className="h-full rounded-md transition-all duration-700"
-                                  style={{
-                                    width: `${Math.max(widthPct, 1)}%`,
-                                    background: step.color,
-                                    opacity: isDelta ? 0.5 : 0.8,
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* ═══════════════ ZONE 2C — Avant/Après dispositifs ═══════════════ */}
-          {impotSansDispositifs != null && impotNet != null && economieDispositifs != null && economieDispositifs > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-foreground">
-                L'impact de vos dispositifs fiscaux
-              </h3>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                    {/* Sans dispositifs */}
-                    <div className="text-center space-y-2">
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Sans vos dispositifs</p>
-                      <div className="mx-auto w-20 rounded-t-lg bg-destructive/20 border-2 border-destructive/30 flex items-end justify-center"
-                        style={{ height: `${Math.min(120, Math.max(40, 120))}px` }}>
-                        <div className="bg-destructive/60 w-full rounded-t-lg" style={{ height: `100%` }} />
-                      </div>
-                      <p className="text-lg font-bold text-destructive tabular-nums">{fmtCompact(impotSansDispositifs)}</p>
-                    </div>
-                    {/* Arrow + economy */}
-                    <div className="text-center space-y-1 flex flex-col items-center justify-center">
-                      <div className="px-4 py-2 rounded-full bg-success/15 border border-success/20">
-                        <p className="text-xs font-medium text-success">Économie réalisée</p>
-                        <p className="text-xl font-bold text-success tabular-nums">− {fmtCompact(economieDispositifs)}</p>
-                      </div>
-                      <ArrowRight className="h-5 w-5 text-success rotate-90 sm:rotate-0" />
-                    </div>
-                    {/* Avec dispositifs */}
-                    <div className="text-center space-y-2">
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Avec vos dispositifs</p>
-                      <div className="mx-auto w-20 rounded-t-lg bg-primary/20 border-2 border-primary/30 flex items-end justify-center"
-                        style={{ height: `${Math.min(120, Math.max(40, 120))}px` }}>
-                        <div className="bg-primary/60 w-full rounded-t-lg"
-                          style={{ height: `${impotSansDispositifs > 0 ? (impotNet / impotSansDispositifs) * 100 : 100}%` }} />
-                      </div>
-                      <p className="text-lg font-bold text-primary tabular-nums">{fmtCompact(impotNet)}</p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground text-center mt-4">
-                    Inclut l'impact de vos déductions (PER, charges déductibles), réductions et crédits d'impôt
+                <StepperStep index={2} title="L'abattement forfaitaire de 10 %" amount={abattement != null ? `− ${fmt(Math.abs(abattement))}` : "—"} amountColor="text-muted-foreground" delay={100}>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    L'administration fiscale vous accorde automatiquement un{" "}
+                    <FiscalTooltip term="abattement de 10 %" explanation="Cet abattement forfaitaire est censé couvrir vos frais professionnels courants (transport, repas…). Vous pouvez opter pour les frais réels si vos dépenses sont supérieures." />
+                    {" "}de {fmt(Math.abs(abattement || 0))}, censé représenter vos frais professionnels. Vous n'avez rien à faire pour en bénéficier.
                   </p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                  <div className="mt-3 flex h-3 rounded-full overflow-hidden">
+                    <div className="bg-primary/70 flex-1" />
+                    <div className="bg-muted w-[10%]" />
+                  </div>
+                </StepperStep>
 
-          {/* ═══════════════ ZONE 2D — Pédagogie : Déduction vs Réduction vs Crédit ═══════════════ */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 text-primary" />
-              Comprendre : déduction, réduction et crédit d'impôt
-            </h3>
-            <Card className="bg-gradient-to-br from-muted/30 to-transparent">
-              <CardContent className="p-6 space-y-5">
-                {/* Déduction */}
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-sm font-bold text-secondary">D</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-foreground text-sm">La déduction fiscale</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">
-                      Elle <strong>réduit votre revenu imposable</strong> (la base de calcul), pas directement votre impôt. 
-                      L'économie dépend de votre tranche : avec un TMI à 30 %, une déduction de 1 000 € vous fait économiser 300 € d'impôt.
-                      {chargesDeductibles != null && Math.abs(chargesDeductibles) > 0 && (
-                        <span className="block mt-1 text-secondary font-medium">
-                          → Sur votre avis : {fmtCompact(Math.abs(chargesDeductibles))} de charges déductibles identifiées.
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Réduction */}
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-sm font-bold text-accent">R</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-foreground text-sm">La réduction d'impôt</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">
-                      Elle <strong>se soustrait directement de votre impôt</strong>. Mais si elle dépasse le montant d'impôt dû, la différence est perdue — on ne vous la rembourse pas.
-                      {reductions != null && reductions > 0 && (
-                        <span className="block mt-1 text-accent font-medium">
-                          → Sur votre avis : {fmtCompact(reductions)} de réductions d'impôt.
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Crédit */}
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-sm font-bold text-success">C</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-foreground text-sm">Le crédit d'impôt</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">
-                      Comme la réduction, il <strong>diminue directement votre impôt</strong>. Mais contrairement à elle, si le crédit dépasse votre impôt, <strong>le surplus vous est remboursé</strong>. C'est le mécanisme le plus avantageux.
-                      {credits != null && credits > 0 && (
-                        <span className="block mt-1 text-success font-medium">
-                          → Sur votre avis : {fmtCompact(credits)} de crédits d'impôt.
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Summary */}
-                <div className="bg-background border rounded-xl p-4 mt-2">
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    <strong className="text-foreground">En résumé :</strong> la déduction agit en amont (sur le revenu), 
-                    la réduction et le crédit agissent en aval (sur l'impôt). Le crédit d'impôt est le seul mécanisme remboursable si vous ne payez pas d'impôt.
+                <StepperStep index={3} title="Votre revenu net imposable" amount={fmt(revenuImposable)} amountColor="text-secondary" delay={200}>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Après abattement, votre{" "}
+                    <FiscalTooltip term="revenu net imposable" explanation="C'est le montant sur lequel l'impôt est effectivement calculé, après déduction de l'abattement de 10 % et d'éventuelles charges déductibles." />
+                    {" "}s'établit à {fmt(revenuImposable)}. C'est cette base — et non votre salaire brut — que l'administration utilise pour calculer votre impôt.
                   </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  <div className="mt-3 h-3 rounded-full bg-secondary/70 w-[90%]" />
+                </StepperStep>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold text-foreground">
-              Votre prélèvement à la source
-            </h3>
+                <StepperStep index={4} title="Le calcul par tranches" amount={fmt(impotBrut)} amountColor="text-foreground" delay={300}>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                    Contrairement à une idée reçue, votre{" "}
+                    <FiscalTooltip term="taux marginal" explanation="C'est le taux qui s'applique à la dernière tranche de vos revenus. Seule la part qui dépasse le seuil de cette tranche est taxée à ce taux." />
+                    {" "}ne s'applique pas à l'ensemble de vos revenus. Chaque tranche est taxée à un taux différent.
+                  </p>
+                  {revenuImposable != null && <TranchesBar revenuImposable={revenuImposable} nombreParts={nombreParts} />}
+                </StepperStep>
 
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                {/* Reconciliation table */}
-                <div className="space-y-3 font-mono text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">
-                      Ce qui a été prélevé en {anneeImposition || annee || "—"}
-                    </span>
-                    <span className="font-semibold text-foreground tabular-nums">
-                      {fmt(montantPreleve)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Ce que vous deviez réellement</span>
-                    <span className="font-semibold text-foreground tabular-nums">
-                      {fmt(impotNet)}
-                    </span>
-                  </div>
-                  <div className="border-t border-border" />
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-foreground">Résultat</span>
-                    <span
-                      className={`font-bold tabular-nums flex items-center gap-2 ${
-                        solde != null && solde < 0 ? "text-success" : "text-primary"
-                      }`}
-                    >
-                      {solde != null && solde < 0
-                        ? `Remboursement ${fmt(Math.abs(solde))}`
-                        : solde != null && solde > 0
-                        ? `Reste à payer ${fmt(solde)}`
-                        : "Rien à régulariser"}
-                      {solde != null && solde < 0 ? (
-                        <CheckCircle className="h-4 w-4" />
-                      ) : solde != null && solde > 0 ? (
-                        <Info className="h-4 w-4" />
-                      ) : null}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Pedagogical text */}
-                {data.explications_pedagogiques?.prelevement_source_explication && (
-                  <div className="bg-muted/50 rounded-xl p-4">
+                {totalReductionsCredits != null && totalReductionsCredits > 0 && (
+                  <StepperStep index={5} title="Vos réductions et crédits d'impôt" amount={`− ${fmt(totalReductionsCredits)}`} amountColor="text-success" delay={400}>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      {data.explications_pedagogiques.prelevement_source_explication}
+                      Vous bénéficiez de {fmt(totalReductionsCredits)} de réductions et/ou crédits d'impôt qui viennent directement diminuer votre impôt calculé.
+                    </p>
+                    {reductions != null && reductions > 0 && <p className="text-xs text-muted-foreground mt-1">• Réductions d'impôt : {fmt(reductions)}</p>}
+                    {credits != null && credits > 0 && <p className="text-xs text-muted-foreground mt-1">• Crédits d'impôt : {fmt(credits)}</p>}
+                  </StepperStep>
+                )}
+
+                <StepperStep index={totalReductionsCredits ? 6 : 5} title="Votre impôt sur le revenu" amount={fmt(impotNet)} amountColor="text-primary" isLast delay={totalReductionsCredits ? 500 : 400}>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                    Votre{" "}
+                    <FiscalTooltip term="taux moyen réel" explanation="C'est le pourcentage effectif de vos revenus consacré à l'impôt. Il est toujours inférieur au taux marginal car les premières tranches sont taxées à des taux plus faibles." />
+                    {" "}est de {pct(tauxMoyen)}. Concrètement, pour 100 € gagnés, vous avez payé{" "}
+                    {tauxMoyen != null ? tauxMoyen.toFixed(1).replace(".", ",") : "—"} € d'impôt sur le revenu.
+                  </p>
+                  {tauxMoyen != null && <GaugeChart value={tauxMoyen} />}
+                </StepperStep>
+              </div>
+            </div>
+
+            {/* Waterfall */}
+            {revenuImposable != null && impotNet != null && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-foreground">De vos revenus à votre impôt : vue d'ensemble</h3>
+                <Card>
+                  <CardContent className="p-6">
+                    {(() => {
+                      const rbg = data?.revenus?.revenu_brut_global || 0;
+                      const rni = revenuImposable || 0;
+                      const ded = rbg > 0 && rni > 0 ? rbg - rni : (Math.abs(chargesDeductibles || 0) + Math.abs(abattement || 0));
+                      const red = (reductions || 0) + (credits || 0);
+                      const impFinal = impotNet || 0;
+                      const impBrut = impotBrut || 0;
+                      const steps = [
+                        { label: "Revenu brut global", value: data?.revenus?.revenu_brut_global || (salaires || 0), color: "hsl(var(--primary))", type: "total" as const },
+                        { label: "Déductions", value: -ded, color: "hsl(var(--muted-foreground))", type: "delta" as const },
+                        { label: "Revenu net imposable", value: rni, color: "hsl(var(--secondary))", type: "total" as const },
+                        { label: "Impôt brut (barème)", value: impBrut, color: "hsl(25 95% 53%)", type: "total" as const },
+                        { label: "Réductions & crédits", value: -red, color: "hsl(var(--success))", type: "delta" as const },
+                        { label: "Impôt à payer", value: impFinal, color: "hsl(var(--primary))", type: "total" as const },
+                      ];
+                      const maxVal = Math.max(...steps.map(s => Math.abs(s.value)));
+                      return (
+                        <div className="space-y-2">
+                          {steps.map((step, i) => {
+                            const widthPct = maxVal > 0 ? (Math.abs(step.value) / maxVal) * 100 : 0;
+                            const isDelta = step.type === "delta";
+                            return (
+                              <div key={i} className="space-y-1">
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className={`${isDelta ? "text-muted-foreground italic" : "font-medium text-foreground"}`}>
+                                    {isDelta ? `↳ ${step.label}` : step.label}
+                                  </span>
+                                  <span className={`font-bold tabular-nums ${isDelta ? (step.value < 0 ? "text-success" : "text-destructive") : "text-foreground"}`}>
+                                    {step.value < 0 ? "− " : ""}{fmtCompact(Math.abs(step.value))}
+                                  </span>
+                                </div>
+                                <div className="h-6 rounded-md overflow-hidden bg-muted/30">
+                                  <div className="h-full rounded-md transition-all duration-700" style={{ width: `${Math.max(widthPct, 1)}%`, background: step.color, opacity: isDelta ? 0.5 : 0.8 }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Avant/Après dispositifs */}
+            {impotSansDispositifs != null && impotNet != null && economieDispositifs != null && economieDispositifs > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-foreground">L'impact de vos dispositifs fiscaux</h3>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                      <div className="text-center space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Sans vos dispositifs</p>
+                        <div className="mx-auto w-20 rounded-t-lg bg-destructive/20 border-2 border-destructive/30 flex items-end justify-center" style={{ height: "120px" }}>
+                          <div className="bg-destructive/60 w-full rounded-t-lg" style={{ height: "100%" }} />
+                        </div>
+                        <p className="text-lg font-bold text-destructive tabular-nums">{fmtCompact(impotSansDispositifs)}</p>
+                      </div>
+                      <div className="text-center space-y-1 flex flex-col items-center justify-center">
+                        <div className="px-4 py-2 rounded-full bg-success/15 border border-success/20">
+                          <p className="text-xs font-medium text-success">Économie réalisée</p>
+                          <p className="text-xl font-bold text-success tabular-nums">− {fmtCompact(economieDispositifs)}</p>
+                        </div>
+                        <ArrowRight className="h-5 w-5 text-success rotate-90 sm:rotate-0" />
+                      </div>
+                      <div className="text-center space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Avec vos dispositifs</p>
+                        <div className="mx-auto w-20 rounded-t-lg bg-primary/20 border-2 border-primary/30 flex items-end justify-center" style={{ height: "120px" }}>
+                          <div className="bg-primary/60 w-full rounded-t-lg" style={{ height: `${impotSansDispositifs > 0 ? (impotNet / impotSansDispositifs) * 100 : 100}%` }} />
+                        </div>
+                        <p className="text-lg font-bold text-primary tabular-nums">{fmtCompact(impotNet)}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center mt-4">
+                      Inclut l'impact de vos déductions (PER, charges déductibles), réductions et crédits d'impôt
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Pédagogie */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <GraduationCap className="h-5 w-5 text-primary" />
+                Comprendre : déduction, réduction et crédit d'impôt
+              </h3>
+              <Card className="bg-gradient-to-br from-muted/30 to-transparent">
+                <CardContent className="p-6 space-y-5">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="text-sm font-bold text-secondary">D</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground text-sm">La déduction fiscale</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                        Elle <strong>réduit votre revenu imposable</strong> (la base de calcul), pas directement votre impôt. L'économie dépend de votre tranche : avec un TMI à 30 %, une déduction de 1 000 € vous fait économiser 300 € d'impôt.
+                        {chargesDeductibles != null && Math.abs(chargesDeductibles) > 0 && (
+                          <span className="block mt-1 text-secondary font-medium">→ Sur votre avis : {fmtCompact(Math.abs(chargesDeductibles))} de charges déductibles identifiées.</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="text-sm font-bold text-accent">R</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground text-sm">La réduction d'impôt</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                        Elle <strong>se soustrait directement de votre impôt</strong>. Mais si elle dépasse le montant d'impôt dû, la différence est perdue — on ne vous la rembourse pas.
+                        {reductions != null && reductions > 0 && (
+                          <span className="block mt-1 text-accent font-medium">→ Sur votre avis : {fmtCompact(reductions)} de réductions d'impôt.</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="text-sm font-bold text-success">C</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground text-sm">Le crédit d'impôt</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                        Comme la réduction, il <strong>diminue directement votre impôt</strong>. Mais contrairement à elle, si le crédit dépasse votre impôt, <strong>le surplus vous est remboursé</strong>. C'est le mécanisme le plus avantageux.
+                        {credits != null && credits > 0 && (
+                          <span className="block mt-1 text-success font-medium">→ Sur votre avis : {fmtCompact(credits)} de crédits d'impôt.</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="bg-background border rounded-xl p-4 mt-2">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      <strong className="text-foreground">En résumé :</strong> la déduction agit en amont (sur le revenu), la réduction et le crédit agissent en aval (sur l'impôt). Le crédit d'impôt est le seul mécanisme remboursable si vous ne payez pas d'impôt.
                     </p>
                   </div>
-                )}
-
-                {/* PAS rate badge */}
-                {tauxPas != null && (
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent/15 text-accent">
-                      Votre taux de{" "}
-                      <FiscalTooltip
-                        term="prélèvement à la source"
-                        explanation="Le PAS est une avance sur votre impôt, prélevée chaque mois sur votre salaire. L'avis d'imposition régularise la différence entre ce qui a été prélevé et ce que vous devez réellement."
-                      />
-                      {" "}: {pct(tauxPas)}
-                    </span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
-          {/* ═══════════════ ZONE 4 — Ce que vous pourriez faire ═══════════════ */}
-          <div className="space-y-4">
-            {/* ── PER Focus Card (toujours affiché) ── */}
+          {/* ═══════════════ ÉCRAN 3 — Prélèvement à la source ═══════════════ */}
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-foreground">
+                Votre prélèvement à la source
+              </h3>
+
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <div className="space-y-3 font-mono text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Ce qui a été prélevé en {anneeImposition || annee || "—"}</span>
+                      <span className="font-semibold text-foreground tabular-nums">{fmt(montantPreleve)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Ce que vous deviez réellement</span>
+                      <span className="font-semibold text-foreground tabular-nums">{fmt(impotNet)}</span>
+                    </div>
+                    <div className="border-t border-border" />
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-foreground">Résultat</span>
+                      <span className={`font-bold tabular-nums flex items-center gap-2 ${solde != null && solde < 0 ? "text-success" : "text-primary"}`}>
+                        {solde != null && solde < 0
+                          ? `Remboursement ${fmt(Math.abs(solde))}`
+                          : solde != null && solde > 0
+                          ? `Reste à payer ${fmt(solde)}`
+                          : "Rien à régulariser"}
+                        {solde != null && solde < 0 ? <CheckCircle className="h-4 w-4" /> : solde != null && solde > 0 ? <Info className="h-4 w-4" /> : null}
+                      </span>
+                    </div>
+                  </div>
+
+                  {data.explications_pedagogiques?.prelevement_source_explication && (
+                    <div className="bg-muted/50 rounded-xl p-4">
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {data.explications_pedagogiques.prelevement_source_explication}
+                      </p>
+                    </div>
+                  )}
+
+                  {tauxPas != null && (
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent/15 text-accent">
+                        Votre taux de{" "}
+                        <FiscalTooltip term="prélèvement à la source" explanation="Le PAS est une avance sur votre impôt, prélevée chaque mois sur votre salaire. L'avis d'imposition régularise la différence entre ce qui a été prélevé et ce que vous devez réellement." />
+                        {" "}: {pct(tauxPas)}
+                      </span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* ═══════════════ ÉCRAN 4 — Optimisation & PER ═══════════════ */}
+          <div className="space-y-6">
+            {/* PER Focus */}
             <div className="space-y-3">
               <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                 🎯 Focus : votre plafond épargne retraite (PER)
               </h3>
               <Card className="border-l-4 border-l-primary bg-gradient-to-r from-primary/5 to-transparent">
                 <CardContent className="p-5 space-y-4">
-                  {/* Chiffres clés PER */}
                   {(data.plafonds_per?.plafond_declarant_1 != null || data.plafonds_per?.plafond_restant != null) && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {data.plafonds_per?.plafond_declarant_1 != null && (
@@ -1548,21 +1474,17 @@ const OcrAvisImposition = () => {
                       )}
                     </div>
                   )}
-                  {/* Analyse personnalisée */}
                   <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
                     {data.plafonds_per?.analyse_personnalisee || "Les plafonds de déduction épargne retraite ne sont pas visibles sur ce document. Ils figurent généralement en page 2 de votre avis d'imposition. Nous vous recommandons de vérifier ce point avec un conseiller."}
                   </p>
-                  <a
-                    href="/expert-booking"
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-                  >
+                  <a href="/expert-booking" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
                     En parler à un conseiller patrimonial <ArrowRight className="h-4 w-4" />
                   </a>
                 </CardContent>
               </Card>
             </div>
 
-            {/* ── Mini-simulateur PER interactif ── */}
+            {/* Mini-simulateur PER */}
             {revenuImposable != null && impotNet != null && computedTmi >= 30 && (() => {
               const plafondRestant = data.plafonds_per?.plafond_restant
                 ?? (data.plafonds_per?.plafond_declarant_1 != null
@@ -1580,12 +1502,10 @@ const OcrAvisImposition = () => {
               ) : null;
             })()}
 
-            {/* ── Autres conseils d'optimisation ── */}
+            {/* Conseils d'optimisation */}
             {conseils.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-lg font-bold text-foreground">
-                  Autres pistes pour optimiser votre situation
-                </h3>
+                <h3 className="text-lg font-bold text-foreground">Autres pistes pour optimiser votre situation</h3>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {conseils.slice(0, 3).map((conseil, i) => (
                     <Card key={i} className="hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
@@ -1596,13 +1516,8 @@ const OcrAvisImposition = () => {
                             {typeof conseil === 'string' ? conseil : (conseil as any)?.conseil || (conseil as any)?.detail || JSON.stringify(conseil)}
                           </p>
                         </div>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-success/15 text-success">
-                          Économie potentielle
-                        </span>
-                        <a
-                          href="/expert-booking"
-                          className="flex items-center gap-1 text-xs text-primary hover:underline"
-                        >
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-success/15 text-success">Économie potentielle</span>
+                        <a href="/expert-booking" className="flex items-center gap-1 text-xs text-primary hover:underline">
                           En parler à un conseiller <ArrowRight className="h-3 w-3" />
                         </a>
                       </CardContent>
@@ -1612,7 +1527,7 @@ const OcrAvisImposition = () => {
               </div>
             )}
 
-            {/* ── Bloc optimisation fiscale globale (TMI >= 30%) ── */}
+            {/* Bloc TMI >= 30% */}
             {(data.impot?.taux_marginal_imposition_pct ?? 0) >= 30 && (
               <Card className="border-l-4 border-l-accent bg-gradient-to-r from-accent/5 to-transparent">
                 <CardContent className="p-5 space-y-3">
@@ -1623,15 +1538,9 @@ const OcrAvisImposition = () => {
                         Votre taux marginal est de {pct(data.impot?.taux_marginal_imposition_pct)} — vous avez un vrai levier d'optimisation
                       </h4>
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        Avec un taux marginal d'imposition à {pct(data.impot?.taux_marginal_imposition_pct)}, chaque euro déduit de votre revenu imposable vous fait économiser {(data.impot?.taux_marginal_imposition_pct ?? 30) >= 41 ? "41" : "30"} centimes d'impôt. Un bilan d'optimisation fiscale complet pourrait vous permettre d'identifier des dispositifs adaptés à votre situation : PER, investissement immobilier, dons, emploi à domicile, et bien d'autres.
+                        Avec un taux marginal d'imposition à {pct(data.impot?.taux_marginal_imposition_pct)}, chaque euro déduit de votre revenu imposable vous fait économiser {(data.impot?.taux_marginal_imposition_pct ?? 30) >= 41 ? "41" : "30"} centimes d'impôt.
                       </p>
-                      <p className="text-xs text-muted-foreground italic">
-                        À valider avec un conseiller patrimonial agréé.
-                      </p>
-                      <a
-                        href="/expert-booking"
-                        className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline mt-1"
-                      >
+                      <a href="/expert-booking" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline mt-1">
                         Réserver un bilan d'optimisation fiscale <ArrowRight className="h-4 w-4" />
                       </a>
                     </div>
@@ -1640,11 +1549,11 @@ const OcrAvisImposition = () => {
               </Card>
             )}
 
-            {/* ── Bloc réductions / crédits d'impôt significatifs ── */}
+            {/* Bloc réductions significatives */}
             {(() => {
-              const reductions = data.impot?.reductions_impot ?? 0;
-              const credits = data.impot?.credits_impot ?? 0;
-              const totalAvantages = reductions + credits;
+              const red = data.impot?.reductions_impot ?? 0;
+              const cred = data.impot?.credits_impot ?? 0;
+              const totalAvantages = red + cred;
               if (totalAvantages < 500) return null;
               return (
                 <Card className="border-l-4 border-l-secondary bg-gradient-to-r from-secondary/5 to-transparent">
@@ -1657,15 +1566,12 @@ const OcrAvisImposition = () => {
                         </h4>
                         <p className="text-sm text-muted-foreground leading-relaxed">
                           Vous bénéficiez actuellement de{" "}
-                          {reductions > 0 && <>{fmtCompact(reductions)} de réductions d'impôt</>}
-                          {reductions > 0 && credits > 0 && " et de "}
-                          {credits > 0 && <>{fmtCompact(credits)} de crédits d'impôt</>}.
-                          {" "}C'est un montant significatif. Un conseiller peut vous aider à vérifier que vous exploitez pleinement ces dispositifs et qu'ils restent les plus adaptés à votre situation actuelle.
+                          {red > 0 && <>{fmtCompact(red)} de réductions d'impôt</>}
+                          {red > 0 && cred > 0 && " et de "}
+                          {cred > 0 && <>{fmtCompact(cred)} de crédits d'impôt</>}.
+                          {" "}Un conseiller peut vous aider à vérifier que vous exploitez pleinement ces dispositifs.
                         </p>
-                        <a
-                          href="/expert-booking"
-                          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline mt-1"
-                        >
+                        <a href="/expert-booking" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline mt-1">
                           Faire le point sur vos dispositifs fiscaux <ArrowRight className="h-4 w-4" />
                         </a>
                       </div>
@@ -1678,9 +1584,7 @@ const OcrAvisImposition = () => {
             {/* Points d'attention */}
             {pointsAttention.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-lg font-bold text-foreground">
-                  Points importants à vérifier
-                </h3>
+                <h3 className="text-lg font-bold text-foreground">Points importants à vérifier</h3>
                 {pointsAttention.map((point, i) => (
                   <Card key={i} className="border-l-4 border-l-destructive">
                     <CardContent className="p-4 flex items-start gap-3">
@@ -1691,114 +1595,15 @@ const OcrAvisImposition = () => {
                 ))}
               </div>
             )}
+
+            {/* Footer disclaimer */}
+            <div className="bg-muted/30 rounded-xl px-4 py-3">
+              <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+                Ces informations sont extraites automatiquement depuis votre document. MyFinCare ne fournit pas de conseil fiscal. Pour toute décision patrimoniale, rapprochez-vous d'un conseiller agréé.
+              </p>
+            </div>
           </div>
-
-          {/* ═══════════════ ZONE 5 — Données complètes (accordéon) ═══════════════ */}
-          <Collapsible open={rawDataOpen} onOpenChange={setRawDataOpen}>
-            <CollapsibleTrigger className="w-full">
-              <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-[hsl(var(--card-border))] hover:bg-muted/30 transition-colors">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Voir toutes les données extraites de votre document
-                </span>
-                <ChevronDown
-                  className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
-                    rawDataOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </div>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-3 space-y-4">
-              {/* Revenus */}
-              <Card>
-                <CardContent className="p-4 space-y-1">
-                  <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
-                    Revenus
-                  </h4>
-                  {Object.entries(REVENUE_LABELS).map(([key, label]) => {
-                    const val = data.revenus[key];
-                    if (val == null) return null;
-                    return <SimpleDataRow key={key} label={label} value={fmt(val)} />;
-                  })}
-                </CardContent>
-              </Card>
-
-              {/* Impôt */}
-              <Card>
-                <CardContent className="p-4 space-y-1">
-                  <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
-                    Impôt
-                  </h4>
-                  {Object.entries(TAX_LABELS).map(([key, label]) => {
-                    const val = data.impot[key];
-                    if (val == null) return null;
-                    return <SimpleDataRow key={key} label={label} value={fmt(val)} />;
-                  })}
-                  {data.impot.taux_marginal_imposition_pct != null && (
-                    <SimpleDataRow
-                      label="Taux marginal (TMI)"
-                      value={pct(data.impot.taux_marginal_imposition_pct)}
-                    />
-                  )}
-                  {data.impot.taux_moyen_imposition_pct != null && (
-                    <SimpleDataRow
-                      label="Taux moyen réel"
-                      value={pct(data.impot.taux_moyen_imposition_pct)}
-                    />
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Foyer */}
-              <Card>
-                <CardContent className="p-4 space-y-1">
-                  <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-2">
-                    Informations du foyer
-                  </h4>
-                  <SimpleDataRow
-                    label="Contribuable"
-                    value={`${data.contribuable.prenom} ${data.contribuable.nom}`}
-                  />
-                  {data.contribuable.numero_fiscal && (
-                    <SimpleDataRow label="N° fiscal" value={data.contribuable.numero_fiscal} />
-                  )}
-                  {data.contribuable.situation_familiale && (
-                    <SimpleDataRow
-                      label="Situation familiale"
-                      value={data.contribuable.situation_familiale}
-                    />
-                  )}
-                  {data.contribuable.nombre_parts != null && (
-                    <SimpleDataRow
-                      label="Nombre de parts"
-                      value={data.contribuable.nombre_parts.toString()}
-                    />
-                  )}
-                  {data.annees.annee_revenus != null && (
-                    <SimpleDataRow
-                      label="Année des revenus"
-                      value={data.annees.annee_revenus.toString()}
-                    />
-                  )}
-                  {data.annees.annee_imposition != null && (
-                    <SimpleDataRow
-                      label="Année d'imposition"
-                      value={data.annees.annee_imposition.toString()}
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </CollapsibleContent>
-          </Collapsible>
-
-          {/* ─── Footer disclaimer ─── */}
-          <div className="bg-muted/30 rounded-xl px-4 py-3">
-            <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-              Ces informations sont extraites automatiquement depuis votre document. MyFinCare ne
-              fournit pas de conseil fiscal. Pour toute décision patrimoniale, rapprochez-vous d'un
-              conseiller agréé.
-            </p>
-          </div>
-        </>
+        </AtlasResultsStepper>
       )}
     </div>
   );
