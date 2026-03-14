@@ -752,7 +752,7 @@ const OcrAvisImposition = () => {
       if (!isAdmin) {
         const today = new Date().toISOString().slice(0, 10);
         const { count } = await supabase
-          .from("ocr_avis_imposition_analyses")
+          .from("ocr_avis_imposition_analyses" as any)
           .select("id", { count: "exact", head: true })
           .eq("user_id", user.id)
           .gte("created_at", `${today}T00:00:00`)
