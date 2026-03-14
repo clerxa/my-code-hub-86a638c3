@@ -7,6 +7,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { fmt } from "./payslipUtils";
+import { getRemboursementsDeductionsLines } from "./payslipUtils";
 import type { PayslipData, PointAttention } from "@/types/payslip";
 
 interface PayslipDetailModalProps {
@@ -95,6 +96,7 @@ function BrutNetModal({ data }: { data: PayslipData }) {
   const pas = data.net?.montant_pas;
   const tauxPas = data.net?.taux_pas_pct;
   const netPaye = data.net?.net_paye;
+  const rembLines = getRemboursementsDeductionsLines(data);
 
   const cotPct = brut && cotSal ? Math.round((cotSal / brut) * 100) : null;
 
@@ -109,9 +111,10 @@ function BrutNetModal({ data }: { data: PayslipData }) {
           {[
             { step: "1️⃣", title: "Salaire brut", desc: "Salaire de base + primes + heures sup + avantages." },
             { step: "2️⃣", title: "− Cotisations sociales (~22-25%)", desc: "Retraite, santé, chômage, CSG/CRDS." },
-            { step: "3️⃣", title: "= Net avant impôt", desc: "Ce que vous gagnez après cotisations." },
-            { step: "4️⃣", title: "− Prélèvement à la source (PAS)", desc: "L'impôt sur le revenu prélevé chaque mois." },
-            { step: "5️⃣", title: "= Net payé 💰", desc: "Le montant réellement versé sur votre compte." },
+            { step: "3️⃣", title: "+/− Remboursements & déductions", desc: "Frais pro, tickets restaurant, avantages déduits." },
+            { step: "4️⃣", title: "= Net avant impôt", desc: "Ce que vous gagnez après cotisations et ajustements." },
+            { step: "5️⃣", title: "− Prélèvement à la source (PAS)", desc: "L'impôt sur le revenu prélevé chaque mois." },
+            { step: "6️⃣", title: "= Net payé 💰", desc: "Le montant réellement versé sur votre compte." },
           ].map((item, i) => (
             <div key={i} className="flex items-start gap-3">
               <span className="text-lg">{item.step}</span>
@@ -140,6 +143,24 @@ function BrutNetModal({ data }: { data: PayslipData }) {
           <span className="text-sm text-muted-foreground">Cotisations salariales</span>
           <span className="text-base font-bold text-destructive">− {fmt(cotSal)}</span>
         </div>
+
+        {/* Remboursements & déductions */}
+        {rembLines.length > 0 && (
+          <>
+            <div className="flex items-center justify-center text-muted-foreground text-sm">
+              +/− Remboursements & déductions
+            </div>
+            {rembLines.map((line, i) => (
+              <div key={i} className={`flex items-center justify-between rounded-lg p-3 ${line.sign === "+" ? "bg-green-50 dark:bg-green-950/20" : "bg-destructive/5"}`}>
+                <span className="text-sm text-muted-foreground">{line.label}</span>
+                <span className={`text-base font-bold ${line.sign === "+" ? "text-green-600 dark:text-green-400" : "text-destructive"}`}>
+                  {line.sign === "+" ? "+" : "−"} {fmt(Math.abs(line.montant))}
+                </span>
+              </div>
+            ))}
+          </>
+        )}
+
         <div className="flex items-center justify-center text-muted-foreground text-sm">=</div>
         <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
           <span className="text-sm font-medium text-foreground">Net avant impôt</span>

@@ -295,6 +295,14 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
                 <div className="space-y-2 bg-muted/30 rounded-lg p-4">
                   <SalaryLine label="Salaire brut" amount={fmt(brut)} />
                   <SalaryLine label="Cotisations salariales" amount={`− ${fmt(cotSal)}`} dimmed />
+                  {rembLines.map((line, i) => (
+                    <SalaryLine
+                      key={i}
+                      label={`${line.sign === "+" ? "+" : "−"} ${line.label}`}
+                      amount={`${line.sign === "+" ? "+" : "−"} ${fmt(Math.abs(line.montant))}`}
+                      dimmed={line.sign === "-"}
+                    />
+                  ))}
                   <div className="border-t border-dashed border-primary/30 my-2" />
                   <SalaryLine label="= Net avant impôt" amount={fmt(netAvantImpot)} emphasized />
                   {basePas != null && basePas !== netAvantImpot && (
