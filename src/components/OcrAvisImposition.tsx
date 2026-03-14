@@ -626,7 +626,7 @@ const OcrAvisImposition = () => {
   const saveAnalysis = useCallback(async (analysisData: AvisData) => {
     if (!user?.id) return;
     try {
-      await supabase.from("ocr_avis_imposition_analyses").insert({
+      const { error: insertError } = await supabase.from("ocr_avis_imposition_analyses" as any).insert({
         user_id: user.id,
         analysis_data: analysisData as any,
         // Contribuable
@@ -684,10 +684,16 @@ const OcrAvisImposition = () => {
         plafond_per_verse: analysisData.plafonds_per?.montant_verse_per,
         plafond_per_restant: analysisData.plafonds_per?.plafond_restant,
         per_analyse_personnalisee: analysisData.plafonds_per?.analyse_personnalisee,
-      });
+      } as any);
+      if (insertError) {
+        console.error("Save analysis DB error:", insertError);
+        toast.error("Erreur lors de la sauvegarde de l'analyse");
+        return;
+      }
       toast.success("Analyse sauvegardée dans votre espace");
     } catch (err) {
       console.error("Save error:", err);
+      toast.error("Erreur lors de la sauvegarde");
     }
   }, [user?.id]);
 
