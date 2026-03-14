@@ -193,10 +193,68 @@ serve(async (req) => {
     try {
       parsed = JSON.parse(textContent);
     } catch {
-      const jsonMatch = textContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsed = JSON.parse(jsonMatch[0]);
-      } else {
+      // Clean markdown and find JSON boundaries
+      let cleaned = textContent
+        .replace(/```json\s*/gi, "")
+        .replace(/```\s*/g, "")
+        .trim();
+
+      const jsonStart = cleaned.search(/[\{\[]/);
+      if (jsonStart === -1) throw new Error("No JSON found in API response");
+      cleaned = cleaned.substring(jsonStart);
+
+      // Fix common issues
+      cleaned = cleaned
+        .replace(/,\s*}/g, "}")
+        .replace(/,\s*]/g, "]")
+        .replace(/[\x00-\x1F\x7F]/g, " ");
+
+      // Try to close truncated JSON by counting braces
+      let braceCount = 0;
+      let bracketCount = 0;
+      for (const ch of cleaned) {
+        if (ch === '{') braceCount++;
+        else if (ch === '}') braceCount--;
+        else if (ch === '[') bracketCount++;
+        else if (ch === ']') bracketCount--;
+      }
+
+      // Remove trailing partial content after last complete value
+      if (braceCount > 0 || bracketCount > 0) {
+        // Find last complete key-value or array element
+        const lastGoodEnd = Math.max(
+          cleaned.lastIndexOf('",'),
+          cleaned.lastIndexOf('null,'),
+          cleaned.lastIndexOf('},'),
+          cleaned.lastIndexOf('],'),
+          cleaned.lastIndexOf('"'),
+          cleaned.lastIndexOf('null'),
+          cleaned.lastIndexOf('}'),
+          cleaned.lastIndexOf(']')
+        );
+        if (lastGoodEnd > 0) {
+          cleaned = cleaned.substring(0, lastGoodEnd + 1);
+          // Remove any trailing comma
+          cleaned = cleaned.replace(/,\s*$/, "");
+        }
+        // Re-count and close
+        braceCount = 0;
+        bracketCount = 0;
+        for (const ch of cleaned) {
+          if (ch === '{') braceCount++;
+          else if (ch === '}') braceCount--;
+          else if (ch === '[') bracketCount++;
+          else if (ch === ']') bracketCount--;
+        }
+        while (bracketCount > 0) { cleaned += "]"; bracketCount--; }
+        while (braceCount > 0) { cleaned += "}"; braceCount--; }
+      }
+
+      try {
+        parsed = JSON.parse(cleaned);
+        console.warn("JSON repaired successfully after truncation");
+      } catch (finalErr) {
+        console.error("JSON repair failed:", finalErr.message, "First 500 chars:", cleaned.substring(0, 500));
         throw new Error("Could not parse JSON from API response");
       }
     }
