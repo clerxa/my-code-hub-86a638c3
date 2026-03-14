@@ -39,6 +39,8 @@ export default function PayslipDetailModal({ open, onClose, modalType, data }: P
       case "cotisations_chomage":
       case "cotisations_csg":
         return <CotisationsDetailModal data={data} type={modalType.replace("cotisations_", "")} />;
+      case "brut_net_explication":
+        return <BrutNetModal data={data} />;
       default:
         return null;
     }
@@ -46,6 +48,7 @@ export default function PayslipDetailModal({ open, onClose, modalType, data }: P
 
   const getTitle = () => {
     const titles: Record<string, string> = {
+      brut_net_explication: "📖 Comment on passe de brut à net ?",
       rsu_sell_to_cover: "📊 RSU Sell-To-Cover : Explication détaillée",
       rsu_simple: "📊 RSU Simple : Explication détaillée",
       actions_gratuites_qualifie: "🎁 Actions gratuites — Plan qualifié",
@@ -345,6 +348,71 @@ function CotisationsDetailModal({ data, type }: { data: any; type: string }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function BrutNetModal({ data }: { data: any }) {
+  const brut = data.remuneration_brute?.total_brut;
+  const cotSal = data.cotisations_salariales?.total_cotisations_salariales;
+  const netAvantImpot = data.net?.net_avant_impot;
+  const pas = data.net?.montant_pas;
+  const tauxPas = data.net?.taux_pas_pct;
+  const netPaye = data.net?.net_paye;
+  const cotPat = data.cotisations_patronales?.total_cotisations_patronales;
+  const coutTotal = data.informations_complementaires?.cout_total_employeur;
+
+  const cotPct = brut && cotSal ? Math.round((cotSal / brut) * 100) : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Visual flow */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
+          <span className="text-sm font-medium text-foreground">Salaire brut</span>
+          <span className="text-lg font-bold text-foreground">{fmt(brut)}</span>
+        </div>
+
+        <div className="flex items-center justify-center text-muted-foreground text-sm">
+          − Cotisations sociales{cotPct ? ` (~${cotPct}%)` : ""}
+        </div>
+
+        <div className="flex items-center justify-between bg-red-50 dark:bg-red-950/20 rounded-lg p-3">
+          <span className="text-sm text-muted-foreground">Cotisations salariales</span>
+          <span className="text-base font-bold text-red-600 dark:text-red-400">− {fmt(cotSal)}</span>
+        </div>
+
+        <div className="flex items-center justify-center text-muted-foreground text-sm">=</div>
+
+        <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
+          <span className="text-sm font-medium text-foreground">Net avant impôt</span>
+          <span className="text-base font-bold text-foreground">{fmt(netAvantImpot)}</span>
+        </div>
+
+        <div className="flex items-center justify-center text-muted-foreground text-sm">
+          − Impôt sur le revenu (PAS {tauxPas ? `${Math.abs(tauxPas).toFixed(1)}%` : ""})
+        </div>
+
+        <div className="flex items-center justify-between bg-red-50 dark:bg-red-950/20 rounded-lg p-3">
+          <span className="text-sm text-muted-foreground">Prélèvement à la source</span>
+          <span className="text-base font-bold text-red-600 dark:text-red-400">− {fmt(Math.abs(pas || 0))}</span>
+        </div>
+
+        <div className="flex items-center justify-center text-muted-foreground text-sm">=</div>
+
+        <div className="flex items-center justify-between bg-green-50 dark:bg-green-950/30 rounded-lg p-3 border border-green-200 dark:border-green-800">
+          <span className="text-base font-bold text-green-700 dark:text-green-400">NET PAYÉ</span>
+          <span className="text-xl font-extrabold text-green-700 dark:text-green-400">{fmt(netPaye)}</span>
+        </div>
+      </div>
+
+      {/* Employer cost info */}
+      {(cotPat || coutTotal) && (
+        <InfoBox type="info">
+          💡 Ton employeur paie aussi {cotPat ? fmt(cotPat) : "des cotisations patronales"} de charges patronales.
+          {coutTotal ? ` Coût total pour ${data.employeur?.nom || "l'entreprise"} : ${fmt(coutTotal)} ce mois-ci.` : ""}
+        </InfoBox>
+      )}
     </div>
   );
 }
