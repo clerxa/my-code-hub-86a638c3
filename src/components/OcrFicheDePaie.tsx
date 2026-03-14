@@ -109,6 +109,11 @@ export default function OcrFicheDePaie() {
   }, [hasEquity]);
 
   // ─── Step 1: Simple analysis ────────────────────────
+  const [showSimpleOverlay, setShowSimpleOverlay] = useState(false);
+  const [showAdvancedOverlay, setShowAdvancedOverlay] = useState(false);
+  const simpleResultRef = useRef<any>(null);
+  const advancedResultRef = useRef<any>(null);
+
   const analyzeSimple = useCallback(async () => {
     if (!file) return;
     setLoading(true);
@@ -118,17 +123,27 @@ export default function OcrFicheDePaie() {
       const images = await convertPdfToImages(file);
       setPdfImages(images);
       setProgress("Analyse en cours…");
+      setShowSimpleOverlay(true);
       const result = await callAnalysis(images, "simple");
-      setSimpleData(result);
-      setStep("simple_result");
+      simpleResultRef.current = result;
+      // Overlay will call onComplete which transitions to result
     } catch (e: any) {
       setError(e.message || "Erreur inconnue");
       setStep("question");
+      setShowSimpleOverlay(false);
     } finally {
       setLoading(false);
       setProgress("");
     }
   }, [file, convertPdfToImages, callAnalysis]);
+
+  const handleSimpleOverlayComplete = useCallback(() => {
+    setShowSimpleOverlay(false);
+    if (simpleResultRef.current) {
+      setSimpleData(simpleResultRef.current);
+      setStep("simple_result");
+    }
+  }, []);
 
   // ─── Step 2: Advanced analysis ──────────────────────
   const analyzeAdvanced = useCallback(async () => {
@@ -136,19 +151,28 @@ export default function OcrFicheDePaie() {
     setLoading(true);
     setError(null);
     setStep("advanced_loading");
+    setShowAdvancedOverlay(true);
     try {
-      setProgress("Analyse avancée en cours…");
       const result = await callAnalysis(pdfImages, "advanced");
-      setAdvancedData(result);
-      setStep("advanced_result");
+      advancedResultRef.current = result;
+      // Overlay will call onComplete which transitions to result
     } catch (e: any) {
       setError(e.message || "Erreur inconnue");
       setStep("simple_result");
+      setShowAdvancedOverlay(false);
     } finally {
       setLoading(false);
       setProgress("");
     }
   }, [pdfImages, callAnalysis]);
+
+  const handleAdvancedOverlayComplete = useCallback(() => {
+    setShowAdvancedOverlay(false);
+    if (advancedResultRef.current) {
+      setAdvancedData(advancedResultRef.current);
+      setStep("advanced_result");
+    }
+  }, []);
 
   // ─── Handle CTA click ──────────────────────────────
   const handleAdvancedClick = useCallback(() => {
