@@ -22,8 +22,13 @@ export interface PortfolioPlan {
   createdAt: string;
   // Vesting / regime info
   regime?: string; // RSU regime label, ESPP n/a
+  regimeCode?: string; // raw regime code (R1, R2, R3, pfu, bareme)
   vestingStartDate?: string; // earliest vesting date
   vestingEndDate?: string; // last vesting date
+  // Raw data for fiscal simulation
+  rawVestings?: any[]; // RSU vestings array
+  rawEsppPeriod?: any; // ESPP period data
+  rawBspceData?: any; // BSPCE simulation data
 }
 
 export interface TickerSummary {
