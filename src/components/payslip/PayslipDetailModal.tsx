@@ -468,3 +468,32 @@ function BrutNetModal({ data }: { data: any }) {
     </div>
   );
 }
+
+function GenericExplanationModal({ data, modalType }: { data: any; modalType: string }) {
+  // Try to find a matching explanation from the AI's pedagogical output
+  const expl = data.explications_pedagogiques;
+  const casP = data.cas_particuliers_mois?.[modalType];
+
+  const explanation = casP?.explication
+    || expl?.[modalType]
+    || expl?.equity_explication?.[modalType];
+
+  if (explanation) {
+    return (
+      <div className="space-y-3">
+        <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{explanation}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-muted-foreground">
+        Les détails pour cette section seront disponibles avec l'analyse avancée.
+      </p>
+      <InfoBox type="info">
+        💡 Lance l'analyse avancée pour obtenir des explications détaillées et personnalisées.
+      </InfoBox>
+    </div>
+  );
+}
