@@ -733,18 +733,27 @@ const OcrAvisImposition = () => {
       return;
     }
 
-    // Check daily upload limit (1 per day)
+    // Check daily upload limit (1 per day) — skip for admins
     if (user?.id) {
-      const today = new Date().toISOString().slice(0, 10);
-      const { count } = await supabase
-        .from("ocr_avis_imposition_analyses")
-        .select("id", { count: "exact", head: true })
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
         .eq("user_id", user.id)
-        .gte("created_at", `${today}T00:00:00`)
-        .lte("created_at", `${today}T23:59:59`);
-      if (count != null && count >= 1) {
-        toast.error("Vous avez déjà effectué une analyse aujourd'hui. Revenez demain !");
-        return;
+        .maybeSingle();
+      const isAdmin = roleData?.role === "admin";
+
+      if (!isAdmin) {
+        const today = new Date().toISOString().slice(0, 10);
+        const { count } = await supabase
+          .from("ocr_avis_imposition_analyses")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .gte("created_at", `${today}T00:00:00`)
+          .lte("created_at", `${today}T23:59:59`);
+        if (count != null && count >= 1) {
+          toast.error("Vous avez déjà effectué une analyse aujourd'hui. Revenez demain !");
+          return;
+        }
       }
     }
 
