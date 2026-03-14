@@ -210,9 +210,9 @@ function PlanCard({ plan, currentPriceEur }: { plan: PortfolioPlan; currentPrice
           variant="ghost"
           size="sm"
           className="mt-3 w-full text-xs text-muted-foreground hover:text-primary"
-          onClick={() => navigate(routeMap[plan.type])}
+          onClick={handleOpen}
         >
-          Ouvrir le simulateur →
+          Ouvrir le plan →
         </Button>
       </CardContent>
     </Card>
