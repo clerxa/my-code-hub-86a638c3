@@ -611,11 +611,12 @@ const OcrAvisImposition = () => {
     if (!user?.id) return;
     const loadHistory = async () => {
       setLoadingHistory(true);
-      const { data: rows } = await supabase
-        .from("ocr_avis_imposition_analyses")
+      const { data: rows, error: histErr } = await supabase
+        .from("ocr_avis_imposition_analyses" as any)
         .select("id, annee_revenus, annee_imposition, prenom, nom, revenu_fiscal_reference, impot_net_total, taux_moyen_pct, solde, created_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
+      if (histErr) console.error("Load history error:", histErr);
       setHistory(rows || []);
       setLoadingHistory(false);
     };
