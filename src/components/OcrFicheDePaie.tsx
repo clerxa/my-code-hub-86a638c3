@@ -14,16 +14,12 @@ import { BookOpen, ChevronRight, Lock, Upload, FileText, Sparkles, Info } from "
 import PayslipProgressiveView from "./payslip/PayslipProgressiveView";
 import PayslipDetailModal from "./payslip/PayslipDetailModal";
 import { PayslipAnalysisOverlay } from "./payslip/PayslipAnalysisOverlay";
-import { fmt, safe, getMonthLabel } from "./payslip/payslipUtils";
+import { fmt, fmtShort, safe, getMonthLabel, getPointIcon, getPriorityStyle } from "./payslip/payslipUtils";
 
 const SUPABASE_FUNCTION_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/ocr-bulletin-paie`;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// ─── Helpers ──────────────────────────────────────────
-const fmtShort = (n: number | null | undefined): string => {
-  if (n === null || n === undefined) return "—";
-  return Math.round(n).toLocaleString("fr-FR") + " €";
-};
+// fmtShort is now imported from payslipUtils
 
 export default function OcrFicheDePaie() {
   // ─── Step management ─────────────────────────────────
@@ -359,9 +355,7 @@ export default function OcrFicheDePaie() {
         {step === "simple_result" && simpleData && (
           <SimpleResultView
             data={simpleData}
-            hasEquity={hasEquity === "yes"}
             onAdvancedClick={handleAdvancedClick}
-            onModalOpen={setModalOpen}
             onReset={reset}
           />
         )}
@@ -371,28 +365,13 @@ export default function OcrFicheDePaie() {
         {/* ═══════════════════════════════════════════ */}
         {step === "advanced_result" && advancedData && (
           <>
-            {/* Simple view header stays visible */}
-            <SimpleResultView
-              data={simpleData || advancedData}
-              hasEquity={hasEquity === "yes"}
-              onAdvancedClick={null}
-              onModalOpen={setModalOpen}
-              onReset={reset}
+            {/* Full detailed view using the new PayslipProgressiveView */}
+            <PayslipProgressiveView
+              data={advancedData}
+              onActionClick={(action) => {
+                if (!action.cta_url) setShowPaywall(true);
+              }}
             />
-
-            {/* Full detailed view */}
-            <Card className="p-1">
-              <div className="p-3 border-b flex items-center justify-between">
-                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  Analyse avancée
-                  <Badge variant="secondary" className="text-xs">Premium</Badge>
-                </h3>
-              </div>
-              <div className="p-2">
-                <PayslipProgressiveView data={advancedData} />
-              </div>
-            </Card>
 
             {/* Raw data button */}
             <div className="flex gap-2 flex-wrap">
@@ -476,13 +455,15 @@ export default function OcrFicheDePaie() {
           </DialogContent>
         </Dialog>
 
-        {/* Detail Modals */}
-        <PayslipDetailModal
-          open={!!modalOpen}
-          onClose={() => setModalOpen(null)}
-          modalType={modalOpen}
-          data={activeData}
-        />
+        {/* Detail Modals — only used by SimpleResultView now */}
+        {modalOpen && (
+          <PayslipDetailModal
+            open={!!modalOpen}
+            onClose={() => setModalOpen(null)}
+            modalType={modalOpen}
+            data={activeData}
+          />
+        )}
       </div>
     </div>
   );
@@ -493,113 +474,129 @@ export default function OcrFicheDePaie() {
 // ═══════════════════════════════════════════════════════════
 function SimpleResultView({
   data,
-  hasEquity,
   onAdvancedClick,
-  onModalOpen,
   onReset,
 }: {
   data: any;
-  hasEquity: boolean;
   onAdvancedClick: (() => void) | null;
-  onModalOpen: (id: string) => void;
   onReset: () => void;
 }) {
+  const [modalOpen, setModalOpen] = useState<string | null>(null);
+  const [activePoint, setActivePoint] = useState<any>(null);
+
   const netPaye = safe(data, "net", "net_paye");
   const brut = safe(data, "remuneration_brute", "total_brut");
+  const cotSal = safe(data, "cotisations_salariales", "total_cotisations_salariales");
+  const pas = safe(data, "net", "montant_pas");
+  const tauxPas = safe(data, "net", "taux_pas_pct");
   const monthLabel = getMonthLabel(data?.periode?.mois, data?.periode?.annee);
+  const cotPct = brut && cotSal ? Math.round((cotSal / brut) * 100) : null;
 
-  // Get explications_cles from simple analysis, or build from cas_particuliers for advanced
-  const explications = data.explications_cles || [];
-  const actions = data.actions_urgentes || [];
-
-  // Build alerts from advanced data if no explications_cles
-  const alerts = explications.length > 0 ? explications : buildAlertsFromAdvancedData(data);
-  const urgentActions = actions.length > 0 ? actions : buildActionsFromAdvancedData(data);
+  const points = (data.points_attention || []).sort((a: any, b: any) => a.priorite - b.priorite).slice(0, 3);
+  const actions = (data.actions_recommandees || []).sort((a: any, b: any) => a.priorite - b.priorite).slice(0, 2);
 
   return (
     <div className="space-y-4">
-      {/* ─── BLOC 1: NET PAYÉ HERO ─── */}
+      {/* ─── BLOC 1: HERO ─── */}
       <Card className="overflow-hidden">
         <div className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 text-primary-foreground text-center">
           <div className="text-xs opacity-80 mb-1">{monthLabel}</div>
-          <div className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-1">
-            {fmtShort(netPaye)}
-          </div>
-          <div className="text-sm opacity-80">nets</div>
-          {data.periode?.date_paiement && (
-            <div className="text-xs opacity-60 mt-2">
-              Versés le {data.periode.date_paiement}
+          <div className="flex items-center justify-center gap-4">
+            <div className="text-center">
+              <div className="text-xs opacity-70">Brut</div>
+              <div className="text-lg font-bold">{fmtShort(brut)}</div>
             </div>
+            <div className="text-xl opacity-50">→</div>
+            <div className="text-center">
+              <div className="text-xs opacity-70">Net payé</div>
+              <div className="text-4xl sm:text-5xl font-extrabold tracking-tight">{fmtShort(netPaye)}</div>
+            </div>
+          </div>
+          {data.periode?.date_paiement && (
+            <div className="text-xs opacity-60 mt-2">Versés le {data.periode.date_paiement}</div>
           )}
-        </div>
-        <div className="p-2 border-t bg-card">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full text-xs text-muted-foreground hover:text-foreground"
-            onClick={() => onModalOpen("brut_net_explication")}
-          >
-            <BookOpen className="h-3.5 w-3.5 mr-1.5" />
-            D'où viennent ces {fmtShort(netPaye)} ?
-          </Button>
         </div>
       </Card>
 
-      {/* ─── BLOC 2: EXPLICATIONS CLÉS (3 max) ─── */}
-      {alerts.length > 0 && (
+      {/* ─── BLOC 2: DÉCOMPOSITION ─── */}
+      <Card className="p-4">
+        <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
+          <span>💡</span> Comment j'arrive à ce net payé
+        </h3>
+        <div className="space-y-1.5 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Salaire brut</span>
+            <span className="font-medium">{fmtShort(brut)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">− Cotisations{cotPct ? ` (${cotPct}%)` : ""}</span>
+            <span className="font-medium text-muted-foreground">− {fmtShort(cotSal)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">− Impôt (PAS {tauxPas ? `${Math.abs(tauxPas).toFixed(1)}%` : ""})</span>
+            <span className="font-medium text-muted-foreground">− {fmtShort(Math.abs(pas || 0))}</span>
+          </div>
+          <div className="border-t pt-1.5 mt-1.5 flex justify-between items-center">
+            <span className="font-bold text-green-700 dark:text-green-400">= Net payé</span>
+            <span className="text-xl font-extrabold text-green-700 dark:text-green-400">{fmtShort(netPaye)}</span>
+          </div>
+        </div>
+      </Card>
+
+      {/* ─── BLOC 3: POINTS D'ATTENTION ─── */}
+      {points.length > 0 && (
         <Card className="p-4">
           <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
-            <span>💡</span>
-            Ce qui explique ta paie
+            <span>⚠️</span>
+            {points.length} point{points.length > 1 ? "s" : ""} d'attention
           </h3>
           <div className="space-y-2.5">
-            {alerts.slice(0, 3).map((alert: any, index: number) => (
-              <div key={index} className="flex items-start gap-3">
-                <span className="text-base flex-shrink-0 mt-0.5">{alert.icon || "📌"}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-foreground leading-tight">
-                    {alert.titre || alert.title}
+            {points.map((point: any) => {
+              const style = getPriorityStyle(point.priorite);
+              const icon = getPointIcon(point.id);
+              return (
+                <div key={point.id} className={`flex items-start gap-3 rounded-lg border p-3 ${style.border} ${style.bg}`}>
+                  <span className="text-base flex-shrink-0 mt-0.5">{icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-foreground leading-tight">{point.titre}</div>
+                    <p className="text-xs text-muted-foreground mt-0.5">{point.resume}</p>
+                    {point.a_modal && point.explication_detaillee && (
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="p-0 h-auto mt-1 text-xs text-primary"
+                        onClick={() => { setActivePoint(point); setModalOpen(`point_${point.id}`); }}
+                      >
+                        En savoir plus →
+                      </Button>
+                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {alert.one_liner || alert.oneLiner || ""}
-                  </p>
-                  {(alert.modal_id || alert.modalId) && (
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="p-0 h-auto mt-0.5 text-xs text-primary"
-                      onClick={() => onModalOpen(alert.modal_id || alert.modalId)}
-                    >
-                      {alert.modal_cta || "Comment ça marche ?"} →
-                    </Button>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-          {alerts.length > 3 && (
-            <p className="text-xs text-muted-foreground text-center mt-2">
-              + {alerts.length - 3} autre{alerts.length - 3 > 1 ? "s" : ""} point{alerts.length - 3 > 1 ? "s" : ""}
-            </p>
-          )}
         </Card>
       )}
 
-      {/* ─── BLOC 3: ACTIONS URGENTES (2 max) ─── */}
-      {urgentActions.length > 0 && (
+      {/* ─── BLOC 4: ACTIONS RECOMMANDÉES ─── */}
+      {actions.length > 0 && (
         <Card className="p-4">
           <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
-            <span>⏰</span>
-            À faire
+            <span>✅</span> Action{actions.length > 1 ? "s" : ""} recommandée{actions.length > 1 ? "s" : ""}
           </h3>
           <div className="space-y-2">
-            {urgentActions.slice(0, 2).map((action: any, index: number) => (
-              <div
-                key={index}
-                className="flex items-start gap-3 rounded-lg bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/60 dark:border-amber-800/40 p-3"
-              >
-                <span className="text-base flex-shrink-0 mt-0.5">{action.icon || "⏰"}</span>
-                <p className="text-sm text-foreground leading-snug flex-1">{action.texte || action.text}</p>
+            {actions.map((action: any) => (
+              <div key={action.id} className="flex items-start gap-3 rounded-lg bg-green-50/50 dark:bg-green-950/10 border border-green-200/60 dark:border-green-800/40 p-3">
+                <span className="text-base flex-shrink-0 mt-0.5">💡</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-foreground leading-snug">{action.texte}</p>
+                  {action.cta_label && action.cta_url && (
+                    <Button variant="link" size="sm" className="p-0 h-auto mt-1 text-xs text-primary"
+                      onClick={() => window.open(action.cta_url, "_blank", "noopener")}>
+                      {action.cta_label} →
+                    </Button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -608,24 +605,16 @@ function SimpleResultView({
 
       {/* ─── CTA: ANALYSE AVANCÉE ─── */}
       {onAdvancedClick && (
-        <Button
-          onClick={onAdvancedClick}
-          className="w-full py-5 text-sm font-bold"
-          variant="default"
-          size="lg"
-        >
+        <Button onClick={onAdvancedClick} className="w-full py-5 text-sm font-bold" variant="default" size="lg">
           <Sparkles className="h-4 w-4 mr-2" />
           Analyse avancée
           <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
       )}
 
-      {/* ─── FOOTER ACTIONS ─── */}
+      {/* ─── FOOTER ─── */}
       <div className="flex gap-2 flex-wrap">
-        {!onAdvancedClick && null}
-        <Button variant="outline" size="sm" onClick={onReset}>
-          🔄 Nouvelle analyse
-        </Button>
+        <Button variant="outline" size="sm" onClick={onReset}>🔄 Nouvelle analyse</Button>
         {data._usage && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground ml-auto">
             <span>💰 ${data._usage.cost_total_usd}</span>
@@ -633,94 +622,18 @@ function SimpleResultView({
         )}
       </div>
 
-      {/* Disclaimer */}
       <p className="text-xs text-muted-foreground text-center italic">
         Données extraites automatiquement. En cas de doute, contactez votre service RH.
       </p>
+
+      {/* Modal for point d'attention details */}
+      <PayslipDetailModal
+        open={!!modalOpen}
+        onClose={() => { setModalOpen(null); setActivePoint(null); }}
+        modalType={modalOpen}
+        data={data}
+        activePoint={activePoint}
+      />
     </div>
   );
-}
-
-// ─── Fallback: build alerts from advanced data when no explications_cles ───
-function buildAlertsFromAdvancedData(data: any): any[] {
-  const alerts: any[] = [];
-  const cas = data.cas_particuliers_mois || {};
-
-  if (cas.prime_exceptionnelle?.detecte) {
-    alerts.push({
-      icon: "💰",
-      titre: `Prime exceptionnelle : ${fmt(cas.prime_exceptionnelle.montant)}`,
-      one_liner: "→ Augmente ton brut mais aussi ton impôt ce mois",
-    });
-  }
-
-  if (cas.rsu_massif?.detecte) {
-    alerts.push({
-      icon: "📈",
-      titre: `Vesting RSU : ${fmt(cas.rsu_massif.montant)}`,
-      one_liner: "→ Actions vendues automatiquement pour couvrir les impôts",
-      modal_id: "rsu_sell_to_cover",
-    });
-  }
-
-  if (cas.actions_gratuites_vesting?.detecte) {
-    alerts.push({
-      icon: "🎁",
-      titre: `${cas.actions_gratuites_vesting.nb_actions} actions acquises`,
-      one_liner: "→ Vesting d'actions gratuites ce mois-ci",
-      modal_id: "actions_gratuites_qualifie",
-    });
-  }
-
-  const avantages = data.remuneration_equity?.avantages_nature_compenses;
-  if (avantages?.total_brut) {
-    alerts.push({
-      icon: "🍽️",
-      titre: `Repas compensés : ${fmt(avantages.total_brut)}`,
-      one_liner: "→ L'employeur paie l'impôt pour toi, impact net = 0",
-      modal_id: "avantages_nature",
-    });
-  }
-
-  if (cas.changement_taux_pas?.detecte) {
-    alerts.push({
-      icon: "📊",
-      titre: `Taux PAS ajusté`,
-      one_liner: "→ Vérifie sur impots.gouv.fr",
-    });
-  }
-
-  // Points d'attention from AI
-  if (Array.isArray(data.points_attention)) {
-    data.points_attention.slice(0, 2).forEach((pt: any) => {
-      const text = typeof pt === "string" ? pt : pt?.message || "";
-      if (text) {
-        alerts.push({ icon: "⚠️", titre: "Point d'attention", one_liner: text.substring(0, 60) });
-      }
-    });
-  }
-
-  return alerts;
-}
-
-function buildActionsFromAdvancedData(data: any): any[] {
-  const actions: any[] = [];
-
-  const congesN1 = safe(data, "conges_rtt", "conges_n_moins_1", "solde");
-  if (congesN1 != null && congesN1 > 0) {
-    actions.push({
-      icon: "⏰",
-      texte: `Prends tes ${congesN1} jours de congés N-1 avant le 31 mai`,
-    });
-  }
-
-  if (Array.isArray(data.conseils_optimisation) && data.conseils_optimisation.length > 0) {
-    const conseil = data.conseils_optimisation[0];
-    const text = typeof conseil === "string" ? conseil : conseil?.message || "";
-    if (text) {
-      actions.push({ icon: "💡", texte: text.substring(0, 80) });
-    }
-  }
-
-  return actions;
 }
