@@ -806,6 +806,61 @@ const OcrAvisImposition = () => {
               <GraduationCap className="h-4 w-4" /> Explications adaptées à tous
             </div>
           </div>
+
+          {/* ─── History ─── */}
+          {user && history.length > 0 && (
+            <div className="space-y-3">
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              >
+                📂 Mes analyses précédentes ({history.length})
+                <ChevronDown className={`h-4 w-4 transition-transform ${showHistory ? "rotate-180" : ""}`} />
+              </button>
+              {showHistory && (
+                <div className="space-y-2">
+                  {history.map((h) => (
+                    <Card key={h.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4 flex items-center justify-between gap-4">
+                        <button
+                          onClick={() => loadSavedAnalysis(h.id)}
+                          className="flex-1 text-left space-y-1"
+                        >
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-semibold text-foreground">
+                              {h.prenom ? `${h.prenom} ${h.nom || ""}` : "Avis d'imposition"}
+                            </span>
+                            {h.annee_revenus && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-secondary/15 text-secondary">
+                                {h.annee_revenus}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            {h.revenu_fiscal_reference && (
+                              <span>RFR : {Number(h.revenu_fiscal_reference).toLocaleString("fr-FR")} €</span>
+                            )}
+                            {h.impot_net_total && (
+                              <span>Impôt : {Number(h.impot_net_total).toLocaleString("fr-FR")} €</span>
+                            )}
+                            <span>{new Date(h.created_at).toLocaleDateString("fr-FR")}</span>
+                          </div>
+                        </button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive shrink-0"
+                          onClick={(e) => { e.stopPropagation(); deleteSavedAnalysis(h.id); }}
+                        >
+                          ✕
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
