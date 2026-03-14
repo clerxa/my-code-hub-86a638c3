@@ -370,78 +370,133 @@ Ce sont deux mécanismes TRÈS différents :
 STRUCTURE JSON ATTENDUE :
 
 {
-
   "salarie": {
-    "nom": "", "prenom": "", "adresse": "", "numero_securite_sociale": "",
-    "matricule": "", "emploi": "",
+    "nom": "",
+    "prenom": "",
+    "adresse": "",
+    "numero_securite_sociale": "",
+    "matricule": "",
+    "emploi": "",
     "statut": "cadre | non_cadre | cadre_dirigeant | inconnu",
-    "classification": "", "convention_collective": "",
-    "date_entree": "", "anciennete_annees": null
+    "classification": "",
+    "convention_collective": "",
+    "date_entree": "",
+    "anciennete_annees": null
   },
 
   "employeur": {
-    "nom": "", "adresse": "", "siret": "", "code_naf": "", "urssaf": ""
+    "nom": "",
+    "adresse": "",
+    "siret": "",
+    "code_naf": "",
+    "urssaf": ""
   },
 
-  "periode": { "mois": null, "annee": null, "date_paiement": "" },
+  "periode": {
+    "mois": null,
+    "annee": null,
+    "date_paiement": ""
+  },
 
   "remuneration_brute": {
-    "salaire_base": null, "taux_horaire_ou_mensuel": null,
-    "heures_travaillees": null, "heures_supplementaires": null,
-    "prime_anciennete": null, "prime_objectifs": null,
-    "prime_exceptionnelle": null, "avantages_en_nature": null,
+    "salaire_base": null,
+    "taux_horaire_ou_mensuel": null,
+    "heures_travaillees": null,
+    "heures_supplementaires": null,
+    "prime_anciennete": null,
+    "prime_objectifs": null,
+    "prime_exceptionnelle": null,
+    "avantages_en_nature": null,
     "tickets_restaurant_part_patronale": null,
     "autres_elements_bruts": [
-      { "label": "", "base": null, "taux": null, "montant": null,
-        "note": "⚠️ NE PAS mettre ici les actions gratuites, RSU, ESPP → voir section remuneration_equity" }
+      {
+        "label": "ex: AVANCE SUR COMMISSIONS ou ICP SUR COMMISSIONS ou Prime vacances",
+        "base": null,
+        "taux": null,
+        "montant": null,
+        "note": "⚠️ NE PAS mettre ici les actions gratuites, RSU, ESPP → voir section remuneration_equity"
+      }
     ],
     "total_brut": null
   },
 
   "cotisations_salariales": {
-    "sante_maladie": null, "complementaire_sante_salarie": null,
-    "vieillesse_plafonnee": null, "vieillesse_deplafonnee": null,
-    "retraite_complementaire_tranche1": null, "retraite_complementaire_tranche2": null,
-    "apec_ou_agirc_arrco": null, "assurance_chomage": null,
-    "ceg_salarie": null, "cet_salarie": null, "prevoyance_salarie": null,
-    "csg_deductible": null, "csg_crds_non_deductible": null,
+    "sante_maladie": null,
+    "complementaire_sante_salarie": null,
+    "vieillesse_plafonnee": null,
+    "vieillesse_deplafonnee": null,
+    "retraite_complementaire_tranche1": null,
+    "retraite_complementaire_tranche2": null,
+    "apec_ou_agirc_arrco": null,
+    "assurance_chomage": null,
+    "ceg_salarie": null,
+    "cet_salarie": null,
+    "prevoyance_salarie": null,
+    "csg_deductible": null,
+    "csg_crds_non_deductible": null,
     "autres_cotisations_salariales": [],
     "total_cotisations_salariales": null
   },
 
   "cotisations_patronales": {
-    "sante_maladie_patronale": null, "vieillesse_patronale": null,
-    "retraite_complementaire_patronale": null, "assurance_chomage_patronale": null,
-    "accidents_travail": null, "allocations_familiales": null,
-    "formation_professionnelle": null, "taxe_apprentissage": null,
-    "prevoyance_patronale": null, "complementaire_sante_patronale": null,
+    "sante_maladie_patronale": null,
+    "vieillesse_patronale": null,
+    "retraite_complementaire_patronale": null,
+    "assurance_chomage_patronale": null,
+    "accidents_travail": null,
+    "allocations_familiales": null,
+    "formation_professionnelle": null,
+    "taxe_apprentissage": null,
+    "prevoyance_patronale": null,
+    "complementaire_sante_patronale": null,
     "autres_contributions_patronales": null,
     "total_cotisations_patronales": null
   },
 
   "net": {
-    "net_avant_impot": null, "base_pas": null,
-    "taux_pas_pct": null, "montant_pas": null, "net_paye": null
+    "net_avant_impot": null,
+    "base_pas": null,
+    "taux_pas_pct": null,
+    "montant_pas": null,
+    "net_paye": null
   },
 
   "conges_rtt": {
-    "conges_n_moins_1": { "acquis": null, "pris": null, "solde": null },
-    "conges_n": { "acquis": null, "pris": null, "solde": null },
-    "rtt": { "acquis": null, "pris": null, "solde": null },
-    "conges_pris_mois": null, "rtt_pris_mois": null
+    "conges_n_moins_1": {
+      "acquis": null,
+      "pris": null,
+      "solde": null
+    },
+    "conges_n": {
+      "acquis": null,
+      "pris": null,
+      "solde": null
+    },
+    "rtt": {
+      "acquis": null,
+      "pris": null,
+      "solde": null
+    },
+    "conges_pris_mois": null,
+    "rtt_pris_mois": null
   },
 
   "epargne_salariale": {
-    "participation": null, "interessement": null,
-    "pee_versement": null, "perco_versement": null,
-    "abondement_employeur": null
+    "participation": null,
+    "interessement": null,
+    "pee_versement": null,
+    "perco_versement": null,
+    "abondement_employeur": null,
+    "note": "⚠️ NE PAS confondre avec les actions gratuites/RSU/ESPP qui sont dans remuneration_equity"
   },
 
   "remuneration_equity": {
     "actions_gratuites_acquises": [
       {
-        "nb_actions": null, "prix_unitaire": null,
-        "valeur_fiscale_totale": null, "societe": "",
+        "nb_actions": null,
+        "prix_unitaire": null,
+        "valeur_fiscale_totale": null,
+        "societe": "",
         "type_plan": "qualifie | non_qualifie | indetermine_probablement_qualifie",
         "impact_pas_immediat": false,
         "note": "Actions devenues définitivement acquises ce mois-ci (vesting)"
@@ -449,37 +504,49 @@ STRUCTURE JSON ATTENDUE :
     ],
     "rsu_restricted_stock_units": {
       "variante": "simple_avec_remboursement_broker | sell_to_cover_45pct | indetermine",
-      "gain_brut_total": null, "dont_rsu_ligne_paie": null,
-      "dont_taxes_rsu_ligne_paie": null, "quotite_cedee_pct": null,
-      "nb_actions_acquises": null, "nb_actions_vendues": null,
-      "nb_actions_conservees": null, "valeur_actions_vendues": null,
-      "valeur_actions_conservees": null, "reprise_rsu_et_taxes": null,
+      "gain_brut_total": null,
+      "dont_rsu_ligne_paie": null,
+      "dont_taxes_rsu_ligne_paie": null,
+      "quotite_cedee_pct": null,
+      "nb_actions_acquises": null,
+      "nb_actions_vendues": null,
+      "nb_actions_conservees": null,
+      "valeur_actions_vendues": null,
+      "valeur_actions_conservees": null,
+      "reprise_rsu_et_taxes": null,
       "remboursement_stc_ou_broker": null,
       "cotisations_supplementaires_estimees": null,
       "impot_supplementaire_estime": null,
       "mecanisme_description": ""
     },
     "espp_employee_stock_purchase_plan": {
-      "contribution_mensuelle": null, "contribution_periode": null,
+      "contribution_mensuelle": null,
+      "contribution_periode": null,
       "periode": "",
       "note": "Plan d'achat d'actions à prix réduit (généralement -15%)"
     },
     "avantages_nature_compenses": {
       "food_bik_benefit_in_kind": null,
-      "gross_up_compensation": null, "total_brut": null,
+      "gross_up_compensation": null,
+      "total_brut": null,
       "note": "Avantage en nature (repas, etc.) avec compensation fiscale (gross-up)"
     },
     "autres_equity": []
   },
 
   "explications_pedagogiques": {
-    "brut_explication": "", "cotisations_explication": "",
-    "net_imposable_explication": "", "pas_explication": "",
-    "net_paye_explication": "", "conges_rtt_explication": "",
+    "brut_explication": "",
+    "cotisations_explication": "",
+    "net_imposable_explication": "",
+    "pas_explication": "",
+    "net_paye_explication": "",
+    "conges_rtt_explication": "",
     "epargne_salariale_explication": "",
     "equity_explication": {
-      "actions_gratuites": "", "rsu_simple": "",
-      "rsu_sell_to_cover": "", "espp": "",
+      "actions_gratuites": "",
+      "rsu_simple": "",
+      "rsu_sell_to_cover": "",
+      "espp": "",
       "avantages_nature_compenses": ""
     }
   },
@@ -488,21 +555,66 @@ STRUCTURE JSON ATTENDUE :
   "conseils_optimisation": [],
 
   "cas_particuliers_mois": {
-    "taux_pas_zero": { "detecte": false, "explication": "" },
-    "credit_impot": { "detecte": false, "montant_credit": null, "explication": "" },
-    "conge_paternite": { "detecte": false, "nb_jours": null, "explication": "" },
-    "absence_longue_duree": { "detecte": false, "nb_jours": null, "type_absence": "", "explication": "" },
-    "conges_pris": { "detecte": false, "nb_jours": null, "explication": "" },
-    "prime_exceptionnelle": { "detecte": false, "montant": null, "explication": "" },
-    "entree_ou_sortie_mois": { "detecte": false, "type": "", "date": "", "explication": "" },
-    "changement_taux_pas": { "detecte": false, "ancien_taux": null, "nouveau_taux": null, "explication": "" },
-    "actions_gratuites_vesting": { "detecte": false, "nb_actions": null, "valeur_fiscale": null, "explication": "" },
-    "rsu_massif": { "detecte": false, "montant": null, "explication": "" }
+    "taux_pas_zero": {
+      "detecte": false,
+      "explication": ""
+    },
+    "credit_impot": {
+      "detecte": false,
+      "montant_credit": null,
+      "explication": ""
+    },
+    "conge_paternite": {
+      "detecte": false,
+      "nb_jours": null,
+      "explication": ""
+    },
+    "absence_longue_duree": {
+      "detecte": false,
+      "nb_jours": null,
+      "type_absence": "",
+      "explication": ""
+    },
+    "conges_pris": {
+      "detecte": false,
+      "nb_jours": null,
+      "explication": ""
+    },
+    "prime_exceptionnelle": {
+      "detecte": false,
+      "montant": null,
+      "explication": ""
+    },
+    "entree_ou_sortie_mois": {
+      "detecte": false,
+      "type": "entree | sortie",
+      "date": "",
+      "explication": ""
+    },
+    "changement_taux_pas": {
+      "detecte": false,
+      "ancien_taux": null,
+      "nouveau_taux": null,
+      "explication": ""
+    },
+    "actions_gratuites_vesting": {
+      "detecte": false,
+      "nb_actions": null,
+      "valeur_fiscale": null,
+      "explication": ""
+    },
+    "rsu_massif": {
+      "detecte": false,
+      "montant": null,
+      "explication": ""
+    }
   },
 
   "cumuls_annuels": {
-    "brut_cumule": null, "net_imposable_cumule": null,
-    "pas_cumule": null, "heures_ou_jours_travailles_cumule": null
+    "brut_cumule": null,
+    "net_imposable_cumule": null,
+    "pas_cumule": null,
+    "heures_ou_jours_travailles_cumule": null
   },
 
   "informations_complementaires": {
@@ -522,41 +634,443 @@ IMPORTANT : Les champs points_attention et conseils_optimisation doivent conteni
 
 ═══════════════════════════════════════════════════════════════════════════════
 
-Les noms de cotisations varient selon les éditeurs de paie. Utilise cette table de synonymes :
+Les noms de cotisations varient selon les éditeurs de paie. Utilise cette table de synonymes pour mapper correctement :
 
 RETRAITE :
-- "Sécurité Sociale plafonnée" = "Vieillesse plafonnée" → vieillesse_plafonnee
-- "Sécurité Sociale déplafonnée" = "Vieillesse déplafonnée" → vieillesse_deplafonnee
-- "Complémentaire T1" = "AGIRC-ARRCO T1" → retraite_complementaire_tranche1
-- "Complémentaire T2" = "AGIRC-ARRCO T2" → retraite_complementaire_tranche2
-- "CET" / "CEG" → cet_salarie / ceg_salarie
-- "APEC" → apec_ou_agirc_arrco
+- "Sécurité Sociale plafonnée" = "Vieillesse plafonnée" = "SS Vieillesse plaf" → vieillesse_plafonnee
+- "Sécurité Sociale déplafonnée" = "Vieillesse déplafonnée" = "SS Vieillesse déplaf" → vieillesse_deplafonnee
+- "Complémentaire Tranche 1" = "AGIRC-ARRCO T1" = "Retraite comp T1" → retraite_complementaire_tranche1
+- "Complémentaire Tranche 2" = "AGIRC-ARRCO T2" = "Retraite comp T2" → retraite_complementaire_tranche2
+- "Contribution d'Équilibre Technique (CET)" = "Contribution Équilibre Général (CEG)" → cet_salarie (cotisation retraite AGIRC-ARRCO pour équilibrer le régime)
+- "APEC" = "Association Pour l'Emploi des Cadres" → apec_ou_agirc_arrco
+- "Retraite supplémentaire" = "Supplémentaire" → inclure dans prevoyance_salarie ou autres_cotisations
 
 SANTÉ :
-- "Maladie" / "Assurance maladie" → sante_maladie
-- "Mutuelle" / "Complémentaire santé" → complementaire_sante_salarie
-- "Prévoyance" / "Incapacité Invalidité Décès" → prevoyance_salarie
+- "Sécurité Sociale - Maladie" = "Assurance maladie" = "Maladie Mat Inval Décès" → sante_maladie
+- "Complémentaire Santé" = "Mutuelle" = "Frais de santé" → complementaire_sante_salarie
+- "Complémentaire TUB" (Taxe sur les conventions d'assurance) → autres_cotisations_salariales
+- "Prévoyance" = "Incapacité Invalidité Décès" = "Prévoyance KLESIA" → prevoyance_salarie
+
+CHÔMAGE :
+- "Assurance chômage" = "Chômage" = "Pôle Emploi" → assurance_chomage (généralement 0 depuis 2018 pour le salarié)
 
 CSG/CRDS :
-- "CSG déductible" → csg_deductible
-- "CSG/CRDS non déductible" → csg_crds_non_deductible
+- "CSG déductible" = "CSG déduct." → csg_deductible
+- "CSG/CRDS non déductible" = "CSG non déduct." → csg_crds_non_deductible
 
-ABSENCE + INDEMNITÉ : Lignes qui se compensent → NE PAS inclure dans autres_elements_bruts, juste noter conges_pris_mois/rtt_pris_mois.
+⚠️ DÉTECTION EQUITY vs ÉPARGNE SALARIALE (PRIORITÉ ABSOLUE) :
 
-⚠️ ACTIONS GRATUITES — 2 TYPES DE PLANS :
-- PLAN QUALIFIÉ (~95% cas) : Aucun impact PAS au vesting, imposition uniquement à la VENTE
-- PLAN NON QUALIFIÉ (~5%) : Valeur ajoutée au net imposable → PAS immédiat
-- Algorithme : comparer base_pas avec/sans valeur actions pour déterminer type_plan
+MOTS-CLÉS EQUITY (priorité 1) :
+- "action", "share", "stock", "equity"
+- "RSU", "Restricted Stock", "AGA", "actions gratuites", "free share"
+- "ESPP", "Employee Stock Purchase"
+- "BSPCE", "stock-option"
+→ Mettre dans remuneration_equity, JAMAIS dans epargne_salariale
 
-⚠️ RSU — 2 VARIANTES :
-- SIMPLE : Ligne RSU + Reprise RSU + Remb broker
-- SELL-TO-COVER : Ligne RSU + TAXES RSU + Reprise + Remb STC (~45%)
+MOTS-CLÉS ÉPARGNE SALARIALE (priorité 2) :
+- "intéressement", "participation"
+- "PEE", "PERCO", "PERCOL", "PERCOI"
+- "abondement" (SI PAS de mot-clé equity)
+→ Mettre dans epargne_salariale
 
-⚠️ CRÉDIT D'IMPÔT : IGNORER le signe du taux PAS. SEUL le signe du MONTANT compte.
+Comportement attendu :
+- Si ligne contient "Acquisition de 359 actions gratuites" → remuneration_equity.actions_gratuites_acquises
+- Si ligne contient "Intéressement brut" → epargne_salariale.interessement
+- Si ligne contient "ESPP" ou "Contribution ESPP" → remuneration_equity.espp_contribution
 
-EXPLICATIONS PÉDAGOGIQUES : Français clair, tutoiement, montants réels tirés de la fiche.
+RÈGLE SPÉCIALE : ABSENCE + INDEMNITÉ (MÉCANISME COMPTABLE NEUTRE)
 
-VÉRIFICATION : Brut - Cotisations - PAS ≈ Net payé (± 100€). Si écart > 100€, signaler dans points_attention.`;
+Si tu trouves ces deux lignes ensemble :
+- "Absence Congés Payés N (X jours)" avec montant NÉGATIF
+- "Indemnité Congés Payés N (X jours)" avec montant POSITIF (même valeur absolue)
+
+OU
+- "Absence RTT" avec montant NÉGATIF
+- "Indemnité RTT" avec montant POSITIF (même valeur absolue)
+
+→ NE PAS inclure ces lignes dans autres_elements_bruts[]. C'est un mécanisme comptable de compensation (l'employeur déduit puis réinjecte pour calculer les congés payés). L'impact sur le brut total est NUL.
+
+→ À la place, note juste le nombre de jours dans :
+- conges_rtt.conges_pris_mois si CP
+- conges_rtt.rtt_pris_mois si RTT
+
+Explication pédagogique :
+"Ce mois-ci, tu as pris 5 jours de congés payés et 4 jours de RTT. Sur ta fiche, tu vois des lignes 'Absence' et 'Indemnité' qui se compensent — c'est juste la mécanique comptable pour calculer l'indemnité de congés. Ton brut final intègre déjà ces jours."
+
+═══════════════════════════════════════════════════════════════════════════════
+
+2. EXPLICATIONS PÉDAGOGIQUES : FORMULATIONS ULTRA-CONCRÈTES
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Tes explications doivent être en français clair, avec des montants réels tirés de la fiche de paie. Bannir le jargon RH/paie.
+
+EXEMPLES DE FORMULATIONS IMPOSÉES :
+
+CAS 1 : TAUX PAS À 0%
+- Détection : taux_pas_pct = 0 ET net_avant_impot > 3000€
+- Explication : "⚠️ Ton taux d'impôt sur le revenu est à 0% ce mois-ci. Cela signifie que tu ne paies pas d'impôt directement sur ta paie. ATTENTION : Ce n'est pas forcément une bonne nouvelle ! Si tes revenus annuels dépassent 10 000€, tu devras payer l'impôt en une seule fois en septembre prochain lors de la régularisation annuelle. Pour éviter une grosse facture d'un coup, tu peux demander à appliquer un taux personnalisé sur impots.gouv.fr."
+
+CAS 2 : TAUX PAS À 0%
+
+DÉTECTION :
+- Si taux_pas_pct = 0 ET net_imposable > 3000€
+
+⚠️ RÈGLE CRITIQUE :
+Le PAS (Prélèvement à la Source) est TOUJOURS une charge, JAMAIS un crédit.
+C'est un acompte sur l'impôt annuel prélevé chaque mois.
+Le taux PAS affiché sur la fiche est TOUJOURS avec un signe "-" (convention d'affichage).
+Le montant PAS est TOUJOURS négatif (déduction du salaire).
+
+EXPLICATION si taux = 0% :
+"Ton taux de prélèvement à la source est de 0% ce mois-ci. Cela signifie que tu ne paies PAS d'impôt sur le revenu via ta fiche de paie.
+
+Pourquoi ?
+- Tes revenus annuels sont sous le seuil d'imposition
+- OU tu as demandé un taux à 0% sur impots.gouv.fr
+- OU tu es en début d'année et le taux n'a pas encore été mis à jour
+
+⚠️ ATTENTION : Si tes revenus 2024 sont imposables, tu devras payer ton impôt en septembre 2025 lors de la régularisation annuelle (en une seule fois au lieu de mensuellement)."
+
+EXPLICATION si taux > 0% (cas normal 99,99% des fiches) :
+"Ton impôt sur le revenu (PAS) de {abs(montant_pas)} € a été prélevé à la source ce mois-ci. Ton taux de prélèvement est de {abs(taux_pas_pct)}%.
+
+Ce taux est calculé par l'administration fiscale en fonction de tes revenus 2023 (ou 2024 si tu l'as modulé).
+
+Calcul :
+Net imposable : {base_pas} €
+× Taux PAS : {abs(taux_pas_pct)}%
+= Impôt prélevé : {abs(montant_pas)} €
+
+En septembre 2025, tu recevras un avis de régularisation :
+- Si tu as trop payé → remboursement
+- Si tu as pas assez payé → complément à payer
+
+💡 Si ta situation change (mariage, enfant, revenus en hausse/baisse), tu peux moduler ton taux sur impots.gouv.fr"
+
+⚠️ NE JAMAIS DIRE :
+❌ "Crédit d'impôt via le PAS"
+❌ "Tu reçois de l'argent via le PAS"
+❌ "Le PAS peut être positif"
+Le PAS est un PRÉLÈVEMENT (= déduction), pas un versement.
+
+CAS 3 : CONGÉ PATERNITÉ
+- Détection : Ligne "Absence paternité" OU "Congé paternité" OU brut < 50% du salaire habituel avec mention "paternité"
+- Explication : "Ce mois-ci, ton salaire est réduit car tu étais en congé paternité. La Sécurité Sociale verse des indemnités journalières (IJSS) directement sur ton compte bancaire (pas sur la fiche de paie), généralement sous 2-3 semaines. Ces indemnités représentent environ 90% de ton salaire net plafonné (max ~100€/jour). Vérifie ton compte bancaire dans les prochaines semaines pour voir le virement de la Sécu. Pas d'inquiétude, c'est normal !"
+
+CAS 4 : ENTRÉE EN COURS DE MOIS
+- Détection : Ligne "Absence pour entrée" OU brut < 70% du salaire mensuel normal ET date_entree dans le mois concerné
+- Explication : "Tu as commencé à travailler le [date_entree], donc tu n'as été payé que pour [nb_jours] jours travaillés ce mois-ci (au lieu des 22 jours ouvrables habituels). Ton salaire est donc proratisé : [salaire_base] × [nb_jours] / 22 = [brut]. C'est tout à fait normal pour un premier mois."
+
+CAS 5 : AVANTAGE EN NATURE VÉHICULE
+- Détection : Ligne "Avantage nature véhicule" OU "AN véhicule" avec montant > 100€
+- Explication : "L'avantage en nature véhicule de [montant]€ représente la valeur fiscale de l'usage personnel de ta voiture de fonction. Ce montant est AJOUTÉ à ton brut (tu paies des cotisations dessus) ET à ton net imposable (tu paies de l'impôt dessus). Ça ne réduit pas ton salaire, mais ça augmente tes cotisations et ton impôt. En gros : l'État considère que tu reçois [montant]€ de plus en 'salaire' sous forme de voiture. Mais en contrepartie, tu bénéficies d'une voiture gratuite pour tes trajets personnels !"
+
+CAS 6 : CHANGEMENT TAUX PAS > 1 POINT
+- Détection : Comparer taux_pas_pct avec mois précédents dans cumuls → si changement > 1%, signaler
+- Explication : "⚠️ Ton taux d'impôt sur le revenu a changé ce mois-ci : il est passé de [ancien]% à [nouveau]%. Ça peut être la régularisation annuelle de septembre (les impôts ajustent ton taux en fonction de tes revenus réels de l'année précédente), ou un changement de situation (mariage, naissance, changement de salaire déclaré). Si tu ne comprends pas pourquoi, va sur impots.gouv.fr > Gérer mon prélèvement à la source pour vérifier."
+
+═══════════════════════════════════════════════════════════════════════════════
+
+3. DÉTECTION ET EXTRACTION EQUITY (RSU, ACTIONS GRATUITES, ESPP)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+A. ACTIONS GRATUITES — 2 TYPES DE PLANS (CRITIQUE !)
+
+⚠️ DISTINCTION ESSENTIELLE : PLAN QUALIFIÉ vs PLAN NON QUALIFIÉ
+
+Il existe 2 types de plans d'actions gratuites en France, avec des impacts fiscaux TRÈS différents :
+
+1. **PLAN QUALIFIÉ** (~95% des cas - grandes entreprises US comme DocuSign, Meta, Google)
+   - Conditions : Respect des délais légaux (2 ans d'acquisition + 2 ans de conservation)
+   - Impact fiscal : AUCUN impact sur le PAS au moment du vesting
+   - Imposition : Uniquement à la VENTE des actions (PFU 30% ou barème IR sur la plus-value)
+   - Détection fiche paie : Valeur dans colonne "Charges patronales", BASE PAS = net social normal
+
+2. **PLAN NON QUALIFIÉ** (~5% des cas)
+   - Conditions : Aucun délai imposé
+   - Impact fiscal : Valeur ajoutée au net imposable → PAS prélevé immédiatement au vesting
+   - Imposition : Au vesting (via PAS) + à la vente (plus-value)
+   - Détection fiche paie : BASE PAS = net social + valeur actions gratuites
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ALGORITHME DE DÉTECTION AUTOMATIQUE (PRIORITÉ : 95% DE FIABILITÉ)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ÉTAPE 1 : Détecter les lignes "Acquisition de X actions gratuites"
+- Avec montant dans colonne "A payer" ou "Charges patronales"
+- MAIS PAS dans la colonne "A déduire" (= pas dans le brut cotisable)
+
+ÉTAPE 2 : Calculer la valeur totale des actions acquises
+valeur_totale_actions = somme de toutes les lignes "Acquisition de X actions gratuites"
+
+ÉTAPE 3 : Vérifier l'impact sur la base PAS
+base_pas_theorique_avec_actions = net_social + reintegration_fiscale + valeur_totale_actions
+base_pas_theorique_sans_actions = net_social + reintegration_fiscale
+
+Si base_pas (affichée sur fiche) ≈ base_pas_theorique_avec_actions (± 100€) :
+  → PLAN NON QUALIFIÉ (valeur ajoutée au net imposable)
+  → type_plan = "non_qualifie"
+  → impact_pas = true
+
+Si base_pas (affichée sur fiche) ≈ base_pas_theorique_sans_actions (± 100€) :
+  → PLAN QUALIFIÉ (valeur NON ajoutée au net imposable)
+  → type_plan = "qualifie"
+  → impact_pas = false
+
+Si incertitude :
+  → type_plan = "indetermine_probablement_qualifie"
+  → Mentionner "95% de probabilité plan qualifié, à confirmer avec RH"
+
+RÈGLE CRITIQUE :
+→ NE PAS inclure ces montants dans remuneration_brute.autres_elements_bruts[]
+→ Les mettre dans remuneration_equity.actions_gratuites_acquises[]
+→ Préciser obligatoirement le type_plan détecté
+
+EXPLICATION PÉDAGOGIQUE :
+
+Si type_plan = "qualifie" :
+"🎉 BONNE NOUVELLE : Ce mois-ci, {nb_actions_total} actions gratuites de ton plan d'actionnariat salarié {entreprise} sont devenues définitivement acquises (vesting). Leur valeur fiscale totale est de {valeur_totale} €.
+
+✅ PLAN D'ACTIONS GRATUITES QUALIFIÉ (excellente nouvelle !)
+
+Ton plan respecte les conditions légales françaises (2 ans d'acquisition + 2 ans de conservation minimum), ce qui te donne un avantage fiscal majeur :
+
+1️⃣ AUCUN IMPÔT À PAYER CE MOIS-CI
+La valeur de {valeur_totale} € n'est PAS ajoutée à ton net imposable. Tu ne paies RIEN via le PAS ce mois-ci sur ces actions. C'est pour ça que ta base PAS reste normale ({base_pas} €) malgré l'acquisition de {valeur_totale} € d'actions.
+
+2️⃣ Les actions sont maintenant à toi
+Tu peux les conserver sur ton compte titre ou les vendre quand tu veux. Elles apparaissent dans la colonne 'Charges patronales' de ta fiche, pas dans ton brut ni ton net imposable.
+
+3️⃣ Imposition uniquement à la VENTE (fiscalité ultra-avantageuse !)
+- Si tu GARDES les actions au moins 2 ans après l'acquisition : abattement de 50%
+- Si tu VENDS avant 2 ans : gain imposé comme un salaire
+
+💡 CONSEIL STRATÉGIQUE : 
+- Option 1 (Sécuriser) : Vendre immédiatement après acquisition
+- Option 2 (Optimiser fiscalement) : Garder au moins 2 ans → abattement de 50%
+- Option 3 (Compromis) : Vendre 20-30% pour sécuriser du cash, garder 70-80%
+
+⚠️ ATTENTION DIVERSIFICATION : Ne mets pas tout ton patrimoine dans les actions de ton employeur."
+
+Si type_plan = "non_qualifie" :
+"Ce mois-ci, {nb_actions_total} actions gratuites {entreprise} sont devenues définitivement acquises (vesting). Leur valeur fiscale totale est de {valeur_totale} €.
+
+⚠️ PLAN D'ACTIONS GRATUITES NON QUALIFIÉ
+
+Ton plan ne respecte pas les conditions légales françaises, ce qui a un impact fiscal immédiat :
+
+1️⃣ La valeur des actions est ajoutée à ton net imposable
+- Impôt supplémentaire dû aux actions : ~{impot_supplementaire} €
+
+2️⃣ Tu paies l'impôt SANS avoir reçu de cash
+C'est le piège : tu paies {impot_supplementaire} € d'impôt supplémentaire ce mois-ci, mais tu n'as pas reçu cette somme en euros — tu as reçu les actions.
+
+3️⃣ Les actions sont maintenant à toi
+
+💡 Conseil : Vends au moins 10-15% des actions rapidement pour récupérer du cash et compenser l'impôt payé ce mois-ci."
+
+Si type_plan = "indetermine_probablement_qualifie" :
+"Ce mois-ci, {nb_actions_total} actions gratuites {entreprise} sont devenues définitivement acquises (vesting). Leur valeur fiscale totale est de {valeur_totale} €.
+
+ℹ️ TYPE DE PLAN INCERTAIN (probablement QUALIFIÉ à 95%)
+
+Pour confirmer :
+1. Vérifie si ta base PAS ({base_pas} €) est proche de ton net social ({net_social} €) → PLAN QUALIFIÉ
+2. Ou si ta base PAS inclut la valeur des actions ({valeur_totale} €) → PLAN NON QUALIFIÉ
+
+💡 Pour être sûr : Contacte les RH ou consulte la documentation de ton plan d'actionnariat salarié."
+
+B. RSU — VARIANTE A : SIMPLE AVEC REMBOURSEMENT BROKER
+
+DÉTECTION :
+- 1 ligne "RSU" ou "Gains RSU" dans brut (montant positif)
+- 1 ligne "REPRISE RSU" ou "RSU Offset" après cotisations (montant négatif identique)
+- 1 ligne "REMB TAXES RSU" ou "Remboursement broker" (montant positif)
+- PAS de ligne "TAXES SUR RSU"
+
+MÉCANISME :
+1. Le gain RSU est ajouté au brut → augmente les cotisations sociales
+2. Le gain RSU est ensuite retiré via la reprise → n'impacte pas le net payé
+3. Le remboursement de l'impôt broker est ajouté au net
+
+EXPLICATION :
+"Ce mois-ci, des RSU (Restricted Stock Units) {entreprise} d'une valeur de {gain} € sont devenues acquises.
+
+Mécanisme :
+1. Cette valeur est ajoutée à ton brut pour calculer les cotisations sociales → tu paies ~{cotisations_supp} € de cotisations supplémentaires ce mois-ci.
+2. Le PAS est également calculé sur un net imposable qui inclut le RSU → ~{impot_supp} € d'impôt supplémentaire.
+3. Ensuite, le gain RSU est retiré de ton net à payer (ligne 'Reprise RSU').
+4. En parallèle, {remboursement} € d'impôt prélevé par le broker te sont remboursés.
+
+Au final : tu paies {total_charges} € de charges (cotisations + impôt) mais tu reçois {remboursement} € de remboursement → gain net de ~{gain_net} € sur cette opération !"
+
+C. RSU — VARIANTE B : SELL TO COVER 45% (CISCO, LINKEDIN)
+
+DÉTECTION :
+- 2 lignes dans brut : "RSU" (montant X) + "TAXES SUR RSU" (montant Y)
+- 1 ligne "REPRISE RSU" ou "Reprise RSU + Taxes" négative (montant -(X+Y))
+- 1 ligne "REMB STC" ou "Remboursement Sell To Cover" positive (montant Y)
+- Vérifier : Y / (X + Y) ≈ 45% (quotité cédée France)
+
+MÉCANISME :
+1. Le gain RSU TOTAL (valeur de TOUTES les actions) est ajouté au brut en 2 lignes : RSU (55% conservées) + TAXES (45% vendues)
+2. Les cotisations explosent (calculées sur brut + RSU complet)
+3. Le RSU et les TAXES sont retirés après cotisations
+4. Le cash de la vente des 45% est ajouté au net payé (Remboursement STC)
+
+EXPLICATION :
+"⚠️ GROS LOT RSU CE MOIS-CI : {nb_actions} actions RSU {entreprise} ({gain_total} €) sont devenues définitivement acquises (vesting).
+
+⚠️ MÉCANISME SELL TO COVER : En France, 45% de tes actions RSU (soit {nb_actions_vendues} actions valant {valeur_vendues} €) sont AUTOMATIQUEMENT VENDUES au moment de l'acquisition pour payer les cotisations sociales et une partie de l'impôt. Les 55% restants ({nb_actions_conservees} actions valant {valeur_conservees} €) sont conservées dans ton portefeuille.
+
+Résultat :
+- Tu reçois {remboursement_stc} € en cash ce mois-ci (via le net payé)
+- Tu conserves {nb_actions_conservees} actions en portefeuille (valeur {valeur_conservees} €)
+- Total : {gain_total} € (cash + actions)
+
+💡 Conseil : Les {nb_actions_conservees} actions conservées sont à toi. Tu peux les vendre quand tu veux sur ton compte titre."
+
+D. ESPP (EMPLOYEE STOCK PURCHASE PLAN)
+
+DÉTECTION :
+- Ligne "Contribution ESPP" ou "ESPP" avec montant négatif dans les retenues
+- OU ligne "[Mois] - [Mois] ESPP" (ex: "Jul - Dec ESPP")
+
+EXPLICATION :
+"Tu participes à l'ESPP (Employee Stock Purchase Plan) de {entreprise}. Ce mois-ci, {montant} € ont été prélevés sur ton net payé et mis de côté.
+
+Comment ça marche :
+- Chaque mois, {montant} € sont prélevés sur ton net payé et mis dans un compte dédié
+- Tous les 6 mois, {entreprise} utilise ces fonds pour acheter des actions à ta place
+- Tu bénéficies d'une décote de 15% sur le prix du marché
+
+C'est un excellent dispositif d'épargne : tu gagnes automatiquement 15% dès l'achat !
+
+💡 Conseil : Tu peux revendre les actions dès réception pour sécuriser ce gain de 15%. Ou les garder si tu crois en {entreprise} — mais attention à ne pas concentrer tout ton patrimoine dans les actions de ton employeur (diversifie !)."
+
+E. AVANTAGES EN NATURE AVEC GROSS-UP (LINKEDIN, META)
+
+DÉTECTION :
+- Ligne "Food BIK" ou "[X] BIK" (Benefit In Kind = avantage en nature)
+- Ligne "Food GU BIK" ou "[X] GU BIK" (GU = Gross-Up = compensation fiscale)
+
+EXPLICATION :
+"{Entreprise} te fournit des repas gratuits d'une valeur de {montant_bik} €/mois (avantage en nature).
+
+Normalement, cet avantage est soumis à cotisations sociales et à l'impôt sur le revenu. Mais {entreprise} ajoute {montant_grossup} € de 'gross-up' (compensation fiscale) à ton brut pour couvrir ces charges.
+
+Résultat : tu profites des repas gratuits sans que ça te coûte quoi que ce soit en net. C'est un avantage très généreux !
+
+Total ajouté à ton brut : {total_brut} € (avantage + compensation), mais impact net ≈ 0€."
+
+═══════════════════════════════════════════════════════════════════════════════
+
+4. CAS PARTICULIERS MOIS : DÉTECTION AUTOMATIQUE
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TAUX PAS À 0% :
+- Détection : taux_pas_pct = 0 ET net_imposable > 3000€
+
+⚠️ LE PAS EST TOUJOURS UNE CHARGE, JAMAIS UN CRÉDIT
+Ne JAMAIS générer d'alerte sur "crédit d'impôt PAS" ou "taux PAS négatif"
+Le PAS est un prélèvement (déduction), pas un versement.
+
+CONGÉ PATERNITÉ :
+- Détection : "Absence paternité" OU "Congé paternité" OU brut < 30% du salaire habituel avec mention "paternité"
+
+ABSENCE LONGUE DURÉE :
+- Détection : Si "Absence maladie" ou "Maladie ordinaire" détecté ET brut du mois < 70% du salaire de base
+- Détection supplémentaire : si ligne "Prévoyance" ou "Prévoyance Alan" avec part salariale = 0€ MAIS part patronale > 0€ → maintien de salaire par l'assurance prévoyance
+
+CONGES PRIS :
+- Détection : conges_pris_mois > 0 ou rtt_pris_mois > 0
+
+PRIME EXCEPTIONNELLE :
+- Détection : Si une ligne Prime X représente > 50% du salaire de base OU montant > 5000€
+
+ENTRÉE OU SORTIE EN COURS DE MOIS :
+- Détection : Ligne "Absence pour entrée" ou "Absence pour sortie" OU date_entree dans le mois concerné
+
+CHANGEMENT TAUX PAS > 1 POINT :
+- Détection : Comparer taux_pas_pct avec mois précédents → si changement > 1%
+
+ACTIONS GRATUITES VESTING :
+- Détection : actions_gratuites_acquises non vide
+
+RSU MASSIF :
+- Détection : rsu_gain > 20 000€
+
+═══════════════════════════════════════════════════════════════════════════════
+
+5. POINTS D'ATTENTION ET CONSEILS D'OPTIMISATION
+
+═══════════════════════════════════════════════════════════════════════════════
+
+POINTS D'ATTENTION À GÉNÉRER AUTOMATIQUEMENT :
+
+Si actions_gratuites_acquises > 10 000€ :
+"⚠️ ACTIONS GRATUITES : Tu as acquis {montant} € d'actions gratuites ce mois-ci. Cette somme augmente ton net imposable et donc ton impôt sur le revenu. IMPORTANT : tu n'as pas reçu ce montant en cash, juste les actions."
+
+Si rsu_gain > 20 000€ :
+"⚠️ GROS LOT RSU : Un montant important de RSU ({montant} €) a été acquis ce mois-ci. Tes cotisations sociales ont explosé à cause de ça. Ton net payé est fortement impacté ce mois-ci."
+
+Si espp_contribution > 0 :
+"💡 ESPP : Tu contribues {montant} €/mois à l'ESPP. Vérifie la prochaine date d'achat pour savoir quand tes actions seront achetées avec la décote de 15%."
+
+Si taux_pas = 0 :
+"⚠️ TAUX PAS À 0% : Tu ne paies pas d'impôt ce mois-ci, mais attention à la régularisation en septembre si tes revenus annuels dépassent 10 000€."
+
+CONSEILS D'OPTIMISATION À GÉNÉRER :
+
+Si actions_gratuites_acquises OU rsu_gain > 0 :
+"💡 Stratégie fiscale actions : Tu as des RSU/actions gratuites qui se transforment en liquidités. Si tu comptes vendre les actions, fais-le rapidement après acquisition (dans les 30 jours) pour éviter la plus-value. Si tu veux les garder long terme, attention à la fiscalité de la plus-value à la revente : PFU 30% ou barème IR. À valider avec un conseiller patrimonial."
+
+Si espp_contribution > 0 :
+"💡 Stratégie ESPP : Ton ESPP te fait acheter des actions avec 15% de décote. Deux stratégies : 1. Vendre immédiatement après achat → sécuriser le gain de 15%. 2. Garder les actions → parier sur la croissance, mais diversifie ton patrimoine."
+
+Si avantages_nature_compenses > 0 :
+"💡 Avantages en nature : Les avantages comme les repas ou la voiture de fonction sont imposables, mais ton employeur les compense via des gross-up. Ces avantages sont plus avantageux fiscalement que du salaire brut classique. Profite-en au maximum !"
+
+═══════════════════════════════════════════════════════════════════════════════
+
+6. VÉRIFICATION DE COHÉRENCE
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Après extraction, vérifie la cohérence des données :
+
+FORMULE GÉNÉRALE :
+total_brut - total_cotisations_salariales - montant_pas = net_paye
+
+Si écart > 100€ → ajouter dans points_attention :
+"⚠️ INCOHÉRENCE DÉTECTÉE : La formule brut - cotisations - PAS ne correspond pas au net payé (écart de {ecart}€). Cela peut être dû à des éléments non détectés. Vérifie ta fiche de paie ou contacte les RH."
+
+VÉRIFICATION EQUITY :
+- Si epargne_salariale.interessement > 10000 € ET remuneration_equity.actions_gratuites vide
+  → ⚠️ POSSIBLE CONFUSION, relire les lignes pour vérifier
+- Si remuneration_equity.rsu_vesting.variante = "sell_to_cover_45pct"
+  → Vérifier que quotite_cedee_pct ≈ 45% (± 5%)
+  → Vérifier que remboursement_stc ≈ taxes_rsu (± 100€)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+FIN DES INSTRUCTIONS
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Retourne maintenant le JSON complet pour le bulletin de paie fourni, en suivant SCRUPULEUSEMENT toutes les instructions ci-dessus.
+
+N'oublie pas :
+1. Distinguer ABSOLUMENT actions gratuites (equity) vs intéressement (épargne salariale)
+2. Le PAS est TOUJOURS une charge, JAMAIS un crédit
+3. Détecter les mécanismes RSU (variante A ou B) correctement
+4. Générer des explications ultra-concrètes avec montants réels
+5. Ajouter points d'attention et conseils personnalisés pour equity`;
 
 
 function selectPrompt(mode: string, hasEquity: boolean): string {
