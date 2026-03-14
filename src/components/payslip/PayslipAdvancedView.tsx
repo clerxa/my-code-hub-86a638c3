@@ -25,6 +25,7 @@ import {
   getCotisationsGrouped,
   normalizePointsAttention,
   normalizeActions,
+  getRemboursementsDeductionsLines,
 } from "./payslipUtils";
 import PayslipDetailModal from "./PayslipDetailModal";
 import type { PayslipData, PointAttention, ActionRecommandee } from "@/types/payslip";
@@ -49,6 +50,7 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
   const tauxPas = safe(d, "net", "taux_pas_pct");
   const cotPct = getCotisationsPct(d);
   const cotisationsGrouped = useMemo(() => getCotisationsGrouped(d), [d]);
+  const rembLines = useMemo(() => getRemboursementsDeductionsLines(d), [d]);
 
   // TOUS les points d'attention (pas de limite)
   const points = useMemo(
@@ -128,6 +130,20 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
             amount={`− ${fmtShort(cotSal)}`}
             dimmed
           />
+          {rembLines.map((line, i) => (
+            <SalaryLine
+              key={i}
+              label={`${line.sign === "+" ? "+" : "−"} ${line.label}`}
+              amount={`${line.sign === "+" ? "+" : "−"} ${fmtShort(Math.abs(line.montant))}`}
+              dimmed={line.sign === "-"}
+            />
+          ))}
+          {rembLines.length > 0 && netAvantImpot && (
+            <>
+              <div className="border-t border-dashed border-primary/30 my-2" />
+              <SalaryLine label="= Net avant impôt" amount={fmtShort(netAvantImpot)} emphasized />
+            </>
+          )}
           <SalaryLine
             label={`− Impôt (PAS ${fmtPct(tauxPas)})`}
             amount={`− ${fmtShort(Math.abs(pas || 0))}`}
@@ -279,6 +295,14 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
                 <div className="space-y-2 bg-muted/30 rounded-lg p-4">
                   <SalaryLine label="Salaire brut" amount={fmt(brut)} />
                   <SalaryLine label="Cotisations salariales" amount={`− ${fmt(cotSal)}`} dimmed />
+                  {rembLines.map((line, i) => (
+                    <SalaryLine
+                      key={i}
+                      label={`${line.sign === "+" ? "+" : "−"} ${line.label}`}
+                      amount={`${line.sign === "+" ? "+" : "−"} ${fmt(Math.abs(line.montant))}`}
+                      dimmed={line.sign === "-"}
+                    />
+                  ))}
                   <div className="border-t border-dashed border-primary/30 my-2" />
                   <SalaryLine label="= Net avant impôt" amount={fmt(netAvantImpot)} emphasized />
                   {basePas != null && basePas !== netAvantImpot && (

@@ -1,6 +1,6 @@
 /**
  * PayslipSimpleView — Vue gratuite (filtre les données à ~30%)
- * Affiche : Hero + Décomposition + 3 points max + Paywall CTA
+ * Affiche : Hero + Décomposition détaillée + 3 points max + Paywall CTA
  */
 import React, { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import {
   getPointIcon,
   normalizePointsAttention,
   normalizeActions,
+  getRemboursementsDeductionsLines,
 } from "./payslipUtils";
 import PayslipDetailModal from "./PayslipDetailModal";
 import type { PayslipData, PointAttention } from "@/types/payslip";
@@ -36,8 +37,12 @@ export default function PayslipSimpleView({ data, onUpgradeClick, onReset }: Pay
   const cotSal = safe(data, "cotisations_salariales", "total_cotisations_salariales");
   const pas = safe(data, "net", "montant_pas");
   const tauxPas = safe(data, "net", "taux_pas_pct");
+  const netAvantImpot = safe(data, "net", "net_avant_impot");
   const monthLabel = getMonthLabel(data?.periode?.mois, data?.periode?.annee);
   const cotPct = brut && cotSal ? Math.round((cotSal / brut) * 100) : null;
+
+  // Remboursements & déductions lines
+  const rembLines = useMemo(() => getRemboursementsDeductionsLines(data), [data]);
 
   // Vue simple : max 3 points d'attention, max 2 actions
   const allPoints = useMemo(
@@ -77,7 +82,7 @@ export default function PayslipSimpleView({ data, onUpgradeClick, onReset }: Pay
         </div>
       </Card>
 
-      {/* ─── BLOC 2: DÉCOMPOSITION ─── */}
+      {/* ─── BLOC 2: DÉCOMPOSITION DÉTAILLÉE ─── */}
       <Card className="p-4">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
           <span>💡</span> Comment j'arrive à ce net payé
@@ -91,6 +96,27 @@ export default function PayslipSimpleView({ data, onUpgradeClick, onReset }: Pay
             <span className="text-muted-foreground">− Cotisations{cotPct ? ` (${cotPct}%)` : ""}</span>
             <span className="font-medium text-muted-foreground">− {fmtShort(cotSal)}</span>
           </div>
+
+          {/* Remboursements & déductions */}
+          {rembLines.map((line, i) => (
+            <div key={i} className="flex justify-between">
+              <span className="text-muted-foreground">{line.sign === "+" ? "+" : "−"} {line.label}</span>
+              <span className={`font-medium ${line.sign === "+" ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}`}>
+                {line.sign === "+" ? "+" : "−"} {fmtShort(Math.abs(line.montant))}
+              </span>
+            </div>
+          ))}
+
+          {/* Net avant impôt (si remboursements existent, afficher cette étape intermédiaire) */}
+          {rembLines.length > 0 && netAvantImpot && (
+            <>
+              <div className="border-t border-dashed pt-1.5 mt-1.5 flex justify-between items-center">
+                <span className="font-semibold text-foreground">= Net avant impôt</span>
+                <span className="font-bold text-foreground">{fmtShort(netAvantImpot)}</span>
+              </div>
+            </>
+          )}
+
           <div className="flex justify-between">
             <span className="text-muted-foreground">− Impôt (PAS {tauxPas ? `${Math.abs(tauxPas).toFixed(1)}%` : ""})</span>
             <span className="font-medium text-muted-foreground">− {fmtShort(Math.abs(pas || 0))}</span>

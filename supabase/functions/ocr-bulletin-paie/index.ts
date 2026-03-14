@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// PROMPT UNIQUE — EXTRACTION COMPLÈTE EN 1 SEUL APPEL
+// PROMPT UNIQUE v2.0 — EXTRACTION COMPLÈTE EN 1 SEUL APPEL
 // ═══════════════════════════════════════════════════════════════
 const PROMPT_ANALYSE_COMPLETE = `Vous êtes un expert en analyse de bulletins de paie français.
 
@@ -66,6 +66,40 @@ RÈGLES GÉNÉRALES DE DÉTECTION
    - JAMAIS de conseil d'achat/vente d'actions → renvoyer vers expert patrimonial
 
 ═══════════════════════════════════════════════════════════════
+⚠️ RÈGLE CRITIQUE : SIGNE DU TAUX PAS (Convention d'affichage)
+═══════════════════════════════════════════════════════════════
+
+Le taux PAS est TOUJOURS affiché avec un signe "-" (moins) sur les bulletins de paie français.
+C'est une CONVENTION COMPTABLE pour indiquer une déduction, PAS un taux négatif mathématique.
+
+EXEMPLES RÉELS DE BULLETINS :
+- Taux PAS affiché : -0,0% → Taux réel : 0% (aucun prélèvement)
+- Taux PAS affiché : -12,5% → Taux réel : 12,5% (NORMAL)
+- Taux PAS affiché : -18,3% → Taux réel : 18,3% (NORMAL)
+- Taux PAS affiché : -30,1% → Taux réel : 30,1% (NORMAL)
+- Taux PAS affiché : -43,8% → Taux réel : 43,8% (élevé mais possible)
+
+⚠️ RÈGLE ABSOLUE : IGNORER LE SIGNE DU TAUX
+
+1. Le signe "-" est une CONVENTION D'AFFICHAGE uniquement
+2. Utilisez TOUJOURS la valeur absolue : abs(taux_pas_pct)
+3. Stockez dans taux_pas_pct la valeur POSITIVE (ex: 18.3, PAS -18.3)
+4. NE JAMAIS générer d'alerte sur "taux négatif" ou "taux inhabituel à cause du signe"
+5. Un taux affiché "-18,3%" est parfaitement NORMAL (taux réel : 18,3%)
+
+DÉTECTION TAUX INHABITUEL (seuls cas légitimes) :
+✅ Taux à 0% (abs(taux_pas_pct) = 0) ET net imposable > 3000€ → Sous-prélèvement probable
+✅ Taux > 40% (abs(taux_pas_pct) > 40) → Sur-prélèvement possible
+❌ Taux entre 0,1% et 40% → TOTALEMENT NORMAL (aucune alerte)
+❌ NE JAMAIS alerter sur le signe "-" du taux
+
+FORMULATION CORRECTE DANS LES EXPLICATIONS :
+✅ "Votre taux de prélèvement à la source est de 18,3%"
+❌ "Votre taux est négatif"
+❌ "Un taux de -18,3% est inhabituel"
+❌ TOUTE alerte mentionnant le signe "-" du taux
+
+═══════════════════════════════════════════════════════════════
 GESTION MULTI-PAGES
 ═══════════════════════════════════════════════════════════════
 
@@ -79,21 +113,10 @@ NE JAMAIS confondre les deux !
 
 ⚠️ RÈGLE ANTI-DUPLICATION : AVANTAGES EN NATURE / BIK
 Quand le bulletin contient des lignes individuelles de type BIK (Benefit In Kind) :
-- "Food BIK", "Car BIK", "Housing BIK", "Logement BIK", etc. → ce sont les COMPOSANTS
-- "Food GU BIK", "Gross-Up BIK", "GU BIK" → ce sont les COMPENSATIONS fiscales (gross-up)
-- "Avantages en nature" (ligne totale) → c'est la SOMME des composants ci-dessus
-
-RÈGLE : NE JAMAIS compter en double !
-1️⃣ Si des lignes BIK individuelles existent → les mettre dans remuneration_equity.avantages_nature_compenses
-2️⃣ La ligne "Avantages en nature" totale → mettre dans remuneration_brute.avantages_en_nature
-3️⃣ NE PAS re-lister les lignes BIK individuelles dans autres_elements_bruts si elles sont déjà dans avantages_nature_compenses
-4️⃣ Vérification : avantages_en_nature ≈ food_bik + gross_up + autres BIK (la somme doit coller)
-
-Exemple concret :
-- "Food BIK 631,23 €" → remuneration_equity.avantages_nature_compenses.food_bik_benefit_in_kind = 631.23
-- "Food GU BIK 714,68 €" → remuneration_equity.avantages_nature_compenses.gross_up_compensation = 714.68
-- "Avantages en nature 1 345,91 €" → remuneration_brute.avantages_en_nature = 1345.91
-- NE PAS ajouter "Food BIK" et "Food GU BIK" dans autres_elements_bruts (déjà comptés !)
+- Les composants individuels (BIK, GU BIK, etc.) → remuneration_equity.avantages_nature_compenses
+- La ligne totale "Avantages en nature" → remuneration_brute.avantages_en_nature
+- NE PAS re-lister les composants BIK dans autres_elements_bruts
+- Vérification : avantages_en_nature ≈ somme des composants BIK
 
 ═══════════════════════════════════════════════════════════════
 EXTRACTION COMPLÈTE (JSON STRUCTURE)
@@ -167,7 +190,17 @@ Extrayez TOUTES les données suivantes en JSON structuré :
     "prevoyance_patronale": null,
     "complementaire_sante_patronale": null
   },
+  "remboursements_deductions": {
+    "remboursement_frais_professionnels": null,
+    "tickets_restaurant_part_salarie": null,
+    "avantage_vehicule_deduit": null,
+    "avantage_logement_deduit": null,
+    "reintegration_fiscale": null,
+    "autres_remboursements": [],
+    "note": "Éléments ajoutés/déduits APRÈS cotisations pour arriver au net avant impôt"
+  },
   "net": {
+    "net_social": null,
     "net_avant_impot": null,
     "base_pas": null,
     "taux_pas_pct": null,
@@ -365,6 +398,34 @@ Extrais SÉPARÉMENT. NE JAMAIS dupliquer le même montant.
 - assurance_chomage (salariale) = 0 ou null (seule part patronale existe)
 
 ═══════════════════════════════════════════════════════════════
+REMBOURSEMENTS ET DÉDUCTIONS (CRITIQUES pour calcul net avant impôt)
+═══════════════════════════════════════════════════════════════
+
+⚠️ FORMULE CALCUL NET AVANT IMPÔT (CRITIQUE) :
+
+Net avant impôt = Brut 
+                - Cotisations salariales
+                + Remboursements frais professionnels
+                - Tickets restaurant (part salarié, c'est une DÉDUCTION)
+                - Avantages en nature déduits
+                + Réintégrations fiscales
+                + Autres remboursements
+
+Si le net avant impôt affiché sur le bulletin NE CORRESPOND PAS à "Brut - Cotisations",
+c'est qu'il y a des remboursements/déductions → CHERCHEZ-LES et remplissez remboursements_deductions{}
+
+Détection REMBOURSEMENTS (ajoutés au net) :
+Mots-clés INCLUSIFS (exemples NON EXHAUSTIFS) :
+- Frais pro : "Remboursement", "Frais professionnels", "Note de frais", "Indemnité km", "Déplacement", "Expenses"
+- Transports : "Navigo", "Transport", "Mobilité durable"
+
+Détection DÉDUCTIONS (retirées du net) :
+Mots-clés INCLUSIFS :
+- Tickets restaurant : "Tickets restaurant", "Titres restaurant", "TR", "Chèques déjeuner" (part salarié = déduction)
+- Avantages déduits : "Avantage véhicule", "Avantage logement", "AN véhicule", "Voiture de fonction"
+- Réintégrations : "Réintégration fiscale", "Base PAS", "Ajustement fiscal"
+
+═══════════════════════════════════════════════════════════════
 ABSENCE + INDEMNITÉ (MÉCANISME COMPTABLE NEUTRE)
 ═══════════════════════════════════════════════════════════════
 
@@ -416,9 +477,9 @@ Chaque point est un objet avec : id, priorite, titre, resume, explication_detail
 Détectez :
 1. PRIMES EXCEPTIONNELLES : prime > 50% salaire base OU > 5000€
 2. ABSENCES : congés pris > 5 jours, maladie, paternité, maternité
-3. TAUX PAS INHABITUEL : 0% avec revenus > 3000€ OU > 40%
+3. TAUX PAS INHABITUEL : abs(taux) = 0% avec revenus > 3000€ OU abs(taux) > 40%
 4. LIGNES NON IDENTIFIÉES : proposer hypothèses + inviter à vérifier RH
-5. ANOMALIES DE CALCUL : net ≠ brut - cotisations (± 50€)
+5. ANOMALIES DE CALCUL : net ≠ brut - cotisations (± 50€) — SAUF si remboursements/déductions expliquent l'écart
 6. EQUITY : RSU, actions gratuites, ESPP détectés → expliquer le mécanisme
 
 ═══════════════════════════════════════════════════════════════
@@ -455,7 +516,9 @@ CONSEILS D'OPTIMISATION (4-6 STRINGS simples)
 - Le PAS est TOUJOURS une CHARGE, JAMAIS un crédit
 - C'est un acompte d'impôt prélevé chaque mois
 - Le montant est TOUJOURS négatif (déduction du salaire)
+- Le TAUX est affiché avec "-" (convention comptable), stockez abs(taux_pas_pct)
 - NE JAMAIS parler de "crédit d'impôt" lié au PAS
+- NE JAMAIS alerter sur "taux négatif" (c'est juste la convention d'affichage)
 
 ⚠️ VOUVOIEMENT IMPÉRATIF
 Dans TOUTES les explications (points_attention, actions_recommandees, explications_pedagogiques, conseils_optimisation) :
@@ -466,8 +529,10 @@ Dans TOUTES les explications (points_attention, actions_recommandees, explicatio
 VÉRIFICATION DE COHÉRENCE
 ═══════════════════════════════════════════════════════════════
 
-Brut - Cotisations - PAS ≈ Net payé (± 100€)
-Si incohérence → point_attention
+1. Vérifiez : Brut - Cotisations +/- Remboursements/Déductions ≈ Net avant impôt (± 100€)
+   Si incohérence ET pas de remboursements_deductions remplis → cherchez les lignes manquantes
+2. Vérifiez : Net avant impôt - PAS ≈ Net payé (± 50€)
+3. Si incohérence persistante → point_attention
 
 VÉRIFICATION EQUITY :
 - Si epargne_salariale.interessement > 10000 ET remuneration_equity vide → possible confusion, relire
@@ -498,7 +563,7 @@ serve(async (req) => {
     const content: any[] = [
       { 
         type: "text", 
-        text: "Analysez ce bulletin de paie français et extrayez TOUTES les informations en suivant SCRUPULEUSEMENT la structure JSON demandée. Extraction complète : données, cotisations détaillées, equity, explications pédagogiques, points d'attention et conseils d'optimisation." 
+        text: "Analysez ce bulletin de paie français et extrayez TOUTES les informations en suivant SCRUPULEUSEMENT la structure JSON demandée. Extraction complète : données, cotisations détaillées, remboursements/déductions, equity, explications pédagogiques, points d'attention et conseils d'optimisation." 
       },
     ];
 
@@ -514,7 +579,7 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Processing ${images.length} page(s) with claude-haiku-4-5-20251001 | SINGLE complete analysis`);
+    console.log(`Processing ${images.length} page(s) with claude-haiku-4-5-20251001 | SINGLE complete analysis v2.0`);
 
     // UN SEUL appel Claude avec max_tokens élevé pour TOUT extraire
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -587,6 +652,14 @@ serve(async (req) => {
           throw new Error("Could not parse JSON from API response even after repair attempt");
         }
       }
+    }
+
+    // Normalize PAS sign: ensure taux_pas_pct is always positive
+    if (parsed.net?.taux_pas_pct != null) {
+      parsed.net.taux_pas_pct = Math.abs(parsed.net.taux_pas_pct);
+    }
+    if (parsed.net?.montant_pas != null && parsed.net.montant_pas > 0) {
+      parsed.net.montant_pas = -parsed.net.montant_pas;
     }
 
     // Detect equity presence

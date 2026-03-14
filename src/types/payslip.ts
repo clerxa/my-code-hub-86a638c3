@@ -1,7 +1,17 @@
 /**
  * TypeScript interfaces for the payslip analysis backend response.
- * Architecture "1 seul appel" — extraction complète en une fois.
+ * Architecture "1 seul appel" v2.0 — extraction complète en une fois.
  */
+
+export interface RemboursementsDeductions {
+  remboursement_frais_professionnels?: number | null;
+  tickets_restaurant_part_salarie?: number | null;
+  avantage_vehicule_deduit?: number | null;
+  avantage_logement_deduit?: number | null;
+  reintegration_fiscale?: number | null;
+  autres_remboursements?: Array<{ label: string; montant: number } | string>;
+  note?: string;
+}
 
 export interface PayslipData {
   salarie: {
@@ -67,7 +77,9 @@ export interface PayslipData {
     prevoyance_patronale?: number | null;
     complementaire_sante_patronale?: number | null;
   };
+  remboursements_deductions?: RemboursementsDeductions;
   net: {
+    net_social?: number | null;
     net_avant_impot: number | null;
     base_pas: number | null;
     taux_pas_pct: number | null;
@@ -84,7 +96,6 @@ export interface PayslipData {
     espp_contribution?: number | null;
     avantages_nature_detected?: boolean;
     avantages_nature_montant?: number | null;
-    // Advanced structured fields
     rsu_restricted_stock_units?: {
       variante?: string;
       gain_brut_total?: number | null;
