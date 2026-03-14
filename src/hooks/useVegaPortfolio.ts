@@ -139,6 +139,8 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
           createdAt: sim.created_at,
           vestingEndDate: d.date_entree_societe || undefined,
           regime: d.regime_applicable || undefined,
+          regimeCode: d.regime_applicable || undefined,
+          rawBspceData: d,
         });
       }
     }
