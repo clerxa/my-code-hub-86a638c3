@@ -20,6 +20,10 @@ export interface PortfolioPlan {
   nbActions: number;
   prixAcquisitionEur: number; // total cost basis in EUR
   createdAt: string;
+  // Vesting / regime info
+  regime?: string; // RSU regime label, ESPP n/a
+  vestingStartDate?: string; // earliest vesting date
+  vestingEndDate?: string; // last vesting date
 }
 
 export interface PortfolioSummary {
