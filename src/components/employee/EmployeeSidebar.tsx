@@ -152,6 +152,9 @@ export const EmployeeSidebar = ({
       case "budget":
         navigate("/employee/budget");
         break;
+      case "atlas":
+        navigate("/employee/atlas");
+        break;
       case "offers":
         navigate("/employee");
         setTimeout(() => onSectionChange("offers"), 100);
