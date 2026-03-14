@@ -68,9 +68,9 @@ interface AvisData {
     quotient_familial_explication: string;
     abattement_10_pct_explication: string;
     prelevement_source_explication: string;
-    lignes_inhabituelles: string[];
-    conseils_optimisation: string[];
-    points_attention: string[];
+    lignes_inhabituelles: (string | Record<string, unknown>)[];
+    conseils_optimisation: (string | Record<string, unknown>)[];
+    points_attention: (string | Record<string, unknown>)[];
   };
   meta: {
     type_document: string;
