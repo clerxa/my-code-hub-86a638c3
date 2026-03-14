@@ -615,7 +615,7 @@ Si tu trouves 2 lignes qui se compensent (montants opposés) :
 EXPLICATIONS PÉDAGOGIQUES
 ═══════════════════════════════════════════════════════════════
 
-Français clair, tutoiement, montants réels. TON SUGGESTIF obligatoire.
+Français clair, vouvoiement, montants réels. TON SUGGESTIF obligatoire.
 
 ⚠️ RÈGLE ABSOLUE PAS :
 - Le PAS est TOUJOURS une CHARGE, JAMAIS un crédit
@@ -626,15 +626,15 @@ Français clair, tutoiement, montants réels. TON SUGGESTIF obligatoire.
 FORMULATIONS IMPOSÉES (exemples) :
 
 CAS TAUX PAS À 0% (détection : taux = 0 ET net imposable > 3000€) :
-"Il semble que ton taux de prélèvement à la source soit de 0% ce mois-ci. Cela signifie qu'aucun impôt n'est prélevé via ta fiche de paie.
-Pourquoi ? Tes revenus annuels pourraient être sous le seuil d'imposition, ou tu as demandé un taux à 0%.
-⚠️ Attention : si tes revenus de l'année N sont imposables, tu devras régler ton impôt en septembre de l'année N+1 lors de la régularisation annuelle."
+"Il semble que votre taux de prélèvement à la source soit de 0% ce mois-ci. Cela signifie qu'aucun impôt n'est prélevé via votre fiche de paie.
+Pourquoi ? Vos revenus annuels pourraient être sous le seuil d'imposition, ou vous avez demandé un taux à 0%.
+⚠️ Attention : si vos revenus de l'année N sont imposables, vous devrez régler votre impôt en septembre de l'année N+1 lors de la régularisation annuelle."
 
 CAS CONGÉ PATERNITÉ :
-"Ce mois-ci, ton salaire semble réduit en raison d'un congé paternité. La Sécurité Sociale verse des IJSS directement sur ton compte bancaire (pas sur la fiche de paie)."
+"Ce mois-ci, votre salaire semble réduit en raison d'un congé paternité. La Sécurité Sociale verse des IJSS directement sur votre compte bancaire (pas sur la fiche de paie)."
 
 CAS ENTRÉE EN COURS DE MOIS :
-"Il semble que tu aies commencé en cours de mois. Ton salaire est proratisé sur les jours effectivement travaillés."
+"Il semble que vous ayez commencé en cours de mois. Votre salaire est proratisé sur les jours effectivement travaillés."
 
 ═══════════════════════════════════════════════════════════════
 CAS PARTICULIERS MOIS : DÉTECTION
