@@ -222,7 +222,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: modelConfig.id,
-        max_tokens: 8000,
+        max_tokens: 16000,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content }],
       }),
@@ -245,7 +245,6 @@ serve(async (req) => {
     try {
       parsed = JSON.parse(textContent);
     } catch {
-      // Clean markdown and find JSON boundaries
       let cleaned = textContent
         .replace(/```json\s*/gi, "")
         .replace(/```\s*/g, "")
@@ -255,58 +254,60 @@ serve(async (req) => {
       if (jsonStart === -1) throw new Error("No JSON found in API response");
       cleaned = cleaned.substring(jsonStart);
 
-      // Fix common issues
-      cleaned = cleaned
-        .replace(/,\s*}/g, "}")
-        .replace(/,\s*]/g, "]")
-        .replace(/[\x00-\x1F\x7F]/g, " ");
+      // Fix control characters
+      cleaned = cleaned.replace(/[\x00-\x1F\x7F]/g, (ch) => ch === '\n' || ch === '\t' ? ' ' : '');
 
-      // Try to close truncated JSON by counting braces
-      let braceCount = 0;
-      let bracketCount = 0;
-      for (const ch of cleaned) {
-        if (ch === '{') braceCount++;
-        else if (ch === '}') braceCount--;
-        else if (ch === '[') bracketCount++;
-        else if (ch === ']') bracketCount--;
-      }
-
-      // Remove trailing partial content after last complete value
-      if (braceCount > 0 || bracketCount > 0) {
-        // Find last complete key-value or array element
-        const lastGoodEnd = Math.max(
-          cleaned.lastIndexOf('",'),
-          cleaned.lastIndexOf('null,'),
-          cleaned.lastIndexOf('},'),
-          cleaned.lastIndexOf('],'),
-          cleaned.lastIndexOf('"'),
-          cleaned.lastIndexOf('null'),
-          cleaned.lastIndexOf('}'),
-          cleaned.lastIndexOf(']')
-        );
-        if (lastGoodEnd > 0) {
-          cleaned = cleaned.substring(0, lastGoodEnd + 1);
-          // Remove any trailing comma
-          cleaned = cleaned.replace(/,\s*$/, "");
+      // Check if truncated (unbalanced braces)
+      const count = (s: string) => {
+        let b = 0, k = 0, inStr = false, esc = false;
+        for (const c of s) {
+          if (esc) { esc = false; continue; }
+          if (c === '\\') { esc = true; continue; }
+          if (c === '"') { inStr = !inStr; continue; }
+          if (inStr) continue;
+          if (c === '{') b++; else if (c === '}') b--;
+          if (c === '[') k++; else if (c === ']') k--;
         }
+        return { b, k, inStr };
+      };
+
+      let state = count(cleaned);
+
+      if (state.b > 0 || state.k > 0 || state.inStr) {
+        // Close open string if needed
+        if (state.inStr) {
+          // Find last quote, trim partial content after it
+          const lastQuote = cleaned.lastIndexOf('"');
+          // Check if this quote opens an unfinished string value
+          cleaned = cleaned.substring(0, lastQuote + 1);
+          state = count(cleaned);
+        }
+
+        // Remove trailing partial key-value pairs
+        // Find last cleanly ended value (ends with ", null, }, ], number, true, false)
+        const trailingPartial = cleaned.match(/,\s*"[^"]*"\s*:\s*("[^"]*)?$/);
+        if (trailingPartial) {
+          cleaned = cleaned.substring(0, cleaned.length - trailingPartial[0].length);
+          state = count(cleaned);
+        }
+
+        // Remove trailing commas
+        cleaned = cleaned.replace(/,\s*$/, "");
+
         // Re-count and close
-        braceCount = 0;
-        bracketCount = 0;
-        for (const ch of cleaned) {
-          if (ch === '{') braceCount++;
-          else if (ch === '}') braceCount--;
-          else if (ch === '[') bracketCount++;
-          else if (ch === ']') bracketCount--;
-        }
-        while (bracketCount > 0) { cleaned += "]"; bracketCount--; }
-        while (braceCount > 0) { cleaned += "}"; braceCount--; }
+        state = count(cleaned);
+        while (state.k > 0) { cleaned += "]"; state.k--; }
+        while (state.b > 0) { cleaned += "}"; state.b--; }
       }
+
+      // Fix trailing commas inside structures
+      cleaned = cleaned.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
 
       try {
         parsed = JSON.parse(cleaned);
         console.warn("JSON repaired successfully after truncation");
       } catch (finalErr) {
-        console.error("JSON repair failed:", finalErr.message, "First 500 chars:", cleaned.substring(0, 500));
+        console.error("JSON repair failed:", finalErr.message, "Last 200 chars:", cleaned.substring(cleaned.length - 200));
         throw new Error("Could not parse JSON from API response");
       }
     }
