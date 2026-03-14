@@ -103,15 +103,15 @@ function BrutNetModal({ data }: { data: PayslipData }) {
     return (
       <div className="space-y-4">
         <p className="text-muted-foreground">
-          Ton bulletin de paie suit toujours le même chemin pour arriver au montant versé sur ton compte :
+          Votre bulletin de paie suit toujours le même chemin pour arriver au montant versé sur votre compte :
         </p>
         <div className="space-y-3">
           {[
             { step: "1️⃣", title: "Salaire brut", desc: "Salaire de base + primes + heures sup + avantages." },
             { step: "2️⃣", title: "− Cotisations sociales (~22-25%)", desc: "Retraite, santé, chômage, CSG/CRDS." },
-            { step: "3️⃣", title: "= Net avant impôt", desc: "Ce que tu gagnes après cotisations." },
+            { step: "3️⃣", title: "= Net avant impôt", desc: "Ce que vous gagnez après cotisations." },
             { step: "4️⃣", title: "− Prélèvement à la source (PAS)", desc: "L'impôt sur le revenu prélevé chaque mois." },
-            { step: "5️⃣", title: "= Net payé 💰", desc: "Le montant réellement versé sur ton compte." },
+            { step: "5️⃣", title: "= Net payé 💰", desc: "Le montant réellement versé sur votre compte." },
           ].map((item, i) => (
             <div key={i} className="flex items-start gap-3">
               <span className="text-lg">{item.step}</span>
@@ -247,7 +247,7 @@ function GenericModal({ data, modalType }: { data: PayslipData; modalType: strin
         Les détails pour cette section seront disponibles avec l'analyse avancée.
       </p>
       <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
-        💡 Lance l'analyse avancée pour obtenir des explications détaillées et personnalisées.
+        💡 Passez à la vue avancée pour obtenir des explications détaillées et personnalisées.
       </div>
     </div>
   );

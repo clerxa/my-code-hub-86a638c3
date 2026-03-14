@@ -1,5 +1,6 @@
 /**
- * TypeScript interfaces for the payslip analysis backend response (Option 2 Hybrid).
+ * TypeScript interfaces for the payslip analysis backend response.
+ * Architecture "1 seul appel" — extraction complète en une fois.
  */
 
 export interface PayslipData {
@@ -8,10 +9,16 @@ export interface PayslipData {
     prenom: string | null;
     matricule: string | null;
     poste: string | null;
+    statut?: string | null;
+    classification?: string | null;
+    anciennete_annees?: number | null;
+    date_entree?: string | null;
+    convention_collective?: string | null;
   };
   employeur: {
     nom: string | null;
     siret: string | null;
+    code_naf?: string | null;
   };
   periode: {
     mois: number | null;
@@ -20,12 +27,15 @@ export interface PayslipData {
   };
   remuneration_brute: {
     salaire_base: number | null;
+    taux_horaire_ou_mensuel?: number | null;
+    heures_travaillees?: number | null;
     total_brut: number | null;
     heures_supplementaires?: number | null;
     prime_anciennete?: number | null;
     prime_objectifs?: number | null;
     prime_exceptionnelle?: number | null;
     avantages_en_nature?: number | null;
+    tickets_restaurant_part_patronale?: number | null;
     autres_elements_bruts?: Array<{ label: string; montant: number } | string>;
   };
   cotisations_salariales: {
@@ -43,6 +53,7 @@ export interface PayslipData {
     apec_ou_agirc_arrco?: number | null;
     complementaire_sante_salarie?: number | null;
     prevoyance_salarie?: number | null;
+    autres_cotisations_salariales?: any[];
   };
   cotisations_patronales?: {
     total_cotisations_patronales?: number | null;
@@ -50,8 +61,11 @@ export interface PayslipData {
     vieillesse_patronale?: number | null;
     retraite_complementaire_patronale?: number | null;
     assurance_chomage_patronale?: number | null;
-    complementaire_sante_patronale?: number | null;
+    accidents_travail?: number | null;
+    allocations_familiales?: number | null;
+    formation_professionnelle?: number | null;
     prevoyance_patronale?: number | null;
+    complementaire_sante_patronale?: number | null;
   };
   net: {
     net_avant_impot: number | null;
@@ -70,38 +84,76 @@ export interface PayslipData {
     espp_contribution?: number | null;
     avantages_nature_detected?: boolean;
     avantages_nature_montant?: number | null;
-    // Advanced fields (from PROMPT_ADVANCED_EQUITY)
-    rsu_restricted_stock_units?: any;
-    actions_gratuites_acquises?: any[];
-    espp_employee_stock_purchase_plan?: any;
-    avantages_nature_compenses?: any;
+    // Advanced structured fields
+    rsu_restricted_stock_units?: {
+      variante?: string;
+      gain_brut_total?: number | null;
+      nb_actions_acquises?: number | null;
+      nb_actions_vendues?: number | null;
+      nb_actions_conservees?: number | null;
+      valeur_actions_vendues?: number | null;
+      valeur_actions_conservees?: number | null;
+      remboursement_stc_ou_broker?: number | null;
+      mecanisme_description?: string;
+    };
+    actions_gratuites_acquises?: Array<{
+      nb_actions?: number | null;
+      prix_unitaire?: number | null;
+      valeur_fiscale_totale?: number | null;
+      type_plan?: string;
+      impact_pas_immediat?: boolean;
+    }>;
+    espp_employee_stock_purchase_plan?: {
+      contribution_mensuelle?: number | null;
+      contribution_periode?: number | null;
+      periode?: string;
+    };
+    avantages_nature_compenses?: {
+      food_bik_benefit_in_kind?: number | null;
+      gross_up_compensation?: number | null;
+      total_brut?: number | null;
+    };
   };
   conges_rtt?: {
     conges_n_moins_1?: { solde: number | null; acquis?: number | null; pris?: number | null };
     conges_n?: { solde: number | null; acquis?: number | null; pris?: number | null };
-    rtt?: { solde: number | null };
+    rtt?: { solde: number | null; acquis?: number | null; pris?: number | null };
+    conges_pris_mois?: number | null;
+    rtt_pris_mois?: number | null;
+  };
+  epargne_salariale?: {
+    participation?: number | null;
+    interessement?: number | null;
+    pee_versement?: number | null;
+    perco_versement?: number | null;
+    abondement_employeur?: number | null;
   };
   cumuls_annuels?: {
     brut_cumule: number | null;
     net_imposable_cumule: number | null;
     pas_cumule: number | null;
+    heures_ou_jours_travailles_cumule?: number | null;
   };
   points_attention: PointAttention[];
   actions_recommandees: ActionRecommandee[];
 
-  // Advanced-only fields
-  explications_pedagogiques?: Record<string, string>;
+  // Advanced fields
+  explications_pedagogiques?: Record<string, any>;
   cas_particuliers_mois?: Record<string, any>;
-  epargne_salariale?: any;
   informations_complementaires?: any;
-  conseils_optimisation?: any[];
+  conseils_optimisation?: string[];
 
   // Meta
+  _meta?: {
+    analysis_level: string;
+    has_equity: boolean;
+  };
   _usage?: {
     model: string;
     input_tokens: number;
     output_tokens: number;
-    cost_total_usd: string;
+    total_tokens?: number;
+    cost_total_usd: number;
   };
 }
 
