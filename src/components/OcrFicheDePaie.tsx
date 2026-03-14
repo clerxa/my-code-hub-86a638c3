@@ -14,7 +14,7 @@ import { BookOpen, ChevronRight, Lock, Upload, FileText, Sparkles, Info } from "
 import PayslipProgressiveView from "./payslip/PayslipProgressiveView";
 import PayslipDetailModal from "./payslip/PayslipDetailModal";
 import { PayslipAnalysisOverlay } from "./payslip/PayslipAnalysisOverlay";
-import { fmt, fmtShort, safe, getMonthLabel, getPointIcon, getPriorityStyle } from "./payslip/payslipUtils";
+import { fmt, fmtShort, safe, getMonthLabel, getPointIcon, getPriorityStyle, normalizePointsAttention, normalizeActions } from "./payslip/payslipUtils";
 
 const SUPABASE_FUNCTION_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/ocr-bulletin-paie`;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -492,8 +492,8 @@ function SimpleResultView({
   const monthLabel = getMonthLabel(data?.periode?.mois, data?.periode?.annee);
   const cotPct = brut && cotSal ? Math.round((cotSal / brut) * 100) : null;
 
-  const points = (data.points_attention || []).sort((a: any, b: any) => a.priorite - b.priorite).slice(0, 3);
-  const actions = (data.actions_recommandees || []).sort((a: any, b: any) => a.priorite - b.priorite).slice(0, 2);
+  const points = normalizePointsAttention(data.points_attention).sort((a, b) => a.priorite - b.priorite).slice(0, 3);
+  const actions = normalizeActions(data.actions_recommandees).sort((a, b) => a.priorite - b.priorite).slice(0, 2);
 
   return (
     <div className="space-y-4">

@@ -91,6 +91,49 @@ export const getPointIcon = (id: string | null | undefined): string => {
   return "📌";
 };
 
+/** Normalize points_attention: handles both string[] (advanced prompts) and object[] (simple prompts) */
+export function normalizePointsAttention(raw: any[]): Array<{id: string; priorite: number; titre: string; resume: string; explication_detaillee?: string; a_modal?: boolean}> {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item, i) => {
+    if (typeof item === "string") {
+      return {
+        id: `point_${i}`,
+        priorite: 2,
+        titre: "Point d'attention",
+        resume: item,
+        explication_detaillee: item,
+        a_modal: false,
+      };
+    }
+    // Object format — ensure all fields exist
+    return {
+      id: item.id || `point_${i}`,
+      priorite: item.priorite ?? 2,
+      titre: item.titre || item.title || "Point d'attention",
+      resume: item.resume || item.summary || item.message || "",
+      explication_detaillee: item.explication_detaillee || item.resume || "",
+      a_modal: item.a_modal ?? !!item.explication_detaillee,
+    };
+  });
+}
+
+/** Normalize actions_recommandees: handles both string[] and object[] */
+export function normalizeActions(raw: any[]): Array<{id: string; priorite: number; texte: string; cta_label?: string; cta_url?: string | null}> {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item, i) => {
+    if (typeof item === "string") {
+      return { id: `action_${i}`, priorite: 3, texte: item };
+    }
+    return {
+      id: item.id || `action_${i}`,
+      priorite: item.priorite ?? 3,
+      texte: item.texte || item.text || item.message || "",
+      cta_label: item.cta_label,
+      cta_url: item.cta_url,
+    };
+  });
+}
+
 /** Group cotisations by category for the detailed view */
 export function getCotisationsGrouped(data: any) {
   const cs = data.cotisations_salariales || {};
