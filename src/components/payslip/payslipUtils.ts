@@ -207,16 +207,7 @@ export function prioritizeActions(data: any): PayslipAction[] {
   const actions: PayslipAction[] = [];
   const cas = data.cas_particuliers_mois || {};
 
-  // Congés N-1 urgents
-  const congesN1Solde = safe(data, "conges_rtt", "conges_n_moins_1", "solde");
-  if (congesN1Solde != null && congesN1Solde > 0) {
-    actions.push({
-      id: "conges_urgent",
-      priority: 1,
-      icon: "⏰",
-      text: `Prends tes ${congesN1Solde} jours de congés N-1 avant le 31 mai, sinon ils seront perdus !`,
-    });
-  }
+  // Removed: congés N-1 action (not important per user request)
 
   // RSU → suggest expert
   const rsu = data.remuneration_equity?.rsu_restricted_stock_units;
