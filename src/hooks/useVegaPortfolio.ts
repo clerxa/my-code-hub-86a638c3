@@ -20,6 +20,10 @@ export interface PortfolioPlan {
   nbActions: number;
   prixAcquisitionEur: number; // total cost basis in EUR
   createdAt: string;
+  // Vesting / regime info
+  regime?: string; // RSU regime label, ESPP n/a
+  vestingStartDate?: string; // earliest vesting date
+  vestingEndDate?: string; // last vesting date
 }
 
 export interface PortfolioSummary {
@@ -51,6 +55,16 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
           0,
         );
         if (totalShares > 0) {
+          // Compute vesting date range
+          const vestingDates = vestings
+            .map((v: any) => v.date)
+            .filter((d: string) => !!d)
+            .sort();
+          const regimeLabels: Record<string, string> = {
+            R1: 'Qualifié (post 30/12/2016)',
+            R2: 'Qualifié (08/2015 - 12/2016)',
+            R3: 'Non qualifié',
+          };
           plans.push({
             id: `${sim.id}-${plan.id}`,
             simulationId: sim.id,
@@ -62,6 +76,9 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
             nbActions: totalShares,
             prixAcquisitionEur: totalGainEur,
             createdAt: sim.created_at,
+            regime: regimeLabels[plan.regime] || plan.regime || undefined,
+            vestingStartDate: vestingDates[0] || undefined,
+            vestingEndDate: vestingDates[vestingDates.length - 1] || undefined,
           });
         }
       }
@@ -84,6 +101,8 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
             nbActions: nb,
             prixAcquisitionEur: costEur,
             createdAt: sim.created_at,
+            vestingStartDate: p.date_debut_offre || undefined,
+            vestingEndDate: p.date_achat || undefined,
           });
         }
       }
@@ -99,11 +118,13 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
           simulationName: sim.name || 'BSPCE',
           type: 'bspce',
           label: d.nom_simulation || 'BSPCE',
-          ticker: '', // BSPCE are private company, no ticker
+          ticker: '',
           devise: 'EUR',
           nbActions: nb,
           prixAcquisitionEur: nb * prixExercice,
           createdAt: sim.created_at,
+          vestingEndDate: d.date_entree_societe || undefined,
+          regime: d.regime_applicable || undefined,
         });
       }
     }

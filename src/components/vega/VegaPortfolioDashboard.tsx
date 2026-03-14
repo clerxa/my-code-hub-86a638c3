@@ -3,13 +3,15 @@
  * with live stock price, total value, and +/- latent gains.
  */
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Activity, Layers, BarChart3, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Layers, BarChart3, ArrowUpRight, ArrowDownRight, Minus, CheckCircle2, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import type { PortfolioSummary, PortfolioPlan } from '@/hooks/useVegaPortfolio';
+import { differenceInDays, differenceInMonths, format, parseISO, isPast } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const fmtCurrency = (v: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
@@ -146,6 +148,52 @@ function SummaryCards({ portfolio }: { portfolio: PortfolioSummary }) {
   );
 }
 
+function VestingStatus({ plan }: { plan: PortfolioPlan }) {
+  if (!plan.vestingEndDate) return null;
+
+  const now = new Date();
+  const endDate = parseISO(plan.vestingEndDate);
+  const isComplete = isPast(endDate);
+
+  if (isComplete) {
+    const daysSince = differenceInDays(now, endDate);
+    const monthsSince = differenceInMonths(now, endDate);
+    const timeAgo = monthsSince >= 1
+      ? `${monthsSince} mois`
+      : `${daysSince} jour${daysSince > 1 ? 's' : ''}`;
+
+    return (
+      <div className="flex items-center gap-1.5 text-[11px]">
+        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+        <span className="text-green-600 dark:text-green-400 font-medium">
+          Vesting terminé
+        </span>
+        <span className="text-muted-foreground">
+          · depuis {timeAgo}
+        </span>
+      </div>
+    );
+  }
+
+  const daysLeft = differenceInDays(endDate, now);
+  const monthsLeft = differenceInMonths(endDate, now);
+  const timeLeft = monthsLeft >= 1
+    ? `${monthsLeft} mois`
+    : `${daysLeft} jour${daysLeft > 1 ? 's' : ''}`;
+
+  return (
+    <div className="flex items-center gap-1.5 text-[11px]">
+      <Clock className="h-3.5 w-3.5 text-amber-500" />
+      <span className="text-amber-600 dark:text-amber-400 font-medium">
+        Vesting en cours
+      </span>
+      <span className="text-muted-foreground">
+        · {timeLeft} restant{monthsLeft >= 1 ? 's' : ''}
+      </span>
+    </div>
+  );
+}
+
 function PlanCard({ plan, currentPriceEur }: { plan: PortfolioPlan; currentPriceEur: number | null }) {
   const navigate = useNavigate();
   const currentValue = currentPriceEur !== null && plan.type !== 'bspce'
@@ -164,20 +212,41 @@ function PlanCard({ plan, currentPriceEur }: { plan: PortfolioPlan; currentPrice
     navigate(`${base}?load=${plan.simulationId}`);
   };
 
+  // Vesting duration
+  let vestingDuration: string | null = null;
+  if (plan.vestingStartDate && plan.vestingEndDate) {
+    const months = differenceInMonths(parseISO(plan.vestingEndDate), parseISO(plan.vestingStartDate));
+    vestingDuration = months >= 12
+      ? `${Math.round(months / 12)} an${Math.round(months / 12) > 1 ? 's' : ''}`
+      : `${months} mois`;
+  }
+
   return (
     <Card className="bg-card/60 border-border/40 backdrop-blur-sm hover:shadow-md transition-shadow group">
       <CardHeader className="pb-2 pt-4 px-5">
         <div className="flex items-start justify-between">
-          <div className="space-y-1 min-w-0 flex-1">
-            <div className="flex items-center gap-2">
+          <div className="space-y-1.5 min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
               <Badge className={`${TYPE_COLORS[plan.type]} text-[10px] font-semibold`}>
                 {TYPE_LABELS[plan.type]}
               </Badge>
               {plan.ticker && (
                 <Badge variant="outline" className="font-mono text-[10px]">{plan.ticker}</Badge>
               )}
+              {plan.regime && (
+                <Badge variant="secondary" className="text-[10px]">{plan.regime}</Badge>
+              )}
             </div>
             <CardTitle className="text-sm font-medium truncate">{plan.label}</CardTitle>
+            {/* Vesting status */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <VestingStatus plan={plan} />
+              {vestingDuration && (
+                <span className="text-[10px] text-muted-foreground">
+                  Durée : {vestingDuration}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </CardHeader>
