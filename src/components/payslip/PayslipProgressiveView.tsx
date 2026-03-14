@@ -387,15 +387,7 @@ export default function PayslipProgressiveView({ data }: PayslipProgressiveViewP
                 </AccordionContent>
               </AccordionItem>
 
-              {/* Congés & RTT */}
-              <AccordionItem value="conges" className="border rounded-lg overflow-hidden">
-                <AccordionTrigger className="px-4 py-3 hover:no-underline text-sm font-semibold">
-                  🏖️ Mes congés & RTT
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <CongesSection data={data} />
-                </AccordionContent>
-              </AccordionItem>
+              {/* Congés & RTT removed — not relevant for target users */}
 
               {/* Épargne salariale */}
               <AccordionItem value="epargne" className="border rounded-lg overflow-hidden">
