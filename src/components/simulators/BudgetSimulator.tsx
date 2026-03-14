@@ -185,6 +185,7 @@ interface BudgetSimulatorProps {
 
 export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit }: BudgetSimulatorProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(startInResults ? STEPS_CONFIG.length : 0);
   const [salaire, setSalaire] = useState(2600);
