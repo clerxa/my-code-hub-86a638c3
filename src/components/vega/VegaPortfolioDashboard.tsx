@@ -159,6 +159,11 @@ function PlanCard({ plan, currentPriceEur }: { plan: PortfolioPlan; currentPrice
     bspce: '/simulateur-bspce',
   };
 
+  const handleOpen = () => {
+    const base = routeMap[plan.type];
+    navigate(`${base}?load=${plan.simulationId}`);
+  };
+
   return (
     <Card className="bg-card/60 border-border/40 backdrop-blur-sm hover:shadow-md transition-shadow group">
       <CardHeader className="pb-2 pt-4 px-5">
