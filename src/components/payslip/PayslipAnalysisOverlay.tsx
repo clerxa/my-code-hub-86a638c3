@@ -2,7 +2,6 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Sparkles, FileSearch, Brain, TrendingUp, Shield, BarChart3, Layers } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { Progress } from "@/components/ui/progress";
 
 interface PayslipAnalysisOverlayProps {
   isAnalyzing: boolean;
