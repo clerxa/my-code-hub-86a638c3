@@ -68,9 +68,9 @@ interface AvisData {
     quotient_familial_explication: string;
     abattement_10_pct_explication: string;
     prelevement_source_explication: string;
-    lignes_inhabituelles: string[];
-    conseils_optimisation: string[];
-    points_attention: string[];
+    lignes_inhabituelles: (string | Record<string, unknown>)[];
+    conseils_optimisation: (string | Record<string, unknown>)[];
+    points_attention: (string | Record<string, unknown>)[];
   };
   meta: {
     type_document: string;
@@ -1471,7 +1471,7 @@ const OcrAvisImposition = () => {
                         <div className="flex items-start gap-2">
                           <Lightbulb className="h-5 w-5 text-accent shrink-0 mt-0.5" />
                           <p className="text-sm text-muted-foreground leading-relaxed">
-                            {conseil}
+                            {typeof conseil === 'string' ? conseil : (conseil as any)?.conseil || (conseil as any)?.detail || JSON.stringify(conseil)}
                           </p>
                         </div>
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-success/15 text-success">
@@ -1563,7 +1563,7 @@ const OcrAvisImposition = () => {
                   <Card key={i} className="border-l-4 border-l-destructive">
                     <CardContent className="p-4 flex items-start gap-3">
                       <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-                      <p className="text-sm text-muted-foreground leading-relaxed">{point}</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{typeof point === 'string' ? point : (point as any)?.detail || (point as any)?.point || JSON.stringify(point)}</p>
                     </CardContent>
                   </Card>
                 ))}
