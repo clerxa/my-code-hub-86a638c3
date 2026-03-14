@@ -46,7 +46,7 @@ const STEPS = [
     step: 2,
     icon: ScanSearch,
     title: 'Un bilan fiscal complet',
-    subtitle: 'Visualisez votre situation en un coup d'œil',
+    subtitle: "Visualisez votre situation en un coup d'oeil",
     description:
       "ATLAS génère un tableau de bord visuel de votre fiscalité : votre taux marginal d'imposition (TMI), la décomposition par tranche, les dispositifs de défiscalisation déjà utilisés, et votre plafond PER disponible. Chaque information est accompagnée d'explications claires et pédagogiques.",
     tip: "Le TMI est un indicateur essentiel pour prendre les bonnes décisions d'épargne et d'investissement — ATLAS le calcule automatiquement pour vous.",
