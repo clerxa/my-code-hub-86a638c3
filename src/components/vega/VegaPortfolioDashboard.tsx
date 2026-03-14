@@ -771,6 +771,23 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
 
       <SummaryCards portfolio={portfolio} />
 
+      {/* Recap link */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 text-xs"
+          onClick={() => navigate('/employee/vega/recap')}
+        >
+          <Table2 className="h-3.5 w-3.5" />
+          Voir le récapitulatif complet des vestings
+        </Button>
+      </motion.div>
+
       {Object.entries(grouped).map(([type, plans], idx) => (
         <motion.div
           key={type}
