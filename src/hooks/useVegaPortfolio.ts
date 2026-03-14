@@ -118,11 +118,13 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
           simulationName: sim.name || 'BSPCE',
           type: 'bspce',
           label: d.nom_simulation || 'BSPCE',
-          ticker: '', // BSPCE are private company, no ticker
+          ticker: '',
           devise: 'EUR',
           nbActions: nb,
           prixAcquisitionEur: nb * prixExercice,
           createdAt: sim.created_at,
+          vestingEndDate: d.date_entree_societe || undefined,
+          regime: d.regime_applicable || undefined,
         });
       }
     }
