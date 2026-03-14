@@ -3664,6 +3664,11 @@ export type Database = {
           nombre_parts: number | null
           numero_fiscal: string | null
           pensions_retraites: number | null
+          per_analyse_personnalisee: string | null
+          plafond_per_declarant_1: number | null
+          plafond_per_declarant_2: number | null
+          plafond_per_restant: number | null
+          plafond_per_verse: number | null
           plafonnement_quotient_familial: number | null
           plus_values_mobilieres: number | null
           prelevement_forfaitaire_unique: number | null
@@ -3714,6 +3719,11 @@ export type Database = {
           nombre_parts?: number | null
           numero_fiscal?: string | null
           pensions_retraites?: number | null
+          per_analyse_personnalisee?: string | null
+          plafond_per_declarant_1?: number | null
+          plafond_per_declarant_2?: number | null
+          plafond_per_restant?: number | null
+          plafond_per_verse?: number | null
           plafonnement_quotient_familial?: number | null
           plus_values_mobilieres?: number | null
           prelevement_forfaitaire_unique?: number | null
@@ -3764,6 +3774,11 @@ export type Database = {
           nombre_parts?: number | null
           numero_fiscal?: string | null
           pensions_retraites?: number | null
+          per_analyse_personnalisee?: string | null
+          plafond_per_declarant_1?: number | null
+          plafond_per_declarant_2?: number | null
+          plafond_per_restant?: number | null
+          plafond_per_verse?: number | null
           plafonnement_quotient_familial?: number | null
           plus_values_mobilieres?: number | null
           prelevement_forfaitaire_unique?: number | null
