@@ -252,6 +252,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
               path="/employee/onboarding"
               element={
                 <ProtectedRoute>
