@@ -120,8 +120,12 @@ RÈGLE CRITIQUE — CRÉDITS D'IMPÔT :
 - Même logique pour les réductions d'impôt : prendre le montant effectivement retenu, pas le montant déclaré.
 
 RÈGLE CRITIQUE — CALCUL DE L'IMPÔT SANS DISPOSITIFS :
-- Calcule et renseigne le champ "impot_sans_dispositifs" : c'est l'impôt brut progressif AVANT toute réduction et crédit d'impôt. C'est le montant que le contribuable aurait payé s'il n'avait bénéficié d'aucun avantage fiscal (réductions + crédits).
-- Ce champ permet de visualiser l'économie réelle apportée par les dispositifs fiscaux.
+- Calcule et renseigne le champ "impot_sans_dispositifs" : c'est l'impôt THÉORIQUE que le contribuable aurait payé s'il n'avait bénéficié d'AUCUN avantage fiscal, c'est-à-dire :
+  1. Sans les DÉDUCTIONS du revenu imposable (charges déductibles, versements PER, pensions alimentaires déduites, etc.) — il faut recalculer l'impôt brut sur le revenu AVANT ces déductions
+  2. Sans les RÉDUCTIONS d'impôt
+  3. Sans les CRÉDITS d'impôt
+- Concrètement : prends le revenu net imposable, ajoute les charges déductibles et versements PER identifiés, recalcule l'impôt brut progressif sur ce revenu majoré, puis n'applique aucune réduction ni crédit. C'est ce montant théorique qui doit figurer dans "impot_sans_dispositifs".
+- Ce champ permet de visualiser l'économie TOTALE apportée par l'ensemble des dispositifs fiscaux (déductions + réductions + crédits).
 
 RÈGLE CRITIQUE — PLAFONDS PER (Plan d'Épargne Retraite) :
 - Sur chaque avis d'imposition, cherche OBLIGATOIREMENT les plafonds de déduction épargne retraite (souvent indiqués en bas ou en page 2 sous "Plafond de déduction épargne retraite").
