@@ -686,9 +686,9 @@ const OcrAvisImposition = () => {
         total_a_payer: analysisData.impot?.total_a_payer,
         mensualisation_ou_prelevement: analysisData.impot?.mensualisation_ou_prelevement,
         // Prélèvement à la source
-        taux_pas_pct: analysisData.prelevement_source?.taux_pas_pct,
-        montant_preleve_annee_n: analysisData.prelevement_source?.montant_preleve_annee_n,
-        solde: analysisData.prelevement_source?.solde_a_payer_ou_rembourser,
+        taux_pas_pct: toDbNumber(analysisData.prelevement_source?.taux_pas_pct),
+        montant_preleve_annee_n: toDbNumber(analysisData.prelevement_source?.montant_preleve_annee_n),
+        solde: toDbNumber(analysisData.prelevement_source?.solde_a_payer_ou_rembourser),
         // Meta
         type_document: analysisData.meta?.type_document,
         confidence: analysisData.meta?.confidence,
