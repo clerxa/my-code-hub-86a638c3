@@ -342,20 +342,30 @@ export default function OcrFicheDePaie() {
         )}
 
         {/* ═══════════════════════════════════════════ */}
-        {/* LOADING STATE */}
+        {/* LOADING STATE (fallback text only) */}
         {/* ═══════════════════════════════════════════ */}
-        {(step === "uploading" || step === "advanced_loading") && (
+        {(step === "uploading" || step === "advanced_loading") && !showSimpleOverlay && !showAdvancedOverlay && (
           <Card className="p-12 text-center">
             <div className="w-10 h-10 border-3 border-muted border-t-primary rounded-full animate-spin mx-auto mb-4" />
             <div className="text-sm font-semibold text-primary">{progress}</div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {step === "advanced_loading"
-                ? "Analyse détaillée en cours… (~15 secondes)"
-                : "Extraction des données essentielles…"
-              }
-            </p>
           </Card>
         )}
+
+        {/* ═══════════════════════════════════════════ */}
+        {/* ANALYSIS OVERLAYS */}
+        {/* ═══════════════════════════════════════════ */}
+        <PayslipAnalysisOverlay
+          isAnalyzing={showSimpleOverlay && !simpleResultRef.current}
+          onComplete={handleSimpleOverlayComplete}
+          mode="simple"
+          hasEquity={hasEquity === "yes"}
+        />
+        <PayslipAnalysisOverlay
+          isAnalyzing={showAdvancedOverlay && !advancedResultRef.current}
+          onComplete={handleAdvancedOverlayComplete}
+          mode="advanced"
+          hasEquity={hasEquity === "yes"}
+        />
 
         {/* ═══════════════════════════════════════════ */}
         {/* RÉSULTAT SIMPLE (1.5 écrans max) */}
