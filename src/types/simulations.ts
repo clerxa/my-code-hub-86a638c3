@@ -366,6 +366,7 @@ export const SimulationType = z.enum([
   'gestion_pilotee',
   'rsu',
   'bspce',
+  'budget',
 ]);
 
 export type SimulationType = z.infer<typeof SimulationType>;
@@ -434,6 +435,7 @@ export const SIMULATION_TYPE_LABELS: Record<SimulationType, string> = {
   gestion_pilotee: 'Gestion Pilotée',
   rsu: 'RSU',
   bspce: 'BSPCE',
+  budget: 'Budget',
 };
 
 export const SIMULATION_TYPE_URLS: Record<SimulationType, { edit: string; view: string }> = {
@@ -450,4 +452,5 @@ export const SIMULATION_TYPE_URLS: Record<SimulationType, { edit: string; view: 
   gestion_pilotee: { edit: '/simulateur-gestion-pilotee', view: '/simulateur-gestion-pilotee' },
   rsu: { edit: '/simulateur-rsu', view: '/simulateur-rsu' },
   bspce: { edit: '/simulateur-bspce', view: '/simulateur-bspce' },
+  budget: { edit: '/employee/budget', view: '/employee/budget' },
 };

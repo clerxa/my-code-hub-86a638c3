@@ -23,6 +23,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
@@ -175,10 +176,18 @@ function BudgetSliderItem({
 /*  Main component                                                     */
 /* ------------------------------------------------------------------ */
 
-export function BudgetSimulator() {
+interface BudgetSimulatorProps {
+  savedData?: Record<string, any>;
+  savedSimId?: string;
+  startInResults?: boolean;
+  onEdit?: () => void;
+}
+
+export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit }: BudgetSimulatorProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(startInResults ? STEPS_CONFIG.length : 0);
   const [salaire, setSalaire] = useState(2600);
   const [autres, setAutres] = useState(400);
   const [values, setValues] = useState<Record<string, number>>(() => {
@@ -194,7 +203,7 @@ export function BudgetSimulator() {
 
   // Validation overlay state
   const [showValidation, setShowValidation] = useState(false);
-  const [validationComplete, setValidationComplete] = useState(false);
+  const [validationComplete, setValidationComplete] = useState(startInResults || false);
 
   // Expert booking
   const [companyId, setCompanyId] = useState<string | null>(null);
@@ -207,12 +216,25 @@ export function BudgetSimulator() {
     }
   }, [user]);
 
+  // Load saved simulation data
+  const [savedLoaded, setSavedLoaded] = useState(false);
+  useEffect(() => {
+    if (savedData && !savedLoaded) {
+      if (savedData.salaire != null) setSalaire(savedData.salaire);
+      if (savedData.autres != null) setAutres(savedData.autres);
+      if (savedData.values) {
+        setValues(prev => ({ ...prev, ...savedData.values }));
+      }
+      setSavedLoaded(true);
+    }
+  }, [savedData, savedLoaded]);
+
   // Financial profile prefill
   const { getPrefillData, hasProfile, isLoading: isProfileLoading } = useFinancialProfilePrefill();
   const [profileApplied, setProfileApplied] = useState(false);
 
   useEffect(() => {
-    if (!isProfileLoading && hasProfile && !profileApplied) {
+    if (!isProfileLoading && hasProfile && !profileApplied && !savedLoaded) {
       const data = getPrefillData();
       const filledMap = new Map<string, string>();
 
@@ -324,9 +346,46 @@ export function BudgetSimulator() {
     setShowValidation(true);
   };
 
-  const handleValidationComplete = () => {
+  const handleValidationComplete = async () => {
     setShowValidation(false);
     setValidationComplete(true);
+    // Auto-save budget simulation
+    await autoSaveBudget();
+  };
+
+  const autoSaveBudget = async () => {
+    if (!user) return;
+    const budgetData = {
+      salaire,
+      autres,
+      values,
+      revenus,
+      totalByCategory,
+      pctByCat,
+      solde,
+    };
+    try {
+      if (savedSimId) {
+        // Update existing
+        await supabase
+          .from('simulations')
+          .update({ data: budgetData as any, updated_at: new Date().toISOString() })
+          .eq('id', savedSimId);
+      } else {
+        // Insert new
+        await supabase.from('simulations').insert({
+          user_id: user.id,
+          type: 'budget',
+          name: `ZENITH - ${new Date().toLocaleDateString('fr-FR')}`,
+          data: budgetData as any,
+        });
+      }
+      // Invalidate cache so BudgetPage picks up the saved sim
+      queryClient.invalidateQueries({ queryKey: ['budget-saved-sim'] });
+      queryClient.invalidateQueries({ queryKey: ['simulations'] });
+    } catch (e) {
+      console.error('Auto-save budget failed:', e);
+    }
   };
 
   /* ---------------------------------------------------------------- */
@@ -586,13 +645,29 @@ export function BudgetSimulator() {
           </Card>
         </motion.div>
 
-        {/* Reset */}
-        <div className="flex justify-center">
+        {/* Edit / Reset */}
+        <div className="flex justify-center gap-3">
           <Button variant="outline" className="gap-2" onClick={() => {
             setCurrentStep(0);
             setValidationComplete(false);
+            onEdit?.();
           }}>
-            <RotateCcw className="h-4 w-4" /> Recommencer la simulation
+            <ArrowLeft className="h-4 w-4" /> Modifier mes données
+          </Button>
+          <Button variant="ghost" className="gap-2 text-muted-foreground" onClick={() => {
+            setCurrentStep(0);
+            setValidationComplete(false);
+            // Reset to defaults
+            setSalaire(2600);
+            setAutres(400);
+            const v: Record<string, number> = {};
+            Object.values(EXPENSE_ITEMS).forEach((items) =>
+              items.forEach((i) => { v[i.key] = i.defaultVal; })
+            );
+            setValues(v);
+            onEdit?.();
+          }}>
+            <RotateCcw className="h-4 w-4" /> Recommencer à zéro
           </Button>
         </div>
       </div>

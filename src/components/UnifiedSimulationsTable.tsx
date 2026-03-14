@@ -157,6 +157,7 @@ export const UnifiedSimulationsTable = ({ userId }: UnifiedSimulationsTableProps
       gestion_pilotee: "bg-teal-500/10 text-teal-500 border-teal-500/20",
       rsu: "bg-rose-500/10 text-rose-500 border-rose-500/20",
       bspce: "bg-violet-500/10 text-violet-500 border-violet-500/20",
+      budget: "bg-lime-500/10 text-lime-500 border-lime-500/20",
     };
     return colors[type] || "bg-muted text-muted-foreground";
   };
