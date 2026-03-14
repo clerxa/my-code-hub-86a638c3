@@ -982,10 +982,10 @@ DÉTECTION via PATTERN (exemples NON EXHAUSTIFS) :
 - Mots-clés : "ESPP", "Contribution ESPP", "Plan d'achat", "Stock purchase", "Achat actions", "Épargne actions"
 - Pattern période : "[Mois] - [Mois] ESPP"
 
-EXPLICATION (ton suggestif) :
-"Il semble que tu participes à un plan d'achat d'actions (ESPP). Ce mois-ci, environ {montant} € semblent prélevés sur ton net et mis de côté.
+EXPLICATION (ton suggestif, vouvoiement) :
+"Il semble que vous participiez à un plan d'achat d'actions (ESPP). Ce mois-ci, environ {montant} € semblent prélevés sur votre net et mis de côté.
 D'après notre analyse, ce type de plan offre généralement une décote d'environ 15% sur le prix du marché.
-Pour optimiser la gestion de tes actions, nous te recommandons de consulter un expert patrimonial."
+Pour optimiser la gestion de vos actions, nous vous recommandons de consulter un expert patrimonial."
 
 E. AVANTAGES EN NATURE AVEC GROSS-UP
 
