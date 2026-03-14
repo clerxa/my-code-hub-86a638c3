@@ -45,7 +45,9 @@ interface AvisData {
   };
   annees: { annee_revenus: number | null; annee_imposition: number | null };
   revenus: Record<string, number | null>;
-  impot: Record<string, number | null>;
+  impot: Record<string, number | null> & {
+    impot_sans_dispositifs?: number | null;
+  };
   prelevement_source: {
     taux_pas_pct: number | null;
     montant_preleve_annee_n: number | null;
@@ -798,6 +800,10 @@ const OcrAvisImposition = () => {
   const totalReductionsCredits =
     (reductions || 0) + (credits || 0) > 0 ? (reductions || 0) + (credits || 0) : null;
 
+  const impotSansDispositifs = data?.impot?.impot_sans_dispositifs ?? (impotBrut != null ? impotBrut : null);
+  const economieDispositifs = impotSansDispositifs != null && impotNet != null ? impotSansDispositifs - impotNet : null;
+  const chargesDeductibles = data?.revenus?.charges_deductibles;
+
   const conseils = data?.explications_pedagogiques?.conseils_optimisation || [];
   const pointsAttention = data?.explications_pedagogiques?.points_attention || [];
 
@@ -1149,7 +1155,186 @@ const OcrAvisImposition = () => {
             </div>
           </div>
 
-          {/* ═══════════════ ZONE 3 — Prélèvement à la source ═══════════════ */}
+          {/* ═══════════════ ZONE 2B — Waterfall : comment se construit votre impôt ═══════════════ */}
+          {revenuImposable != null && impotNet != null && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-foreground">
+                De vos revenus à votre impôt : vue d'ensemble
+              </h3>
+              <Card>
+                <CardContent className="p-6">
+                  {(() => {
+                    const rni = revenuImposable || 0;
+                    const ded = Math.abs(chargesDeductibles || 0) + Math.abs(abattement || 0);
+                    const baseApresDeductions = rni;
+                    const red = (reductions || 0) + (credits || 0);
+                    const impFinal = impotNet || 0;
+                    const impBrut = impotBrut || 0;
+
+                    // Waterfall steps
+                    const steps = [
+                      { label: "Revenu brut global", value: data?.revenus?.revenu_brut_global || (salaires || 0), color: "hsl(var(--primary))", type: "total" as const },
+                      { label: "Déductions", value: -ded, color: "hsl(var(--muted-foreground))", type: "delta" as const },
+                      { label: "Revenu net imposable", value: baseApresDeductions, color: "hsl(var(--secondary))", type: "total" as const },
+                      { label: "Impôt brut (barème)", value: impBrut, color: "hsl(25 95% 53%)", type: "total" as const },
+                      { label: "Réductions & crédits", value: -red, color: "hsl(var(--success))", type: "delta" as const },
+                      { label: "Impôt à payer", value: impFinal, color: "hsl(var(--primary))", type: "total" as const },
+                    ];
+
+                    const maxVal = Math.max(...steps.map(s => Math.abs(s.value)));
+
+                    return (
+                      <div className="space-y-2">
+                        {steps.map((step, i) => {
+                          const widthPct = maxVal > 0 ? (Math.abs(step.value) / maxVal) * 100 : 0;
+                          const isDelta = step.type === "delta";
+                          return (
+                            <div key={i} className="space-y-1">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className={`${isDelta ? "text-muted-foreground italic" : "font-medium text-foreground"}`}>
+                                  {isDelta ? `↳ ${step.label}` : step.label}
+                                </span>
+                                <span className={`font-bold tabular-nums ${isDelta ? (step.value < 0 ? "text-success" : "text-destructive") : "text-foreground"}`}>
+                                  {step.value < 0 ? "− " : ""}{fmtCompact(Math.abs(step.value))}
+                                </span>
+                              </div>
+                              <div className="h-6 rounded-md overflow-hidden bg-muted/30">
+                                <div
+                                  className="h-full rounded-md transition-all duration-700"
+                                  style={{
+                                    width: `${Math.max(widthPct, 1)}%`,
+                                    background: step.color,
+                                    opacity: isDelta ? 0.5 : 0.8,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* ═══════════════ ZONE 2C — Avant/Après dispositifs ═══════════════ */}
+          {impotSansDispositifs != null && impotNet != null && economieDispositifs != null && economieDispositifs > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-foreground">
+                L'impact de vos dispositifs fiscaux
+              </h3>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                    {/* Sans dispositifs */}
+                    <div className="text-center space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Sans vos dispositifs</p>
+                      <div className="mx-auto w-20 rounded-t-lg bg-destructive/20 border-2 border-destructive/30 flex items-end justify-center"
+                        style={{ height: `${Math.min(120, Math.max(40, 120))}px` }}>
+                        <div className="bg-destructive/60 w-full rounded-t-lg" style={{ height: `100%` }} />
+                      </div>
+                      <p className="text-lg font-bold text-destructive tabular-nums">{fmtCompact(impotSansDispositifs)}</p>
+                    </div>
+                    {/* Arrow + economy */}
+                    <div className="text-center space-y-1 flex flex-col items-center justify-center">
+                      <div className="px-4 py-2 rounded-full bg-success/15 border border-success/20">
+                        <p className="text-xs font-medium text-success">Économie réalisée</p>
+                        <p className="text-xl font-bold text-success tabular-nums">− {fmtCompact(economieDispositifs)}</p>
+                      </div>
+                      <ArrowRight className="h-5 w-5 text-success rotate-90 sm:rotate-0" />
+                    </div>
+                    {/* Avec dispositifs */}
+                    <div className="text-center space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Avec vos dispositifs</p>
+                      <div className="mx-auto w-20 rounded-t-lg bg-primary/20 border-2 border-primary/30 flex items-end justify-center"
+                        style={{ height: `${Math.min(120, Math.max(40, 120))}px` }}>
+                        <div className="bg-primary/60 w-full rounded-t-lg"
+                          style={{ height: `${impotSansDispositifs > 0 ? (impotNet / impotSansDispositifs) * 100 : 100}%` }} />
+                      </div>
+                      <p className="text-lg font-bold text-primary tabular-nums">{fmtCompact(impotNet)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* ═══════════════ ZONE 2D — Pédagogie : Déduction vs Réduction vs Crédit ═══════════════ */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <GraduationCap className="h-5 w-5 text-primary" />
+              Comprendre : déduction, réduction et crédit d'impôt
+            </h3>
+            <Card className="bg-gradient-to-br from-muted/30 to-transparent">
+              <CardContent className="p-6 space-y-5">
+                {/* Déduction */}
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-sm font-bold text-secondary">D</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground text-sm">La déduction fiscale</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                      Elle <strong>réduit votre revenu imposable</strong> (la base de calcul), pas directement votre impôt. 
+                      L'économie dépend de votre tranche : avec un TMI à 30 %, une déduction de 1 000 € vous fait économiser 300 € d'impôt.
+                      {chargesDeductibles != null && Math.abs(chargesDeductibles) > 0 && (
+                        <span className="block mt-1 text-secondary font-medium">
+                          → Sur votre avis : {fmtCompact(Math.abs(chargesDeductibles))} de charges déductibles identifiées.
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Réduction */}
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-sm font-bold text-accent">R</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground text-sm">La réduction d'impôt</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                      Elle <strong>se soustrait directement de votre impôt</strong>. Mais si elle dépasse le montant d'impôt dû, la différence est perdue — on ne vous la rembourse pas.
+                      {reductions != null && reductions > 0 && (
+                        <span className="block mt-1 text-accent font-medium">
+                          → Sur votre avis : {fmtCompact(reductions)} de réductions d'impôt.
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Crédit */}
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-sm font-bold text-success">C</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground text-sm">Le crédit d'impôt</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                      Comme la réduction, il <strong>diminue directement votre impôt</strong>. Mais contrairement à elle, si le crédit dépasse votre impôt, <strong>le surplus vous est remboursé</strong>. C'est le mécanisme le plus avantageux.
+                      {credits != null && credits > 0 && (
+                        <span className="block mt-1 text-success font-medium">
+                          → Sur votre avis : {fmtCompact(credits)} de crédits d'impôt.
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Summary */}
+                <div className="bg-background border rounded-xl p-4 mt-2">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    <strong className="text-foreground">En résumé :</strong> la déduction agit en amont (sur le revenu), 
+                    la réduction et le crédit agissent en aval (sur l'impôt). Le crédit d'impôt est le seul mécanisme remboursable si vous ne payez pas d'impôt.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-foreground">
               Votre prélèvement à la source

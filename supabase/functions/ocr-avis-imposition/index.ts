@@ -62,6 +62,7 @@ Retourne UNIQUEMENT un objet JSON valide, sans markdown, sans backticks.
     "contributions_sociales_revenus_capital": null,
     "taxe_habitation": null,
     "impot_net_total": null,
+    "impot_sans_dispositifs": null,
     "total_a_payer": null,
     "mensualisation_ou_prelevement": null
   },
@@ -104,6 +105,15 @@ Règles importantes :
 - points_attention : alertes importantes
 - Tous les montants en euros, nombres décimaux
 - confidence : "high" si document complet et lisible, "medium" si partiellement lisible, "low" si illisible
+
+RÈGLE CRITIQUE — CRÉDITS D'IMPÔT :
+- Pour le champ "credits_impot", tu dois IMPÉRATIVEMENT prendre le montant RÉELLEMENT RETENU par l'administration (la dernière colonne du tableau des réductions/crédits), et NON le montant déclaré brut.
+- Exemple : pour la garde d'enfants, le montant déclaré peut être 3200 € mais le crédit d'impôt retenu est 50% soit 1600 €. C'est 1600 € qu'il faut mettre dans "credits_impot".
+- Même logique pour les réductions d'impôt : prendre le montant effectivement retenu, pas le montant déclaré.
+
+RÈGLE CRITIQUE — CALCUL DE L'IMPÔT SANS DISPOSITIFS :
+- Calcule et renseigne le champ "impot_sans_dispositifs" : c'est l'impôt brut progressif AVANT toute réduction et crédit d'impôt. C'est le montant que le contribuable aurait payé s'il n'avait bénéficié d'aucun avantage fiscal (réductions + crédits).
+- Ce champ permet de visualiser l'économie réelle apportée par les dispositifs fiscaux.
 
 RÈGLE CRITIQUE — PLAFONDS PER (Plan d'Épargne Retraite) :
 - Sur chaque avis d'imposition, cherche OBLIGATOIREMENT les plafonds de déduction épargne retraite (souvent indiqués en bas ou en page 2 sous "Plafond de déduction épargne retraite").
