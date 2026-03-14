@@ -72,6 +72,14 @@ interface AvisData {
     conseils_optimisation: (string | Record<string, unknown>)[];
     points_attention: (string | Record<string, unknown>)[];
   };
+  niches_fiscales?: {
+    total_niches: number | null;
+    plafond_atteint: boolean;
+    girardin_detecte: boolean;
+    plafond_applicable: number;
+    marge_restante: number | null;
+    cas_detecte: string;
+  };
   meta: {
     type_document: string;
     confidence: string;
