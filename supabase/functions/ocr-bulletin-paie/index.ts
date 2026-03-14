@@ -36,7 +36,7 @@ RÈGLES GÉNÉRALES DE DÉTECTION
 4. CAS EDGE / LIGNES INCONNUES
    - Si tu ne reconnais PAS une ligne → génère un point_attention
    - Explique ce que ça POURRAIT être (hypothèses basées sur contexte)
-   - Invite l'utilisateur à vérifier avec RH
+   - Invite l'utilisateur à vérifier avec son service RH
 
 5. GÉNÉRICITÉ TEMPORELLE
    - JAMAIS de dates en dur (pas d'année spécifique)
