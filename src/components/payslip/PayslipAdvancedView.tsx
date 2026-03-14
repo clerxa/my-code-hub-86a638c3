@@ -130,6 +130,20 @@ export default function PayslipAdvancedView({ data, onReset }: PayslipAdvancedVi
             amount={`− ${fmtShort(cotSal)}`}
             dimmed
           />
+          {rembLines.map((line, i) => (
+            <SalaryLine
+              key={i}
+              label={`${line.sign === "+" ? "+" : "−"} ${line.label}`}
+              amount={`${line.sign === "+" ? "+" : "−"} ${fmtShort(Math.abs(line.montant))}`}
+              dimmed={line.sign === "-"}
+            />
+          ))}
+          {rembLines.length > 0 && netAvantImpot && (
+            <>
+              <div className="border-t border-dashed border-primary/30 my-2" />
+              <SalaryLine label="= Net avant impôt" amount={fmtShort(netAvantImpot)} emphasized />
+            </>
+          )}
           <SalaryLine
             label={`− Impôt (PAS ${fmtPct(tauxPas)})`}
             amount={`− ${fmtShort(Math.abs(pas || 0))}`}
