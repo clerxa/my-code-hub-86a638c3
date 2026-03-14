@@ -47,13 +47,13 @@ export default function PayslipProgressiveView({ data, onActionClick }: PayslipP
   const cotPct = getCotisationsPct(d);
   const cotisationsGrouped = useMemo(() => getCotisationsGrouped(d), [d]);
 
-  // Points d'attention & actions from backend (already sorted by priorite)
+  // Points d'attention & actions — normalize to handle both string[] and object[]
   const points = useMemo(
-    () => [...(d.points_attention || [])].sort((a, b) => a.priorite - b.priorite).slice(0, 5),
+    () => normalizePointsAttention(d.points_attention).sort((a, b) => a.priorite - b.priorite).slice(0, 5),
     [d.points_attention]
   );
   const actions = useMemo(
-    () => [...(d.actions_recommandees || [])].sort((a, b) => a.priorite - b.priorite).slice(0, 3),
+    () => normalizeActions(d.actions_recommandees).sort((a, b) => a.priorite - b.priorite).slice(0, 3),
     [d.actions_recommandees]
   );
 
