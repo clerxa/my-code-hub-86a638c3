@@ -644,6 +644,9 @@ const OcrAvisImposition = () => {
   const reset = () => {
     setData(null);
     setError(null);
+    setShowOverlay(false);
+    setApiDone(false);
+    setLoading(false);
   };
 
   // ─── Computed values ───
