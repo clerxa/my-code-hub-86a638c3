@@ -969,12 +969,12 @@ Vérification : montant ligne 2 / (ligne 1 + ligne 2) ≈ 45% (± 5%)
 
 → variante = "sell_to_cover_45pct"
 
-EXPLICATION (ton suggestif) :
+EXPLICATION (ton suggestif, vouvoiement) :
 "Il semble qu'un lot important de RSU ({nb_actions} actions, environ {gain_total} €) soit devenu acquis ce mois-ci.
 
-D'après notre analyse, le mécanisme Sell-To-Cover semble appliqué : environ 45% des actions (soit {nb_actions_vendues} actions d'une valeur d'environ {valeur_vendues} €) semblent avoir été automatiquement vendues pour couvrir les cotisations sociales et une partie de l'impôt. Les 55% restants ({nb_actions_conservees} actions, environ {valeur_conservees} €) semblent conservées dans ton portefeuille.
+D'après notre analyse, le mécanisme Sell-To-Cover semble appliqué : environ 45% des actions (soit {nb_actions_vendues} actions d'une valeur d'environ {valeur_vendues} €) semblent avoir été automatiquement vendues pour couvrir les cotisations sociales et une partie de l'impôt. Les 55% restants ({nb_actions_conservees} actions, environ {valeur_conservees} €) semblent conservés dans votre portefeuille.
 
-Pour une stratégie optimale concernant tes actions conservées, nous te recommandons de consulter un expert patrimonial."
+Pour une stratégie optimale concernant vos actions conservées, nous vous recommandons de consulter un expert patrimonial."
 
 D. ESPP (EMPLOYEE STOCK PURCHASE PLAN)
 
