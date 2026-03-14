@@ -314,8 +314,8 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
 
   return (
     <div className="space-y-6">
-      {/* Stock ticker */}
-      {portfolio.stockSummary && <StockTicker portfolio={portfolio} />}
+      {/* Stock tickers */}
+      {portfolio.tickers.length > 0 && <StockTickers portfolio={portfolio} />}
 
       {/* Summary */}
       <SummaryCards portfolio={portfolio} />
