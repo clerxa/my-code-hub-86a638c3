@@ -1480,16 +1480,22 @@ const OcrAvisImposition = () => {
             </div>
 
             {/* ── Mini-simulateur PER interactif ── */}
-            {revenuImposable != null && impotNet != null && data.plafonds_per?.plafond_restant != null && data.plafonds_per.plafond_restant > 0 && (
-              <PerSimulatorSlider
-                revenuImposable={revenuImposable}
-                nombreParts={nombreParts}
-                impotNetActuel={impotNet}
-                plafondRestant={data.plafonds_per.plafond_restant}
-                tmi={computedTmi}
-                reductionsCredits={(reductions || 0) + (credits || 0)}
-              />
-            )}
+            {revenuImposable != null && impotNet != null && (() => {
+              const plafondRestant = data.plafonds_per?.plafond_restant
+                ?? (data.plafonds_per?.plafond_declarant_1 != null
+                  ? (data.plafonds_per.plafond_declarant_1 + (data.plafonds_per.plafond_declarant_2 || 0)) - (data.plafonds_per.montant_verse_per || 0)
+                  : null);
+              return plafondRestant != null && plafondRestant > 0 ? (
+                <PerSimulatorSlider
+                  revenuImposable={revenuImposable}
+                  nombreParts={nombreParts}
+                  impotNetActuel={impotNet}
+                  plafondRestant={plafondRestant}
+                  tmi={computedTmi}
+                  reductionsCredits={(reductions || 0) + (credits || 0)}
+                />
+              ) : null;
+            })()}
 
             {/* ── Autres conseils d'optimisation ── */}
             {conseils.length > 0 && (
