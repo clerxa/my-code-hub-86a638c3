@@ -364,6 +364,57 @@ function BrutNetModal({ data }: { data: any }) {
 
   const cotPct = brut && cotSal ? Math.round((cotSal / brut) * 100) : null;
 
+  // If we lack detailed data, show a text-only explanation
+  if (!brut && !netPaye) {
+    return (
+      <div className="space-y-4">
+        <p className="text-muted-foreground">
+          Ton bulletin de paie suit toujours le même chemin pour arriver au montant versé sur ton compte :
+        </p>
+        <div className="space-y-3">
+          <div className="flex items-start gap-3">
+            <span className="text-lg">1️⃣</span>
+            <div>
+              <div className="font-semibold text-foreground">Salaire brut</div>
+              <p className="text-muted-foreground text-sm">C'est le montant total avant toute déduction : salaire de base + primes + heures sup + avantages.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-lg">2️⃣</span>
+            <div>
+              <div className="font-semibold text-foreground">− Cotisations sociales (~22-25%)</div>
+              <p className="text-muted-foreground text-sm">Retraite, santé, chômage, CSG/CRDS. Ces cotisations financent ta protection sociale.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-lg">3️⃣</span>
+            <div>
+              <div className="font-semibold text-foreground">= Net avant impôt</div>
+              <p className="text-muted-foreground text-sm">Ce que tu gagnes après cotisations, avant l'impôt sur le revenu.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-lg">4️⃣</span>
+            <div>
+              <div className="font-semibold text-foreground">− Prélèvement à la source (PAS)</div>
+              <p className="text-muted-foreground text-sm">L'impôt sur le revenu prélevé chaque mois. Le taux dépend de tes revenus de l'année précédente.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-lg">5️⃣</span>
+            <div>
+              <div className="font-semibold text-foreground">= Net payé 💰</div>
+              <p className="text-muted-foreground text-sm">Le montant réellement versé sur ton compte bancaire.</p>
+            </div>
+          </div>
+        </div>
+        <InfoBox type="info">
+          💡 Lance l'analyse avancée pour voir la décomposition exacte avec les montants de ton bulletin.
+        </InfoBox>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Visual flow */}
