@@ -26,17 +26,23 @@ export interface PortfolioPlan {
   vestingEndDate?: string; // last vesting date
 }
 
+export interface TickerSummary {
+  ticker: string;
+  summary: StockSummary;
+  fxRate: number;
+  priceEur: number;
+}
+
 export interface PortfolioSummary {
   plans: PortfolioPlan[];
-  stockSummary: StockSummary | null;
-  fxRate: number; // EUR/USD rate (1 if EUR)
-  currentPriceEur: number | null;
+  tickers: TickerSummary[];
   totalShares: number;
   totalValueEur: number | null;
   totalCostBasisEur: number;
   plusValueLatente: number | null;
   isLoading: boolean;
   hasPlans: boolean;
+  getPriceEur: (ticker: string) => number | null;
 }
 
 function extractPlans(simulations: Array<{ id: string; name: string | null; type: string; data: Json; created_at: string }>): PortfolioPlan[] {
@@ -135,7 +141,7 @@ function extractPlans(simulations: Array<{ id: string; name: string | null; type
 
 export function useVegaPortfolio(): PortfolioSummary {
   const { user } = useAuth();
-  const { ticker, loading: tickerLoading } = useCompanyTicker();
+  const { ticker: companyTicker, loading: tickerLoading } = useCompanyTicker();
 
   // 1. Fetch all equity simulations
   const { data: simulations, isLoading: simsLoading } = useQuery({
@@ -154,49 +160,73 @@ export function useVegaPortfolio(): PortfolioSummary {
     enabled: !!user,
   });
 
-  // 2. Fetch live stock price
-  const { data: stockSummary, isLoading: stockLoading } = useQuery({
-    queryKey: ['vega-stock-summary', ticker],
-    queryFn: () => fetchStockSummary(ticker!),
-    enabled: !!ticker && !tickerLoading,
-    staleTime: 5 * 60 * 1000, // 5 min cache
+  const plans = extractPlans(simulations || []);
+  const hasPlans = plans.length > 0;
+
+  // 2. Collect unique tickers from plans + company ticker
+  const uniqueTickers = Array.from(new Set(
+    [companyTicker, ...plans.map(p => p.ticker)]
+      .filter((t): t is string => !!t && t.length > 0)
+      .map(t => t.toUpperCase())
+  ));
+
+  // 3. Fetch stock summaries for ALL unique tickers
+  const { data: stockSummaries = {}, isLoading: stockLoading } = useQuery({
+    queryKey: ['vega-stock-summaries', uniqueTickers.join(',')],
+    queryFn: async () => {
+      const results: Record<string, StockSummary> = {};
+      await Promise.all(
+        uniqueTickers.map(async (t) => {
+          const summary = await fetchStockSummary(t);
+          if (summary) results[t] = summary;
+        })
+      );
+      return results;
+    },
+    enabled: uniqueTickers.length > 0 && !tickerLoading && !simsLoading,
+    staleTime: 5 * 60 * 1000,
   });
 
-  // 3. Fetch FX rate if needed
-  const needsFx = stockSummary?.currency === 'USD';
+  // 4. Fetch FX rate if any ticker is in USD
+  const hasUsd = Object.values(stockSummaries).some(s => s.currency === 'USD');
   const today = new Date().toISOString().split('T')[0];
   const { data: fxData } = useQuery({
     queryKey: ['vega-fx-rate', today],
     queryFn: () => fetchFxRate(today),
-    enabled: needsFx,
+    enabled: hasUsd,
     staleTime: 60 * 60 * 1000,
   });
+  const usdEurRate = fxData?.rate || 1;
 
-  const fxRate = needsFx ? (fxData?.rate || 1) : 1;
-  const plans = extractPlans(simulations || []);
-  const hasPlans = plans.length > 0;
+  // Build ticker summaries
+  const tickers: TickerSummary[] = uniqueTickers
+    .filter(t => stockSummaries[t])
+    .map(t => {
+      const s = stockSummaries[t]!;
+      const fx = s.currency === 'USD' ? usdEurRate : 1;
+      return {
+        ticker: t,
+        summary: s,
+        fxRate: fx,
+        priceEur: (s.currentPrice || 0) / fx,
+      };
+    });
 
-  // Current price in EUR
-  const currentPriceEur = stockSummary?.currentPrice
-    ? stockSummary.currentPrice / fxRate
+  const getPriceEur = (ticker: string): number | null => {
+    const t = tickers.find(ts => ts.ticker === ticker.toUpperCase());
+    return t ? t.priceEur : null;
+  };
+
+  // 5. Compute portfolio totals
+  const equityPlans = plans.filter(p => p.type !== 'bspce' && p.ticker);
+  const totalShares = equityPlans.reduce((sum, p) => sum + p.nbActions, 0);
+
+  const allPricesAvailable = equityPlans.length > 0 && equityPlans.every(p => getPriceEur(p.ticker) !== null);
+  const totalValueEur = allPricesAvailable
+    ? equityPlans.reduce((sum, p) => sum + p.nbActions * (getPriceEur(p.ticker) || 0), 0)
     : null;
 
-  // Only count shares that have a matching ticker
-  const plansWithTicker = ticker
-    ? plans.filter(p => p.ticker.toUpperCase() === ticker.toUpperCase() || p.type === 'bspce')
-    : plans;
-
-  const totalShares = plansWithTicker
-    .filter(p => p.type !== 'bspce')
-    .reduce((sum, p) => sum + p.nbActions, 0);
-
-  const totalValueEur = currentPriceEur !== null
-    ? totalShares * currentPriceEur
-    : null;
-
-  const totalCostBasisEur = plansWithTicker
-    .filter(p => p.type !== 'bspce')
-    .reduce((sum, p) => sum + p.prixAcquisitionEur, 0);
+  const totalCostBasisEur = equityPlans.reduce((sum, p) => sum + p.prixAcquisitionEur, 0);
 
   const plusValueLatente = totalValueEur !== null
     ? totalValueEur - totalCostBasisEur
@@ -206,14 +236,13 @@ export function useVegaPortfolio(): PortfolioSummary {
 
   return {
     plans,
-    stockSummary,
-    fxRate,
-    currentPriceEur,
+    tickers,
     totalShares,
     totalValueEur,
     totalCostBasisEur,
     plusValueLatente,
     isLoading,
     hasPlans,
+    getPriceEur,
   };
 }

@@ -38,12 +38,8 @@ interface VegaPortfolioDashboardProps {
   portfolio: PortfolioSummary;
 }
 
-function StockTicker({ portfolio }: { portfolio: PortfolioSummary }) {
-  const s = portfolio.stockSummary;
-  if (!s) return null;
-
-  const change = s.changePercent ?? 0;
-  const isUp = change >= 0;
+function StockTickers({ portfolio }: { portfolio: PortfolioSummary }) {
+  if (portfolio.tickers.length === 0) return null;
 
   return (
     <motion.div
@@ -54,25 +50,29 @@ function StockTicker({ portfolio }: { portfolio: PortfolioSummary }) {
       <Card className="border-border/40 bg-card/80 backdrop-blur-sm overflow-hidden">
         <div className="h-0.5 bg-gradient-to-r from-primary via-secondary to-accent" />
         <CardContent className="py-4 px-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Activity className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Cours de l'action</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-lg font-bold font-mono text-foreground">
-                    {fmtCurrencyPrecise(s.currentPrice || 0)}
-                  </span>
-                  <Badge variant="outline" className="font-mono text-[10px]">{s.ticker}</Badge>
+          <p className="text-xs text-muted-foreground mb-3">Cours de l'action</p>
+          <div className="flex flex-wrap gap-4">
+            {portfolio.tickers.map((t) => {
+              const change = t.summary.changePercent ?? 0;
+              const isUp = change >= 0;
+              return (
+                <div key={t.ticker} className="flex items-center gap-3 min-w-[200px]">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Activity className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg font-bold font-mono text-foreground">
+                      {fmtCurrencyPrecise(t.priceEur)}
+                    </span>
+                    <Badge variant="outline" className="font-mono text-[10px]">{t.ticker}</Badge>
+                  </div>
+                  <div className={`flex items-center gap-0.5 text-xs font-medium ml-auto ${isUp ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                    {isUp ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
+                    {change > 0 ? '+' : ''}{change.toFixed(2)}%
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className={`flex items-center gap-1 text-sm font-medium ${isUp ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
-              {isUp ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-              {change > 0 ? '+' : ''}{change.toFixed(2)}%
-            </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -194,10 +194,11 @@ function VestingStatus({ plan }: { plan: PortfolioPlan }) {
   );
 }
 
-function PlanCard({ plan, currentPriceEur }: { plan: PortfolioPlan; currentPriceEur: number | null }) {
+function PlanCard({ plan, getPriceEur }: { plan: PortfolioPlan; getPriceEur: (ticker: string) => number | null }) {
   const navigate = useNavigate();
-  const currentValue = currentPriceEur !== null && plan.type !== 'bspce'
-    ? plan.nbActions * currentPriceEur
+  const priceEur = plan.ticker ? getPriceEur(plan.ticker) : null;
+  const currentValue = priceEur !== null && plan.type !== 'bspce'
+    ? plan.nbActions * priceEur
     : null;
   const pv = currentValue !== null ? currentValue - plan.prixAcquisitionEur : null;
 
@@ -314,8 +315,8 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
 
   return (
     <div className="space-y-6">
-      {/* Stock ticker */}
-      {portfolio.stockSummary && <StockTicker portfolio={portfolio} />}
+      {/* Stock tickers */}
+      {portfolio.tickers.length > 0 && <StockTickers portfolio={portfolio} />}
 
       {/* Summary */}
       <SummaryCards portfolio={portfolio} />
@@ -349,7 +350,7 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {plans.map(plan => (
-              <PlanCard key={plan.id} plan={plan} currentPriceEur={portfolio.currentPriceEur} />
+              <PlanCard key={plan.id} plan={plan} getPriceEur={portfolio.getPriceEur} />
             ))}
           </div>
         </motion.div>
