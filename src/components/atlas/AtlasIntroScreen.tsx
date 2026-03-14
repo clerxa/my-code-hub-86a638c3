@@ -16,7 +16,7 @@ const STEPS = [
     subtitle: 'Comprendre chaque ligne de votre fiscalité',
     description:
       "Votre avis d'imposition contient une mine d'informations, mais il est souvent difficile à lire. ATLAS analyse automatiquement votre document et en extrait les données clés : revenus imposables, nombre de parts, tranches marginales, crédits et réductions d'impôts.",
-    tip: "Aucune donnée n'est stockée sur nos serveurs. L'analyse est réalisée en temps réel et reste strictement confidentielle.",
+    tip: "L'analyse est sécurisée et vos données sont protégées conformément à notre politique de confidentialité.",
     visual: (
       <div className="flex items-center justify-center gap-4">
         {[
