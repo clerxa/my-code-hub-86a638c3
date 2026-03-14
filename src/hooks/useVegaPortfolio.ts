@@ -26,17 +26,23 @@ export interface PortfolioPlan {
   vestingEndDate?: string; // last vesting date
 }
 
+export interface TickerSummary {
+  ticker: string;
+  summary: StockSummary;
+  fxRate: number;
+  priceEur: number;
+}
+
 export interface PortfolioSummary {
   plans: PortfolioPlan[];
-  stockSummary: StockSummary | null;
-  fxRate: number; // EUR/USD rate (1 if EUR)
-  currentPriceEur: number | null;
+  tickers: TickerSummary[];
   totalShares: number;
   totalValueEur: number | null;
   totalCostBasisEur: number;
   plusValueLatente: number | null;
   isLoading: boolean;
   hasPlans: boolean;
+  getPriceEur: (ticker: string) => number | null;
 }
 
 function extractPlans(simulations: Array<{ id: string; name: string | null; type: string; data: Json; created_at: string }>): PortfolioPlan[] {
