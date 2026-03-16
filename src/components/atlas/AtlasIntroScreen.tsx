@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, ScanSearch, Lightbulb, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer';
 
 const STEPS = [
   {
