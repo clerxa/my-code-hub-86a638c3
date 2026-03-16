@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, ScanSearch, Lightbulb, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer';
 
 const STEPS = [
   {
@@ -221,9 +222,7 @@ export function AtlasIntroScreen({ onStart }: AtlasIntroScreenProps) {
       </div>
 
       {/* Disclaimer */}
-      <p className="text-xs text-muted-foreground text-center italic leading-relaxed max-w-2xl mx-auto">
-        ATLAS by FinCare est un outil d'analyse pédagogique. Les résultats sont indicatifs et ne constituent pas un conseil fiscal personnalisé.
-      </p>
+      <SimulatorDisclaimer />
     </div>
   );
 }

@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PerSimulatorSlider } from "./ocr/PerSimulatorSlider";
+import { SimulatorDisclaimer } from "./simulators/SimulatorDisclaimer";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1612,12 +1613,15 @@ const OcrAvisImposition = () => {
 
             {/* Footer disclaimer */}
             <div className="bg-muted/30 rounded-xl px-4 py-3">
-              <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-                Ces informations sont extraites automatiquement depuis votre document. MyFinCare ne fournit pas de conseil fiscal. Pour toute décision patrimoniale, rapprochez-vous d'un conseiller agréé.
-              </p>
+              <SimulatorDisclaimer />
             </div>
           </div>
         </AtlasResultsStepper>
+      )}
+
+      {/* Disclaimer on upload screen too */}
+      {!data && !loading && !error && (
+        <SimulatorDisclaimer />
       )}
     </div>
   );
