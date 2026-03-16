@@ -185,6 +185,7 @@ export default function VegaPage() {
                           durationMinutes={simulator.duration_minutes}
                           visibilityStatus={simulator.visibility_status as any}
                           simulationsCount={count}
+                          buttonLabel="Ajouter un plan"
                         />
                       );
                     })}
@@ -350,6 +351,7 @@ function LandingContent({
                   durationMinutes={simulator.duration_minutes}
                   visibilityStatus={simulator.visibility_status as any}
                   simulationsCount={count}
+                  buttonLabel="Ajouter un plan"
                 />
               );
             })}

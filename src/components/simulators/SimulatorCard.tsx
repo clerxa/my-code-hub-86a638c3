@@ -15,6 +15,7 @@ interface SimulatorCardProps {
   durationMinutes: number;
   visibilityStatus?: 'visible' | 'disabled' | 'hidden';
   simulationsCount?: number;
+  buttonLabel?: string;
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -31,7 +32,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 
 type AccessState = 'accessible' | 'not_allowed' | 'quota_exhausted' | 'partner';
 
-export function SimulatorCard({ name, description, icon, route, featureKey, durationMinutes, visibilityStatus = 'visible', simulationsCount = 0 }: SimulatorCardProps) {
+export function SimulatorCard({ name, description, icon, route, featureKey, durationMinutes, visibilityStatus = 'visible', simulationsCount = 0, buttonLabel }: SimulatorCardProps) {
   const navigate = useNavigate();
   const IconComponent = iconMap[icon] || Calculator;
   
@@ -80,7 +81,7 @@ export function SimulatorCard({ name, description, icon, route, featureKey, dura
     if (isDisabled) return 'Bientôt disponible';
     if (accessState === 'quota_exhausted') return 'Devenir partenaire';
     if (accessState === 'not_allowed') return 'Réservé aux partenaires';
-    return 'Lancer le simulateur';
+    return buttonLabel || 'Lancer le simulateur';
   };
 
   const getLockedBadge = () => {
