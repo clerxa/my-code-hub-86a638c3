@@ -32,7 +32,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 
 type AccessState = 'accessible' | 'not_allowed' | 'quota_exhausted' | 'partner';
 
-export function SimulatorCard({ name, description, icon, route, featureKey, durationMinutes, visibilityStatus = 'visible', simulationsCount = 0 }: SimulatorCardProps) {
+export function SimulatorCard({ name, description, icon, route, featureKey, durationMinutes, visibilityStatus = 'visible', simulationsCount = 0, buttonLabel }: SimulatorCardProps) {
   const navigate = useNavigate();
   const IconComponent = iconMap[icon] || Calculator;
   
