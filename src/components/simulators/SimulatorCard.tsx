@@ -15,6 +15,7 @@ interface SimulatorCardProps {
   durationMinutes: number;
   visibilityStatus?: 'visible' | 'disabled' | 'hidden';
   simulationsCount?: number;
+  buttonLabel?: string;
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
