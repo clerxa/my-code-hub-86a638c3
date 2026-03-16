@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PerSimulatorSlider } from "./ocr/PerSimulatorSlider";
+import { SimulatorDisclaimer } from "./simulators/SimulatorDisclaimer";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
