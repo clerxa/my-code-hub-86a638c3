@@ -81,7 +81,7 @@ export function SimulatorCard({ name, description, icon, route, featureKey, dura
     if (isDisabled) return 'Bientôt disponible';
     if (accessState === 'quota_exhausted') return 'Devenir partenaire';
     if (accessState === 'not_allowed') return 'Réservé aux partenaires';
-    return 'Lancer le simulateur';
+    return buttonLabel || 'Lancer le simulateur';
   };
 
   const getLockedBadge = () => {
