@@ -607,6 +607,7 @@ const OcrAvisImposition = () => {
   const [history, setHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [certificationAccepted, setCertificationAccepted] = useState(false);
 
   const toDbNumber = useCallback((value: unknown): number | null => {
     if (value === null || value === undefined || value === "") return null;
