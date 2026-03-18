@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { 
   ArrowLeft, ArrowRight, User, Mail, Phone, Calendar, Users, Building2, Briefcase,
   Palette, Euro, Save, X, Lock, Wallet, Home, PiggyBank, Percent, Target,
-  Calculator, Clock, Shield, Sparkles, Info, type LucideIcon, LayoutDashboard
+  Calculator, Clock, Shield, Sparkles, Info, type LucideIcon
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";

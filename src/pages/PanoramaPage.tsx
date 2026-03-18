@@ -235,7 +235,7 @@ export default function PanoramaPage() {
             ) : (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">Non évalué</p>
-                <Button size="sm" variant="outline" className="gap-1" onClick={() => navigate("/employee/profile")}>
+                <Button size="sm" variant="outline" className="gap-1" onClick={() => navigate("/risk-profile")}>
                   Évaluer <ArrowRight className="h-3 w-3" />
                 </Button>
               </div>
