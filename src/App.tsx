@@ -534,6 +534,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/panorama/audit"
+              element={
+                <ProtectedRoute>
+                  <PanoramaAuditPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Routes parcours de formation - Modules éducatifs */}
             <Route
