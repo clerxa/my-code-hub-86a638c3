@@ -9,7 +9,7 @@ import { EmployeeLayout } from "@/components/employee/EmployeeLayout";
 import { FinancialDashboard } from "@/components/employee/FinancialDashboard";
 import { useUserFinancialProfile } from "@/hooks/useUserFinancialProfile";
 import { useLatestEpargnePrecaution } from "@/hooks/useLatestEpargnePrecaution";
-import { FIELD_TO_TAB } from "@/pages/EmployeeProfile";
+import { AUDIT_FIELD_TO_TAB } from "@/pages/PanoramaAuditPage";
 import { AlertTriangle, ArrowRight, TrendingUp, FileText, Compass, UserCheck, Calendar, RefreshCw } from "lucide-react";
 
 const formatEuros = (val: number | null | undefined): string => {
@@ -60,7 +60,7 @@ export default function PanoramaPage() {
   const formData = financialProfile ?? {};
 
   const handleNavigateToTab = (tab: string) => {
-    navigate(`/employee/profile?tab=${tab}`);
+    navigate(`/panorama/audit?tab=${tab}`);
   };
 
   if (error) {
@@ -125,8 +125,8 @@ export default function PanoramaPage() {
           </div>
           <Progress value={completeness_score} className="h-2" />
           {completeness_score < 100 && (
-            <Button size="sm" variant="outline" className="gap-1 mt-2" onClick={() => navigate("/employee/profile")}>
-              Compléter mon profil <ArrowRight className="h-3 w-3" />
+            <Button size="sm" variant="outline" className="gap-1 mt-2" onClick={() => navigate("/panorama/audit")}>
+              Compléter mon audit patrimonial <ArrowRight className="h-3 w-3" />
             </Button>
           )}
         </div>
@@ -284,7 +284,7 @@ export default function PanoramaPage() {
             completeness={financialCompleteness}
             missingFields={missingFields}
             missingFieldsDetailed={missingFieldsDetailed}
-            fieldToTabMapping={FIELD_TO_TAB}
+            fieldToTabMapping={AUDIT_FIELD_TO_TAB}
             onNavigateToTab={handleNavigateToTab}
             epargnePrecautionData={epargnePrecautionData}
           />
