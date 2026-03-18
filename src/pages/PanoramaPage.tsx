@@ -284,7 +284,7 @@ export default function PanoramaPage() {
             completeness={financialCompleteness}
             missingFields={missingFields}
             missingFieldsDetailed={missingFieldsDetailed}
-            fieldToTabMapping={FIELD_TO_TAB}
+            fieldToTabMapping={AUDIT_FIELD_TO_TAB}
             onNavigateToTab={handleNavigateToTab}
             epargnePrecautionData={epargnePrecautionData}
           />
