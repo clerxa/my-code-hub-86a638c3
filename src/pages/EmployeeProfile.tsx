@@ -74,7 +74,6 @@ interface FinancialProfileSettings {
 }
 
 const tabs = [
-  { id: "dashboard", label: "Synthèse", icon: LayoutDashboard },
   { id: "personal", label: "Identité", icon: User },
   { id: "situation", label: "Situation", icon: Users },
   { id: "professional", label: "Professionnel", icon: Briefcase },
