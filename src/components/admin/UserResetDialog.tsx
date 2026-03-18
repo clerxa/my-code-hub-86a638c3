@@ -1,15 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { RotateCcw, Trophy, GraduationCap, Calculator, Calendar, AlertTriangle } from "lucide-react";
+import { RotateCcw, AlertTriangle } from "lucide-react";
 
 interface UserResetDialogProps {
   open: boolean;
@@ -33,13 +23,6 @@ interface UserResetDialogProps {
   bulkUserIds?: string[];
 }
 
-interface ResetOptions {
-  resetPoints: boolean;
-  resetModules: boolean;
-  resetSimulations: boolean;
-  resetAppointments: boolean;
-}
-
 export function UserResetDialog({
   open,
   onOpenChange,
@@ -48,270 +31,88 @@ export function UserResetDialog({
   onReset,
   bulkUserIds,
 }: UserResetDialogProps) {
-  const [options, setOptions] = useState<ResetOptions>({
-    resetPoints: false,
-    resetModules: false,
-    resetSimulations: false,
-    resetAppointments: false,
-  });
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
 
   const isBulk = bulkUserIds && bulkUserIds.length > 1;
   const userIds = isBulk ? bulkUserIds : [userId];
 
   const handleReset = async () => {
-    if (!Object.values(options).some(Boolean)) {
-      toast.error("Sélectionnez au moins une option à réinitialiser");
-      return;
-    }
-
     setResetting(true);
     try {
-      let hasError = false;
+      const { data, error } = await supabase.functions.invoke("reset-user-data", {
+        body: { userIds },
+      });
 
-      if (options.resetPoints) {
-        const { error: pointsError } = await supabase
-          .from('profiles')
-          .update({ total_points: 0 })
-          .in('id', userIds);
-        
-        if (pointsError) {
-          console.error('Error resetting points:', pointsError);
-          hasError = true;
-        }
+      if (error) throw error;
 
-        // Also reset daily logins
-        const { error: loginsError } = await supabase
-          .from('daily_logins')
-          .delete()
-          .in('user_id', userIds);
-        
-        if (loginsError) {
-          console.error('Error resetting daily logins:', loginsError);
-        }
-      }
-
-      if (options.resetModules) {
-        const { error: modulesError } = await supabase
-          .from('profiles')
-          .update({ completed_modules: [] })
-          .in('id', userIds);
-        
-        if (modulesError) {
-          console.error('Error resetting completed modules:', modulesError);
-          hasError = true;
-        }
-
-        // Delete module validations
-        const { error: validationsError } = await supabase
-          .from('module_validations')
-          .delete()
-          .in('user_id', userIds);
-        
-        if (validationsError) {
-          console.error('Error deleting module validations:', validationsError);
-        }
-
-        // Delete parcours progress
-        const { error: progressError } = await (supabase as any)
-          .from('parcours_progress')
-          .delete()
-          .in('user_id', userIds);
-        
-        if (progressError) {
-          console.error('Error deleting parcours progress:', progressError);
-        }
-      }
-
-      if (options.resetSimulations) {
-        // Delete all simulation logs
-        const { error: logsError } = await supabase
-          .from('simulation_logs')
-          .delete()
-          .in('user_id', userIds);
-        
-        if (logsError) {
-          console.error('Error deleting simulation logs:', logsError);
-        }
-
-        // Delete saved simulations for each type
-        const { error: capaciteError } = await supabase
-          .from('capacite_emprunt_simulations')
-          .delete()
-          .in('user_id', userIds);
-        
-        if (capaciteError) {
-          console.error('Error deleting capacite simulations:', capaciteError);
-        }
-
-        const { error: epargneError } = await supabase
-          .from('epargne_precaution_simulations')
-          .delete()
-          .in('user_id', userIds);
-        
-        if (epargneError) {
-          console.error('Error deleting epargne simulations:', epargneError);
-        }
-      }
-
-      if (options.resetAppointments) {
-        const { error: appointmentsError } = await supabase
-          .from('appointments')
-          .delete()
-          .in('user_id', userIds);
-        
-        if (appointmentsError) {
-          console.error('Error deleting appointments:', appointmentsError);
-          hasError = true;
-        }
-      }
-
-      if (hasError) {
-        toast.error("Certaines réinitialisations ont échoué");
+      const summary = data?.summary;
+      if (summary?.failed > 0) {
+        toast.error(`${summary.failed} réinitialisation(s) en échec`);
       } else {
         toast.success(
-          isBulk 
-            ? `${userIds.length} utilisateurs réinitialisés avec succès`
-            : "Utilisateur réinitialisé avec succès"
+          isBulk
+            ? `${userIds.length} utilisateurs réinitialisés — profils vierges`
+            : `${userName} réinitialisé — profil vierge`
         );
       }
 
-      setConfirmOpen(false);
       onOpenChange(false);
       onReset();
-
-      // Reset form
-      setOptions({
-        resetPoints: false,
-        resetModules: false,
-        resetSimulations: false,
-        resetAppointments: false,
-      });
     } catch (error) {
-      console.error('Error resetting user:', error);
+      console.error("Error resetting user:", error);
       toast.error("Erreur lors de la réinitialisation");
     } finally {
       setResetting(false);
     }
   };
 
-  const resetOptionsList = [
-    {
-      key: 'resetPoints' as const,
-      label: 'Points',
-      description: 'Remettre les points à zéro',
-      icon: Trophy,
-    },
-    {
-      key: 'resetModules' as const,
-      label: 'Parcours & Modules',
-      description: 'Supprimer la progression des modules et parcours',
-      icon: GraduationCap,
-    },
-    {
-      key: 'resetSimulations' as const,
-      label: 'Simulations',
-      description: 'Supprimer toutes les simulations sauvegardées',
-      icon: Calculator,
-    },
-    {
-      key: 'resetAppointments' as const,
-      label: 'Rendez-vous',
-      description: 'Supprimer tous les rendez-vous',
-      icon: Calendar,
-    },
-  ];
-
   return (
-    <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <RotateCcw className="h-5 w-5" />
-              Réinitialiser {isBulk ? `${userIds.length} utilisateurs` : userName}
-            </DialogTitle>
-            <DialogDescription>
-              Sélectionnez les données à réinitialiser. Cette action est irréversible.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            {resetOptionsList.map(({ key, label, description, icon: Icon }) => (
-              <div
-                key={key}
-                className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
-                onClick={() => setOptions(prev => ({ ...prev, [key]: !prev[key] }))}
-              >
-                <Checkbox
-                  checked={options[key]}
-                  onCheckedChange={(checked) => 
-                    setOptions(prev => ({ ...prev, [key]: checked as boolean }))
-                  }
-                  className="mt-1"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                    <Label className="font-medium cursor-pointer">{label}</Label>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Annuler
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => setConfirmOpen(true)}
-              disabled={!Object.values(options).some(Boolean)}
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Réinitialiser
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-              Confirmer la réinitialisation
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Vous êtes sur le point de réinitialiser{" "}
-              {isBulk ? `${userIds.length} utilisateurs` : userName}.
-              <br /><br />
-              <strong>Données qui seront supprimées :</strong>
-              <ul className="list-disc list-inside mt-2">
-                {options.resetPoints && <li>Points (remis à 0)</li>}
-                {options.resetModules && <li>Progression des parcours et modules</li>}
-                {options.resetSimulations && <li>Simulations sauvegardées</li>}
-                {options.resetAppointments && <li>Rendez-vous</li>}
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-5 w-5" />
+            Réinitialiser {isBulk ? `${userIds.length} utilisateurs` : userName}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="space-y-3">
+            <p>
+              Cette action supprimera <strong>toutes les données</strong> de{" "}
+              {isBulk ? "ces utilisateurs" : "cet utilisateur"} pour en faire un profil vierge.
+            </p>
+            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm">
+              <p className="font-medium text-destructive mb-2">Données supprimées :</p>
+              <ul className="list-disc list-inside text-muted-foreground space-y-0.5 text-xs">
+                <li>Points, badges et progression</li>
+                <li>Parcours et modules validés</li>
+                <li>Toutes les simulations</li>
+                <li>Analyse ATLAS (avis d'imposition)</li>
+                <li>Profil financier et patrimonial</li>
+                <li>Profil de risque et diagnostic</li>
+                <li>Rendez-vous et réservations</li>
+                <li>Publications forum</li>
+                <li>Notifications et historique</li>
               </ul>
-              <br />
-              <strong className="text-destructive">Cette action est irréversible.</strong>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={resetting}>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleReset}
-              disabled={resetting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {resetting ? "Réinitialisation..." : "Confirmer"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+            </div>
+            <p className="text-xs">
+              <strong>Conservés :</strong> prénom, nom, email, entreprise.
+            </p>
+            <p className="font-semibold text-destructive text-sm">
+              Cette action est irréversible.
+            </p>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={resetting}>Annuler</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleReset}
+            disabled={resetting}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2"
+          >
+            <RotateCcw className={`h-4 w-4 ${resetting ? "animate-spin" : ""}`} />
+            {resetting ? "Réinitialisation en cours…" : "Confirmer la réinitialisation"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
