@@ -113,6 +113,9 @@ export const EmployeeSidebar = ({
     }
 
     switch (itemId) {
+      case "panorama":
+        navigate("/panorama");
+        break;
       case "parcours":
         navigate("/parcours");
         break;
