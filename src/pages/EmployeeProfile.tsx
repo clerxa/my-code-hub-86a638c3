@@ -161,7 +161,8 @@ export default function EmployeeProfile() {
   const fiscalRules = useFiscalRules();
   const { tax_brackets } = fiscalRules;
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = searchParams.get("tab") || "personal";
+  const rawTab = searchParams.get("tab");
+  const initialTab = rawTab === "dashboard" ? "personal" : (rawTab || "personal");
   // Redirect legacy "dashboard" tab to PANORAMA
   const highlightField = searchParams.get("highlight");
   const [activeTab, setActiveTab] = useState(initialTab);
