@@ -83,3 +83,6 @@ verify_jwt = false
 
 [functions.ocr-bulletin-paie]
 verify_jwt = false
+
+[functions.reset-user-data]
+verify_jwt = false
