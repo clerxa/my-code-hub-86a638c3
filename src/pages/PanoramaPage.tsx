@@ -311,5 +311,6 @@ export default function PanoramaPage() {
         )}
       </section>
     </div>
+    </EmployeeLayout>
   );
 }
