@@ -53,6 +53,7 @@ const defaultEmployeeItems: SidebarMenuItem[] = [
   { id: "atlas", label: "ATLAS by FinCare", icon: "FileText", order: 17, visible: true, categoryId: "programme-fincare" },
   { id: "decryptez-per", label: "Décryptez votre PER", icon: "FileText", order: 18, visible: true, categoryId: "programme-fincare" },
   { id: "feedback", label: "Feedback", icon: "MessageSquarePlus", order: 19, visible: true },
+  { id: "profil-risque", label: "Profil de risque", icon: "UserCheck", order: 20, visible: true, categoryId: "mes-outils" },
 ];
 
 const defaultCompanyItems: SidebarMenuItem[] = [
@@ -186,6 +187,7 @@ export const useSidebarConfig = (sidebarType: "employee" | "company") => {
               ? [
                   { id: "mon-espace", name: "Mon espace", order: 0 },
                   { id: "programme-fincare", name: "Le programme Fincare", order: 1 },
+                  { id: "mes-outils", name: "Mes outils", order: 2 },
                 ]
               : [];
 
@@ -199,6 +201,7 @@ export const useSidebarConfig = (sidebarType: "employee" | "company") => {
             ? [
                 { id: "mon-espace", name: "Mon espace", order: 0 },
                 { id: "programme-fincare", name: "Le programme Fincare", order: 1 },
+                { id: "mes-outils", name: "Mes outils", order: 2 },
               ]
             : [];
           setConfig({
