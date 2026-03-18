@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,9 @@ import { FinancialDashboard } from "@/components/employee/FinancialDashboard";
 import { useUserFinancialProfile } from "@/hooks/useUserFinancialProfile";
 import { useLatestEpargnePrecaution } from "@/hooks/useLatestEpargnePrecaution";
 import { AUDIT_FIELD_TO_TAB } from "@/pages/PanoramaAuditPage";
+import { PanoramaAtlasGate } from "@/components/panorama/PanoramaAtlasGate";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/AuthProvider";
 import { AlertTriangle, ArrowRight, TrendingUp, FileText, Compass, UserCheck, Calendar, RefreshCw } from "lucide-react";
 
 const formatEuros = (val: number | null | undefined): string => {
