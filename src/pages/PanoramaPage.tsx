@@ -9,7 +9,7 @@ import { EmployeeLayout } from "@/components/employee/EmployeeLayout";
 import { FinancialDashboard } from "@/components/employee/FinancialDashboard";
 import { useUserFinancialProfile } from "@/hooks/useUserFinancialProfile";
 import { useLatestEpargnePrecaution } from "@/hooks/useLatestEpargnePrecaution";
-import { FIELD_TO_TAB } from "@/pages/EmployeeProfile";
+import { AUDIT_FIELD_TO_TAB } from "@/pages/PanoramaAuditPage";
 import { AlertTriangle, ArrowRight, TrendingUp, FileText, Compass, UserCheck, Calendar, RefreshCw } from "lucide-react";
 
 const formatEuros = (val: number | null | undefined): string => {

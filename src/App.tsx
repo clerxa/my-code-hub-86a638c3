@@ -62,6 +62,7 @@ import EmployeeSimulations from "./pages/EmployeeSimulations";
 import VegaPage from "./pages/VegaPage";
 import VegaRecapPage from "./pages/VegaRecapPage";
 import PanoramaPage from "./pages/PanoramaPage";
+import PanoramaAuditPage from "./pages/PanoramaAuditPage";
 import Parcours from "./pages/Parcours";
 import ParcoursPreview from "./pages/ParcoursPreview";
 import Forum from "./pages/Forum";
