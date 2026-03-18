@@ -43,12 +43,14 @@ export default function PanoramaPage() {
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto p-6 text-center space-y-4">
-        <p className="text-destructive">Une erreur est survenue lors du chargement de vos données.</p>
-        <Button onClick={() => window.location.reload()} variant="outline" className="gap-2">
-          <RefreshCw className="h-4 w-4" /> Réessayer
-        </Button>
-      </div>
+      <EmployeeLayout activeSection="panorama">
+        <div className="max-w-4xl mx-auto p-6 text-center space-y-4">
+          <p className="text-destructive">Une erreur est survenue lors du chargement de vos données.</p>
+          <Button onClick={() => window.location.reload()} variant="outline" className="gap-2">
+            <RefreshCw className="h-4 w-4" /> Réessayer
+          </Button>
+        </div>
+      </EmployeeLayout>
     );
   }
 
