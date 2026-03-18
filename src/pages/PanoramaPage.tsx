@@ -78,6 +78,7 @@ export default function PanoramaPage() {
   const imminentVesting = timeline.find(e => e.type === "vesting" && e.daysUntil <= 60);
 
   return (
+    <EmployeeLayout activeSection="panorama">
     <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-8">
       {/* Section 1 — Hero */}
       <section className="space-y-4">
