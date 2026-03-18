@@ -55,6 +55,8 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
   const handleSectionChange = (section: string) => {
     if (section === "dashboard") {
       navigate("/employee");
+    } else if (section === "panorama") {
+      navigate("/panorama");
     } else if (section === "horizon") {
       navigate("/employee/horizon");
     } else if (section === "budget") {

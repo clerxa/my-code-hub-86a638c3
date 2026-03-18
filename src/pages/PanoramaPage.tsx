@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { usePanorama } from "@/hooks/usePanorama";
+import { EmployeeLayout } from "@/components/employee/EmployeeLayout";
 import { AlertTriangle, ArrowRight, TrendingUp, FileText, Compass, UserCheck, Calendar, RefreshCw } from "lucide-react";
 
 const formatEuros = (val: number | null | undefined): string => {
@@ -42,27 +43,31 @@ export default function PanoramaPage() {
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto p-6 text-center space-y-4">
-        <p className="text-destructive">Une erreur est survenue lors du chargement de vos données.</p>
-        <Button onClick={() => window.location.reload()} variant="outline" className="gap-2">
-          <RefreshCw className="h-4 w-4" /> Réessayer
-        </Button>
-      </div>
+      <EmployeeLayout activeSection="panorama">
+        <div className="max-w-4xl mx-auto p-6 text-center space-y-4">
+          <p className="text-destructive">Une erreur est survenue lors du chargement de vos données.</p>
+          <Button onClick={() => window.location.reload()} variant="outline" className="gap-2">
+            <RefreshCw className="h-4 w-4" /> Réessayer
+          </Button>
+        </div>
+      </EmployeeLayout>
     );
   }
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto p-6 space-y-6">
-        <Skeleton className="h-10 w-64" />
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-6 w-48" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-40 w-full" />)}
+      <EmployeeLayout activeSection="panorama">
+        <div className="max-w-5xl mx-auto p-6 space-y-6">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-6 w-48" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-40 w-full" />)}
+          </div>
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-40 w-full" />
         </div>
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-40 w-full" />
-      </div>
+      </EmployeeLayout>
     );
   }
 
@@ -73,6 +78,7 @@ export default function PanoramaPage() {
   const imminentVesting = timeline.find(e => e.type === "vesting" && e.daysUntil <= 60);
 
   return (
+    <EmployeeLayout activeSection="panorama">
     <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-8">
       {/* Section 1 — Hero */}
       <section className="space-y-4">
@@ -305,5 +311,6 @@ export default function PanoramaPage() {
         )}
       </section>
     </div>
+    </EmployeeLayout>
   );
 }
