@@ -721,6 +721,58 @@ const OcrAvisImposition = () => {
         toast.error("Erreur lors de la sauvegarde de l'analyse");
         return;
       }
+
+      // Sync extracted fiscal data to financial profile
+      try {
+        const profileUpdate: Record<string, any> = {};
+        
+        // Revenus
+        const rfr = n(analysisData.revenus?.revenu_fiscal_reference);
+        if (rfr) profileUpdate.revenu_fiscal_annuel = rfr;
+        
+        const rni = n(analysisData.revenus?.revenu_net_imposable);
+        if (rni) profileUpdate.revenu_fiscal_foyer = rni;
+        
+        // TMI
+        const tmi = n(analysisData.impot?.taux_marginal_imposition_pct);
+        if (tmi) profileUpdate.tmi = tmi;
+        
+        // Parts fiscales
+        const parts = n(analysisData.contribuable?.nombre_parts);
+        if (parts) profileUpdate.parts_fiscales = parts;
+        
+        // Situation familiale
+        const sitFam = analysisData.contribuable?.situation_familiale;
+        if (sitFam) profileUpdate.situation_familiale = sitFam;
+        
+        // PER ceiling
+        const plafondPer = n(analysisData.plafonds_per?.plafond_restant);
+        if (plafondPer) profileUpdate.plafond_per_reportable = plafondPer;
+
+        if (Object.keys(profileUpdate).length > 0) {
+          // Upsert financial profile
+          const { data: existing } = await supabase
+            .from("user_financial_profiles")
+            .select("id")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (existing) {
+            await supabase
+              .from("user_financial_profiles")
+              .update(profileUpdate)
+              .eq("user_id", user.id);
+          } else {
+            await supabase
+              .from("user_financial_profiles")
+              .insert({ ...profileUpdate, user_id: user.id });
+          }
+          console.log("ATLAS → Financial profile synced:", Object.keys(profileUpdate));
+        }
+      } catch (syncErr) {
+        console.warn("ATLAS → Financial profile sync failed (non-blocking):", syncErr);
+      }
+
       toast.success("Analyse sauvegardée dans votre espace");
     } catch (err) {
       console.error("Save error:", err);
