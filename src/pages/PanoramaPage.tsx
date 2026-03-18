@@ -60,7 +60,7 @@ export default function PanoramaPage() {
   const formData = financialProfile ?? {};
 
   const handleNavigateToTab = (tab: string) => {
-    navigate(`/employee/profile?tab=${tab}`);
+    navigate(`/panorama/audit?tab=${tab}`);
   };
 
   if (error) {
