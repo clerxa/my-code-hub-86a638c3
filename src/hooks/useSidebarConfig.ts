@@ -6,6 +6,7 @@ import {
   Calendar, Video, Users, Building2, UserCheck, Settings, MessageSquareText,
   Circle, Lock, Home, FileText, Bell, Mail, Star, Heart, Bookmark, Wallet,
   HelpCircle, Contact, Gift, Compass, MessageSquarePlus, Info, Search, PiggyBank,
+  LayoutDashboard,
   type LucideIcon
 } from "lucide-react";
 
