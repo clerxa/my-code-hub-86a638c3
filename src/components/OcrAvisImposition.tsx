@@ -716,6 +716,7 @@ const OcrAvisImposition = () => {
         plafond_per_verse: n(analysisData.plafonds_per?.montant_verse_per),
         plafond_per_restant: n(analysisData.plafonds_per?.plafond_restant),
         per_analyse_personnalisee: analysisData.plafonds_per?.analyse_personnalisee,
+        owner_certification_accepted_at: certificationAccepted ? new Date().toISOString() : null,
       } as any);
       if (insertError) {
         console.error("Save analysis DB error:", insertError);
