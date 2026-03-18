@@ -86,6 +86,15 @@ export default function PanoramaPage() {
     navigate(`/panorama/audit?tab=${tab}`);
   };
 
+  // Show ATLAS gate if no analysis exists
+  if (hasAtlasAnalysis === false) {
+    return (
+      <EmployeeLayout activeSection="panorama">
+        <PanoramaAtlasGate />
+      </EmployeeLayout>
+    );
+  }
+
   if (error) {
     return (
       <EmployeeLayout activeSection="panorama">
@@ -99,7 +108,7 @@ export default function PanoramaPage() {
     );
   }
 
-  const isLoading = loading || financialLoading;
+  const isLoading = loading || financialLoading || hasAtlasAnalysis === null;
 
   if (isLoading) {
     return (
