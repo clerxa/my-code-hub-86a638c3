@@ -6,6 +6,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { usePanorama } from "@/hooks/usePanorama";
 import { EmployeeLayout } from "@/components/employee/EmployeeLayout";
+import { FinancialDashboard } from "@/components/employee/FinancialDashboard";
+import { useUserFinancialProfile } from "@/hooks/useUserFinancialProfile";
+import { useLatestEpargnePrecaution } from "@/hooks/useLatestEpargnePrecaution";
+import { FIELD_TO_TAB } from "@/pages/EmployeeProfile";
 import { AlertTriangle, ArrowRight, TrendingUp, FileText, Compass, UserCheck, Calendar, RefreshCw } from "lucide-react";
 
 const formatEuros = (val: number | null | undefined): string => {
@@ -41,6 +45,24 @@ export default function PanoramaPage() {
     error,
   } = usePanorama();
 
+  // Financial profile data for the synthesis cards
+  const {
+    profile: financialProfile,
+    isLoading: financialLoading,
+    completeness: financialCompleteness,
+    missingFields,
+    missingFieldsDetailed,
+  } = useUserFinancialProfile();
+
+  const { data: epargnePrecautionData } = useLatestEpargnePrecaution();
+
+  // Build formData from financialProfile for FinancialDashboard
+  const formData = financialProfile ?? {};
+
+  const handleNavigateToTab = (tab: string) => {
+    navigate(`/employee/profile?tab=${tab}`);
+  };
+
   if (error) {
     return (
       <EmployeeLayout activeSection="panorama">
@@ -54,7 +76,9 @@ export default function PanoramaPage() {
     );
   }
 
-  if (loading) {
+  const isLoading = loading || financialLoading;
+
+  if (isLoading) {
     return (
       <EmployeeLayout activeSection="panorama">
         <div className="max-w-5xl mx-auto p-6 space-y-6">
@@ -64,8 +88,10 @@ export default function PanoramaPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-40 w-full" />)}
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-48 w-full" />)}
+          </div>
           <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-40 w-full" />
         </div>
       </EmployeeLayout>
     );
@@ -249,7 +275,23 @@ export default function PanoramaPage() {
         </Card>
       </section>
 
-      {/* Section 3 — Timeline */}
+      {/* Section 3 — Synthèse financière (from FinancialDashboard) */}
+      {financialProfile && (
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold">Ma synthèse financière</h2>
+          <FinancialDashboard
+            formData={formData}
+            completeness={financialCompleteness}
+            missingFields={missingFields}
+            missingFieldsDetailed={missingFieldsDetailed}
+            fieldToTabMapping={FIELD_TO_TAB}
+            onNavigateToTab={handleNavigateToTab}
+            epargnePrecautionData={epargnePrecautionData}
+          />
+        </section>
+      )}
+
+      {/* Section 4 — Timeline */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Vos prochains événements patrimoniaux</h2>
         {timeline.length === 0 ? (
@@ -274,7 +316,7 @@ export default function PanoramaPage() {
         )}
       </section>
 
-      {/* Section 4 — Simulations récentes */}
+      {/* Section 5 — Simulations récentes */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Vos dernières simulations</h2>
         {!synthesis?.simulations || synthesis.simulations.length === 0 ? (
