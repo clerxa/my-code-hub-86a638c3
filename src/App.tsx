@@ -525,6 +525,16 @@ const App = () => (
               }
             />
             
+            {/* PANORAMA - Synthèse patrimoniale */}
+            <Route
+              path="/panorama"
+              element={
+                <ProtectedRoute>
+                  <PanoramaPage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Routes parcours de formation - Modules éducatifs */}
             <Route
               path="/parcours"
