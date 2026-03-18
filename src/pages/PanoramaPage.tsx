@@ -98,6 +98,11 @@ export default function PanoramaPage() {
             <span className="font-medium">{completeness_score}/100</span>
           </div>
           <Progress value={completeness_score} className="h-2" />
+          {completeness_score < 100 && (
+            <Button size="sm" variant="outline" className="gap-1 mt-2" onClick={() => navigate("/employee/profile")}>
+              Compléter mon profil <ArrowRight className="h-3 w-3" />
+            </Button>
+          )}
         </div>
 
         {documents_manquants.length > 0 && (
