@@ -61,6 +61,7 @@ import EmployeeProfile from "./pages/EmployeeProfile";
 import EmployeeSimulations from "./pages/EmployeeSimulations";
 import VegaPage from "./pages/VegaPage";
 import VegaRecapPage from "./pages/VegaRecapPage";
+import PanoramaPage from "./pages/PanoramaPage";
 import Parcours from "./pages/Parcours";
 import ParcoursPreview from "./pages/ParcoursPreview";
 import Forum from "./pages/Forum";
@@ -524,6 +525,16 @@ const App = () => (
               }
             />
             
+            {/* PANORAMA - Synthèse patrimoniale */}
+            <Route
+              path="/panorama"
+              element={
+                <ProtectedRoute>
+                  <PanoramaPage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Routes parcours de formation - Modules éducatifs */}
             <Route
               path="/parcours"

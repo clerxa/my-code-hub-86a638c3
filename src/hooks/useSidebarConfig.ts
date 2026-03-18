@@ -6,6 +6,7 @@ import {
   Calendar, Video, Users, Building2, UserCheck, Settings, MessageSquareText,
   Circle, Lock, Home, FileText, Bell, Mail, Star, Heart, Bookmark, Wallet,
   HelpCircle, Contact, Gift, Compass, MessageSquarePlus, Info, Search, PiggyBank,
+  LayoutDashboard,
   type LucideIcon
 } from "lucide-react";
 
@@ -31,6 +32,7 @@ export interface SidebarConfig {
 }
 
 const defaultEmployeeItems: SidebarMenuItem[] = [
+  { id: "panorama", label: "PANORAMA", icon: "LayoutDashboard", order: -1, visible: true },
   { id: "dashboard", label: "Mon tableau de bord", icon: "User", order: 0, visible: true },
   { id: "profile", label: "Mon profil", icon: "UserCircle", order: 1, visible: true, categoryId: "mon-espace" },
   { id: "progression", label: "La quête Fincare", icon: "TrendingUp", order: 2, visible: true, categoryId: "mon-espace" },
@@ -69,6 +71,7 @@ const iconMap: Record<string, LucideIcon> = {
   Calendar, Video, Users, Building2, UserCheck, Settings, MessageSquareText,
   Circle, Lock, Home, FileText, Bell, Mail, Star, Heart, Bookmark, Wallet,
   HelpCircle, Contact, Gift, Compass, MessageSquarePlus, Info, Search, PiggyBank,
+  LayoutDashboard,
 };
 
 export const getIconComponent = (iconName: string): LucideIcon => {

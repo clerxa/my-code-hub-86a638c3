@@ -89,6 +89,9 @@ export const MobileEmployeeNav = ({ activeSection, onSectionChange, companyId, h
     }
 
     switch (itemId) {
+      case "panorama":
+        navigate("/panorama");
+        break;
       case "parcours":
         navigate("/parcours");
         break;

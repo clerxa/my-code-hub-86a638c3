@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom";
  * Items not listed here stay on the current page (section-based navigation).
  */
 const EMPLOYEE_ROUTE_MAP: Record<string, string[]> = {
+  "panorama": ["/panorama"],
   "dashboard": ["/employee"],
   "profile": ["/employee/profile"],
   "profile-info": ["/employee/profile"],
