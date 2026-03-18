@@ -37,6 +37,25 @@ const timelineColors: Record<string, string> = {
 
 export default function PanoramaPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [hasAtlasAnalysis, setHasAtlasAnalysis] = useState<boolean | null>(null);
+
+  // Check if user has at least one ATLAS analysis
+  useEffect(() => {
+    if (!user?.id) {
+      setHasAtlasAnalysis(false);
+      return;
+    }
+    const check = async () => {
+      const { count } = await supabase
+        .from("ocr_avis_imposition_analyses" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      setHasAtlasAnalysis((count ?? 0) > 0);
+    };
+    check();
+  }, [user?.id]);
+
   const {
     patrimoine_panorama_total,
     completeness_score,
