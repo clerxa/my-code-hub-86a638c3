@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,9 @@ import { FinancialDashboard } from "@/components/employee/FinancialDashboard";
 import { useUserFinancialProfile } from "@/hooks/useUserFinancialProfile";
 import { useLatestEpargnePrecaution } from "@/hooks/useLatestEpargnePrecaution";
 import { AUDIT_FIELD_TO_TAB } from "@/pages/PanoramaAuditPage";
+import { PanoramaAtlasGate } from "@/components/panorama/PanoramaAtlasGate";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/AuthProvider";
 import { AlertTriangle, ArrowRight, TrendingUp, FileText, Compass, UserCheck, Calendar, RefreshCw } from "lucide-react";
 
 const formatEuros = (val: number | null | undefined): string => {
@@ -33,6 +37,25 @@ const timelineColors: Record<string, string> = {
 
 export default function PanoramaPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [hasAtlasAnalysis, setHasAtlasAnalysis] = useState<boolean | null>(null);
+
+  // Check if user has at least one ATLAS analysis
+  useEffect(() => {
+    if (!user?.id) {
+      setHasAtlasAnalysis(false);
+      return;
+    }
+    const check = async () => {
+      const { count } = await supabase
+        .from("ocr_avis_imposition_analyses" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      setHasAtlasAnalysis((count ?? 0) > 0);
+    };
+    check();
+  }, [user?.id]);
+
   const {
     patrimoine_panorama_total,
     completeness_score,
@@ -63,6 +86,15 @@ export default function PanoramaPage() {
     navigate(`/panorama/audit?tab=${tab}`);
   };
 
+  // Show ATLAS gate if no analysis exists
+  if (hasAtlasAnalysis === false) {
+    return (
+      <EmployeeLayout activeSection="panorama">
+        <PanoramaAtlasGate />
+      </EmployeeLayout>
+    );
+  }
+
   if (error) {
     return (
       <EmployeeLayout activeSection="panorama">
@@ -76,7 +108,7 @@ export default function PanoramaPage() {
     );
   }
 
-  const isLoading = loading || financialLoading;
+  const isLoading = loading || financialLoading || hasAtlasAnalysis === null;
 
   if (isLoading) {
     return (
