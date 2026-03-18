@@ -187,6 +187,7 @@ export const useSidebarConfig = (sidebarType: "employee" | "company") => {
               ? [
                   { id: "mon-espace", name: "Mon espace", order: 0 },
                   { id: "programme-fincare", name: "Le programme Fincare", order: 1 },
+                  { id: "mes-outils", name: "Mes outils", order: 2 },
                 ]
               : [];
 
