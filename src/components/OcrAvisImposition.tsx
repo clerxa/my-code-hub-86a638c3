@@ -607,6 +607,7 @@ const OcrAvisImposition = () => {
   const [history, setHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [certificationAccepted, setCertificationAccepted] = useState(false);
 
   const toDbNumber = useCallback((value: unknown): number | null => {
     if (value === null || value === undefined || value === "") return null;
@@ -715,6 +716,7 @@ const OcrAvisImposition = () => {
         plafond_per_verse: n(analysisData.plafonds_per?.montant_verse_per),
         plafond_per_restant: n(analysisData.plafonds_per?.plafond_restant),
         per_analyse_personnalisee: analysisData.plafonds_per?.analyse_personnalisee,
+        owner_certification_accepted_at: certificationAccepted ? new Date().toISOString() : null,
       } as any);
       if (insertError) {
         console.error("Save analysis DB error:", insertError);
@@ -778,7 +780,7 @@ const OcrAvisImposition = () => {
       console.error("Save error:", err);
       toast.error("Erreur lors de la sauvegarde");
     }
-  }, [user?.id, toDbNumber]);
+  }, [user?.id, toDbNumber, certificationAccepted]);
 
   // Load a saved analysis
   const loadSavedAnalysis = useCallback(async (id: string) => {
@@ -956,13 +958,30 @@ const OcrAvisImposition = () => {
               <div
                 onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}
-                onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-2xl p-10 sm:p-14 text-center transition-all cursor-pointer ${
-                  dragOver
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOver(false);
+                  if (!certificationAccepted) {
+                    toast.error("Veuillez d'abord certifier que l'avis d'imposition est le vôtre.");
+                    return;
+                  }
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) analyzeFile(file);
+                }}
+                className={`border-2 border-dashed rounded-2xl p-10 sm:p-14 text-center transition-all ${
+                  !certificationAccepted ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                } ${
+                  dragOver && certificationAccepted
                     ? "border-primary bg-primary/5 scale-[1.01]"
                     : "border-border hover:border-primary/50 hover:bg-muted/30"
                 }`}
-                onClick={() => document.getElementById("pdf-input")?.click()}
+                onClick={() => {
+                  if (!certificationAccepted) {
+                    toast.error("Veuillez d'abord certifier que l'avis d'imposition est le vôtre.");
+                    return;
+                  }
+                  document.getElementById("pdf-input")?.click();
+                }}
                 style={dragOver ? {} : { animation: "pulse 3s ease-in-out infinite" }}
               >
                 <Upload className="h-12 w-12 mx-auto mb-4 text-primary/60" />
@@ -977,10 +996,34 @@ const OcrAvisImposition = () => {
                   id="pdf-input"
                   type="file"
                   accept="application/pdf,.pdf"
-                  onChange={handleFileChange}
+                  onChange={(e) => {
+                    if (!certificationAccepted) {
+                      toast.error("Veuillez d'abord certifier que l'avis d'imposition est le vôtre.");
+                      e.target.value = "";
+                      return;
+                    }
+                    const file = e.target.files?.[0];
+                    if (file) analyzeFile(file);
+                  }}
                   className="hidden"
                 />
               </div>
+
+              {/* Legal certification checkbox */}
+              <label className="flex items-start gap-3 mt-6 p-4 rounded-lg border border-border bg-muted/30 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={certificationAccepted}
+                  onChange={(e) => setCertificationAccepted(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-border accent-primary shrink-0"
+                />
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  Je certifie sur l'honneur que le document transmis est mon propre avis d'imposition 
+                  ou celui de mon foyer fiscal, et que je suis dûment habilité(e) à en communiquer le contenu 
+                  à des fins d'analyse patrimoniale. J'ai pris connaissance que ces données seront traitées 
+                  de manière confidentielle conformément à la réglementation en vigueur.
+                </span>
+              </label>
             </CardContent>
           </Card>
 

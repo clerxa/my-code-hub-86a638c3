@@ -1,0 +1,2 @@
+ALTER TABLE public.ocr_avis_imposition_analyses 
+ADD COLUMN owner_certification_accepted_at timestamptz DEFAULT NULL;

@@ -3663,6 +3663,7 @@ export type Database = {
           nom: string | null
           nombre_parts: number | null
           numero_fiscal: string | null
+          owner_certification_accepted_at: string | null
           pensions_retraites: number | null
           per_analyse_personnalisee: string | null
           plafond_per_declarant_1: number | null
@@ -3718,6 +3719,7 @@ export type Database = {
           nom?: string | null
           nombre_parts?: number | null
           numero_fiscal?: string | null
+          owner_certification_accepted_at?: string | null
           pensions_retraites?: number | null
           per_analyse_personnalisee?: string | null
           plafond_per_declarant_1?: number | null
@@ -3773,6 +3775,7 @@ export type Database = {
           nom?: string | null
           nombre_parts?: number | null
           numero_fiscal?: string | null
+          owner_certification_accepted_at?: string | null
           pensions_retraites?: number | null
           per_analyse_personnalisee?: string | null
           plafond_per_declarant_1?: number | null
