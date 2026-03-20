@@ -234,7 +234,7 @@ const SimulateurESPP = () => {
         <SimulationValidationOverlay
           isValidating={isValidating}
           onComplete={handleValidationComplete}
-          simulatorName="Simulateur ESPP"
+          simulatorName="Mes plans ESPP"
           simulatorId="espp"
         />
 
