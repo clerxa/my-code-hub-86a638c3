@@ -157,6 +157,17 @@ function PlanDetailCard({ plan, index }: { plan: RSUPlanResult; index: number })
 // Toute la fiscalité est payée à la cession
 // ════════════════════════════════════════════════════════
 function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
+  const totalGA = result.plans.reduce((s, p) => s + p.gain_acquisition_eur, 0);
+  const totalPV = result.plans.reduce((s, p) => s + p.pv_cession_eur, 0);
+  const totalIR_GA = result.plans.reduce((s, p) => s + p.ir_gain_acquisition, 0);
+  const totalPS_GA = result.plans.reduce((s, p) => s + p.ps_gain_acquisition, 0);
+  const totalIR_PV = result.plans.reduce((s, p) => s + p.ir_pv_cession, 0);
+  const totalPS_PV = result.plans.reduce((s, p) => s + p.ps_pv_cession, 0);
+
+  // Get abattement from plan data (use first plan's value for display — they should be the same for single-plan sim)
+  const abattementPct = result.plans.length > 0 ? result.plans[0].abattement_duree_detention : 0;
+  const hasAbattement = abattementPct > 0;
+
   const donutData = [
     { name: 'Cash net reçu', value: result.gain_net_total },
     { name: 'Impôt sur le revenu', value: result.total_ir },
@@ -200,7 +211,7 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
         </Card>
       </motion.div>
 
-      {/* Waterfall — Décomposition linéaire */}
+      {/* Waterfall — Décomposition linéaire avec split GA / PV */}
       <motion.div {...anim(0.25)}>
         <Card>
           <CardHeader className="pb-2">
@@ -209,19 +220,55 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
               Décomposition du calcul
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1">
-            <WaterfallRow label="Gain d'acquisition total" description="Valeur des actions au moment du vesting" value={result.plans.reduce((s, p) => s + p.gain_acquisition_eur, 0)} isPositive delay={0.3} />
-            <WaterfallRow label="Plus-value de cession" description="Différence entre prix de vente et valeur au vesting" value={result.plans.reduce((s, p) => s + p.pv_cession_eur, 0)} isPositive delay={0.35} />
+          <CardContent className="space-y-0">
+            {/* --- Gains bruts --- */}
+            <WaterfallRow label="Gain d'acquisition total" description="Valeur des actions au moment du vesting" value={totalGA} isPositive delay={0.3} />
+            <WaterfallRow label="Plus-value de cession" description="Différence entre prix de vente et valeur au vesting" value={totalPV} isPositive delay={0.35} />
             <div className="border-t my-2" />
             <WaterfallRow label="Gain brut total" value={result.gain_brut_total} isPositive delay={0.4} />
-            <div className="border-t my-2" />
-            <WaterfallRow label="Impôt sur le revenu" description="Barème progressif (gain d'acquisition) + flat tax 12,8% (PV cession)" value={result.total_ir} delay={0.45} />
-            <WaterfallRow label="Prélèvements sociaux" description="CSG, CRDS et prélèvements sociaux (17,2%)" value={result.total_ps + result.total_csg_crds} delay={0.5} />
+
+            {/* --- Fiscalité sur le gain d'acquisition --- */}
+            <div className="mt-4 mb-2 px-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+                <Landmark className="h-3.5 w-3.5" />
+                Fiscalité sur le gain d'acquisition
+              </p>
+              {hasAbattement && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Abattement pour durée de détention appliqué{abattementPct > 0 ? ` (${(abattementPct * 100).toFixed(0)}%)` : ''} — base imposable IR réduite à {fmt(totalGA * (1 - abattementPct))}
+                </p>
+              )}
+              {!hasAbattement && (
+                <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
+                  Aucun abattement applicable — vente moins de 2 ans après fin de conservation
+                </p>
+              )}
+            </div>
+            <WaterfallRow label="IR sur gain d'acquisition" description={`Barème progressif${hasAbattement ? ' (après abattement)' : ' (sans abattement)'}`} value={totalIR_GA} delay={0.45} />
+            <WaterfallRow label="PS sur gain d'acquisition" description="Prélèvements sociaux (17,2% sur l'assiette brute)" value={totalPS_GA} delay={0.5} />
             {result.total_contribution_salariale > 0 && (
               <WaterfallRow label="Contribution salariale" description="10% applicable au-delà de 300 000 €" value={result.total_contribution_salariale} delay={0.55} />
             )}
-            <div className="border-t my-2" />
-            <WaterfallRow label="Cash net reçu" value={result.gain_net_total} isTotal delay={0.6} />
+
+            {/* --- Fiscalité sur la plus-value de cession --- */}
+            {totalPV > 0 && (
+              <>
+                <div className="mt-4 mb-2 px-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    Fiscalité sur la plus-value de cession
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Prélèvement forfaitaire unique (PFU / flat tax 30%)
+                  </p>
+                </div>
+                <WaterfallRow label="IR sur PV de cession" description="Flat tax 12,8%" value={totalIR_PV} delay={0.6} />
+                <WaterfallRow label="PS sur PV de cession" description="17,2%" value={totalPS_PV} delay={0.65} />
+              </>
+            )}
+
+            <div className="border-t my-3" />
+            <WaterfallRow label="Cash net reçu" value={result.gain_net_total} isTotal delay={0.7} />
           </CardContent>
         </Card>
       </motion.div>

@@ -44,6 +44,8 @@ export interface RSUPlanResult {
   nb_actions_total: number;
   gain_acquisition_eur: number;
   pv_cession_eur: number;
+  // Abattement appliqué (0, 0.50, 0.65)
+  abattement_duree_detention: number;
   // Détail impôts gain acquisition
   ir_gain_acquisition: number;
   ps_gain_acquisition: number;
