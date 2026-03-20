@@ -16,7 +16,7 @@ import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { RSUPlan } from '@/types/rsu';
-import { REGIME_COLORS } from '@/types/rsu';
+import { REGIME_COLORS, REGIME_SHORT_LABELS } from '@/types/rsu';
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
