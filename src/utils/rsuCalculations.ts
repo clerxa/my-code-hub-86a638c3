@@ -167,21 +167,24 @@ export function calculateRSUSimulation(
     const pvData = planPVs.get(plan.id)!;
     const { nb_rsu_plan } = getPlanAggregates(plan);
     let ir_ga = 0, ps_ga = 0, contrib_sal = 0, csg_crds = 0;
+    let abattement = 0;
 
     if (plan.regime === 'R1') {
       const detail = r1Details.get(plan.id)!;
       ir_ga = detail.ir;
       ps_ga = detail.ps;
       contrib_sal = detail.contrib;
+      abattement = detail.abattement;
       csg_crds = 0;
     } else if (plan.regime === 'R2') {
       const detail = r2Details.get(plan.id)!;
       ir_ga = detail.ir;
       ps_ga = detail.ps;
+      abattement = detail.abattement;
       contrib_sal = 0;
       csg_crds = 0;
     } else {
-      // R3
+      // R3 — pas d'abattement
       ir_ga = plan.gain_acquisition_total * tmi;
       ps_ga = plan.gain_acquisition_total * 0.097;
       contrib_sal = plan.gain_acquisition_total * 0.10;
