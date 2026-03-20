@@ -105,7 +105,7 @@ const SimulateurESPP = () => {
   }, [result, periods, tmi, saveSimulation]);
 
   // Navigation
-  const backTarget = loadSimId ? '/employee/vega' : '/employee/simulations';
+  const backTarget = '/employee/vega';
   const handleBack = useCallback(() => {
     switch (screen) {
       case 'editor': setScreen('dashboard'); setEditingPeriodId(null); break;
@@ -117,8 +117,8 @@ const SimulateurESPP = () => {
   }, [screen, navigate, backTarget]);
 
   const screenTitle = {
-    intro: 'Simulateur ESPP',
-    dashboard: 'Simulateur ESPP',
+    intro: 'Mes plans ESPP',
+    dashboard: 'Mes plans ESPP',
     editor: editingPeriodId ? 'Modifier la période' : 'Nouvelle période',
     tmi: 'Paramètres fiscaux',
     results: 'Résultats',
@@ -179,10 +179,9 @@ const SimulateurESPP = () => {
         {screen !== 'intro' && (
           <SimulatorHeader
             title={screenTitle}
-            description={screen === 'dashboard' ? "Simulez l'impact fiscal de vos plans d'achat d'actions" : undefined}
+            description={screen === 'dashboard' ? "Gérez vos plans d'achat d'actions et simulez leur impact fiscal" : undefined}
             onBack={handleBack}
-            backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour aux simulateurs'}
-            onViewSimulations={screen === 'dashboard' ? () => navigate('/employee/simulations') : undefined}
+            backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour à VEGA'}
           />
         )}
 
@@ -235,7 +234,7 @@ const SimulateurESPP = () => {
         <SimulationValidationOverlay
           isValidating={isValidating}
           onComplete={handleValidationComplete}
-          simulatorName="Simulateur ESPP"
+          simulatorName="Mes plans ESPP"
           simulatorId="espp"
         />
 

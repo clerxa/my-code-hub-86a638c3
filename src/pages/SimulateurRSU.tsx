@@ -111,7 +111,7 @@ const SimulateurRSU = () => {
   }, [result, plans, cessionParams, saveSimulation]);
 
   // Navigation handlers
-  const backTarget = loadSimId ? '/employee/vega' : '/employee/simulations';
+  const backTarget = '/employee/vega';
   const handleBack = useCallback(() => {
     switch (screen) {
       case 'editor': setScreen('dashboard'); setEditingPlanId(null); break;
@@ -128,8 +128,8 @@ const SimulateurRSU = () => {
   }, []);
 
   const screenTitle = {
-    intro: 'Simulateur RSU',
-    dashboard: 'Simulateur RSU',
+    intro: 'Mes plans RSU',
+    dashboard: 'Mes plans RSU',
     editor: editingPlanId ? 'Modifier le plan' : 'Nouveau plan',
     cession: 'Paramètres de cession',
     results: 'Résultats',
@@ -185,10 +185,9 @@ const SimulateurRSU = () => {
         {screen !== 'intro' && (
           <SimulatorHeader
             title={screenTitle}
-            description={screen === 'dashboard' ? 'Simulez l\'impact fiscal de la cession de vos RSU multi-plans' : undefined}
+            description={screen === 'dashboard' ? 'Gérez vos plans RSU et simulez l\'impact fiscal de la cession de vos actions' : undefined}
             onBack={handleBack}
-            backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour aux simulateurs'}
-            onViewSimulations={screen === 'dashboard' ? () => navigate('/employee/simulations') : undefined}
+            backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour à VEGA'}
           />
         )}
 

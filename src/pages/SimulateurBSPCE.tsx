@@ -31,9 +31,10 @@ const SimulateurBSPCE = () => {
           ) : (
             <div key="main" className="space-y-6">
               <SimulatorHeader
-                title="Simulateur BSPCE"
+                title="Mes plans BSPCE"
                 description="Bons de Souscription de Parts de Créateur d'Entreprise"
                 onBack={() => navigate('/employee/vega')}
+                backLabel="Retour à VEGA"
               />
 
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
