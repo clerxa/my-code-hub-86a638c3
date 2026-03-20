@@ -394,7 +394,7 @@ const App = () => (
               }
             />
             <Route
-              path="/simulateur-espp"
+              path="/mes-plans-espp"
               element={
                 <ProtectedRoute>
                   <CheckPlanAccess featureKey="simulateur_espp">
@@ -506,7 +506,7 @@ const App = () => (
               }
             />
             <Route
-              path="/simulateur-rsu"
+              path="/mes-plans-rsu"
               element={
                 <ProtectedRoute>
                   <CheckPlanAccess featureKey="simulateur_rsu">
@@ -516,7 +516,7 @@ const App = () => (
               }
             />
             <Route
-              path="/simulateur-bspce"
+              path="/mes-plans-bspce"
               element={
                 <ProtectedRoute>
                   <CheckPlanAccess featureKey="simulateur_bspce">

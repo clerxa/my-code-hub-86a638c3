@@ -201,7 +201,7 @@ export function ESPPResults({ result, tmi, onReset, onSave }: ESPPResultsProps) 
             href={expertUrl}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => setBookingReferrer('/simulateur-espp')}
+            onClick={() => setBookingReferrer('/mes-plans-espp')}
           >
             <ExternalLink className="h-4 w-4" />
             Optimiser avec un expert Perlib

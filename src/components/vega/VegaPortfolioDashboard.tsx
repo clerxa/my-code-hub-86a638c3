@@ -639,9 +639,9 @@ function PlanCard({ plan, getPriceEur, tmi, fxRate, portfolio }: { plan: Portfol
   const pv = currentValue !== null ? currentValue - plan.prixAcquisitionEur : null;
 
   const routeMap: Record<string, string> = {
-    rsu: '/simulateur-rsu',
-    espp: '/simulateur-espp',
-    bspce: '/simulateur-bspce',
+    rsu: '/mes-plans-rsu',
+    espp: '/mes-plans-espp',
+    bspce: '/mes-plans-bspce',
   };
 
   const handleOpen = () => {
@@ -810,7 +810,7 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
               size="sm"
               className="text-xs"
               onClick={() => {
-                const routes: Record<string, string> = { rsu: '/simulateur-rsu', espp: '/simulateur-espp', bspce: '/simulateur-bspce' };
+                const routes: Record<string, string> = { rsu: '/mes-plans-rsu', espp: '/mes-plans-espp', bspce: '/mes-plans-bspce' };
                 navigate(routes[type]);
               }}
             >

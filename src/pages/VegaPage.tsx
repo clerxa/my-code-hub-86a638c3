@@ -108,15 +108,15 @@ export default function VegaPage() {
   });
 
   const routeToType: Record<string, string> = {
-    '/simulateur-rsu': 'rsu',
-    '/simulateur-espp': 'espp',
-    '/simulateur-bspce': 'bspce',
+    '/mes-plans-rsu': 'rsu',
+    '/mes-plans-espp': 'espp',
+    '/mes-plans-bspce': 'bspce',
   };
 
   const vegaCardNames: Record<string, string> = {
-    '/simulateur-rsu': 'Mes plans RSU',
-    '/simulateur-espp': 'Mes plans ESPP',
-    '/simulateur-bspce': 'Mes plans BSPCE',
+    '/mes-plans-rsu': 'Mes plans RSU',
+    '/mes-plans-espp': 'Mes plans ESPP',
+    '/mes-plans-bspce': 'Mes plans BSPCE',
   };
 
   const visibleSimulators = simulators?.filter(s => s.visibility_status !== 'hidden') || [];
@@ -234,9 +234,9 @@ function LandingContent({
   netPercent: number;
 }) {
   const vegaCardNames: Record<string, string> = {
-    '/simulateur-rsu': 'Mes plans RSU',
-    '/simulateur-espp': 'Mes plans ESPP',
-    '/simulateur-bspce': 'Mes plans BSPCE',
+    '/mes-plans-rsu': 'Mes plans RSU',
+    '/mes-plans-espp': 'Mes plans ESPP',
+    '/mes-plans-bspce': 'Mes plans BSPCE',
   };
 
   return (
