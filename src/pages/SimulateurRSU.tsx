@@ -226,6 +226,7 @@ const SimulateurRSU = () => {
 
   const handleReset = useCallback(() => {
     setResult(null);
+    setSimulatingPlanId(null);
     setScreen('dashboard');
   }, []);
 
