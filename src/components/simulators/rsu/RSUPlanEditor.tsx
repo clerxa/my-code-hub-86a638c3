@@ -621,7 +621,22 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
             </Alert>
           )}
 
-          <div className="space-y-3">
+          {/* Devise — juste après l'entreprise */}
+          <div className="space-y-2 max-w-xs">
+            <Label>Devise</Label>
+            <Select value={devise} onValueChange={v => { setDevise(v as RSUDevise); setDeviseAutoSet(false); }}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="EUR">EUR (€)</SelectItem>
+                <SelectItem value="USD">USD ($)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Année d'attribution + Date fin conservation côte à côte */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label>Année d'attribution du plan</Label>
@@ -638,7 +653,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                 </TooltipProvider>
               </div>
               <Select value={String(annee)} onValueChange={v => { setAnnee(Number(v)); setRegime(inferRegimeFromYear(Number(v))); }}>
-                <SelectTrigger className="max-w-xs">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -649,6 +664,48 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
               </Select>
             </div>
 
+            {/* Date de fin de conservation — à côté de l'année */}
+            {regimeNeedsConservationDate(regime) && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label>Date de fin de conservation *</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-xs text-sm space-y-2">
+                        <p>La <strong>période de conservation</strong> est la durée pendant laquelle vous ne pouvez pas vendre vos actions après leur acquisition définitive (vesting).</p>
+                        <p>Cette date est indiquée dans votre contrat d'attribution. Elle conditionne l'<strong>abattement fiscal</strong> applicable :</p>
+                        {regime === 'AGA_POST2018' ? (
+                          <p>Pour les AGA post-2018, l'abattement est de <strong>50% fixe</strong> sous le seuil de 300 000 €.</p>
+                        ) : (
+                          <ul className="list-disc pl-4 space-y-1">
+                            <li><strong>Vente {'<'} 2 ans</strong> après fin de conservation → 0% d'abattement</li>
+                            <li><strong>Vente entre 2 et 8 ans</strong> → 50% d'abattement</li>
+                            <li><strong>Vente {'>'} 8 ans</strong> → 65% d'abattement</li>
+                          </ul>
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Input
+                  type="date"
+                  value={dateFinConservation}
+                  onChange={e => setDateFinConservation(e.target.value)}
+                  className="h-10"
+                />
+                {!dateFinConservation && (
+                  <p className="text-xs text-destructive">
+                    Obligatoire pour calculer l'abattement fiscal applicable.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
             {/* Regime deduced — pedagogical display */}
             <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
               <div className="flex items-center gap-2">
@@ -674,19 +731,6 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                 {regime === 'NON_QUALIFIE' ? "← Revenir au régime AGA déduit de l'année" : "Mon plan n'est pas qualifié AGA (RSU étranger)"}
               </button>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Devise</Label>
-            <Select value={devise} onValueChange={v => { setDevise(v as RSUDevise); setDeviseAutoSet(false); }}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="EUR">EUR (€)</SelectItem>
-                <SelectItem value="USD">USD ($)</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Encadré Non qualifié */}
@@ -718,45 +762,6 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
             </Alert>
           )}
 
-          {/* Date de fin de conservation (régimes avec abattement) */}
-          {regimeNeedsConservationDate(regime) && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Label>Date de fin de période de conservation *</Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="max-w-xs text-sm space-y-2">
-                      <p>La <strong>période de conservation</strong> est la durée pendant laquelle vous ne pouvez pas vendre vos actions après leur acquisition définitive (vesting).</p>
-                      <p>Cette date est indiquée dans votre contrat d'attribution. Elle conditionne l'<strong>abattement fiscal</strong> applicable :</p>
-                      {regime === 'AGA_POST2018' ? (
-                        <p>Pour les AGA post-2018, l'abattement est de <strong>50% fixe</strong> sous le seuil de 300 000 €.</p>
-                      ) : (
-                        <ul className="list-disc pl-4 space-y-1">
-                          <li><strong>Vente {'<'} 2 ans</strong> après fin de conservation → 0% d'abattement</li>
-                          <li><strong>Vente entre 2 et 8 ans</strong> → 50% d'abattement</li>
-                          <li><strong>Vente {'>'} 8 ans</strong> → 65% d'abattement</li>
-                        </ul>
-                      )}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <Input
-                type="date"
-                value={dateFinConservation}
-                onChange={e => setDateFinConservation(e.target.value)}
-                className="h-10 max-w-xs"
-              />
-              {!dateFinConservation && (
-                <p className="text-xs text-destructive">
-                  Obligatoire pour calculer l'abattement fiscal applicable.
-                </p>
-              )}
-            </div>
-          )}
           {autoName && (
             <div className="rounded-md border bg-muted/50 px-3 py-2">
               <p className="text-xs text-muted-foreground">Nom du plan (généré automatiquement)</p>
