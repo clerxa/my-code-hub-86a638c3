@@ -111,7 +111,7 @@ const SimulateurRSU = () => {
   }, [result, plans, cessionParams, saveSimulation]);
 
   // Navigation handlers
-  const backTarget = loadSimId ? '/employee/vega' : '/employee/simulations';
+  const backTarget = '/employee/vega';
   const handleBack = useCallback(() => {
     switch (screen) {
       case 'editor': setScreen('dashboard'); setEditingPlanId(null); break;
