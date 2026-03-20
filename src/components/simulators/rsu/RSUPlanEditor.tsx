@@ -712,8 +712,8 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
             </Select>
           </div>
 
-          {/* Encadré R3 */}
-          {regime === 'R3' && (
+          {/* Encadré Non qualifié */}
+          {regime === 'NON_QUALIFIE' && (
             <Alert className="border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/30">
               <Info className="h-4 w-4 text-amber-600" />
               <AlertDescription className="text-amber-800 dark:text-amber-200 text-sm">
@@ -722,8 +722,18 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
             </Alert>
           )}
 
-          {/* Date de fin de conservation (plans qualifiés uniquement) */}
-          {(regime === 'R1' || regime === 'R2') && (
+          {/* Encadré AGA pré-2012 */}
+          {regime === 'AGA_PRE2012' && (
+            <Alert className="border-slate-200 bg-slate-50/50 dark:border-slate-900/50 dark:bg-slate-950/30">
+              <Info className="h-4 w-4 text-slate-600" />
+              <AlertDescription className="text-slate-800 dark:text-slate-200 text-sm">
+                <strong>AGA avant 2012</strong> — Le gain d'acquisition est soumis à un taux forfaitaire de 30% + PS à 15,5%. Aucun abattement. Condition : détention de 4 ans respectée.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Date de fin de conservation (régimes avec abattement) */}
+          {regimeNeedsConservationDate(regime) && (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label>Date de fin de période de conservation *</Label>
@@ -735,11 +745,15 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                     <TooltipContent side="right" className="max-w-xs text-sm space-y-2">
                       <p>La <strong>période de conservation</strong> est la durée pendant laquelle vous ne pouvez pas vendre vos actions après leur acquisition définitive (vesting).</p>
                       <p>Cette date est indiquée dans votre contrat d'attribution. Elle conditionne l'<strong>abattement fiscal</strong> applicable :</p>
-                      <ul className="list-disc pl-4 space-y-1">
-                        <li><strong>Vente {'<'} 2 ans</strong> après fin de conservation → 0% d'abattement</li>
-                        <li><strong>Vente entre 2 et 8 ans</strong> → 50% d'abattement</li>
-                        <li><strong>Vente {'>'} 8 ans</strong> → 65% d'abattement</li>
-                      </ul>
+                      {regime === 'AGA_POST2018' ? (
+                        <p>Pour les AGA post-2018, l'abattement est de <strong>50% fixe</strong> sous le seuil de 300 000 €.</p>
+                      ) : (
+                        <ul className="list-disc pl-4 space-y-1">
+                          <li><strong>Vente {'<'} 2 ans</strong> après fin de conservation → 0% d'abattement</li>
+                          <li><strong>Vente entre 2 et 8 ans</strong> → 50% d'abattement</li>
+                          <li><strong>Vente {'>'} 8 ans</strong> → 65% d'abattement</li>
+                        </ul>
+                      )}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
