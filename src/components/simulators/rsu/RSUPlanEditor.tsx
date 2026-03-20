@@ -631,11 +631,13 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                       <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent side="right" className="max-w-xs text-sm space-y-2">
-                      <p>L'année d'attribution détermine le <strong>régime fiscal</strong> applicable :</p>
+                      <p>L'année d'attribution détermine le <strong>régime fiscal</strong> applicable automatiquement.</p>
                       <ul className="list-disc pl-4 space-y-1">
-                        <li><strong>≥ 2017</strong> → Qualifié (R1) — abattement 50% sous 300k€</li>
-                        <li><strong>2015-2016</strong> → Qualifié (R2) — abattement pour durée de détention</li>
-                        <li><strong>{'< 2015'}</strong> → Non qualifié (R3) — imposé comme salaire</li>
+                        <li><strong>≥ 2018</strong> → AGA post-2018 (abattement 50% fixe sous 300k€)</li>
+                        <li><strong>2017</strong> → AGA 2017 (abattement durée + seuil 300k€)</li>
+                        <li><strong>2015-2016</strong> → AGA 2015-2016 (abattement durée détention)</li>
+                        <li><strong>2012-2014</strong> → AGA 2012-2015 (barème IR, PS 15,5%)</li>
+                        <li><strong>{'< 2012'}</strong> → AGA pré-2012 (taux forfaitaire 30%)</li>
                       </ul>
                     </TooltipContent>
                   </Tooltip>
@@ -662,9 +664,12 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                       <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent side="right" className="max-w-xs text-sm space-y-2">
-                      <p><strong>R1</strong> — Plan qualifié (AGA) attribué après le 30/12/2016</p>
-                      <p><strong>R2</strong> — Plan qualifié (AGA) attribué entre le 08/08/2015 et le 30/12/2016</p>
-                      <p><strong>R3</strong> — Plan non qualifié (ex: Nvidia, Meta…). Le gain est imposé comme un salaire.</p>
+                      <p><strong>AGA post-2018</strong> — Abattement 50% fixe sous 300k€, contrib. salariale 10% au-delà</p>
+                      <p><strong>AGA 2017</strong> — Abattement conditionnel + seuil 300k€</p>
+                      <p><strong>AGA 2015-2016</strong> — Abattement pour durée de détention</p>
+                      <p><strong>AGA 2012-2015</strong> — Barème IR, PS historiques 15,5%</p>
+                      <p><strong>AGA pré-2012</strong> — Taux forfaitaire IR 30%</p>
+                      <p><strong>Non qualifié</strong> — RSU étranger, imposé comme salaire au vesting</p>
                       <a
                         href="https://www.perlib.fr"
                         target="_blank"
@@ -683,13 +688,13 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="R1">{REGIME_LABELS.R1}</SelectItem>
-                  <SelectItem value="R2">{REGIME_LABELS.R2}</SelectItem>
-                  <SelectItem value="R3">{REGIME_LABELS.R3}</SelectItem>
+                  {(Object.keys(REGIME_LABELS) as RSURegime[]).map(key => (
+                    <SelectItem key={key} value={key}>{REGIME_LABELS[key]}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <p className="text-[10px] text-muted-foreground">
-                Pré-rempli automatiquement en fonction de l'année d'attribution. Modifiable si besoin.
+                Déduit automatiquement de l'année d'attribution. Modifiable si besoin.
               </p>
             </div>
           </div>
