@@ -175,7 +175,7 @@ export function RSUPlansDashboard({
                         {/* Regime badge */}
                         <div className="flex-shrink-0">
                           <Badge className={`${REGIME_COLORS[plan.regime]} text-[11px] font-medium px-2 py-0.5`} variant="secondary">
-                            {plan.regime}
+                            {REGIME_SHORT_LABELS[plan.regime]}
                           </Badge>
                         </div>
 

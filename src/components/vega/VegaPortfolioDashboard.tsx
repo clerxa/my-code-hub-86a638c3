@@ -60,7 +60,7 @@ function simulateCessionToday(
   const tmiRate = tmi / 100;
 
   if (plan.type === 'rsu') {
-    const regimeCode = plan.regimeCode || 'R1';
+    const regimeCode = plan.regimeCode || 'AGA_POST2018';
     const gainAcq = plan.prixAcquisitionEur;
     const prixCessionEur = priceEur;
     const valeurMoyAcqEur = plan.nbActions > 0 ? gainAcq / plan.nbActions : 0;
@@ -68,13 +68,14 @@ function simulateCessionToday(
 
     let irGa = 0, psGa = 0, contribSal = 0;
 
-    if (regimeCode === 'R1') {
-      const trancheA = Math.min(gainAcq, 300000);
-      const trancheB = Math.max(0, gainAcq - 300000);
-      irGa = (trancheA * 0.5 * tmiRate) + (trancheB * tmiRate);
-      psGa = (trancheA * 0.172) + (trancheB * 0.097);
-      contribSal = trancheB * 0.10;
-    } else if (regimeCode === 'R2') {
+    if (regimeCode === 'AGA_PRE2012' || regimeCode === 'R1' && false) {
+      // Pre-2012: forfaitaire 30%
+      irGa = gainAcq * 0.30;
+      psGa = gainAcq * 0.155;
+    } else if (regimeCode === 'AGA_2012_2015') {
+      irGa = gainAcq * tmiRate;
+      psGa = gainAcq * 0.155;
+    } else if (regimeCode === 'AGA_2015_2016' || regimeCode === 'R2') {
       let abattement = 0;
       if (plan.vestingEndDate) {
         const lastVesting = new Date(plan.vestingEndDate);
@@ -85,7 +86,28 @@ function simulateCessionToday(
       }
       irGa = gainAcq * (1 - abattement) * tmiRate;
       psGa = gainAcq * 0.172;
+    } else if (regimeCode === 'AGA_2017') {
+      const trancheA = Math.min(gainAcq, 300000);
+      const trancheB = Math.max(0, gainAcq - 300000);
+      let abattement = 0;
+      if (plan.vestingEndDate) {
+        const lastVesting = new Date(plan.vestingEndDate);
+        const diffMs = new Date().getTime() - lastVesting.getTime();
+        const dureeAnnees = diffMs / (1000 * 60 * 60 * 24 * 365.25);
+        if (dureeAnnees >= 8) abattement = 0.65;
+        else if (dureeAnnees >= 2) abattement = 0.50;
+      }
+      irGa = (trancheA * (1 - abattement) * tmiRate) + (trancheB * tmiRate);
+      psGa = (trancheA * 0.172) + (trancheB * 0.097);
+      contribSal = trancheB * 0.10;
+    } else if (regimeCode === 'AGA_POST2018' || regimeCode === 'R1') {
+      const trancheA = Math.min(gainAcq, 300000);
+      const trancheB = Math.max(0, gainAcq - 300000);
+      irGa = (trancheA * 0.5 * tmiRate) + (trancheB * tmiRate);
+      psGa = (trancheA * 0.172) + (trancheB * 0.097);
+      contribSal = trancheB * 0.10;
     } else {
+      // NON_QUALIFIE or R3
       irGa = gainAcq * tmiRate;
       psGa = gainAcq * 0.097;
       contribSal = gainAcq * 0.10;
