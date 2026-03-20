@@ -113,6 +113,12 @@ export default function VegaPage() {
     '/simulateur-bspce': 'bspce',
   };
 
+  const vegaCardNames: Record<string, string> = {
+    '/simulateur-rsu': 'Mes plans RSU',
+    '/simulateur-espp': 'Mes plans ESPP',
+    '/simulateur-bspce': 'Mes plans BSPCE',
+  };
+
   const visibleSimulators = simulators?.filter(s => s.visibility_status !== 'hidden') || [];
   const netPercent = 62;
 
@@ -169,7 +175,7 @@ export default function VegaPage() {
                   transition={{ delay: 0.5 }}
                   className="space-y-4"
                 >
-                  <h2 className="text-lg font-semibold text-foreground">Lancer une nouvelle simulation</h2>
+                  <h2 className="text-lg font-semibold text-foreground">Voir mes plans</h2>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {visibleSimulators.map((simulator) => {
                       const simType = routeToType[simulator.route];
@@ -177,7 +183,7 @@ export default function VegaPage() {
                       return (
                         <SimulatorCard
                           key={simulator.id}
-                          name={simulator.name}
+                          name={vegaCardNames[simulator.route] || simulator.name}
                           description={simulator.description}
                           icon={simulator.icon}
                           route={simulator.route}
@@ -185,7 +191,7 @@ export default function VegaPage() {
                           durationMinutes={simulator.duration_minutes}
                           visibilityStatus={simulator.visibility_status as any}
                           simulationsCount={count}
-                          buttonLabel="Ajouter un plan"
+                          buttonLabel="Accéder à mes plans"
                         />
                       );
                     })}
@@ -227,6 +233,12 @@ function LandingContent({
   simulationCountsByType: Record<string, number>;
   netPercent: number;
 }) {
+  const vegaCardNames: Record<string, string> = {
+    '/simulateur-rsu': 'Mes plans RSU',
+    '/simulateur-espp': 'Mes plans ESPP',
+    '/simulateur-bspce': 'Mes plans BSPCE',
+  };
+
   return (
     <div className="space-y-12">
       {/* Impact stat banner */}
@@ -343,7 +355,7 @@ function LandingContent({
               return (
                 <SimulatorCard
                   key={simulator.id}
-                  name={simulator.name}
+                  name={vegaCardNames[simulator.route] || simulator.name}
                   description={simulator.description}
                   icon={simulator.icon}
                   route={simulator.route}
@@ -351,7 +363,7 @@ function LandingContent({
                   durationMinutes={simulator.duration_minutes}
                   visibilityStatus={simulator.visibility_status as any}
                   simulationsCount={count}
-                  buttonLabel="Ajouter un plan"
+                  buttonLabel="Accéder à mes plans"
                 />
               );
             })}
