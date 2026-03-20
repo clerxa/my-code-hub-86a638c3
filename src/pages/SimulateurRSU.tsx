@@ -6,9 +6,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { Scale, Receipt, BarChart3, Sparkles } from 'lucide-react';
 import { SimulatorHeader } from '@/components/simulators/SimulatorHeader';
 import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer';
 import { SaveSimulationDialog } from '@/components/simulators/SaveSimulationDialog';
+import { SimulationValidationOverlay } from '@/components/simulators/SimulationValidationOverlay';
+import type { ValidationStep } from '@/components/simulators/SimulationValidationOverlay';
 import { RSUPlansDashboard, RSUPlanEditor, RSUCessionParams, RSUResults, RSUIntroScreen } from '@/components/simulators/rsu';
 import { calculateRSUSimulation } from '@/utils/rsuCalculations';
 import { useUnifiedSimulationSave } from '@/hooks/useUnifiedSimulationSave';
@@ -17,6 +20,13 @@ import { Header } from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { RSUPlan, RSUCessionParams as CessionParamsType, RSUSimulationResult } from '@/types/rsu';
+
+const RSU_VALIDATION_STEPS: ValidationStep[] = [
+  { icon: Receipt, text: "Identification du régime fiscal applicable...", duration: 900 },
+  { icon: Scale, text: "Calcul du gain d'acquisition et de la plus-value de cession...", duration: 1100 },
+  { icon: BarChart3, text: "Application des tranches IR, PS et contribution salariale...", duration: 1000 },
+  { icon: Sparkles, text: "Consolidation et optimisation des résultats...", duration: 700 },
+];
 
 type Screen = 'intro' | 'dashboard' | 'editor' | 'cession' | 'results';
 
@@ -39,6 +49,8 @@ const SimulateurRSU = () => {
     date_cession: new Date().toISOString().split('T')[0],
   });
   const [result, setResult] = useState<RSUSimulationResult | null>(null);
+  const [showValidation, setShowValidation] = useState(false);
+  const [pendingResult, setPendingResult] = useState<RSUSimulationResult | null>(null);
   const [loadedSimId, setLoadedSimId] = useState<string | null>(null);
 
   // Load ALL saved RSU plans from the simulations table
@@ -220,9 +232,18 @@ const SimulateurRSU = () => {
 
   const handleSimulate = useCallback(() => {
     const simResult = calculateRSUSimulation(simulatingPlans, cessionParams);
-    setResult(simResult);
-    setScreen('results');
+    setPendingResult(simResult);
+    setShowValidation(true);
   }, [simulatingPlans, cessionParams]);
+
+  const handleValidationComplete = useCallback(() => {
+    setShowValidation(false);
+    if (pendingResult) {
+      setResult(pendingResult);
+      setPendingResult(null);
+      setScreen('results');
+    }
+  }, [pendingResult]);
 
   const handleReset = useCallback(() => {
     setResult(null);
@@ -299,6 +320,14 @@ const SimulateurRSU = () => {
             />
           )}
         </AnimatePresence>
+
+        <SimulationValidationOverlay
+          isValidating={showValidation}
+          onComplete={handleValidationComplete}
+          simulatorName="Mes plans RSU"
+          simulatorId="rsu-cession"
+          steps={RSU_VALIDATION_STEPS}
+        />
 
         <div className="mt-8">
           <SimulatorDisclaimer />

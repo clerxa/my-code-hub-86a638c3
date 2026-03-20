@@ -4,14 +4,21 @@ import { CheckCircle2, Sparkles, Brain, TrendingUp, Calculator } from "lucide-re
 import { useCSATTrigger } from "@/hooks/useCSATTrigger";
 import { CSATPanel } from "@/components/csat";
 
+export interface ValidationStep {
+  icon: React.ComponentType<{ className?: string }>;
+  text: string;
+  duration: number;
+}
+
 interface SimulationValidationOverlayProps {
   isValidating: boolean;
   onComplete: () => void;
   simulatorName?: string;
   simulatorId?: string;
+  steps?: ValidationStep[];
 }
 
-const STEPS = [
+const DEFAULT_STEPS: ValidationStep[] = [
   { icon: Calculator, text: "Analyse de vos données...", duration: 800 },
   { icon: Brain, text: "Calcul des optimisations...", duration: 1000 },
   { icon: TrendingUp, text: "Génération des recommandations...", duration: 800 },
@@ -23,7 +30,9 @@ export function SimulationValidationOverlay({
   onComplete,
   simulatorName = "Simulateur",
   simulatorId = "simulator",
+  steps,
 }: SimulationValidationOverlayProps) {
+  const STEPS = steps || DEFAULT_STEPS;
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
