@@ -185,10 +185,9 @@ const SimulateurRSU = () => {
         {screen !== 'intro' && (
           <SimulatorHeader
             title={screenTitle}
-            description={screen === 'dashboard' ? 'Simulez l\'impact fiscal de la cession de vos RSU multi-plans' : undefined}
+            description={screen === 'dashboard' ? 'Gérez vos plans RSU et simulez l\'impact fiscal de la cession de vos actions' : undefined}
             onBack={handleBack}
-            backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour aux simulateurs'}
-            onViewSimulations={screen === 'dashboard' ? () => navigate('/employee/simulations') : undefined}
+            backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour à VEGA'}
           />
         )}
 

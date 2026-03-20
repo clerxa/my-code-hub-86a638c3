@@ -179,10 +179,9 @@ const SimulateurESPP = () => {
         {screen !== 'intro' && (
           <SimulatorHeader
             title={screenTitle}
-            description={screen === 'dashboard' ? "Simulez l'impact fiscal de vos plans d'achat d'actions" : undefined}
+            description={screen === 'dashboard' ? "Gérez vos plans d'achat d'actions et simulez leur impact fiscal" : undefined}
             onBack={handleBack}
-            backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour aux simulateurs'}
-            onViewSimulations={screen === 'dashboard' ? () => navigate('/employee/simulations') : undefined}
+            backLabel={screen === 'results' ? 'Modifier les paramètres' : 'Retour à VEGA'}
           />
         )}
 
