@@ -15,7 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { RSUPlan, RSUCessionParams as CessionParamsType } from '@/types/rsu';
-import { REGIME_COLORS, TMI_OPTIONS } from '@/types/rsu';
+import { REGIME_COLORS, REGIME_SHORT_LABELS, TMI_OPTIONS } from '@/types/rsu';
 import { fetchStockPricesBatch, fetchFxRate } from '@/hooks/useStockData';
 import { useFinancialProfilePrefill } from '@/hooks/useFinancialProfilePrefill';
 
@@ -311,7 +311,7 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
             {plans.map(plan => (
               <div key={plan.id} className="flex items-center justify-between py-2 border-b last:border-0">
                 <div className="flex items-center gap-3">
-                  <Badge className={REGIME_COLORS[plan.regime]}>{plan.regime}</Badge>
+                  <Badge className={REGIME_COLORS[plan.regime]}>{REGIME_SHORT_LABELS[plan.regime]}</Badge>
                   <div>
                     <p className="font-medium text-sm">{plan.nom}</p>
                     <p className="text-xs text-muted-foreground">

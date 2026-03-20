@@ -1,8 +1,8 @@
 /**
  * Écran 4 — Résultats de la simulation RSU
  * Affichage conditionnel selon le régime fiscal :
- *   CAS 1 — Plan qualifié (R1/R2) : tout est payé à la cession
- *   CAS 2 — Plan non qualifié (R3) : charge sur bulletin + cash cession
+ *   CAS 1 — Plan qualifié (AGA) : tout est payé à la cession
+ *   CAS 2 — Plan non qualifié : charge sur bulletin + cash cession
  */
 
 import { motion } from 'framer-motion';
@@ -19,7 +19,7 @@ import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip } from 'recharts';
 import type { RSUSimulationResult, RSUPlanResult } from '@/types/rsu';
-import { REGIME_COLORS } from '@/types/rsu';
+import { REGIME_COLORS, REGIME_SHORT_LABELS, isQualifiedRegime } from '@/types/rsu';
 import { setBookingReferrer } from '@/hooks/useBookingReferrer';
 
 const fmt = (v: number) =>
@@ -107,7 +107,7 @@ function PlanDetailCard({ plan, index }: { plan: RSUPlanResult; index: number })
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Badge className={REGIME_COLORS[plan.regime]} variant="secondary">{plan.regime}</Badge>
+                    <Badge className={REGIME_COLORS[plan.regime]} variant="secondary">{REGIME_SHORT_LABELS[plan.regime]}</Badge>
                     <div>
                       <p className="font-semibold text-sm">{plan.plan_nom}</p>
                       <p className="text-xs text-muted-foreground">{plan.nb_actions_total} actions · {plan.devise}</p>
@@ -153,7 +153,7 @@ function PlanDetailCard({ plan, index }: { plan: RSUPlanResult; index: number })
 }
 
 // ════════════════════════════════════════════════════════
-// CAS 1 — PLAN QUALIFIÉ (R1 / R2)
+// CAS 1 — PLAN QUALIFIÉ (AGA)
 // Toute la fiscalité est payée à la cession
 // ════════════════════════════════════════════════════════
 function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
@@ -164,7 +164,8 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
   const totalIR_PV = result.plans.reduce((s, p) => s + p.ir_pv_cession, 0);
   const totalPS_PV = result.plans.reduce((s, p) => s + p.ps_pv_cession, 0);
 
-  // Get abattement from plan data (use first plan's value for display — they should be the same for single-plan sim)
+  // Get abattement & regime label
+  const planRegime = result.plans.length > 0 ? result.plans[0].regime : 'AGA_POST2018';
   const abattementPct = result.plans.length > 0 ? result.plans[0].abattement_duree_detention : 0;
   const hasAbattement = abattementPct > 0;
 
@@ -186,7 +187,7 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
             <CardContent className="py-8 text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium mb-4">
                 <BadgeCheck className="h-3.5 w-3.5" />
-                Plan qualifié — AGA loi Macron
+                Plan qualifié — {REGIME_SHORT_LABELS[planRegime]}
               </div>
               <p className="text-sm font-medium text-muted-foreground mb-2">Cash net reçu après cession</p>
               <p className="text-4xl sm:text-5xl font-extrabold tracking-tight tabular-nums text-foreground" style={{ lineHeight: '1.1' }}>
@@ -280,7 +281,7 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
 }
 
 // ════════════════════════════════════════════════════════
-// CAS 2 — PLAN NON QUALIFIÉ (R3)
+// CAS 2 — PLAN NON QUALIFIÉ
 // Charge sur bulletin (vesting) + cash à la cession
 // ════════════════════════════════════════════════════════
 function NonQualifiedResults({ result }: RSUResultsProps) {
@@ -502,7 +503,7 @@ export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
   const expertUrl = 'https://www.perlib.fr/prendre-rdv?utm_source=fincare_app&utm_campaign=simulateur_rsu';
 
   // Déterminer le type de plan (simulation isolée = 1 plan)
-  const isNonQualifie = result.plans.length > 0 && result.plans.every(p => p.regime === 'R3');
+  const isNonQualifie = result.plans.length > 0 && result.plans.every(p => p.regime === 'NON_QUALIFIE');
 
   return (
     <motion.div

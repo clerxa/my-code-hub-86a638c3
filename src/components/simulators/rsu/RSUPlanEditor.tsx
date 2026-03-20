@@ -18,7 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFoo
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { RSUPlan, RSURegime, RSUDevise, VestingLine } from '@/types/rsu';
-import { REGIME_LABELS } from '@/types/rsu';
+import { REGIME_LABELS, REGIME_SHORT_LABELS, inferRegimeFromYear, regimeNeedsConservationDate, isQualifiedRegime, migrateOldRegime } from '@/types/rsu';
 import { searchSymbols, fetchStockPricesBatch, fetchFxRate, fetchStockSummary, type SymbolSearchResult } from '@/hooks/useStockData';
 import { useCompanyTicker } from '@/hooks/useCompanyTicker';
 import { format } from 'date-fns';
@@ -58,12 +58,7 @@ const FREQUENCY_MONTHS: Record<Exclude<VestingFrequency, 'custom'>, number> = {
 
 const DURATION_OPTIONS = [1, 2, 3, 4, 5, 6];
 
-/** Determine fiscal regime based on attribution year */
-function inferRegimeFromYear(year: number): RSURegime {
-  if (year >= 2017) return 'R1'; // Post 30/12/2016
-  if (year >= 2015) return 'R2'; // 08/2015 - 12/2016
-  return 'R3'; // Before 2015 → typically non-qualified
-}
+// inferRegimeFromYear is now imported from @/types/rsu
 
 interface RSUPlanEditorProps {
   plan?: RSUPlan;
@@ -357,7 +352,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
   const [ticker, setTicker] = useState(plan?.ticker ?? '');
   const [entrepriseNom, setEntrepriseNom] = useState(plan?.entreprise_nom ?? '');
   const [annee, setAnnee] = useState(plan?.annee_attribution ?? currentYear - 1);
-  const [regime, setRegime] = useState<RSURegime>(plan?.regime ?? 'R1');
+  const [regime, setRegime] = useState<RSURegime>(plan?.regime ? migrateOldRegime(plan.regime) : 'AGA_POST2018');
   const [devise, setDevise] = useState<RSUDevise>(plan?.devise ?? 'EUR');
   const [dateFinConservation, setDateFinConservation] = useState(plan?.date_fin_conservation ?? '');
   const [deviseAutoSet, setDeviseAutoSet] = useState(false);
@@ -581,14 +576,14 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
       annee_attribution: annee,
       regime,
       devise,
-      date_fin_conservation: (regime === 'R1' || regime === 'R2') ? dateFinConservation || undefined : undefined,
+      date_fin_conservation: regimeNeedsConservationDate(regime) ? dateFinConservation || undefined : undefined,
       vestings: computedVestings,
       gain_acquisition_total: totalGain,
     });
   };
 
   const isValid = computedVestings.some(v => v.nb_rsu > 0 && v.cours > 0) && entrepriseNom.length > 0
-    && ((regime !== 'R1' && regime !== 'R2') || dateFinConservation !== '');
+    && (!regimeNeedsConservationDate(regime) || dateFinConservation !== '');
 
   return (
     <motion.div
@@ -636,11 +631,13 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                       <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent side="right" className="max-w-xs text-sm space-y-2">
-                      <p>L'année d'attribution détermine le <strong>régime fiscal</strong> applicable :</p>
+                      <p>L'année d'attribution détermine le <strong>régime fiscal</strong> applicable automatiquement.</p>
                       <ul className="list-disc pl-4 space-y-1">
-                        <li><strong>≥ 2017</strong> → Qualifié (R1) — abattement 50% sous 300k€</li>
-                        <li><strong>2015-2016</strong> → Qualifié (R2) — abattement pour durée de détention</li>
-                        <li><strong>{'< 2015'}</strong> → Non qualifié (R3) — imposé comme salaire</li>
+                        <li><strong>≥ 2018</strong> → AGA post-2018 (abattement 50% fixe sous 300k€)</li>
+                        <li><strong>2017</strong> → AGA 2017 (abattement durée + seuil 300k€)</li>
+                        <li><strong>2015-2016</strong> → AGA 2015-2016 (abattement durée détention)</li>
+                        <li><strong>2012-2014</strong> → AGA 2012-2015 (barème IR, PS 15,5%)</li>
+                        <li><strong>{'< 2012'}</strong> → AGA pré-2012 (taux forfaitaire 30%)</li>
                       </ul>
                     </TooltipContent>
                   </Tooltip>
@@ -667,9 +664,12 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                       <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent side="right" className="max-w-xs text-sm space-y-2">
-                      <p><strong>R1</strong> — Plan qualifié (AGA) attribué après le 30/12/2016</p>
-                      <p><strong>R2</strong> — Plan qualifié (AGA) attribué entre le 08/08/2015 et le 30/12/2016</p>
-                      <p><strong>R3</strong> — Plan non qualifié (ex: Nvidia, Meta…). Le gain est imposé comme un salaire.</p>
+                      <p><strong>AGA post-2018</strong> — Abattement 50% fixe sous 300k€, contrib. salariale 10% au-delà</p>
+                      <p><strong>AGA 2017</strong> — Abattement conditionnel + seuil 300k€</p>
+                      <p><strong>AGA 2015-2016</strong> — Abattement pour durée de détention</p>
+                      <p><strong>AGA 2012-2015</strong> — Barème IR, PS historiques 15,5%</p>
+                      <p><strong>AGA pré-2012</strong> — Taux forfaitaire IR 30%</p>
+                      <p><strong>Non qualifié</strong> — RSU étranger, imposé comme salaire au vesting</p>
                       <a
                         href="https://www.perlib.fr"
                         target="_blank"
@@ -688,13 +688,13 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="R1">{REGIME_LABELS.R1}</SelectItem>
-                  <SelectItem value="R2">{REGIME_LABELS.R2}</SelectItem>
-                  <SelectItem value="R3">{REGIME_LABELS.R3}</SelectItem>
+                  {(Object.keys(REGIME_LABELS) as RSURegime[]).map(key => (
+                    <SelectItem key={key} value={key}>{REGIME_LABELS[key]}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <p className="text-[10px] text-muted-foreground">
-                Pré-rempli automatiquement en fonction de l'année d'attribution. Modifiable si besoin.
+                Déduit automatiquement de l'année d'attribution. Modifiable si besoin.
               </p>
             </div>
           </div>
@@ -712,8 +712,8 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
             </Select>
           </div>
 
-          {/* Encadré R3 */}
-          {regime === 'R3' && (
+          {/* Encadré Non qualifié */}
+          {regime === 'NON_QUALIFIE' && (
             <Alert className="border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/30">
               <Info className="h-4 w-4 text-amber-600" />
               <AlertDescription className="text-amber-800 dark:text-amber-200 text-sm">
@@ -722,8 +722,18 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
             </Alert>
           )}
 
-          {/* Date de fin de conservation (plans qualifiés uniquement) */}
-          {(regime === 'R1' || regime === 'R2') && (
+          {/* Encadré AGA pré-2012 */}
+          {regime === 'AGA_PRE2012' && (
+            <Alert className="border-slate-200 bg-slate-50/50 dark:border-slate-900/50 dark:bg-slate-950/30">
+              <Info className="h-4 w-4 text-slate-600" />
+              <AlertDescription className="text-slate-800 dark:text-slate-200 text-sm">
+                <strong>AGA avant 2012</strong> — Le gain d'acquisition est soumis à un taux forfaitaire de 30% + PS à 15,5%. Aucun abattement. Condition : détention de 4 ans respectée.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Date de fin de conservation (régimes avec abattement) */}
+          {regimeNeedsConservationDate(regime) && (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label>Date de fin de période de conservation *</Label>
@@ -735,11 +745,15 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                     <TooltipContent side="right" className="max-w-xs text-sm space-y-2">
                       <p>La <strong>période de conservation</strong> est la durée pendant laquelle vous ne pouvez pas vendre vos actions après leur acquisition définitive (vesting).</p>
                       <p>Cette date est indiquée dans votre contrat d'attribution. Elle conditionne l'<strong>abattement fiscal</strong> applicable :</p>
-                      <ul className="list-disc pl-4 space-y-1">
-                        <li><strong>Vente {'<'} 2 ans</strong> après fin de conservation → 0% d'abattement</li>
-                        <li><strong>Vente entre 2 et 8 ans</strong> → 50% d'abattement</li>
-                        <li><strong>Vente {'>'} 8 ans</strong> → 65% d'abattement</li>
-                      </ul>
+                      {regime === 'AGA_POST2018' ? (
+                        <p>Pour les AGA post-2018, l'abattement est de <strong>50% fixe</strong> sous le seuil de 300 000 €.</p>
+                      ) : (
+                        <ul className="list-disc pl-4 space-y-1">
+                          <li><strong>Vente {'<'} 2 ans</strong> après fin de conservation → 0% d'abattement</li>
+                          <li><strong>Vente entre 2 et 8 ans</strong> → 50% d'abattement</li>
+                          <li><strong>Vente {'>'} 8 ans</strong> → 65% d'abattement</li>
+                        </ul>
+                      )}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

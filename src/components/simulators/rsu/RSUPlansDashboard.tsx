@@ -16,7 +16,7 @@ import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { RSUPlan } from '@/types/rsu';
-import { REGIME_COLORS } from '@/types/rsu';
+import { REGIME_COLORS, REGIME_SHORT_LABELS } from '@/types/rsu';
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
@@ -175,7 +175,7 @@ export function RSUPlansDashboard({
                         {/* Regime badge */}
                         <div className="flex-shrink-0">
                           <Badge className={`${REGIME_COLORS[plan.regime]} text-[11px] font-medium px-2 py-0.5`} variant="secondary">
-                            {plan.regime}
+                            {REGIME_SHORT_LABELS[plan.regime]}
                           </Badge>
                         </div>
 

@@ -107,6 +107,12 @@ function extractPlans(
             R1: 'Qualifié (post 30/12/2016)',
             R2: 'Qualifié (08/2015 - 12/2016)',
             R3: 'Non qualifié',
+            AGA_PRE2012: 'AGA pré-2012',
+            AGA_2012_2015: 'AGA 2012-2015',
+            AGA_2015_2016: 'AGA 2015-2016',
+            AGA_2017: 'AGA 2017',
+            AGA_POST2018: 'AGA post-2018',
+            NON_QUALIFIE: 'Non qualifié',
           };
 
           const planId = `${sim.id}-${plan.id}`;
