@@ -32,7 +32,7 @@ export interface SidebarConfig {
 }
 
 const defaultEmployeeItems: SidebarMenuItem[] = [
-  { id: "panorama", label: "PANORAMA", icon: "LayoutDashboard", order: -1, visible: true },
+  { id: "panorama", label: "PANORAMA", icon: "LayoutDashboard", order: 4, visible: true, categoryId: "programme-fincare" },
   { id: "dashboard", label: "Mon tableau de bord", icon: "User", order: 0, visible: true },
   { id: "profile", label: "Mon profil", icon: "UserCircle", order: 1, visible: true, categoryId: "mon-espace" },
   { id: "progression", label: "La quête Fincare", icon: "TrendingUp", order: 2, visible: true, categoryId: "mon-espace" },
