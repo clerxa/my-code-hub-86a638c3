@@ -639,9 +639,9 @@ function PlanCard({ plan, getPriceEur, tmi, fxRate, portfolio }: { plan: Portfol
   const pv = currentValue !== null ? currentValue - plan.prixAcquisitionEur : null;
 
   const routeMap: Record<string, string> = {
-    rsu: '/simulateur-rsu',
-    espp: '/simulateur-espp',
-    bspce: '/simulateur-bspce',
+    rsu: '/mes-plans-rsu',
+    espp: '/mes-plans-espp',
+    bspce: '/mes-plans-bspce',
   };
 
   const handleOpen = () => {
