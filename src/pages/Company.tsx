@@ -627,7 +627,7 @@ const Company = () => {
           "simulateur_espp": {
             name: "Simulateur ESPP",
             description: "Calculez les avantages fiscaux et la rentabilité de votre plan d'actionnariat salarié (ESPP)",
-            url: "/simulateur-espp"
+            url: "/mes-plans-espp"
           },
           "simulateur-impots": {
             name: "Simulateur Impôts",

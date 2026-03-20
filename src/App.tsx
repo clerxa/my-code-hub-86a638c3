@@ -516,7 +516,7 @@ const App = () => (
               }
             />
             <Route
-              path="/simulateur-bspce"
+              path="/mes-plans-bspce"
               element={
                 <ProtectedRoute>
                   <CheckPlanAccess featureKey="simulateur_bspce">

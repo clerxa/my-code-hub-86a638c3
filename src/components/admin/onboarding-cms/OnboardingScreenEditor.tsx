@@ -67,7 +67,7 @@ const INTERNAL_PAGES = [
   { value: '/expert-booking', label: 'Réservation Expert' },
   { value: '/parcours', label: 'Parcours Formation' },
   { value: '/simulateur-impots', label: 'Simulateur Impôts' },
-  { value: '/simulateur-espp', label: 'Simulateur ESPP' },
+  { value: '/mes-plans-espp', label: 'Mes plans ESPP' },
   { value: '/optimisation-fiscale', label: 'Optimisation Fiscale' },
   { value: '/simulateur-per', label: 'Simulateur PER' },
   { value: '/simulateur-epargne-precaution', label: 'Simulateur Épargne de Précaution' },

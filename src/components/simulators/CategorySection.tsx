@@ -49,7 +49,7 @@ export function CategorySection({ name, description, icon, simulators, simulatio
       '/simulateur-pret-immobilier': 'pret_immobilier',
       '/simulateur-per': 'per',
       '/simulateur-impots': 'impots',
-      '/simulateur-espp': 'espp',
+      '/mes-plans-espp': 'espp',
       '/simulateur-pvi': 'pvi',
       '/simulateur-lmnp': 'lmnp',
       '/mes-plans-rsu': 'rsu',

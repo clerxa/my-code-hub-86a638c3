@@ -91,8 +91,8 @@ export const SimulationsTable = ({ userId }: SimulationsTableProps) => {
           endDate: plan.date_fin,
           createdAt: plan.created_at || '',
           tableName: 'espp_plans',
-          editUrl: `/simulateur-espp?plan=${plan.id}`,
-          viewUrl: `/simulateur-espp?plan=${plan.id}&step=resultats`,
+          editUrl: `/mes-plans-espp?plan=${plan.id}`,
+          viewUrl: `/mes-plans-espp?plan=${plan.id}&step=resultats`,
         });
       });
 
