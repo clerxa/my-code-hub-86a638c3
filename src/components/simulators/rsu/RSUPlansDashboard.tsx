@@ -150,19 +150,21 @@ export function RSUPlansDashboard({
             </Button>
           </div>
 
-          {/* Table header */}
-          <div className="grid grid-cols-[minmax(200px,2fr)_120px_80px_150px_minmax(180px,1.5fr)_minmax(120px,auto)_112px] items-center gap-x-4 px-5 py-2 text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">
-            <span>Plan</span>
-            <span>Régime</span>
-            <span className="text-right">Actions</span>
-            <span>Vesting</span>
-            <span className="hidden lg:block">Période</span>
-            <span className="text-right">Gain acq.</span>
-            <span></span>
-          </div>
+          <div className="overflow-x-auto pb-1">
+            <div className="min-w-[1240px]">
+              {/* Table header */}
+              <div className={`grid ${plansTableCols} items-center gap-x-4 px-5 py-2 text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium`}>
+                <span>Plan</span>
+                <span>Régime</span>
+                <span className="text-right">Actions</span>
+                <span>Vesting</span>
+                <span>Période</span>
+                <span className="text-right">Gain acq.</span>
+                <span></span>
+              </div>
 
-          {/* Plan rows */}
-          <div className="space-y-1.5">
+              {/* Plan rows */}
+              <div className="space-y-1.5">
             {plans.map((plan, index) => {
               const { start, end } = getVestingDateRange(plan);
               const totalPlanActions = plan.vestings.reduce((s, v) => s + v.nb_rsu, 0);
