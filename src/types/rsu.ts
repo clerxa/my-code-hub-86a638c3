@@ -22,6 +22,7 @@ export interface RSUPlan {
   annee_attribution: number;
   regime: RSURegime;
   devise: RSUDevise;
+  date_fin_conservation?: string; // YYYY-MM-DD — fin de période d'acquisition/conservation (plans qualifiés)
   vestings: VestingLine[];
   gain_acquisition_total: number; // calculé
 }

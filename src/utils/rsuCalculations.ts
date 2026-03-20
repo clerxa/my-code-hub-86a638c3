@@ -33,19 +33,30 @@ function getPVCession(plan: RSUPlan, params: RSUCessionParams) {
   return { pv_plan, moins_value, nb_rsu_plan, prix_cession_eur, valeur_moy_acq_eur };
 }
 
-// ─── ÉTAPE 6 helper — Durée de détention R2 et abattement ───
-function getR2Abattement(plan: RSUPlan, dateCession: Date): number {
-  if (plan.vestings.length === 0) return 0;
-  
-  // Date du dernier vesting
+// ─── Helper — Date de référence pour le calcul d'abattement ───
+// Pour les plans qualifiés (R1/R2), la durée de détention se calcule
+// à partir de la date de fin de conservation (obligatoire).
+// Fallback sur le dernier vesting si non renseignée.
+function getDateReferenceConservation(plan: RSUPlan): Date | null {
+  if (plan.date_fin_conservation) {
+    return new Date(plan.date_fin_conservation);
+  }
+  // Fallback : dernier vesting
   const lastVestingDate = plan.vestings
     .filter(v => v.date)
     .map(v => new Date(v.date))
     .sort((a, b) => b.getTime() - a.getTime())[0];
+  return lastVestingDate || null;
+}
 
-  if (!lastVestingDate) return 0;
+// ─── ÉTAPE 5bis/6 — Abattement pour durée de détention (R1 et R2) ───
+// Règle : 0% si < 2 ans, 50% si 2-8 ans, 65% si > 8 ans
+// après la fin de la période de conservation
+function getAbattementDureeDetention(plan: RSUPlan, dateCession: Date): number {
+  const dateRef = getDateReferenceConservation(plan);
+  if (!dateRef) return 0;
 
-  const diffMs = dateCession.getTime() - lastVestingDate.getTime();
+  const diffMs = dateCession.getTime() - dateRef.getTime();
   const dureeAnnees = diffMs / (1000 * 60 * 60 * 24 * 365.25);
 
   if (dureeAnnees < 2) return 0;
@@ -78,17 +89,40 @@ export function calculateRSUSimulation(
   const tranche_A = Math.min(gain_consolide_R1R2, 300000);
   const tranche_B = Math.max(0, gain_consolide_R1R2 - 300000);
 
-  // ─── ÉTAPE 5 — Fiscalité R1 (sur tranches consolidées) ───
+  // ─── ÉTAPE 5 — Fiscalité R1 (plan par plan avec abattement conditionnel) ───
   const tmi = params.tmi / 100;
-  const ir_A = tranche_A * 0.5 * tmi;
-  const ps_A = tranche_A * 0.172;
-  const ir_B = tranche_B * tmi;
-  const ps_B = tranche_B * 0.097;
-  const contrib_B = tranche_B * 0.10;
-
-  // Répartir la fiscalité R1 proportionnellement entre plans R1
-  // (pour le détail plan par plan dans le tableau)
   const totalR1Gain = gain_R1;
+
+  // Calculer abattement et fiscalité R1 par plan
+  const r1Details = new Map<string, { ir: number; ps: number; abattement: number; contrib: number }>();
+  let ir_R1_total = 0;
+  let ps_R1_total = 0;
+  let contrib_R1_total = 0;
+
+  for (const plan of plansR1) {
+    const abattement = getAbattementDureeDetention(plan, dateCession);
+    const ratio = totalR1Gain > 0 ? plan.gain_acquisition_total / totalR1Gain : 0;
+    const planTrancheA = tranche_A * ratio;
+    const planTrancheB = tranche_B * ratio;
+
+    // Tranche A : abattement conditionnel (pas systématiquement 50%)
+    const base_ir_A = planTrancheA * (1 - abattement);
+    const ir_A_plan = base_ir_A * tmi;
+    const ps_A_plan = planTrancheA * 0.172; // PS sur assiette AVANT abattement
+
+    // Tranche B : pas d'abattement, imposé au TMI + PS 9.7% + contrib 10%
+    const ir_B_plan = planTrancheB * tmi;
+    const ps_B_plan = planTrancheB * 0.097;
+    const contrib_plan = planTrancheB * 0.10;
+
+    const ir_plan = ir_A_plan + ir_B_plan;
+    const ps_plan = ps_A_plan + ps_B_plan;
+
+    ir_R1_total += ir_plan;
+    ps_R1_total += ps_plan;
+    contrib_R1_total += contrib_plan;
+    r1Details.set(plan.id, { ir: ir_plan, ps: ps_plan, abattement, contrib: contrib_plan });
+  }
 
   // ─── ÉTAPE 6 — Fiscalité R2 (plan par plan) ───
   let ir_R2_total = 0;
@@ -96,7 +130,7 @@ export function calculateRSUSimulation(
   const r2Details = new Map<string, { ir: number; ps: number; abattement: number }>();
 
   for (const plan of plansR2) {
-    const abattement = getR2Abattement(plan, dateCession);
+    const abattement = getAbattementDureeDetention(plan, dateCession);
     const base_ir = plan.gain_acquisition_total * (1 - abattement);
     const ir_plan = base_ir * tmi;
     const ps_plan = plan.gain_acquisition_total * 0.172; // assiette AVANT abattement
@@ -120,9 +154,9 @@ export function calculateRSUSimulation(
   const ps_pv = pv_totale * 0.172;
 
   // ─── ÉTAPE 9 — Totaux consolidés ───
-  const total_ir = ir_A + ir_B + ir_R2_total + ir_R3 + ir_pv;
-  const total_ps = ps_A + ps_B + ps_R2_total + ps_R3 + ps_pv;
-  const total_contrib = contrib_B + contrib_R3;
+  const total_ir = ir_R1_total + ir_R2_total + ir_R3 + ir_pv;
+  const total_ps = ps_R1_total + ps_R2_total + ps_R3 + ps_pv;
+  const total_contrib = contrib_R1_total + contrib_R3;
   const total_impots = total_ir + total_ps + total_contrib;
   const gain_brut_total = gain_consolide_R1R2 + gain_R3 + pv_totale;
   const gain_net = gain_brut_total - total_impots;
@@ -135,15 +169,11 @@ export function calculateRSUSimulation(
     let ir_ga = 0, ps_ga = 0, contrib_sal = 0, csg_crds = 0;
 
     if (plan.regime === 'R1') {
-      // Part proportionnelle de la fiscalité consolidée R1
-      const ratio = totalR1Gain > 0 ? plan.gain_acquisition_total / totalR1Gain : 0;
-      // Fraction du plan dans tranche A et B
-      const planTrancheA = tranche_A * ratio;
-      const planTrancheB = tranche_B * ratio;
-      ir_ga = (planTrancheA * 0.5 * tmi) + (planTrancheB * tmi);
-      ps_ga = (planTrancheA * 0.172) + (planTrancheB * 0.097);
-      contrib_sal = planTrancheB * 0.10;
-      csg_crds = 0; // inclus dans ps_ga pour R1
+      const detail = r1Details.get(plan.id)!;
+      ir_ga = detail.ir;
+      ps_ga = detail.ps;
+      contrib_sal = detail.contrib;
+      csg_crds = 0;
     } else if (plan.regime === 'R2') {
       const detail = r2Details.get(plan.id)!;
       ir_ga = detail.ir;
