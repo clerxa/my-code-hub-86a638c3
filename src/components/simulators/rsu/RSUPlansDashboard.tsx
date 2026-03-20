@@ -149,8 +149,19 @@ export function RSUPlansDashboard({
             </Button>
           </div>
 
+          {/* Table header */}
+          <div className="grid grid-cols-[minmax(180px,2fr)_100px_80px_140px_160px_120px_auto] items-center gap-x-4 px-5 py-2 text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">
+            <span>Plan</span>
+            <span>Régime</span>
+            <span className="text-right">Actions</span>
+            <span>Vesting</span>
+            <span className="hidden lg:block">Période</span>
+            <span className="text-right">Gain acq.</span>
+            <span></span>
+          </div>
+
           {/* Plan rows */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {plans.map((plan, index) => {
               const { start, end } = getVestingDateRange(plan);
               const totalPlanActions = plan.vestings.reduce((s, v) => s + v.nb_rsu, 0);
@@ -165,46 +176,38 @@ export function RSUPlansDashboard({
                 >
                   <Card className="group transition-all duration-200 hover:shadow-md hover:shadow-primary/5 hover:border-primary/20">
                     <CardContent className="p-0">
-                      <div className="flex items-center gap-4 px-5 py-4">
+                      <div className="grid grid-cols-[minmax(180px,2fr)_100px_80px_140px_160px_120px_auto] items-center gap-x-4 px-5 py-3.5">
                         {/* Plan info */}
-                        <div className="min-w-[140px] flex-shrink-0">
-                          <p className="font-semibold text-sm leading-tight text-foreground">{plan.nom}</p>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-sm leading-tight text-foreground truncate">{plan.nom}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">{plan.annee_attribution} · {plan.devise}</p>
                         </div>
 
                         {/* Regime badge */}
-                        <div className="flex-shrink-0">
-                          <Badge className={`${REGIME_COLORS[plan.regime]} text-[11px] font-medium px-2 py-0.5`} variant="secondary">
+                        <div>
+                          <Badge className={`${REGIME_COLORS[plan.regime]} text-[11px] font-medium px-2 py-0.5 whitespace-nowrap`} variant="secondary">
                             {REGIME_SHORT_LABELS[plan.regime]}
                           </Badge>
                         </div>
 
-                        {/* Stats grid */}
-                        <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1">
-                          <div>
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">Actions</p>
-                            <p className="text-sm font-semibold tabular-nums">{fmtNumber(totalPlanActions)}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">Vesting</p>
-                            <div className="flex items-center gap-2">
-                              <Progress value={vestingPct} className="h-1.5 flex-1 max-w-[60px]" />
-                              <span className={`text-xs font-bold tabular-nums ${vestingPct === 100 ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>
-                                {vestingPct}%
-                              </span>
-                            </div>
-                          </div>
-                          <div className="hidden lg:block">
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">Période</p>
-                            <p className="text-xs tabular-nums text-muted-foreground">
-                              {start ? fmtDate(start) : '—'} → {end ? fmtDate(end) : '—'}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">Gain acq.</p>
-                            <p className="text-sm font-bold tabular-nums text-foreground">{fmt(plan.gain_acquisition_total)}</p>
-                          </div>
+                        {/* Actions count */}
+                        <p className="text-sm font-semibold tabular-nums text-right">{fmtNumber(totalPlanActions)}</p>
+
+                        {/* Vesting */}
+                        <div className="flex items-center gap-2">
+                          <Progress value={vestingPct} className="h-1.5 flex-1 max-w-[60px]" />
+                          <span className={`text-xs font-bold tabular-nums ${vestingPct === 100 ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>
+                            {vestingPct}%
+                          </span>
                         </div>
+
+                        {/* Période */}
+                        <p className="text-xs tabular-nums text-muted-foreground hidden lg:block">
+                          {start ? fmtDate(start) : '—'} → {end ? fmtDate(end) : '—'}
+                        </p>
+
+                        {/* Gain acq. */}
+                        <p className="text-sm font-bold tabular-nums text-foreground text-right">{fmt(plan.gain_acquisition_total)}</p>
 
                         {/* Actions */}
                         <TooltipProvider delayDuration={200}>
