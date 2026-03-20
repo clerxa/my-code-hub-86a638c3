@@ -1,5 +1,5 @@
 /**
- * Page Simulateur RSU Multi-Plans
+ * Page Mes Plans RSU — Agrégateur de plans d'actionnariat salarié
  * 4 écrans : Dashboard → Éditeur de plan → Paramètres cession → Résultats
  */
 
@@ -14,6 +14,8 @@ import { calculateRSUSimulation } from '@/utils/rsuCalculations';
 import { useUnifiedSimulationSave } from '@/hooks/useUnifiedSimulationSave';
 import { useSimulationDefaults } from '@/contexts/GlobalSettingsContext';
 import { Header } from '@/components/Header';
+import { supabase } from '@/integrations/supabase/client';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { RSUPlan, RSUCessionParams as CessionParamsType, RSUSimulationResult } from '@/types/rsu';
 
 type Screen = 'intro' | 'dashboard' | 'editor' | 'cession' | 'results';
@@ -28,6 +30,7 @@ const SimulateurRSU = () => {
   const [screen, setScreen] = useState<Screen>(loadSimId ? 'dashboard' : 'intro');
   const [plans, setPlans] = useState<RSUPlan[]>([]);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(true);
   const [cessionParams, setCessionParams] = useState<CessionParamsType>({
     prix_vente: 0,
     taux_change_vente: 1,
@@ -37,33 +40,80 @@ const SimulateurRSU = () => {
   const [result, setResult] = useState<RSUSimulationResult | null>(null);
   const [loadedSimId, setLoadedSimId] = useState<string | null>(null);
 
-  // Load saved simulation from URL param
+  // Load ALL saved RSU plans from the simulations table
   useEffect(() => {
-    if (!loadSimId || loadedSimId === loadSimId) return;
-    const loadSavedSim = async () => {
+    const loadAllPlans = async () => {
       try {
-        const { data, error } = await (await import('@/integrations/supabase/client')).supabase
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setIsLoadingPlans(false); return; }
+
+        const { data: sims, error } = await supabase
           .from('simulations')
-          .select('data')
-          .eq('id', loadSimId)
-          .maybeSingle();
-        if (error || !data?.data) return;
-        const simData = data.data as any;
-        if (Array.isArray(simData.plans)) {
-          setPlans(simData.plans);
-          if (simData.cession_params) {
-            setCessionParams(prev => ({ ...prev, ...simData.cession_params }));
+          .select('id, data, name, created_at')
+          .eq('user_id', user.id)
+          .eq('type', 'rsu')
+          .order('created_at', { ascending: false });
+
+        if (error || !sims) { setIsLoadingPlans(false); return; }
+
+        // Extract all plans from all saved simulations
+        const allPlans: RSUPlan[] = [];
+        const seenPlanIds = new Set<string>();
+        for (const sim of sims) {
+          const simData = sim.data as any;
+          if (Array.isArray(simData?.plans)) {
+            for (const plan of simData.plans) {
+              if (plan.id && !seenPlanIds.has(plan.id)) {
+                seenPlanIds.add(plan.id);
+                allPlans.push(plan);
+              }
+            }
           }
+        }
+
+        if (allPlans.length > 0) {
+          setPlans(allPlans);
           introSeen.current = true;
           setScreen('dashboard');
         }
-        setLoadedSimId(loadSimId);
       } catch (e) {
-        console.error('Failed to load simulation:', e);
+        console.error('Failed to load RSU plans:', e);
+      } finally {
+        setIsLoadingPlans(false);
       }
     };
-    loadSavedSim();
-  }, [loadSimId, loadedSimId]);
+
+    // If loading a specific sim, use that logic instead
+    if (loadSimId) {
+      const loadSavedSim = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('simulations')
+            .select('data')
+            .eq('id', loadSimId)
+            .maybeSingle();
+          if (error || !data?.data) { setIsLoadingPlans(false); return; }
+          const simData = data.data as any;
+          if (Array.isArray(simData.plans)) {
+            setPlans(simData.plans);
+            if (simData.cession_params) {
+              setCessionParams(prev => ({ ...prev, ...simData.cession_params }));
+            }
+            introSeen.current = true;
+            setScreen('dashboard');
+          }
+          setLoadedSimId(loadSimId);
+        } catch (e) {
+          console.error('Failed to load simulation:', e);
+        } finally {
+          setIsLoadingPlans(false);
+        }
+      };
+      loadSavedSim();
+    } else {
+      loadAllPlans();
+    }
+  }, [loadSimId]);
 
   // Mettre à jour le TMI par défaut quand les settings sont chargés
   useEffect(() => {
