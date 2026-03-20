@@ -25,8 +25,8 @@ const BLOCKS = [
   },
   {
     icon: Calculator,
-    title: 'Ce que fait ce simulateur',
-    text: "Ce simulateur calcule votre imposition estimée au moment où vous vendez vos actions, en tenant compte de tous vos plans, de l'historique de vos vestings, et des taux de change si vos actions sont cotées en dollars. Il pré-remplit automatiquement les cours via des données de marché officielles.",
+    title: 'Ce que fait cet outil',
+    text: "Cet outil centralise tous vos plans RSU, suit votre calendrier de vesting en temps réel, et vous permet de simuler l'impact fiscal d'une cession. Les cours de bourse et taux de change sont pré-remplis automatiquement via des données de marché officielles.",
   },
 ];
 
@@ -56,7 +56,7 @@ export function RSUIntroScreen({ onStart }: RSUIntroScreenProps) {
           transition={{ delay: 0.1 }}
           className="text-lg text-muted-foreground"
         >
-          Estimez l'impact fiscal de la cession de vos actions gratuites
+          Centralisez vos plans RSU et anticipez l'impact fiscal de vos cessions
         </motion.p>
       </div>
 
@@ -84,12 +84,12 @@ export function RSUIntroScreen({ onStart }: RSUIntroScreenProps) {
       </div>
 
       <p className="text-xs text-muted-foreground text-center italic leading-relaxed max-w-2xl mx-auto">
-        Ce simulateur est fourni à titre indicatif uniquement. Il ne remplace pas l'avis d'un expert fiscal. Les résultats sont des estimations basées sur les données saisies.
+        Cet outil est fourni à titre indicatif et pédagogique. Il ne remplace pas l'avis d'un expert fiscal. Les résultats sont des estimations basées sur les données saisies.
       </p>
 
       <div className="flex flex-col items-center gap-2 pt-2">
         <Button onClick={onStart} size="lg" className="gap-2">
-          Je comprends, commencer ma simulation →
+          Je comprends, accéder à mes plans →
         </Button>
         <button
           onClick={onStart}
