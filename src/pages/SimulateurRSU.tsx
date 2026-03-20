@@ -232,9 +232,18 @@ const SimulateurRSU = () => {
 
   const handleSimulate = useCallback(() => {
     const simResult = calculateRSUSimulation(simulatingPlans, cessionParams);
-    setResult(simResult);
-    setScreen('results');
+    setPendingResult(simResult);
+    setShowValidation(true);
   }, [simulatingPlans, cessionParams]);
+
+  const handleValidationComplete = useCallback(() => {
+    setShowValidation(false);
+    if (pendingResult) {
+      setResult(pendingResult);
+      setPendingResult(null);
+      setScreen('results');
+    }
+  }, [pendingResult]);
 
   const handleReset = useCallback(() => {
     setResult(null);
