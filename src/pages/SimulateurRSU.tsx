@@ -166,7 +166,7 @@ const SimulateurRSU = () => {
   const handleBack = useCallback(() => {
     switch (screen) {
       case 'editor': setScreen('dashboard'); setEditingPlanId(null); break;
-      case 'cession': setScreen('dashboard'); break;
+      case 'cession': setSimulatingPlanId(null); setScreen('dashboard'); break;
       case 'results': setScreen('cession'); break;
       case 'dashboard': navigate(backTarget); break;
       default: navigate(backTarget);
