@@ -722,7 +722,41 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
             </Alert>
           )}
 
-          {/* Auto-name preview */}
+          {/* Date de fin de conservation (plans qualifiés uniquement) */}
+          {(regime === 'R1' || regime === 'R2') && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label>Date de fin de période de conservation *</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-xs text-sm space-y-2">
+                      <p>La <strong>période de conservation</strong> est la durée pendant laquelle vous ne pouvez pas vendre vos actions après leur acquisition définitive (vesting).</p>
+                      <p>Cette date est indiquée dans votre contrat d'attribution. Elle conditionne l'<strong>abattement fiscal</strong> applicable :</p>
+                      <ul className="list-disc pl-4 space-y-1">
+                        <li><strong>Vente {'<'} 2 ans</strong> après fin de conservation → 0% d'abattement</li>
+                        <li><strong>Vente entre 2 et 8 ans</strong> → 50% d'abattement</li>
+                        <li><strong>Vente {'>'} 8 ans</strong> → 65% d'abattement</li>
+                      </ul>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Input
+                type="date"
+                value={dateFinConservation}
+                onChange={e => setDateFinConservation(e.target.value)}
+                className="h-10 max-w-xs"
+              />
+              {!dateFinConservation && (
+                <p className="text-xs text-destructive">
+                  Obligatoire pour calculer l'abattement fiscal applicable.
+                </p>
+              )}
+            </div>
+          )}
           {autoName && (
             <div className="rounded-md border bg-muted/50 px-3 py-2">
               <p className="text-xs text-muted-foreground">Nom du plan (généré automatiquement)</p>
