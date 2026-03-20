@@ -727,7 +727,16 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
             <Alert className="border-slate-200 bg-slate-50/50 dark:border-slate-900/50 dark:bg-slate-950/30">
               <Info className="h-4 w-4 text-slate-600" />
               <AlertDescription className="text-slate-800 dark:text-slate-200 text-sm">
-                <strong>AGA avant 2012</strong> — Le gain d'acquisition est soumis à un taux forfaitaire de 30% + PS à 15,5%. Aucun abattement. Condition : détention de 4 ans respectée.
+                <strong>AGA avant 2012</strong> — Le gain d'acquisition est soumis à un taux forfaitaire de 30% + PS à 17,2% + contribution salariale de 10%.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {regime === 'AGA_2012_2015' && (
+            <Alert className="border-purple-200 bg-purple-50/50 dark:border-purple-900/50 dark:bg-purple-950/30">
+              <Info className="h-4 w-4 text-purple-600" />
+              <AlertDescription className="text-purple-800 dark:text-purple-200 text-sm">
+                <strong>AGA 2012-2015</strong> — Le gain d'acquisition est soumis au barème progressif IR + PS à 9,7% (CSG 9,2% + CRDS 0,5%) + contribution salariale de 10%. Aucun abattement.
               </AlertDescription>
             </Alert>
           )}

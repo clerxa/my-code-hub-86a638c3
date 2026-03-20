@@ -68,13 +68,16 @@ function simulateCessionToday(
 
     let irGa = 0, psGa = 0, contribSal = 0;
 
-    if (regimeCode === 'AGA_PRE2012' || regimeCode === 'R1' && false) {
-      // Pre-2012: forfaitaire 30%
+    if (regimeCode === 'AGA_PRE2012') {
+      // IR forfaitaire 30%, PS 17,2%, contrib 10%
       irGa = gainAcq * 0.30;
-      psGa = gainAcq * 0.155;
+      psGa = gainAcq * 0.172;
+      contribSal = gainAcq * 0.10;
     } else if (regimeCode === 'AGA_2012_2015') {
+      // Barème IR, PS 9,7%, contrib 10%
       irGa = gainAcq * tmiRate;
-      psGa = gainAcq * 0.155;
+      psGa = gainAcq * 0.097;
+      contribSal = gainAcq * 0.10;
     } else if (regimeCode === 'AGA_2015_2016' || regimeCode === 'R2') {
       let abattement = 0;
       if (plan.vestingEndDate) {
@@ -86,6 +89,7 @@ function simulateCessionToday(
       }
       irGa = gainAcq * (1 - abattement) * tmiRate;
       psGa = gainAcq * 0.172;
+      // Pas de contribution salariale
     } else if (regimeCode === 'AGA_2017') {
       const trancheA = Math.min(gainAcq, 300000);
       const trancheB = Math.max(0, gainAcq - 300000);
@@ -98,14 +102,14 @@ function simulateCessionToday(
         else if (dureeAnnees >= 2) abattement = 0.50;
       }
       irGa = (trancheA * (1 - abattement) * tmiRate) + (trancheB * tmiRate);
-      psGa = (trancheA * 0.172) + (trancheB * 0.097);
-      contribSal = trancheB * 0.10;
+      psGa = gainAcq * 0.172; // PS 17,2% sur totalité
+      // Pas de contribution salariale
     } else if (regimeCode === 'AGA_POST2018' || regimeCode === 'R1') {
       const trancheA = Math.min(gainAcq, 300000);
       const trancheB = Math.max(0, gainAcq - 300000);
       irGa = (trancheA * 0.5 * tmiRate) + (trancheB * tmiRate);
-      psGa = (trancheA * 0.172) + (trancheB * 0.097);
-      contribSal = trancheB * 0.10;
+      psGa = gainAcq * 0.172; // PS 17,2% sur totalité
+      // Pas de contribution salariale
     } else {
       // NON_QUALIFIE or R3
       irGa = gainAcq * tmiRate;

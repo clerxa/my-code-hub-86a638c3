@@ -236,19 +236,46 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
               </p>
               {hasAbattement && (
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  Abattement pour durée de détention appliqué{abattementPct > 0 ? ` (${(abattementPct * 100).toFixed(0)}%)` : ''} — base imposable IR réduite à {fmt(totalGA * (1 - abattementPct))}
+                  {planRegime === 'AGA_POST2018'
+                    ? `Abattement fixe de 50% appliqué sous 300 000 € — base imposable IR réduite à ${fmt(Math.min(totalGA, 300000) * 0.50 + Math.max(0, totalGA - 300000))}`
+                    : `Abattement pour durée de détention appliqué (${(abattementPct * 100).toFixed(0)}%) — base imposable IR réduite à ${fmt(totalGA * (1 - abattementPct))}`
+                  }
                 </p>
               )}
-              {!hasAbattement && (
+              {!hasAbattement && planRegime !== 'AGA_PRE2012' && planRegime !== 'AGA_2012_2015' && (
                 <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
                   Aucun abattement applicable — vente moins de 2 ans après fin de conservation
                 </p>
               )}
+              {planRegime === 'AGA_PRE2012' && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Taux forfaitaire de 30% — aucun abattement applicable sur ce régime
+                </p>
+              )}
+              {planRegime === 'AGA_2012_2015' && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Barème progressif IR — aucun abattement applicable sur ce régime
+                </p>
+              )}
             </div>
-            <WaterfallRow label="IR sur gain d'acquisition" description={`Barème progressif${hasAbattement ? ' (après abattement)' : ' (sans abattement)'}`} value={totalIR_GA} delay={0.45} />
-            <WaterfallRow label="PS sur gain d'acquisition" description="Prélèvements sociaux (17,2% sur l'assiette brute)" value={totalPS_GA} delay={0.5} />
+            <WaterfallRow
+              label="IR sur gain d'acquisition"
+              description={
+                planRegime === 'AGA_PRE2012' ? 'Taux forfaitaire 30%'
+                : `Barème progressif${hasAbattement ? ' (après abattement)' : ' (sans abattement)'}`
+              }
+              value={totalIR_GA} delay={0.45}
+            />
+            <WaterfallRow
+              label="PS sur gain d'acquisition"
+              description={
+                planRegime === 'AGA_2012_2015' ? 'CSG 9,2% + CRDS 0,5% = 9,7%'
+                : 'Prélèvements sociaux (17,2% sur l\'assiette brute)'
+              }
+              value={totalPS_GA} delay={0.5}
+            />
             {result.total_contribution_salariale > 0 && (
-              <WaterfallRow label="Contribution salariale" description="10% applicable au-delà de 300 000 €" value={result.total_contribution_salariale} delay={0.55} />
+              <WaterfallRow label="Contribution salariale" description="10%" value={result.total_contribution_salariale} delay={0.55} />
             )}
 
             {/* --- Fiscalité sur la plus-value de cession --- */}
