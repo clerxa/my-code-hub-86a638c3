@@ -205,7 +205,7 @@ export function RSUPlansDashboard({
                         </div>
 
                         {/* Période */}
-                        <p className="text-xs tabular-nums text-muted-foreground hidden lg:block">
+                        <p className="text-xs tabular-nums text-muted-foreground">
                           {start ? fmtDate(start) : '—'} → {end ? fmtDate(end) : '—'}
                         </p>
 
