@@ -30,6 +30,7 @@ const SimulateurRSU = () => {
   const [screen, setScreen] = useState<Screen>(loadSimId ? 'dashboard' : 'intro');
   const [plans, setPlans] = useState<RSUPlan[]>([]);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+  const [simulatingPlanId, setSimulatingPlanId] = useState<string | null>(null);
   const [isLoadingPlans, setIsLoadingPlans] = useState(true);
   const [cessionParams, setCessionParams] = useState<CessionParamsType>({
     prix_vente: 0,
