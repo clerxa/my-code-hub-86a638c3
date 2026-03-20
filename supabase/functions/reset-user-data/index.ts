@@ -162,7 +162,6 @@ Deno.serve(async (req) => {
             completed_modules: [],
             onboarding_completed: false,
             last_login: null,
-            date_premiere_connexion: null,
             statut_invitation: 'en_attente',
             avatar_url: null,
             forum_anonymous: false,
