@@ -169,7 +169,7 @@ export default function VegaPage() {
                   transition={{ delay: 0.5 }}
                   className="space-y-4"
                 >
-                  <h2 className="text-lg font-semibold text-foreground">Lancer une nouvelle simulation</h2>
+                  <h2 className="text-lg font-semibold text-foreground">Voir mes plans</h2>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {visibleSimulators.map((simulator) => {
                       const simType = routeToType[simulator.route];
