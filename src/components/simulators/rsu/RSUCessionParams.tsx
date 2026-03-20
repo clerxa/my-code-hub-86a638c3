@@ -15,7 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { RSUPlan, RSUCessionParams as CessionParamsType } from '@/types/rsu';
-import { REGIME_COLORS, TMI_OPTIONS } from '@/types/rsu';
+import { REGIME_COLORS, REGIME_SHORT_LABELS, TMI_OPTIONS } from '@/types/rsu';
 import { fetchStockPricesBatch, fetchFxRate } from '@/hooks/useStockData';
 import { useFinancialProfilePrefill } from '@/hooks/useFinancialProfilePrefill';
 
