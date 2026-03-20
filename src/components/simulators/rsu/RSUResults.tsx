@@ -157,6 +157,26 @@ function PlanDetailCard({ plan, index }: { plan: RSUPlanResult; index: number })
 // Toute la fiscalité est payée à la cession
 // ════════════════════════════════════════════════════════
 function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
+  // Derived values for split display
+  const totalGA = result.plans.reduce((s, p) => s + p.gain_acquisition_eur, 0);
+  const totalPV = result.plans.reduce((s, p) => s + p.pv_cession_eur, 0);
+  const totalIR_GA = result.plans.reduce((s, p) => s + p.ir_gain_acquisition, 0);
+  const totalPS_GA = result.plans.reduce((s, p) => s + p.ps_gain_acquisition, 0);
+  const totalIR_PV = result.plans.reduce((s, p) => s + p.ir_pv_cession, 0);
+  const totalPS_PV = result.plans.reduce((s, p) => s + p.ps_pv_cession, 0);
+
+  // Detect abattement: if IR_GA < totalGA * TMI, an abattement was applied
+  // Infer abattement percentage from the ratio
+  const impliedTMI = totalGA > 0 && totalIR_GA > 0 ? totalIR_GA / totalGA : 0;
+  // If no contribution salariale and totalGA <= 300k, abattement = 1 - (IR_GA / (totalGA * TMI))
+  // We approximate: if IR < full TMI rate, there's an abattement
+  const fullIR_estimate = totalGA > 0 ? totalIR_GA : 0;
+  const abattementPct = totalGA > 0 && result.total_ir > 0
+    ? Math.max(0, 1 - (totalIR_GA / (totalGA * (result.taux_effectif / 100 || 0.3))))
+    : 0;
+  // Simpler: check if abattement > 0 by comparing IR to what it would be without abattement
+  const hasAbattement = totalIR_GA < totalGA * 0.45 * 0.99 && totalGA > 0 && abattementPct > 0.01; // rough heuristic
+
   const donutData = [
     { name: 'Cash net reçu', value: result.gain_net_total },
     { name: 'Impôt sur le revenu', value: result.total_ir },
