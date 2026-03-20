@@ -1,8 +1,8 @@
 /**
  * Écran 4 — Résultats de la simulation RSU
  * Affichage conditionnel selon le régime fiscal :
- *   CAS 1 — Plan qualifié (R1/R2) : tout est payé à la cession
- *   CAS 2 — Plan non qualifié (R3) : charge sur bulletin + cash cession
+ *   CAS 1 — Plan qualifié (AGA) : tout est payé à la cession
+ *   CAS 2 — Plan non qualifié : charge sur bulletin + cash cession
  */
 
 import { motion } from 'framer-motion';
