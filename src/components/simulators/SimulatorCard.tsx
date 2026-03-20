@@ -128,10 +128,6 @@ export function SimulatorCard({ name, description, icon, route, featureKey, dura
             )} />
           </div>
           <div className="flex flex-col items-end gap-1">
-            <Badge variant="outline" className="text-xs font-normal border-muted-foreground/30 text-muted-foreground">
-              <Clock className="h-3 w-3 mr-1" />
-              {durationMinutes} min
-            </Badge>
             {isDisabled && (
               <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
                 Bientôt disponible
