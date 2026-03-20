@@ -281,7 +281,7 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
 }
 
 // ════════════════════════════════════════════════════════
-// CAS 2 — PLAN NON QUALIFIÉ (R3)
+// CAS 2 — PLAN NON QUALIFIÉ
 // Charge sur bulletin (vesting) + cash à la cession
 // ════════════════════════════════════════════════════════
 function NonQualifiedResults({ result }: RSUResultsProps) {
