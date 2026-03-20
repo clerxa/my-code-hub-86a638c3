@@ -150,7 +150,7 @@ export function RSUPlansDashboard({
           </div>
 
           {/* Table header */}
-          <div className="grid grid-cols-[minmax(180px,2fr)_100px_80px_140px_160px_120px_auto] items-center gap-x-4 px-5 py-2 text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">
+          <div className="grid grid-cols-[minmax(160px,1.5fr)_110px_70px_130px_minmax(140px,1fr)_minmax(100px,auto)_108px] items-center gap-x-3 px-5 py-2 text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">
             <span>Plan</span>
             <span>Régime</span>
             <span className="text-right">Actions</span>
@@ -176,7 +176,7 @@ export function RSUPlansDashboard({
                 >
                   <Card className="group transition-all duration-200 hover:shadow-md hover:shadow-primary/5 hover:border-primary/20">
                     <CardContent className="p-0">
-                      <div className="grid grid-cols-[minmax(180px,2fr)_100px_80px_140px_160px_120px_auto] items-center gap-x-4 px-5 py-3.5">
+                      <div className="grid grid-cols-[minmax(160px,1.5fr)_110px_70px_130px_minmax(140px,1fr)_minmax(100px,auto)_108px] items-center gap-x-3 px-5 py-3.5">
                         {/* Plan info */}
                         <div className="min-w-0">
                           <p className="font-semibold text-sm leading-tight text-foreground truncate">{plan.nom}</p>
