@@ -153,7 +153,7 @@ function PlanDetailCard({ plan, index }: { plan: RSUPlanResult; index: number })
 }
 
 // ════════════════════════════════════════════════════════
-// CAS 1 — PLAN QUALIFIÉ (R1 / R2)
+// CAS 1 — PLAN QUALIFIÉ (AGA)
 // Toute la fiscalité est payée à la cession
 // ════════════════════════════════════════════════════════
 function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
