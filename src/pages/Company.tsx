@@ -625,8 +625,8 @@ const Company = () => {
           url: string;
         }> = {
           "simulateur_espp": {
-            name: "Simulateur ESPP",
-            description: "Calculez les avantages fiscaux et la rentabilité de votre plan d'actionnariat salarié (ESPP)",
+            name: "Mes plans ESPP",
+            description: "Gérez vos plans d'achat d'actions salarié (ESPP)",
             url: "/mes-plans-espp"
           },
           "simulateur-impots": {
@@ -635,14 +635,14 @@ const Company = () => {
             url: "/simulateur-impots"
           },
           "simulateur-rsu": {
-            name: "Simulateur RSU",
-            description: "Optimisez la gestion de vos actions gratuites (RSU)",
-            url: "#"
+            name: "Mes plans RSU",
+            description: "Gérez vos plans d'actions gratuites (RSU)",
+            url: "/mes-plans-rsu"
           },
           "simulateur-bspce": {
-            name: "Simulateur BSPCE",
-            description: "Calculez la valeur et l'optimisation fiscale de vos BSPCE",
-            url: "#"
+            name: "Mes plans BSPCE",
+            description: "Gérez vos bons de souscription de parts de créateur d'entreprise",
+            url: "/mes-plans-bspce"
           }
         };
         const availableSimulators = company.simulators_config && Array.isArray(company.simulators_config) ? (company.simulators_config as string[]).filter(code => simulatorMap[code]).map(code => ({

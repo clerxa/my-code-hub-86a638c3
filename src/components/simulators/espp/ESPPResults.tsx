@@ -189,7 +189,7 @@ export function ESPPResults({ result, tmi, onReset, onSave }: ESPPResultsProps) 
       <Card className="bg-muted/50 border-muted">
         <CardContent className="py-4">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Ce simulateur ESPP est fourni à titre indicatif et pédagogique uniquement. Il ne constitue pas un conseil fiscal. La fiscalité des ESPP en France dépend notamment de la qualification du plan, de votre résidence fiscale, et des éventuelles conventions fiscales applicables. En particulier, la base de calcul de la plus-value peut varier selon l'interprétation retenue par votre employeur et l'administration fiscale. Consultez un expert Perlib avant toute décision de vente. Sources : article 80 bis du CGI, doctrine administrative BOFiP.
+            Cet outil ESPP est fourni à titre indicatif et pédagogique uniquement. Il ne constitue pas un conseil fiscal. La fiscalité des ESPP en France dépend notamment de la qualification du plan, de votre résidence fiscale, et des éventuelles conventions fiscales applicables. En particulier, la base de calcul de la plus-value peut varier selon l'interprétation retenue par votre employeur et l'administration fiscale. Consultez un expert Perlib avant toute décision de vente. Sources : article 80 bis du CGI, doctrine administrative BOFiP.
           </p>
         </CardContent>
       </Card>

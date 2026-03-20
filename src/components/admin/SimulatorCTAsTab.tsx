@@ -54,7 +54,7 @@ const generateInternalName = (simulatorType: SimulatorType, conditionKey: string
 
 const SIMULATOR_LABELS: Record<SimulatorType, string> = {
   per: 'Simulateur PER',
-  espp: 'Simulateur ESPP',
+  espp: 'Mes plans ESPP',
   impots: 'Simulateur d\'Impôts',
   optimisation_fiscale: 'Optimisation Fiscale',
   epargne_precaution: 'Épargne de Précaution',
