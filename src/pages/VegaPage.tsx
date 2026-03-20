@@ -113,6 +113,12 @@ export default function VegaPage() {
     '/simulateur-bspce': 'bspce',
   };
 
+  const vegaCardNames: Record<string, string> = {
+    '/simulateur-rsu': 'Mes plans RSU',
+    '/simulateur-espp': 'Mes plans ESPP',
+    '/simulateur-bspce': 'Mes plans BSPCE',
+  };
+
   const visibleSimulators = simulators?.filter(s => s.visibility_status !== 'hidden') || [];
   const netPercent = 62;
 
