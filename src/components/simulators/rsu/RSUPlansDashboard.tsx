@@ -77,6 +77,7 @@ export function RSUPlansDashboard({
   const totalGain = getTotalGain(plans);
   const totalActions = getTotalActions(plans);
   const avgVesting = getAverageVesting(plans);
+  const plansTableCols = 'grid-cols-[minmax(280px,2.4fr)_minmax(120px,1fr)_minmax(90px,0.7fr)_minmax(170px,1.1fr)_minmax(220px,1.8fr)_minmax(150px,1fr)_112px]';
 
   return (
     <motion.div
