@@ -159,7 +159,7 @@ export function calculateRSUSimulation(
   // ─── ÉTAPE 9 — Totaux consolidés ───
   const total_ir = ir_R1_total + ir_R2_total + ir_R3 + ir_pv;
   const total_ps = ps_R1_total + ps_R2_total + ps_R3 + ps_pv;
-  const total_contrib = contrib_R1_total + contrib_R3;
+  const total_contrib = contrib_R1_total + contrib_R2_total + contrib_R3;
   const total_impots = total_ir + total_ps + total_contrib;
   const gain_brut_total = gain_consolide_R1R2 + gain_R3 + pv_totale;
   const gain_net = gain_brut_total - total_impots;
