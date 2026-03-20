@@ -57,6 +57,98 @@ const FREQUENCY_MONTHS: Record<Exclude<VestingFrequency, 'custom'>, number> = {
 };
 
 const DURATION_OPTIONS = [1, 2, 3, 4, 5, 6];
+const CUSTOM_DURATION_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
+
+type TrancheFrequency = 'cliff' | 'monthly' | 'quarterly' | 'semiannual' | 'annual';
+
+const TRANCHE_FREQ_LABELS: Record<TrancheFrequency, string> = {
+  cliff: 'Cliff (1 seule date)',
+  monthly: 'Mensuel',
+  quarterly: 'Trimestriel',
+  semiannual: 'Semestriel',
+  annual: 'Annuel',
+};
+
+interface VestingTranche {
+  id: string;
+  pct: number;
+  frequency: TrancheFrequency;
+  /** For cliff: months after plan start. For others: duration in months */
+  offsetMonths: number;
+  durationMonths: number;
+}
+
+function createEmptyTranche(): VestingTranche {
+  return { id: generateId(), pct: 0, frequency: 'cliff', offsetMonths: 12, durationMonths: 12 };
+}
+
+const OFFSET_PRESETS = [
+  { label: 'Au départ', value: 0 },
+  { label: 'Après 6 mois', value: 6 },
+  { label: 'Après 1 an', value: 12 },
+  { label: 'Après 18 mois', value: 18 },
+  { label: 'Après 2 ans', value: 24 },
+  { label: 'Après 3 ans', value: 36 },
+  { label: 'Après 4 ans', value: 48 },
+];
+
+const DURATION_PRESETS = [
+  { label: '6 mois', value: 6 },
+  { label: '1 an', value: 12 },
+  { label: '18 mois', value: 18 },
+  { label: '2 ans', value: 24 },
+  { label: '3 ans', value: 36 },
+  { label: '4 ans', value: 48 },
+];
+
+function generateVestingsFromTranches(
+  tranches: VestingTranche[],
+  totalActions: number,
+  planStartDate: string,
+): VestingLine[] {
+  if (!planStartDate || totalActions <= 0) return [];
+  const startD = new Date(planStartDate);
+  const lines: VestingLine[] = [];
+
+  for (const tranche of tranches) {
+    const trancheActions = Math.round(totalActions * tranche.pct / 100);
+    if (trancheActions <= 0) continue;
+
+    if (tranche.frequency === 'cliff') {
+      const d = new Date(startD.getFullYear(), startD.getMonth() + tranche.offsetMonths, startD.getDate());
+      lines.push({
+        id: generateId(),
+        date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+        nb_rsu: trancheActions,
+        cours: 0,
+        taux_change: 1,
+        gain_eur: 0,
+      });
+    } else {
+      const monthsInterval = tranche.frequency === 'monthly' ? 1 : tranche.frequency === 'quarterly' ? 3 : tranche.frequency === 'semiannual' ? 6 : 12;
+      const nbPeriods = Math.max(1, Math.floor(tranche.durationMonths / monthsInterval));
+      const actionsPerPeriod = Math.floor(trancheActions / nbPeriods);
+      const remainder = trancheActions - actionsPerPeriod * nbPeriods;
+
+      for (let i = 0; i < nbPeriods; i++) {
+        const totalMonthsOffset = tranche.offsetMonths + i * monthsInterval;
+        const d = new Date(startD.getFullYear(), startD.getMonth() + totalMonthsOffset, startD.getDate());
+        lines.push({
+          id: generateId(),
+          date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+          nb_rsu: actionsPerPeriod + (i === nbPeriods - 1 ? remainder : 0),
+          cours: 0,
+          taux_change: 1,
+          gain_eur: 0,
+        });
+      }
+    }
+  }
+
+  // Sort by date
+  lines.sort((a, b) => a.date.localeCompare(b.date));
+  return lines;
+}
 
 // inferRegimeFromYear is now imported from @/types/rsu
 
@@ -367,6 +459,11 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
   const [totalActions, setTotalActions] = useState<number>(0);
   const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [customTranches, setCustomTranches] = useState<VestingTranche[]>([
+    { id: generateId(), pct: 25, frequency: 'cliff', offsetMonths: 12, durationMonths: 12 },
+    { id: generateId(), pct: 75, frequency: 'monthly', offsetMonths: 12, durationMonths: 36 },
+  ]);
+  const [customDuration, setCustomDuration] = useState(4);
   const [selectedCompany, setSelectedCompany] = useState<SelectedCompany | null>(
     plan?.ticker && plan?.entreprise_nom
       ? { name: plan.entreprise_nom, ticker: plan.ticker, exchange: '', currency: plan.devise, country: '' }
@@ -549,6 +646,33 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
     setShowWow(true);
     setTimeout(() => setShowWow(false), 3000);
   }, [ticker, vestingsWithDates, devise, updateVesting]);
+
+  const customTotalPct = useMemo(() => customTranches.reduce((s, t) => s + t.pct, 0), [customTranches]);
+  const customPctValid = customTotalPct === 100;
+
+  const addTranche = useCallback(() => {
+    const remaining = 100 - customTranches.reduce((s, t) => s + t.pct, 0);
+    setCustomTranches(prev => [...prev, { ...createEmptyTranche(), pct: Math.max(0, remaining) }]);
+  }, [customTranches]);
+
+  const removeTranche = useCallback((id: string) => {
+    setCustomTranches(prev => prev.length > 1 ? prev.filter(t => t.id !== id) : prev);
+  }, []);
+
+  const updateTranche = useCallback((id: string, field: keyof VestingTranche, value: number | string) => {
+    setCustomTranches(prev => prev.map(t => t.id === id ? { ...t, [field]: value } : t));
+  }, []);
+
+  const canGenerateCustom = isCustom && startDate && totalActions > 0 && customPctValid;
+
+  const generateCustomVestings = useCallback(() => {
+    if (!canGenerateCustom) return;
+    const lines = generateVestingsFromTranches(customTranches, totalActions, startDate);
+    if (lines.length > 0) {
+      setVestings(lines);
+      setHasGenerated(true);
+    }
+  }, [canGenerateCustom, customTranches, totalActions, startDate]);
 
   const showRoundingNote = useMemo(() => {
     if (isCustom || totalActions <= 0) return false;
@@ -834,9 +958,147 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
           )}
 
           {isCustom && (
-            <p className="text-sm text-muted-foreground italic">
-              Saisissez vos périodes de vesting manuellement dans le tableau ci-dessous.
-            </p>
+            <>
+              <div className="space-y-2">
+                <Label>Durée totale du plan</Label>
+                <Select value={String(customDuration)} onValueChange={v => setCustomDuration(Number(v))}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CUSTOM_DURATION_OPTIONS.map(d => (
+                      <SelectItem key={d} value={String(d)}>{d} an{d > 1 ? 's' : ''}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-semibold">Tranches de vesting</Label>
+                  <span className={`text-xs font-semibold tabular-nums px-2 py-0.5 rounded-full ${customPctValid ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : customTotalPct > 100 ? 'bg-destructive/10 text-destructive' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'}`}>
+                    {customTotalPct}% / 100%
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {customTranches.map((tranche, idx) => (
+                    <div key={tranche.id} className="rounded-lg border bg-card p-3 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-muted-foreground">Tranche {idx + 1}</span>
+                        {customTranches.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                            onClick={() => removeTranche(tranche.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {/* % */}
+                        <div className="space-y-1">
+                          <Label className="text-xs">% des actions</Label>
+                          <div className="relative">
+                            <Input
+                              type="number"
+                              min={1}
+                              max={100}
+                              value={tranche.pct || ''}
+                              onChange={e => updateTranche(tranche.id, 'pct', Math.min(100, Math.max(0, Number(e.target.value))))}
+                              className="h-9 pr-7"
+                            />
+                            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
+                          </div>
+                          {totalActions > 0 && tranche.pct > 0 && (
+                            <p className="text-[10px] text-muted-foreground tabular-nums">{Math.round(totalActions * tranche.pct / 100)} actions</p>
+                          )}
+                        </div>
+
+                        {/* Fréquence */}
+                        <div className="space-y-1">
+                          <Label className="text-xs">Fréquence</Label>
+                          <Select value={tranche.frequency} onValueChange={v => updateTranche(tranche.id, 'frequency', v)}>
+                            <SelectTrigger className="h-9 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(Object.keys(TRANCHE_FREQ_LABELS) as TrancheFrequency[]).map(f => (
+                                <SelectItem key={f} value={f} className="text-xs">{TRANCHE_FREQ_LABELS[f]}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Début (offset) */}
+                        <div className="space-y-1">
+                          <Label className="text-xs">{tranche.frequency === 'cliff' ? 'Quand' : 'Début'}</Label>
+                          <Select value={String(tranche.offsetMonths)} onValueChange={v => updateTranche(tranche.id, 'offsetMonths', Number(v))}>
+                            <SelectTrigger className="h-9 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {OFFSET_PRESETS.map(o => (
+                                <SelectItem key={o.value} value={String(o.value)} className="text-xs">{o.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Durée (non-cliff uniquement) */}
+                        {tranche.frequency !== 'cliff' && (
+                          <div className="space-y-1">
+                            <Label className="text-xs">Sur une durée de</Label>
+                            <Select value={String(tranche.durationMonths)} onValueChange={v => updateTranche(tranche.id, 'durationMonths', Number(v))}>
+                              <SelectTrigger className="h-9 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {DURATION_PRESETS.map(d => (
+                                  <SelectItem key={d.value} value={String(d.value)} className="text-xs">{d.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <Button variant="outline" size="sm" onClick={addTranche} className="gap-1.5 text-xs">
+                  <Plus className="h-3.5 w-3.5" />
+                  Ajouter une tranche
+                </Button>
+
+                {!customPctValid && customTotalPct !== 0 && (
+                  <Alert className="border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/30 py-2">
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="text-xs text-amber-800 dark:text-amber-200">
+                      {customTotalPct < 100
+                        ? `Il reste ${100 - customTotalPct}% à répartir pour couvrir toutes les actions.`
+                        : `Le total dépasse 100% (${customTotalPct}%). Ajustez les pourcentages.`}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+
+              {canGenerateCustom && (
+                <Button variant="outline" onClick={() => {
+                  if (hasGenerated && vestings.some(v => v.cours > 0)) {
+                    setShowRegenerateConfirm(true);
+                  } else {
+                    generateCustomVestings();
+                  }
+                }} className="gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  Générer les périodes de vesting
+                </Button>
+              )}
+            </>
           )}
 
           {!isCustom && canGenerate && (
