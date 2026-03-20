@@ -187,7 +187,7 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
             <CardContent className="py-8 text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium mb-4">
                 <BadgeCheck className="h-3.5 w-3.5" />
-                Plan qualifié — AGA loi Macron
+                Plan qualifié — {REGIME_SHORT_LABELS[planRegime]}
               </div>
               <p className="text-sm font-medium text-muted-foreground mb-2">Cash net reçu après cession</p>
               <p className="text-4xl sm:text-5xl font-extrabold tracking-tight tabular-nums text-foreground" style={{ lineHeight: '1.1' }}>
