@@ -117,8 +117,8 @@ const SimulateurESPP = () => {
   }, [screen, navigate, backTarget]);
 
   const screenTitle = {
-    intro: 'Simulateur ESPP',
-    dashboard: 'Simulateur ESPP',
+    intro: 'Mes plans ESPP',
+    dashboard: 'Mes plans ESPP',
     editor: editingPeriodId ? 'Modifier la période' : 'Nouvelle période',
     tmi: 'Paramètres fiscaux',
     results: 'Résultats',
