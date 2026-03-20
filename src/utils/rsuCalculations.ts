@@ -205,6 +205,7 @@ export function calculateRSUSimulation(
       nb_actions_total: nb_rsu_plan,
       gain_acquisition_eur: plan.gain_acquisition_total,
       pv_cession_eur: pvData.pv_plan,
+      abattement_duree_detention: abattement,
       ir_gain_acquisition: ir_ga,
       ps_gain_acquisition: ps_ga,
       contribution_salariale: contrib_sal,
