@@ -234,9 +234,9 @@ function LandingContent({
   netPercent: number;
 }) {
   const vegaCardNames: Record<string, string> = {
-    '/simulateur-rsu': 'Mes plans RSU',
-    '/simulateur-espp': 'Mes plans ESPP',
-    '/simulateur-bspce': 'Mes plans BSPCE',
+    '/mes-plans-rsu': 'Mes plans RSU',
+    '/mes-plans-espp': 'Mes plans ESPP',
+    '/mes-plans-bspce': 'Mes plans BSPCE',
   };
 
   return (

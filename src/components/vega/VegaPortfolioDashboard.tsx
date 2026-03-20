@@ -810,7 +810,7 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
               size="sm"
               className="text-xs"
               onClick={() => {
-                const routes: Record<string, string> = { rsu: '/simulateur-rsu', espp: '/simulateur-espp', bspce: '/simulateur-bspce' };
+                const routes: Record<string, string> = { rsu: '/mes-plans-rsu', espp: '/mes-plans-espp', bspce: '/mes-plans-bspce' };
                 navigate(routes[type]);
               }}
             >
