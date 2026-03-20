@@ -359,6 +359,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
   const [annee, setAnnee] = useState(plan?.annee_attribution ?? currentYear - 1);
   const [regime, setRegime] = useState<RSURegime>(plan?.regime ?? 'R1');
   const [devise, setDevise] = useState<RSUDevise>(plan?.devise ?? 'EUR');
+  const [dateFinConservation, setDateFinConservation] = useState(plan?.date_fin_conservation ?? '');
   const [deviseAutoSet, setDeviseAutoSet] = useState(false);
   const [vestings, setVestings] = useState<VestingLine[]>(
     plan?.vestings?.length ? plan.vestings : [createEmptyVesting()]
