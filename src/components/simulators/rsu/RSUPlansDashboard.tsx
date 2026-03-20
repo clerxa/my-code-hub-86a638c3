@@ -150,7 +150,7 @@ export function RSUPlansDashboard({
           </div>
 
           {/* Table header */}
-          <div className="grid grid-cols-[minmax(180px,2fr)_100px_80px_140px_160px_120px_auto] items-center gap-x-4 px-5 py-2 text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">
+          <div className="grid grid-cols-[minmax(160px,1.5fr)_110px_70px_130px_minmax(140px,1fr)_minmax(100px,auto)_108px] items-center gap-x-3 px-5 py-2 text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">
             <span>Plan</span>
             <span>Régime</span>
             <span className="text-right">Actions</span>
