@@ -33,19 +33,30 @@ function getPVCession(plan: RSUPlan, params: RSUCessionParams) {
   return { pv_plan, moins_value, nb_rsu_plan, prix_cession_eur, valeur_moy_acq_eur };
 }
 
-// ─── ÉTAPE 6 helper — Durée de détention R2 et abattement ───
-function getR2Abattement(plan: RSUPlan, dateCession: Date): number {
-  if (plan.vestings.length === 0) return 0;
-  
-  // Date du dernier vesting
+// ─── Helper — Date de référence pour le calcul d'abattement ───
+// Pour les plans qualifiés (R1/R2), la durée de détention se calcule
+// à partir de la date de fin de conservation (obligatoire).
+// Fallback sur le dernier vesting si non renseignée.
+function getDateReferenceConservation(plan: RSUPlan): Date | null {
+  if (plan.date_fin_conservation) {
+    return new Date(plan.date_fin_conservation);
+  }
+  // Fallback : dernier vesting
   const lastVestingDate = plan.vestings
     .filter(v => v.date)
     .map(v => new Date(v.date))
     .sort((a, b) => b.getTime() - a.getTime())[0];
+  return lastVestingDate || null;
+}
 
-  if (!lastVestingDate) return 0;
+// ─── ÉTAPE 5bis/6 — Abattement pour durée de détention (R1 et R2) ───
+// Règle : 0% si < 2 ans, 50% si 2-8 ans, 65% si > 8 ans
+// après la fin de la période de conservation
+function getAbattementDureeDetention(plan: RSUPlan, dateCession: Date): number {
+  const dateRef = getDateReferenceConservation(plan);
+  if (!dateRef) return 0;
 
-  const diffMs = dateCession.getTime() - lastVestingDate.getTime();
+  const diffMs = dateCession.getTime() - dateRef.getTime();
   const dureeAnnees = diffMs / (1000 * 60 * 60 * 24 * 365.25);
 
   if (dureeAnnees < 2) return 0;
