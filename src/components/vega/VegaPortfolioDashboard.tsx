@@ -841,7 +841,7 @@ export function VegaPortfolioDashboard({ portfolio }: VegaPortfolioDashboardProp
               }}
             >
               <BarChart3 className="h-3.5 w-3.5 mr-1" />
-              Simuler
+              Voir mes plans
             </Button>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
