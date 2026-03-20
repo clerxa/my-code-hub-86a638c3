@@ -30,7 +30,9 @@ export function SimulationValidationOverlay({
   onComplete,
   simulatorName = "Simulateur",
   simulatorId = "simulator",
+  steps,
 }: SimulationValidationOverlayProps) {
+  const STEPS = steps || DEFAULT_STEPS;
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
