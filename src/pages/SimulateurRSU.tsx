@@ -49,6 +49,8 @@ const SimulateurRSU = () => {
     date_cession: new Date().toISOString().split('T')[0],
   });
   const [result, setResult] = useState<RSUSimulationResult | null>(null);
+  const [showValidation, setShowValidation] = useState(false);
+  const [pendingResult, setPendingResult] = useState<RSUSimulationResult | null>(null);
   const [loadedSimId, setLoadedSimId] = useState<string | null>(null);
 
   // Load ALL saved RSU plans from the simulations table
