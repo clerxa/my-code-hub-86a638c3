@@ -231,8 +231,15 @@ const SimulateurESPP = () => {
           />
         )}
 
+        {isLoadingPlans && (
+          <div className="space-y-4">
+            <Skeleton className="h-24 w-full rounded-lg" />
+            <Skeleton className="h-24 w-full rounded-lg" />
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
-          {screen === 'intro' && (
+          {!isLoadingPlans && screen === 'intro' && (
             <ESPPIntroScreen key="intro" onStart={() => setScreen('dashboard')} />
           )}
 
