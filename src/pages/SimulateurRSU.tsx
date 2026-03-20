@@ -6,9 +6,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { Scale, Receipt, BarChart3, Sparkles } from 'lucide-react';
 import { SimulatorHeader } from '@/components/simulators/SimulatorHeader';
 import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer';
 import { SaveSimulationDialog } from '@/components/simulators/SaveSimulationDialog';
+import { SimulationValidationOverlay } from '@/components/simulators/SimulationValidationOverlay';
+import type { ValidationStep } from '@/components/simulators/SimulationValidationOverlay';
 import { RSUPlansDashboard, RSUPlanEditor, RSUCessionParams, RSUResults, RSUIntroScreen } from '@/components/simulators/rsu';
 import { calculateRSUSimulation } from '@/utils/rsuCalculations';
 import { useUnifiedSimulationSave } from '@/hooks/useUnifiedSimulationSave';
@@ -17,6 +20,13 @@ import { Header } from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { RSUPlan, RSUCessionParams as CessionParamsType, RSUSimulationResult } from '@/types/rsu';
+
+const RSU_VALIDATION_STEPS: ValidationStep[] = [
+  { icon: Receipt, text: "Identification du régime fiscal applicable...", duration: 900 },
+  { icon: Scale, text: "Calcul du gain d'acquisition et de la plus-value de cession...", duration: 1100 },
+  { icon: BarChart3, text: "Application des tranches IR, PS et contribution salariale...", duration: 1000 },
+  { icon: Sparkles, text: "Consolidation et optimisation des résultats...", duration: 700 },
+];
 
 type Screen = 'intro' | 'dashboard' | 'editor' | 'cession' | 'results';
 
