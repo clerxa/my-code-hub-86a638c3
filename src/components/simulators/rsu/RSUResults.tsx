@@ -107,7 +107,7 @@ function PlanDetailCard({ plan, index }: { plan: RSUPlanResult; index: number })
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Badge className={REGIME_COLORS[plan.regime]} variant="secondary">{plan.regime}</Badge>
+                    <Badge className={REGIME_COLORS[plan.regime]} variant="secondary">{REGIME_SHORT_LABELS[plan.regime]}</Badge>
                     <div>
                       <p className="font-semibold text-sm">{plan.plan_nom}</p>
                       <p className="text-xs text-muted-foreground">{plan.nb_actions_total} actions · {plan.devise}</p>
