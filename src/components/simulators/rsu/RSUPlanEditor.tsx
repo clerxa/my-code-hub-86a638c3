@@ -352,7 +352,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
   const [ticker, setTicker] = useState(plan?.ticker ?? '');
   const [entrepriseNom, setEntrepriseNom] = useState(plan?.entreprise_nom ?? '');
   const [annee, setAnnee] = useState(plan?.annee_attribution ?? currentYear - 1);
-  const [regime, setRegime] = useState<RSURegime>(plan?.regime ?? 'R1');
+  const [regime, setRegime] = useState<RSURegime>(plan?.regime ? migrateOldRegime(plan.regime) : 'AGA_POST2018');
   const [devise, setDevise] = useState<RSUDevise>(plan?.devise ?? 'EUR');
   const [dateFinConservation, setDateFinConservation] = useState(plan?.date_fin_conservation ?? '');
   const [deviseAutoSet, setDeviseAutoSet] = useState(false);
