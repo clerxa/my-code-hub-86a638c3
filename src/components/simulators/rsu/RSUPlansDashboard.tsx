@@ -210,7 +210,7 @@ export function RSUPlansDashboard({
                         </p>
 
                         {/* Gain acq. */}
-                        <p className="text-sm font-bold tabular-nums text-foreground text-right">{fmt(plan.gain_acquisition_total)}</p>
+                        <p className="text-sm font-bold tabular-nums text-foreground text-right whitespace-nowrap">{fmt(plan.gain_acquisition_total)}</p>
 
                         {/* Actions */}
                         <TooltipProvider delayDuration={200}>
