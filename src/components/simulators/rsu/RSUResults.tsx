@@ -1,10 +1,16 @@
 /**
- * Écran 4 — Résultats de la simulation RSU (UX premium)
- * Waterfall visuel gain brut → déductions → gain net
+ * Écran 4 — Résultats de la simulation RSU
+ * Affichage conditionnel selon le régime fiscal :
+ *   CAS 1 — Plan qualifié (R1/R2) : tout est payé à la cession
+ *   CAS 2 — Plan non qualifié (R3) : charge sur bulletin + cash cession
  */
 
 import { motion } from 'framer-motion';
-import { TrendingUp, Landmark, Wallet, AlertTriangle, ExternalLink, RotateCcw, Save, ArrowDown, Minus, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  TrendingUp, Landmark, Wallet, AlertTriangle, ExternalLink, RotateCcw,
+  Save, ArrowDown, Minus, Info, ChevronDown, ChevronUp, Receipt,
+  Calendar, DollarSign, FileWarning, BadgeCheck
+} from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,26 +34,25 @@ const DONUT_COLORS = [
   'hsl(142, 71%, 45%)',
 ];
 
+const anim = (delay: number) => ({
+  initial: { opacity: 0, y: 12, filter: 'blur(4px)' } as const,
+  animate: { opacity: 1, y: 0, filter: 'blur(0px)' } as const,
+  transition: { delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] as number[] },
+});
+
 interface RSUResultsProps {
   result: RSUSimulationResult;
   onReset: () => void;
   onSave?: () => void;
 }
 
+// ────────────────────────────────────────────────────────
+// Shared: Waterfall row
+// ────────────────────────────────────────────────────────
 function WaterfallRow({
-  label,
-  value,
-  isPositive,
-  isTotal,
-  delay,
-  description,
+  label, value, isPositive, isTotal, delay, description,
 }: {
-  label: string;
-  value: number;
-  isPositive?: boolean;
-  isTotal?: boolean;
-  delay: number;
-  description?: string;
+  label: string; value: number; isPositive?: boolean; isTotal?: boolean; delay: number; description?: string;
 }) {
   return (
     <motion.div
@@ -55,9 +60,7 @@ function WaterfallRow({
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className={`flex items-center justify-between py-3 px-4 rounded-lg ${
-        isTotal
-          ? 'bg-primary/5 border border-primary/20'
-          : 'hover:bg-muted/50 transition-colors'
+        isTotal ? 'bg-primary/5 border border-primary/20' : 'hover:bg-muted/50 transition-colors'
       }`}
     >
       <div className="flex items-center gap-3">
@@ -73,20 +76,12 @@ function WaterfallRow({
           </div>
         )}
         <div>
-          <p className={`text-sm ${isTotal ? 'font-bold text-foreground' : 'font-medium text-foreground/90'}`}>
-            {label}
-          </p>
-          {description && (
-            <p className="text-[11px] text-muted-foreground mt-0.5">{description}</p>
-          )}
+          <p className={`text-sm ${isTotal ? 'font-bold text-foreground' : 'font-medium text-foreground/90'}`}>{label}</p>
+          {description && <p className="text-[11px] text-muted-foreground mt-0.5">{description}</p>}
         </div>
       </div>
       <p className={`tabular-nums font-bold ${
-        isTotal
-          ? 'text-lg text-primary'
-          : isPositive
-            ? 'text-emerald-600 dark:text-emerald-400'
-            : 'text-red-600 dark:text-red-400'
+        isTotal ? 'text-lg text-primary' : isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
       }`}>
         {isPositive || isTotal ? '' : '−'}{fmt(Math.abs(value))}
       </p>
@@ -94,19 +89,17 @@ function WaterfallRow({
   );
 }
 
+// ────────────────────────────────────────────────────────
+// Shared: Plan detail card
+// ────────────────────────────────────────────────────────
 function PlanDetailCard({ plan, index }: { plan: RSUPlanResult; index: number }) {
   const [open, setOpen] = useState(false);
   const totalImpots = plan.ir_gain_acquisition + plan.ir_pv_cession + plan.ps_gain_acquisition + plan.ps_pv_cession + plan.contribution_salariale + plan.csg_crds;
   const tauxEffectif = (plan.gain_acquisition_eur + plan.pv_cession_eur) > 0
-    ? (totalImpots / (plan.gain_acquisition_eur + plan.pv_cession_eur)) * 100
-    : 0;
+    ? (totalImpots / (plan.gain_acquisition_eur + plan.pv_cession_eur)) * 100 : 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
-      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-      transition={{ delay: 0.6 + index * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-    >
+    <motion.div {...anim(0.6 + index * 0.08)}>
       <Card className="overflow-hidden">
         <Collapsible open={open} onOpenChange={setOpen}>
           <CollapsibleTrigger asChild>
@@ -138,41 +131,17 @@ function PlanDetailCard({ plan, index }: { plan: RSUPlanResult; index: number })
           <CollapsibleContent>
             <div className="px-4 pb-4 space-y-1 border-t pt-3">
               <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Gain d'acquisition</span>
-                  <span className="font-medium tabular-nums">{fmt(plan.gain_acquisition_eur)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Plus-value de cession</span>
-                  <span className="font-medium tabular-nums">{fmt(plan.pv_cession_eur)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">IR gain d'acquisition</span>
-                  <span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(plan.ir_gain_acquisition)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">IR plus-value cession</span>
-                  <span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(plan.ir_pv_cession)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">PS gain d'acquisition</span>
-                  <span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(plan.ps_gain_acquisition)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">PS plus-value cession</span>
-                  <span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(plan.ps_pv_cession)}</span>
-                </div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Gain d'acquisition</span><span className="font-medium tabular-nums">{fmt(plan.gain_acquisition_eur)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Plus-value de cession</span><span className="font-medium tabular-nums">{fmt(plan.pv_cession_eur)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">IR gain d'acquisition</span><span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(plan.ir_gain_acquisition)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">IR plus-value cession</span><span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(plan.ir_pv_cession)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">PS gain d'acquisition</span><span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(plan.ps_gain_acquisition)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">PS plus-value cession</span><span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(plan.ps_pv_cession)}</span></div>
                 {plan.contribution_salariale > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Contribution salariale</span>
-                    <span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(plan.contribution_salariale)}</span>
-                  </div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Contribution salariale</span><span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(plan.contribution_salariale)}</span></div>
                 )}
                 {plan.csg_crds > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">CSG/CRDS</span>
-                    <span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(plan.csg_crds)}</span>
-                  </div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">CSG/CRDS</span><span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(plan.csg_crds)}</span></div>
                 )}
               </div>
             </div>
@@ -183,64 +152,56 @@ function PlanDetailCard({ plan, index }: { plan: RSUPlanResult; index: number })
   );
 }
 
-export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
+// ════════════════════════════════════════════════════════
+// CAS 1 — PLAN QUALIFIÉ (R1 / R2)
+// Toute la fiscalité est payée à la cession
+// ════════════════════════════════════════════════════════
+function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
   const donutData = [
-    { name: 'Gain net', value: result.gain_net_total },
+    { name: 'Cash net reçu', value: result.gain_net_total },
     { name: 'Impôt sur le revenu', value: result.total_ir },
     { name: 'Prélèvements sociaux', value: result.total_ps + result.total_csg_crds },
     { name: 'Contribution salariale', value: result.total_contribution_salariale },
   ].filter(d => d.value > 0);
 
-  const expertUrl = 'https://www.perlib.fr/prendre-rdv?utm_source=fincare_app&utm_campaign=simulateur_rsu';
   const netRatio = result.gain_brut_total > 0 ? (result.gain_net_total / result.gain_brut_total) * 100 : 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-6"
-    >
-      {/* Hero KPI — Gain net */}
-      <motion.div
-        initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ delay: 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      >
+    <>
+      {/* Hero — Cash net reçu après cession */}
+      <motion.div {...anim(0.1)}>
         <Card className="overflow-hidden border-primary/20">
           <div className="bg-gradient-to-br from-primary/5 via-primary/3 to-transparent">
             <CardContent className="py-8 text-center">
-              <p className="text-sm font-medium text-muted-foreground mb-2">Gain net estimé après cession</p>
-              <p className="text-4xl sm:text-5xl font-extrabold tracking-tight tabular-nums text-foreground"
-                 style={{ lineHeight: '1.1' }}>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium mb-4">
+                <BadgeCheck className="h-3.5 w-3.5" />
+                Plan qualifié — AGA loi Macron
+              </div>
+              <p className="text-sm font-medium text-muted-foreground mb-2">Cash net reçu après cession</p>
+              <p className="text-4xl sm:text-5xl font-extrabold tracking-tight tabular-nums text-foreground" style={{ lineHeight: '1.1' }}>
                 {fmt(result.gain_net_total)}
               </p>
               <div className="flex items-center justify-center gap-3 mt-4">
-                <Badge variant="outline" className="text-xs tabular-nums">
-                  {pct(netRatio)} perçu
-                </Badge>
-                <Badge variant="outline" className="text-xs tabular-nums">
-                  {pct(result.taux_effectif)} taux effectif
-                </Badge>
+                <Badge variant="outline" className="text-xs tabular-nums">{pct(netRatio)} perçu</Badge>
+                <Badge variant="outline" className="text-xs tabular-nums">{pct(result.taux_effectif)} taux effectif</Badge>
               </div>
               <div className="max-w-xs mx-auto mt-4">
                 <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
                   <span>Impôts & charges</span>
-                  <span>Gain net</span>
+                  <span>Cash net</span>
                 </div>
                 <Progress value={netRatio} className="h-2" />
               </div>
+              <p className="text-xs text-muted-foreground mt-4 max-w-md mx-auto leading-relaxed">
+                Pour un plan qualifié, aucune fiscalité n'est due au vesting. Tout est réglé au moment de la vente, quand le cash est disponible.
+              </p>
             </CardContent>
           </div>
         </Card>
       </motion.div>
 
-      {/* Waterfall breakdown */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      >
+      {/* Waterfall — Décomposition linéaire */}
+      <motion.div {...anim(0.25)}>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
@@ -249,113 +210,268 @@ export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1">
-            <WaterfallRow
-              label="Gain d'acquisition total"
-              description="Somme des gains au moment du vesting de chaque plan"
-              value={result.plans.reduce((s, p) => s + p.gain_acquisition_eur, 0)}
-              isPositive
-              delay={0.3}
-            />
-            <WaterfallRow
-              label="Plus-value de cession"
-              description="Différence entre le prix de vente et la valeur au vesting"
-              value={result.plans.reduce((s, p) => s + p.pv_cession_eur, 0)}
-              isPositive
-              delay={0.35}
-            />
+            <WaterfallRow label="Gain d'acquisition total" description="Valeur des actions au moment du vesting" value={result.plans.reduce((s, p) => s + p.gain_acquisition_eur, 0)} isPositive delay={0.3} />
+            <WaterfallRow label="Plus-value de cession" description="Différence entre prix de vente et valeur au vesting" value={result.plans.reduce((s, p) => s + p.pv_cession_eur, 0)} isPositive delay={0.35} />
             <div className="border-t my-2" />
-            <WaterfallRow
-              label="Gain brut total"
-              value={result.gain_brut_total}
-              isPositive
-              delay={0.4}
-            />
+            <WaterfallRow label="Gain brut total" value={result.gain_brut_total} isPositive delay={0.4} />
             <div className="border-t my-2" />
-            <WaterfallRow
-              label="Impôt sur le revenu"
-              description="Barème progressif appliqué au gain d'acquisition et flat tax sur la PV"
-              value={result.total_ir}
-              delay={0.45}
-            />
-            <WaterfallRow
-              label="Prélèvements sociaux"
-              description="CSG, CRDS et prélèvements sociaux (17,2%)"
-              value={result.total_ps + result.total_csg_crds}
-              delay={0.5}
-            />
+            <WaterfallRow label="Impôt sur le revenu" description="Barème progressif (gain d'acquisition) + flat tax 12,8% (PV cession)" value={result.total_ir} delay={0.45} />
+            <WaterfallRow label="Prélèvements sociaux" description="CSG, CRDS et prélèvements sociaux (17,2%)" value={result.total_ps + result.total_csg_crds} delay={0.5} />
             {result.total_contribution_salariale > 0 && (
-              <WaterfallRow
-                label="Contribution salariale"
-                description="10% applicable aux plans qualifiés R1 (post 30/12/2016)"
-                value={result.total_contribution_salariale}
-                delay={0.55}
-              />
+              <WaterfallRow label="Contribution salariale" description="10% applicable au-delà de 300 000 €" value={result.total_contribution_salariale} delay={0.55} />
             )}
             <div className="border-t my-2" />
-            <WaterfallRow
-              label="Gain net estimé"
-              value={result.gain_net_total}
-              isTotal
-              delay={0.6}
-            />
+            <WaterfallRow label="Cash net reçu" value={result.gain_net_total} isTotal delay={0.6} />
           </CardContent>
         </Card>
       </motion.div>
 
-      {/* Donut chart */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      >
+      {/* Donut */}
+      <DonutChart data={donutData} delay={0.5} />
+    </>
+  );
+}
+
+// ════════════════════════════════════════════════════════
+// CAS 2 — PLAN NON QUALIFIÉ (R3)
+// Charge sur bulletin (vesting) + cash à la cession
+// ════════════════════════════════════════════════════════
+function NonQualifiedResults({ result }: RSUResultsProps) {
+  const plan = result.plans[0]; // simulation isolée par plan
+  const pvBrute = plan.pv_cession_eur;
+  const irPV = plan.ir_pv_cession;
+  const psPV = plan.ps_pv_cession;
+  const cashNetCession = pvBrute - irPV - psPV;
+
+  const gainAcqBrut = plan.gain_acquisition_eur;
+  const cotisations = plan.contribution_salariale;
+  const irGA = plan.ir_gain_acquisition;
+  const psGA = plan.ps_gain_acquisition;
+  const ponctionBulletin = cotisations + irGA + psGA;
+
+  const isVenteImmediate = pvBrute <= 0;
+
+  return (
+    <>
+      {/* Bloc 1 — Cash reçu lors de la vente (hero) */}
+      <motion.div {...anim(0.1)}>
+        <Card className={`overflow-hidden ${isVenteImmediate ? 'border-amber-300/50 dark:border-amber-700/50' : 'border-primary/20'}`}>
+          <div className={isVenteImmediate ? 'bg-gradient-to-br from-amber-50 via-amber-25 to-transparent dark:from-amber-950/20 dark:via-transparent' : 'bg-gradient-to-br from-primary/5 via-primary/3 to-transparent'}>
+            <CardContent className="py-8 text-center">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium mb-4">
+                <FileWarning className="h-3.5 w-3.5" />
+                Plan non qualifié — RSU étranger
+              </div>
+              <p className="text-sm font-medium text-muted-foreground mb-2">Cash net reçu lors de la vente</p>
+              <p className={`text-4xl sm:text-5xl font-extrabold tracking-tight tabular-nums ${
+                isVenteImmediate ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'
+              }`} style={{ lineHeight: '1.1' }}>
+                {fmt(Math.max(0, cashNetCession))}
+              </p>
+
+              {isVenteImmediate && (
+                <div className="mt-4 p-3 rounded-lg bg-amber-100/50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 max-w-md mx-auto">
+                  <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+                    Vous vendez au prix du vesting. Aucun gain de cession — seule la charge sur votre bulletin de salaire est à anticiper.
+                  </p>
+                </div>
+              )}
+
+              {!isVenteImmediate && (
+                <p className="text-xs text-muted-foreground mt-4 max-w-md mx-auto leading-relaxed">
+                  Ce montant correspond au cash réellement perçu sur votre compte après prélèvements sur la plus-value de cession.
+                </p>
+              )}
+            </CardContent>
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* Bloc 1 — Détail waterfall PV cession */}
+      {!isVenteImmediate && (
+        <motion.div {...anim(0.2)}>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                Détail du cash de cession
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              <WaterfallRow label="Plus-value de cession brute" description="Écart entre le prix de vente et la valeur au vesting" value={pvBrute} isPositive delay={0.25} />
+              <div className="border-t my-2" />
+              <WaterfallRow label="IR sur PV (flat tax 12,8%)" value={irPV} delay={0.3} />
+              <WaterfallRow label="Prélèvements sociaux sur PV (17,2%)" value={psPV} delay={0.35} />
+              <div className="border-t my-2" />
+              <WaterfallRow label="Cash net reçu" value={Math.max(0, cashNetCession)} isTotal delay={0.4} />
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Bloc 2 — Charge fiscale sur le bulletin de salaire */}
+      <motion.div {...anim(isVenteImmediate ? 0.2 : 0.35)}>
+        <Card className={`overflow-hidden ${isVenteImmediate ? 'border-red-300/50 dark:border-red-700/50 ring-1 ring-red-200/50 dark:ring-red-800/30' : 'border-red-200/50 dark:border-red-800/30'}`}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2 text-red-700 dark:text-red-300">
+              <Receipt className="h-4 w-4" />
+              Charge fiscale sur votre bulletin de salaire
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <WaterfallRow label="Gain d'acquisition brut" description="Valeur des actions le jour du vesting" value={gainAcqBrut} isPositive delay={isVenteImmediate ? 0.25 : 0.4} />
+            <div className="border-t my-2" />
+            {cotisations > 0 && (
+              <WaterfallRow label="Cotisations salariales" value={cotisations} delay={isVenteImmediate ? 0.3 : 0.45} />
+            )}
+            <WaterfallRow label="IR retenu à la source (impact taux PAS)" value={irGA} delay={isVenteImmediate ? 0.35 : 0.5} />
+            <WaterfallRow label="Prélèvements sociaux" value={psGA} delay={isVenteImmediate ? 0.4 : 0.55} />
+            <div className="border-t my-2" />
+            <WaterfallRow label="Ponction nette sur bulletin" value={ponctionBulletin} isTotal delay={isVenteImmediate ? 0.45 : 0.6} />
+          </CardContent>
+          <div className="px-6 pb-4">
+            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
+              <p className="text-xs text-red-700 dark:text-red-300 leading-relaxed flex items-start gap-2">
+                <AlertTriangle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                Ce montant ne correspond à aucun cash reçu. Il réduit votre salaire net du mois de vesting.
+              </p>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* Bloc 3 — Synthèse chronologique */}
+      <motion.div {...anim(isVenteImmediate ? 0.4 : 0.5)}>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Répartition</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              Synthèse chronologique
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <div className="w-44 h-44 flex-shrink-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={donutData}
-                      innerRadius={48}
-                      outerRadius={76}
-                      paddingAngle={3}
-                      dataKey="value"
-                      strokeWidth={0}
-                    >
-                      {donutData.map((_, i) => (
-                        <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <ReTooltip
-                      formatter={(value: number) => fmt(value)}
-                      contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="space-y-3 flex-1">
-                {donutData.map((item, i) => (
-                  <div key={item.name} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length] }}
-                      />
-                      <span className="text-muted-foreground">{item.name}</span>
-                    </div>
-                    <span className="font-semibold tabular-nums">{fmt(item.value)}</span>
-                  </div>
-                ))}
-              </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2.5 px-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Événement</th>
+                    <th className="text-right py-2.5 px-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Cash reçu</th>
+                    <th className="text-right py-2.5 px-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Charge fiscale</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-dashed hover:bg-muted/30 transition-colors">
+                    <td className="py-3 px-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
+                        <span className="font-medium">Vesting</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-3 text-right tabular-nums text-muted-foreground">0 €</td>
+                    <td className="py-3 px-3 text-right tabular-nums text-red-600 dark:text-red-400 font-medium">−{fmt(ponctionBulletin)}</td>
+                  </tr>
+                  <tr className="border-b border-dashed hover:bg-muted/30 transition-colors">
+                    <td className="py-3 px-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                        <span className="font-medium">Cession</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-3 text-right tabular-nums text-emerald-600 dark:text-emerald-400 font-medium">
+                      {isVenteImmediate ? '0 €' : `+${fmt(pvBrute)}`}
+                    </td>
+                    <td className="py-3 px-3 text-right tabular-nums text-red-600 dark:text-red-400 font-medium">
+                      {(irPV + psPV) > 0 ? `−${fmt(irPV + psPV)}` : '—'}
+                    </td>
+                  </tr>
+                  <tr className="bg-muted/40">
+                    <td className="py-3 px-3 font-bold">Net réel</td>
+                    <td className="py-3 px-3 text-right tabular-nums font-bold text-primary">
+                      {fmt(Math.max(0, cashNetCession))}
+                    </td>
+                    <td className="py-3 px-3 text-right tabular-nums font-bold text-red-600 dark:text-red-400">
+                      −{fmt(ponctionBulletin + irPV + psPV)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>
       </motion.div>
+    </>
+  );
+}
 
-      {/* Plan-by-plan detail (collapsible) */}
+// ────────────────────────────────────────────────────────
+// Shared: Donut chart
+// ────────────────────────────────────────────────────────
+function DonutChart({ data, delay }: { data: { name: string; value: number }[]; delay: number }) {
+  return (
+    <motion.div {...anim(delay)}>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Répartition</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="w-44 h-44 flex-shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={data} innerRadius={48} outerRadius={76} paddingAngle={3} dataKey="value" strokeWidth={0}>
+                    {data.map((_, i) => (
+                      <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <ReTooltip
+                    formatter={(value: number) => fmt(value)}
+                    contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="space-y-3 flex-1">
+              {data.map((item, i) => (
+                <div key={item.name} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length] }} />
+                    <span className="text-muted-foreground">{item.name}</span>
+                  </div>
+                  <span className="font-semibold tabular-nums">{fmt(item.value)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+// ════════════════════════════════════════════════════════
+// MAIN — Routing conditionnel
+// ════════════════════════════════════════════════════════
+export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
+  const expertUrl = 'https://www.perlib.fr/prendre-rdv?utm_source=fincare_app&utm_campaign=simulateur_rsu';
+
+  // Déterminer le type de plan (simulation isolée = 1 plan)
+  const isNonQualifie = result.plans.length > 0 && result.plans.every(p => p.regime === 'R3');
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
+      {/* Routing conditionnel */}
+      {isNonQualifie ? (
+        <NonQualifiedResults result={result} onReset={onReset} onSave={onSave} />
+      ) : (
+        <QualifiedResults result={result} onReset={onReset} onSave={onSave} />
+      )}
+
+      {/* Plan-by-plan detail */}
       {result.plans.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
@@ -368,13 +484,9 @@ export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
         </div>
       )}
 
-      {/* Avertissement seuil 300k */}
-      {result.seuil_300k_applique && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
-        >
+      {/* Avertissement seuil 300k (qualifié seulement) */}
+      {!isNonQualifie && result.seuil_300k_applique && (
+        <motion.div {...anim(0.8)}>
           <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/30">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2 text-amber-800 dark:text-amber-200">
@@ -383,12 +495,8 @@ export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-amber-800 dark:text-amber-200 space-y-2">
-              <p>
-                Votre gain d'acquisition dépasse 300 000 €. La <strong>Tranche A</strong> (jusqu'à 300 000 €) bénéficie du régime avantageux avec abattement de 50%. La <strong>Tranche B</strong> (au-delà) est imposée comme un salaire, sans abattement.
-              </p>
-              <p className="font-medium">
-                Consultez un expert Perlib pour optimiser le timing de vos cessions.
-              </p>
+              <p>Votre gain d'acquisition dépasse 300 000 €. La <strong>Tranche A</strong> (jusqu'à 300 000 €) bénéficie du régime avantageux avec abattement de 50%. La <strong>Tranche B</strong> (au-delà) est imposée comme un salaire, sans abattement.</p>
+              <p className="font-medium">Consultez un expert Perlib pour optimiser le timing de vos cessions.</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -398,18 +506,13 @@ export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
       <Card className="bg-muted/30 border-muted">
         <CardContent className="py-4">
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            Estimation indicative et pédagogique. Ne constitue pas un conseil fiscal. Les résultats sont basés sur les règles fiscales générales applicables aux résidents fiscaux français et peuvent varier selon votre situation personnelle. Perlib recommande de consulter un expert avant toute décision. Sources : articles L225-197-1 du Code de commerce, 200 A et 150-0 A du CGI.
+            Estimation indicative et pédagogique. Ne constitue pas un conseil fiscal. Les résultats sont basés sur les règles fiscales générales applicables aux résidents fiscaux français et peuvent varier selon votre situation personnelle. Perlib recommande de consulter un expert avant toute décision.
           </p>
         </CardContent>
       </Card>
 
       {/* CTAs */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.9, duration: 0.4 }}
-        className="flex flex-col sm:flex-row gap-3 pt-2"
-      >
+      <motion.div {...anim(0.9)} className="flex flex-col sm:flex-row gap-3 pt-2">
         <Button asChild className="flex-1 gap-2" size="lg">
           <a href={expertUrl} target="_blank" rel="noopener noreferrer" onClick={() => setBookingReferrer('/mes-plans-rsu')}>
             <ExternalLink className="h-4 w-4" />
