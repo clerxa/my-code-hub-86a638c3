@@ -411,7 +411,7 @@ export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
         className="flex flex-col sm:flex-row gap-3 pt-2"
       >
         <Button asChild className="flex-1 gap-2" size="lg">
-          <a href={expertUrl} target="_blank" rel="noopener noreferrer" onClick={() => setBookingReferrer('/mes-plans-rsu', 'RSU cession')}>
+          <a href={expertUrl} target="_blank" rel="noopener noreferrer" onClick={() => setBookingReferrer('/mes-plans-rsu')}>
             <ExternalLink className="h-4 w-4" />
             Optimiser avec un expert Perlib
           </a>
