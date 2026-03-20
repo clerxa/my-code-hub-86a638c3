@@ -1,12 +1,12 @@
 /**
  * Calculs fiscaux RSU — 6 régimes AGA + Non qualifié
  *
- * AGA_PRE2012   — IR forfaitaire 30%, pas d'abattement
- * AGA_2012_2015 — Barème IR (TMI), PS 15,5%, pas d'abattement
- * AGA_2015_2016 — Barème IR (TMI) + abattement durée détention, PS 17,2% avant abattement
- * AGA_2017      — Barème IR (TMI) + abattement durée détention, seuil 300k, PS 17,2%, contrib 10%
- * AGA_POST2018  — Barème IR (TMI) + abattement 50% fixe sous 300k, PS 17,2%, contrib 10%
- * NON_QUALIFIE  — Barème IR (TMI) + cotisations salariales, PFU 30% sur PV
+ * AGA_PRE2012   — IR forfaitaire 30%, PS 17,2%, contrib salariale 10%
+ * AGA_2012_2015 — Barème IR (TMI), PS 9,7% (CSG 9,2% + CRDS 0,5%), contrib 10%
+ * AGA_2015_2016 — Barème IR + abattement durée détention, PS 17,2% avant abattement, ❌ pas de contrib
+ * AGA_2017      — Barème IR + abattement durée détention sous 300k, PS 17,2% avant abattement, ❌ pas de contrib
+ * AGA_POST2018  — Barème IR + abattement 50% fixe sous 300k, PS 17,2% avant abattement, ❌ pas de contrib
+ * NON_QUALIFIE  — Barème IR (salaires) + cotisations salariales complètes au vesting, PFU 30% sur PV cession
  */
 
 import type { RSUPlan, RSUCessionParams, RSUPlanResult, RSUSimulationResult } from '@/types/rsu';
@@ -56,53 +56,51 @@ function computeGainTax(plan: RSUPlan, tmi: number, dateCession: Date): GainTaxD
 
   switch (plan.regime) {
     case 'AGA_PRE2012': {
-      // Taux forfaitaire 30% fixe, pas d'abattement, pas de contrib
-      return { ir: gain * 0.30, ps: gain * 0.155, contrib: 0, abattement: 0 };
+      // IR forfaitaire 30%, PS 17,2%, contribution salariale 10%
+      return { ir: gain * 0.30, ps: gain * 0.172, contrib: gain * 0.10, abattement: 0 };
     }
 
     case 'AGA_2012_2015': {
-      // Barème IR (TMI), PS 15,5% historique, pas d'abattement
-      return { ir: gain * tmiRate, ps: gain * 0.155, contrib: 0, abattement: 0 };
+      // Barème IR (TMI), PS 9,7% (CSG 9,2% + CRDS 0,5%), contribution salariale 10%
+      return { ir: gain * tmiRate, ps: gain * 0.097, contrib: gain * 0.10, abattement: 0 };
     }
 
     case 'AGA_2015_2016': {
-      // Barème IR après abattement conditionnel, PS 17,2% avant abattement
+      // Barème IR après abattement conditionnel, PS 17,2% avant abattement, PAS de contrib
       const abattement = getAbattementDureeDetention(plan, dateCession);
       const baseIR = gain * (1 - abattement);
       return { ir: baseIR * tmiRate, ps: gain * 0.172, contrib: 0, abattement };
     }
 
     case 'AGA_2017': {
-      // Seuil 300k: tranche A = abattement conditionnel, tranche B = barème salaires
+      // Seuil 300k: tranche A = abattement conditionnel, tranche B = barème TS sans abattement
+      // PS 17,2% sur totalité avant abattement, PAS de contrib
       const abattement = getAbattementDureeDetention(plan, dateCession);
       const trancheA = Math.min(gain, 300000);
       const trancheB = Math.max(0, gain - 300000);
 
       const irA = trancheA * (1 - abattement) * tmiRate;
-      const psA = trancheA * 0.172;
-      const irB = trancheB * tmiRate;
-      const psB = trancheB * 0.097;
-      const contrib = trancheB * 0.10;
+      const irB = trancheB * tmiRate; // barème TS sans abattement
+      const ps = gain * 0.172; // PS 17,2% sur assiette brute totale
 
-      return { ir: irA + irB, ps: psA + psB, contrib, abattement };
+      return { ir: irA + irB, ps, contrib: 0, abattement };
     }
 
     case 'AGA_POST2018': {
-      // Abattement fixe 50% sous 300k, barème salaires au-delà
+      // Abattement fixe 50% sous 300k, barème TS au-delà sans abattement
+      // PS 17,2% sur totalité avant abattement, PAS de contrib
       const trancheA = Math.min(gain, 300000);
       const trancheB = Math.max(0, gain - 300000);
 
       const irA = trancheA * 0.50 * tmiRate; // abattement fixe 50%
-      const psA = trancheA * 0.172;
-      const irB = trancheB * tmiRate;
-      const psB = trancheB * 0.097;
-      const contrib = trancheB * 0.10;
+      const irB = trancheB * tmiRate; // barème TS sans abattement
+      const ps = gain * 0.172; // PS 17,2% sur assiette brute totale
 
-      return { ir: irA + irB, ps: psA + psB, contrib, abattement: 0.50 };
+      return { ir: irA + irB, ps, contrib: 0, abattement: 0.50 };
     }
 
     case 'NON_QUALIFIE': {
-      // Barème IR + cotisations salariales complètes, pas d'abattement
+      // Barème IR (salaires) + cotisations salariales complètes, pas d'abattement
       return { ir: gain * tmiRate, ps: gain * 0.097, contrib: gain * 0.10, abattement: 0 };
     }
 
