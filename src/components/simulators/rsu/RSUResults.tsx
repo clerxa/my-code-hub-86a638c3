@@ -503,7 +503,7 @@ export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
   const expertUrl = 'https://www.perlib.fr/prendre-rdv?utm_source=fincare_app&utm_campaign=simulateur_rsu';
 
   // Déterminer le type de plan (simulation isolée = 1 plan)
-  const isNonQualifie = result.plans.length > 0 && result.plans.every(p => p.regime === 'R3');
+  const isNonQualifie = result.plans.length > 0 && result.plans.every(p => p.regime === 'NON_QUALIFIE');
 
   return (
     <motion.div
