@@ -321,6 +321,14 @@ const SimulateurRSU = () => {
           )}
         </AnimatePresence>
 
+        <SimulationValidationOverlay
+          isValidating={showValidation}
+          onComplete={handleValidationComplete}
+          simulatorName="Mes plans RSU"
+          simulatorId="rsu-cession"
+          steps={RSU_VALIDATION_STEPS}
+        />
+
         <div className="mt-8">
           <SimulatorDisclaimer />
         </div>
