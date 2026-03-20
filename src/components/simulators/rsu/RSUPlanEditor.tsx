@@ -58,12 +58,7 @@ const FREQUENCY_MONTHS: Record<Exclude<VestingFrequency, 'custom'>, number> = {
 
 const DURATION_OPTIONS = [1, 2, 3, 4, 5, 6];
 
-/** Determine fiscal regime based on attribution year */
-function inferRegimeFromYear(year: number): RSURegime {
-  if (year >= 2017) return 'R1'; // Post 30/12/2016
-  if (year >= 2015) return 'R2'; // 08/2015 - 12/2016
-  return 'R3'; // Before 2015 → typically non-qualified
-}
+// inferRegimeFromYear is now imported from @/types/rsu
 
 interface RSUPlanEditorProps {
   plan?: RSUPlan;
