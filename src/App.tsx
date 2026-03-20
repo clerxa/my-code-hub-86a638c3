@@ -525,6 +525,10 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            {/* Redirects anciennes URLs simulateurs → mes plans */}
+            <Route path="/simulateur-rsu" element={<Navigate to="/mes-plans-rsu" replace />} />
+            <Route path="/simulateur-espp" element={<Navigate to="/mes-plans-espp" replace />} />
+            <Route path="/simulateur-bspce" element={<Navigate to="/mes-plans-bspce" replace />} />
             
             {/* PANORAMA - Synthèse patrimoniale */}
             <Route
