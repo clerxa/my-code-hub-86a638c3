@@ -77,7 +77,7 @@ export function RSUPlansDashboard({
   const totalGain = getTotalGain(plans);
   const totalActions = getTotalActions(plans);
   const avgVesting = getAverageVesting(plans);
-  const plansTableCols = 'grid-cols-[minmax(280px,2.4fr)_minmax(120px,1fr)_minmax(90px,0.7fr)_minmax(170px,1.1fr)_minmax(220px,1.8fr)_minmax(150px,1fr)_112px]';
+  const plansTableCols = 'grid-cols-[minmax(260px,2.1fr)_minmax(130px,0.9fr)_minmax(100px,0.8fr)_minmax(180px,1.05fr)_minmax(230px,1.4fr)_minmax(190px,1fr)_124px]';
 
   return (
     <motion.div
@@ -151,7 +151,7 @@ export function RSUPlansDashboard({
           </div>
 
           <div className="overflow-x-auto pb-1">
-            <div className="min-w-[1240px]">
+            <div className="min-w-[1360px] w-full">
               {/* Table header */}
               <div className={`grid ${plansTableCols} items-center gap-x-4 px-5 py-2 text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium`}>
                 <span>Plan</span>

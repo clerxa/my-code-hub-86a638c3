@@ -256,7 +256,7 @@ const SimulateurRSU = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="max-w-4xl mx-auto px-4 py-8 pb-24">
+      <div className="mx-auto w-full max-w-[1680px] px-4 py-8 pb-24 lg:px-6 2xl:px-8">
         {screen !== 'intro' && (
           <SimulatorHeader
             title={screenTitle}
