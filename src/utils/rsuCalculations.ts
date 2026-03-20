@@ -89,17 +89,40 @@ export function calculateRSUSimulation(
   const tranche_A = Math.min(gain_consolide_R1R2, 300000);
   const tranche_B = Math.max(0, gain_consolide_R1R2 - 300000);
 
-  // ─── ÉTAPE 5 — Fiscalité R1 (sur tranches consolidées) ───
+  // ─── ÉTAPE 5 — Fiscalité R1 (plan par plan avec abattement conditionnel) ───
   const tmi = params.tmi / 100;
-  const ir_A = tranche_A * 0.5 * tmi;
-  const ps_A = tranche_A * 0.172;
-  const ir_B = tranche_B * tmi;
-  const ps_B = tranche_B * 0.097;
-  const contrib_B = tranche_B * 0.10;
-
-  // Répartir la fiscalité R1 proportionnellement entre plans R1
-  // (pour le détail plan par plan dans le tableau)
   const totalR1Gain = gain_R1;
+
+  // Calculer abattement et fiscalité R1 par plan
+  const r1Details = new Map<string, { ir: number; ps: number; abattement: number; contrib: number }>();
+  let ir_R1_total = 0;
+  let ps_R1_total = 0;
+  let contrib_R1_total = 0;
+
+  for (const plan of plansR1) {
+    const abattement = getAbattementDureeDetention(plan, dateCession);
+    const ratio = totalR1Gain > 0 ? plan.gain_acquisition_total / totalR1Gain : 0;
+    const planTrancheA = tranche_A * ratio;
+    const planTrancheB = tranche_B * ratio;
+
+    // Tranche A : abattement conditionnel (pas systématiquement 50%)
+    const base_ir_A = planTrancheA * (1 - abattement);
+    const ir_A_plan = base_ir_A * tmi;
+    const ps_A_plan = planTrancheA * 0.172; // PS sur assiette AVANT abattement
+
+    // Tranche B : pas d'abattement, imposé au TMI + PS 9.7% + contrib 10%
+    const ir_B_plan = planTrancheB * tmi;
+    const ps_B_plan = planTrancheB * 0.097;
+    const contrib_plan = planTrancheB * 0.10;
+
+    const ir_plan = ir_A_plan + ir_B_plan;
+    const ps_plan = ps_A_plan + ps_B_plan;
+
+    ir_R1_total += ir_plan;
+    ps_R1_total += ps_plan;
+    contrib_R1_total += contrib_plan;
+    r1Details.set(plan.id, { ir: ir_plan, ps: ps_plan, abattement, contrib: contrib_plan });
+  }
 
   // ─── ÉTAPE 6 — Fiscalité R2 (plan par plan) ───
   let ir_R2_total = 0;
@@ -107,7 +130,7 @@ export function calculateRSUSimulation(
   const r2Details = new Map<string, { ir: number; ps: number; abattement: number }>();
 
   for (const plan of plansR2) {
-    const abattement = getR2Abattement(plan, dateCession);
+    const abattement = getAbattementDureeDetention(plan, dateCession);
     const base_ir = plan.gain_acquisition_total * (1 - abattement);
     const ir_plan = base_ir * tmi;
     const ps_plan = plan.gain_acquisition_total * 0.172; // assiette AVANT abattement
