@@ -1274,7 +1274,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { generateVestings(); setShowRegenerateConfirm(false); }}>
+            <AlertDialogAction onClick={() => { if (isCustom) generateCustomVestings(); else generateVestings(); setShowRegenerateConfirm(false); }}>
               Confirmer
             </AlertDialogAction>
           </AlertDialogFooter>
