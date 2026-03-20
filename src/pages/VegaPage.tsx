@@ -183,7 +183,7 @@ export default function VegaPage() {
                       return (
                         <SimulatorCard
                           key={simulator.id}
-                          name={simulator.name}
+                          name={vegaCardNames[simulator.route] || simulator.name}
                           description={simulator.description}
                           icon={simulator.icon}
                           route={simulator.route}
