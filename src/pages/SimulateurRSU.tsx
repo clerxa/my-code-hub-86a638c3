@@ -209,8 +209,43 @@ const SimulateurRSU = () => {
     setScreen('editor');
   }, []);
 
-  const handleDeletePlan = useCallback((id: string) => {
+  const handleDeletePlan = useCallback(async (id: string) => {
+    // 1. Remove from local state
     setPlans(prev => prev.filter(p => p.id !== id));
+
+    // 2. Remove from database — update all simulations containing this plan
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: sims } = await supabase
+        .from('simulations')
+        .select('id, data')
+        .eq('user_id', user.id)
+        .eq('type', 'rsu');
+
+      if (!sims) return;
+
+      for (const sim of sims) {
+        const simData = sim.data as any;
+        if (!Array.isArray(simData?.plans)) continue;
+        const hadPlan = simData.plans.some((p: any) => p.id === id);
+        if (!hadPlan) continue;
+
+        const remainingPlans = simData.plans.filter((p: any) => p.id !== id);
+        if (remainingPlans.length === 0) {
+          // Delete the simulation entirely if no plans left
+          await supabase.from('simulations').delete().eq('id', sim.id);
+        } else {
+          // Update the simulation with the remaining plans
+          await supabase.from('simulations').update({
+            data: { ...simData, plans: remainingPlans },
+          }).eq('id', sim.id);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to delete plan from database:', e);
+    }
   }, []);
 
   const handleSavePlan = useCallback((plan: RSUPlan) => {
