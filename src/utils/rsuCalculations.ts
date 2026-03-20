@@ -184,7 +184,7 @@ export function calculateRSUSimulation(
       ir_ga = detail.ir;
       ps_ga = detail.ps;
       abattement = detail.abattement;
-      contrib_sal = 0;
+      contrib_sal = detail.contrib;
       csg_crds = 0;
     } else {
       // R3 — pas d'abattement
