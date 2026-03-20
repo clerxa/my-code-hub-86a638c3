@@ -214,7 +214,7 @@ export function RSUPlansDashboard({
 
                         {/* Actions */}
                         <TooltipProvider delayDuration={200}>
-                          <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity duration-200">
+                          <div className="flex items-center justify-end gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity duration-200">
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
