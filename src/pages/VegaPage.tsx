@@ -233,6 +233,12 @@ function LandingContent({
   simulationCountsByType: Record<string, number>;
   netPercent: number;
 }) {
+  const vegaCardNames: Record<string, string> = {
+    '/simulateur-rsu': 'Mes plans RSU',
+    '/simulateur-espp': 'Mes plans ESPP',
+    '/simulateur-bspce': 'Mes plans BSPCE',
+  };
+
   return (
     <div className="space-y-12">
       {/* Impact stat banner */}
