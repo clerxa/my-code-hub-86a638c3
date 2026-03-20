@@ -35,9 +35,9 @@ const DONUT_COLORS = [
 ];
 
 const anim = (delay: number) => ({
-  initial: { opacity: 0, y: 12, filter: 'blur(4px)' } as const,
-  animate: { opacity: 1, y: 0, filter: 'blur(0px)' } as const,
-  transition: { delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] as number[] },
+  initial: { opacity: 0, y: 12, filter: 'blur(4px)' },
+  animate: { opacity: 1, y: 0, filter: 'blur(0px)' },
+  transition: { delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
 });
 
 interface RSUResultsProps {
