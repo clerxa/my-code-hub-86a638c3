@@ -19,7 +19,7 @@ import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip } from 'recharts';
 import type { RSUSimulationResult, RSUPlanResult } from '@/types/rsu';
-import { REGIME_COLORS } from '@/types/rsu';
+import { REGIME_COLORS, REGIME_SHORT_LABELS, isQualifiedRegime } from '@/types/rsu';
 import { setBookingReferrer } from '@/hooks/useBookingReferrer';
 
 const fmt = (v: number) =>
