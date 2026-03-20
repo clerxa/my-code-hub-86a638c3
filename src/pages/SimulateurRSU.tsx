@@ -248,7 +248,8 @@ const SimulateurRSU = () => {
     }
   }, []);
 
-  const handleSavePlan = useCallback((plan: RSUPlan) => {
+  const handleSavePlan = useCallback(async (plan: RSUPlan) => {
+    // 1. Update local state
     setPlans(prev => {
       const existing = prev.findIndex(p => p.id === plan.id);
       if (existing >= 0) {
@@ -260,6 +261,60 @@ const SimulateurRSU = () => {
     });
     setEditingPlanId(null);
     setScreen('dashboard');
+
+    // 2. Persist to database — one simulation record per plan (keyed by plan.id)
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if a simulation record already exists for this plan
+      const { data: existing } = await supabase
+        .from('simulations')
+        .select('id, data')
+        .eq('user_id', user.id)
+        .eq('type', 'rsu')
+        .order('created_at', { ascending: false });
+
+      // Find the simulation that contains this plan
+      let simToUpdate: { id: string; data: any } | null = null;
+      if (existing) {
+        for (const sim of existing) {
+          const simData = sim.data as any;
+          if (Array.isArray(simData?.plans) && simData.plans.some((p: any) => p.id === plan.id)) {
+            simToUpdate = sim;
+            break;
+          }
+        }
+      }
+
+      const planData = {
+        plans: [{ ...plan, vestings: plan.vestings.map(v => ({ ...v })) }],
+      };
+
+      if (simToUpdate) {
+        // Update existing record — replace the plan in the plans array
+        const simData = simToUpdate.data as any;
+        const updatedPlans = Array.isArray(simData.plans)
+          ? simData.plans.map((p: any) => p.id === plan.id ? planData.plans[0] : p)
+          : planData.plans;
+        await supabase.from('simulations').update({
+          data: { ...simData, plans: updatedPlans },
+          name: plan.nom,
+        }).eq('id', simToUpdate.id);
+      } else {
+        // Create a new simulation record for this plan
+        const now = new Date();
+        const datePart = now.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        await supabase.from('simulations').insert({
+          user_id: user.id,
+          type: 'rsu',
+          name: `${plan.nom} - ${datePart}`,
+          data: planData,
+        });
+      }
+    } catch (e) {
+      console.error('Failed to persist plan to database:', e);
+    }
   }, []);
 
   // Simulation — only the selected plan
