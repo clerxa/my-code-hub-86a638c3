@@ -169,15 +169,11 @@ export function calculateRSUSimulation(
     let ir_ga = 0, ps_ga = 0, contrib_sal = 0, csg_crds = 0;
 
     if (plan.regime === 'R1') {
-      // Part proportionnelle de la fiscalité consolidée R1
-      const ratio = totalR1Gain > 0 ? plan.gain_acquisition_total / totalR1Gain : 0;
-      // Fraction du plan dans tranche A et B
-      const planTrancheA = tranche_A * ratio;
-      const planTrancheB = tranche_B * ratio;
-      ir_ga = (planTrancheA * 0.5 * tmi) + (planTrancheB * tmi);
-      ps_ga = (planTrancheA * 0.172) + (planTrancheB * 0.097);
-      contrib_sal = planTrancheB * 0.10;
-      csg_crds = 0; // inclus dans ps_ga pour R1
+      const detail = r1Details.get(plan.id)!;
+      ir_ga = detail.ir;
+      ps_ga = detail.ps;
+      contrib_sal = detail.contrib;
+      csg_crds = 0;
     } else if (plan.regime === 'R2') {
       const detail = r2Details.get(plan.id)!;
       ir_ga = detail.ir;
