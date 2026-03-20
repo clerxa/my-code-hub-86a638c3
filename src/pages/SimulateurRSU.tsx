@@ -128,8 +128,8 @@ const SimulateurRSU = () => {
   }, []);
 
   const screenTitle = {
-    intro: 'Simulateur RSU',
-    dashboard: 'Simulateur RSU',
+    intro: 'Mes plans RSU',
+    dashboard: 'Mes plans RSU',
     editor: editingPlanId ? 'Modifier le plan' : 'Nouveau plan',
     cession: 'Paramètres de cession',
     results: 'Résultats',
