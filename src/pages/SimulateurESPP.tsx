@@ -105,7 +105,7 @@ const SimulateurESPP = () => {
   }, [result, periods, tmi, saveSimulation]);
 
   // Navigation
-  const backTarget = loadSimId ? '/employee/vega' : '/employee/simulations';
+  const backTarget = '/employee/vega';
   const handleBack = useCallback(() => {
     switch (screen) {
       case 'editor': setScreen('dashboard'); setEditingPeriodId(null); break;
