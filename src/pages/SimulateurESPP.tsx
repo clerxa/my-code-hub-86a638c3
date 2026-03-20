@@ -1,7 +1,6 @@
 /**
- * Page Simulateur ESPP v2
+ * Page Mes Plans ESPP
  * 4 écrans : Intro → Dashboard → Éditeur de période → TMI → Résultats
- * Architecture alignée sur le simulateur RSU
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -22,6 +21,8 @@ import {
 import { calculateESPPSimulation } from '@/utils/esppCalculations';
 import { useUnifiedSimulationSave } from '@/hooks/useUnifiedSimulationSave';
 import { useSimulationDefaults } from '@/contexts/GlobalSettingsContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { ESPPPeriod, ESPPSimulationResult } from '@/types/esppNew';
 
 type Screen = 'intro' | 'dashboard' | 'editor' | 'tmi' | 'results';
@@ -38,32 +39,77 @@ const SimulateurESPP = () => {
   const [tmi, setTmi] = useState(30);
   const [result, setResult] = useState<ESPPSimulationResult | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(true);
   const [loadedSimId, setLoadedSimId] = useState<string | null>(null);
 
-  // Load saved simulation from URL param
+  // Load ALL saved ESPP plans from the simulations table
   useEffect(() => {
-    if (!loadSimId || loadedSimId === loadSimId) return;
-    const loadSavedSim = async () => {
+    const loadAllPeriods = async () => {
       try {
-        const { data, error } = await (await import('@/integrations/supabase/client')).supabase
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setIsLoadingPlans(false); return; }
+
+        const { data: sims, error } = await supabase
           .from('simulations')
-          .select('data')
-          .eq('id', loadSimId)
-          .maybeSingle();
-        if (error || !data?.data) return;
-        const simData = data.data as any;
-        if (Array.isArray(simData.periodes)) {
-          setPeriods(simData.periodes);
-          if (simData.tmi) setTmi(simData.tmi);
+          .select('id, data, name, created_at')
+          .eq('user_id', user.id)
+          .eq('type', 'espp')
+          .order('created_at', { ascending: false });
+
+        if (error || !sims) { setIsLoadingPlans(false); return; }
+
+        const allPeriods: ESPPPeriod[] = [];
+        const seenIds = new Set<string>();
+        for (const sim of sims) {
+          const simData = sim.data as any;
+          if (Array.isArray(simData?.periodes)) {
+            for (const period of simData.periodes) {
+              if (period.id && !seenIds.has(period.id)) {
+                seenIds.add(period.id);
+                allPeriods.push(period);
+              }
+            }
+          }
+        }
+
+        if (allPeriods.length > 0) {
+          setPeriods(allPeriods);
           setScreen('dashboard');
         }
-        setLoadedSimId(loadSimId);
       } catch (e) {
-        console.error('Failed to load simulation:', e);
+        console.error('Failed to load ESPP plans:', e);
+      } finally {
+        setIsLoadingPlans(false);
       }
     };
-    loadSavedSim();
-  }, [loadSimId, loadedSimId]);
+
+    if (loadSimId) {
+      const loadSavedSim = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('simulations')
+            .select('data')
+            .eq('id', loadSimId)
+            .maybeSingle();
+          if (error || !data?.data) { setIsLoadingPlans(false); return; }
+          const simData = data.data as any;
+          if (Array.isArray(simData.periodes)) {
+            setPeriods(simData.periodes);
+            if (simData.tmi) setTmi(simData.tmi);
+            setScreen('dashboard');
+          }
+          setLoadedSimId(loadSimId);
+        } catch (e) {
+          console.error('Failed to load simulation:', e);
+        } finally {
+          setIsLoadingPlans(false);
+        }
+      };
+      loadSavedSim();
+    } else {
+      loadAllPeriods();
+    }
+  }, [loadSimId]);
 
   // Sync TMI depuis les settings globaux
   useEffect(() => {
