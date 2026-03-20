@@ -164,7 +164,8 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
   const totalIR_PV = result.plans.reduce((s, p) => s + p.ir_pv_cession, 0);
   const totalPS_PV = result.plans.reduce((s, p) => s + p.ps_pv_cession, 0);
 
-  // Get abattement from plan data (use first plan's value for display — they should be the same for single-plan sim)
+  // Get abattement & regime label
+  const planRegime = result.plans.length > 0 ? result.plans[0].regime : 'AGA_POST2018';
   const abattementPct = result.plans.length > 0 ? result.plans[0].abattement_duree_detention : 0;
   const hasAbattement = abattementPct > 0;
 
