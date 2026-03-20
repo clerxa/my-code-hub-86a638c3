@@ -8,7 +8,6 @@ export function SimulatorDisclaimer() {
       <AlertDescription className="text-amber-800 dark:text-amber-200 text-xs leading-relaxed">
         Les informations présentées sont fournies à titre indicatif et pédagogique. Elles ne constituent ni un conseil en investissement, ni une recommandation personnalisée. L'adéquation d'un produit à votre situation réelle nécessite l'analyse d'un expert certifié. Les rendements passés ne préjugent pas des rendements futurs.
       </AlertDescription>
-      </AlertDescription>
     </Alert>
   );
 }
