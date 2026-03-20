@@ -621,7 +621,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
             </Alert>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-3">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label>Année d'attribution du plan</Label>
@@ -631,20 +631,14 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                       <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent side="right" className="max-w-xs text-sm space-y-2">
-                      <p>L'année d'attribution détermine le <strong>régime fiscal</strong> applicable automatiquement.</p>
-                      <ul className="list-disc pl-4 space-y-1">
-                        <li><strong>≥ 2018</strong> → AGA post-2018 (abattement 50% fixe sous 300k€)</li>
-                        <li><strong>2017</strong> → AGA 2017 (abattement durée + seuil 300k€)</li>
-                        <li><strong>2015-2016</strong> → AGA 2015-2016 (abattement durée détention)</li>
-                        <li><strong>2012-2014</strong> → AGA 2012-2015 (barème IR, PS 15,5%)</li>
-                        <li><strong>{'< 2012'}</strong> → AGA pré-2012 (taux forfaitaire 30%)</li>
-                      </ul>
+                      <p>La fiscalité de vos RSU dépend de la <strong>date d'autorisation de l'AGE</strong> (Assemblée Générale Extraordinaire) qui a approuvé votre plan.</p>
+                      <p>En pratique, c'est l'année figurant sur votre lettre d'attribution.</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <Select value={String(annee)} onValueChange={v => setAnnee(Number(v))}>
-                <SelectTrigger>
+              <Select value={String(annee)} onValueChange={v => { setAnnee(Number(v)); setRegime(inferRegimeFromYear(Number(v))); }}>
+                <SelectTrigger className="max-w-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -655,47 +649,30 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
               </Select>
             </div>
 
-            <div className="space-y-2">
+            {/* Regime deduced — pedagogical display */}
+            <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
               <div className="flex items-center gap-2">
-                <Label>Régime fiscal</Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="max-w-xs text-sm space-y-2">
-                      <p><strong>AGA post-2018</strong> — Abattement 50% fixe sous 300k€, contrib. salariale 10% au-delà</p>
-                      <p><strong>AGA 2017</strong> — Abattement conditionnel + seuil 300k€</p>
-                      <p><strong>AGA 2015-2016</strong> — Abattement pour durée de détention</p>
-                      <p><strong>AGA 2012-2015</strong> — Barème IR, PS historiques 15,5%</p>
-                      <p><strong>AGA pré-2012</strong> — Taux forfaitaire IR 30%</p>
-                      <p><strong>Non qualifié</strong> — RSU étranger, imposé comme salaire au vesting</p>
-                      <a
-                        href="https://www.perlib.fr"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-primary hover:underline mt-2"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        Un doute ? Consultez un expert Perlib
-                      </a>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Info className="h-4 w-4 text-primary shrink-0" />
+                <span className="text-sm font-medium">Régime fiscal déduit : <span className="text-primary">{REGIME_SHORT_LABELS[regime]}</span></span>
               </div>
-              <Select value={regime} onValueChange={v => setRegime(v as RSURegime)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(REGIME_LABELS) as RSURegime[]).map(key => (
-                    <SelectItem key={key} value={key}>{REGIME_LABELS[key]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-[10px] text-muted-foreground">
-                Déduit automatiquement de l'année d'attribution. Modifiable si besoin.
+              <p className="text-xs text-muted-foreground leading-relaxed pl-6">
+                {regime === 'AGA_POST2018' && "Abattement fixe de 50% sur le gain d'acquisition sous 300 000 €. Au-delà, imposition au barème comme salaire."}
+                {regime === 'AGA_2017' && "Abattement pour durée de détention (0%, 50% ou 65%) sous 300 000 €. Au-delà, barème salaires."}
+                {regime === 'AGA_2015_2016' && "Abattement pour durée de détention (0%, 50% ou 65%). Pas de seuil de 300 000 €."}
+                {regime === 'AGA_2012_2015' && "Imposition au barème progressif (catégorie salaires). PS à 9,7%. Contribution salariale de 10%."}
+                {regime === 'AGA_PRE2012' && "Taux forfaitaire d'IR de 30%. PS à 17,2%. Contribution salariale de 10%."}
+                {regime === 'NON_QUALIFIE' && "RSU étranger : imposé comme salaire au vesting (pas de cash reçu). PV de cession au PFU 30%."}
               </p>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = regime === 'NON_QUALIFIE' ? inferRegimeFromYear(annee) : 'NON_QUALIFIE';
+                  setRegime(next);
+                }}
+                className="text-[11px] text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors pl-6"
+              >
+                {regime === 'NON_QUALIFIE' ? "← Revenir au régime AGA déduit de l'année" : "Mon plan n'est pas qualifié AGA (RSU étranger)"}
+              </button>
             </div>
           </div>
 
