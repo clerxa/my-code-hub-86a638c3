@@ -160,12 +160,18 @@ Deno.serve(async (req) => {
           .update({
             total_points: 0,
             completed_modules: [],
-            onboarding_completed: false,
+            employee_onboarding_completed: false,
             last_login: null,
-            statut_invitation: 'en_attente',
+            current_session_start: null,
+            a_pris_rdv: false,
+            a_invite_collegue: false,
             avatar_url: null,
-            forum_anonymous: false,
+            forum_anonymous_mode: false,
             forum_pseudo: null,
+            forum_avatar_url: null,
+            forum_posts_count: 0,
+            forum_comments_count: 0,
+            forum_contribution_score: 0,
           })
           .eq('id', userId);
 
