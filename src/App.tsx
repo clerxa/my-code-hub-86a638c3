@@ -506,7 +506,7 @@ const App = () => (
               }
             />
             <Route
-              path="/simulateur-rsu"
+              path="/mes-plans-rsu"
               element={
                 <ProtectedRoute>
                   <CheckPlanAccess featureKey="simulateur_rsu">
