@@ -581,12 +581,14 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
       annee_attribution: annee,
       regime,
       devise,
+      date_fin_conservation: (regime === 'R1' || regime === 'R2') ? dateFinConservation || undefined : undefined,
       vestings: computedVestings,
       gain_acquisition_total: totalGain,
     });
   };
 
-  const isValid = computedVestings.some(v => v.nb_rsu > 0 && v.cours > 0) && entrepriseNom.length > 0;
+  const isValid = computedVestings.some(v => v.nb_rsu > 0 && v.cours > 0) && entrepriseNom.length > 0
+    && ((regime !== 'R1' && regime !== 'R2') || dateFinConservation !== '');
 
   return (
     <motion.div
