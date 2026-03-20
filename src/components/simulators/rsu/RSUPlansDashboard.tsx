@@ -287,6 +287,8 @@ export function RSUPlansDashboard({
                 </motion.div>
               );
             })}
+              </div>
+            </div>
           </div>
         </>
       )}
