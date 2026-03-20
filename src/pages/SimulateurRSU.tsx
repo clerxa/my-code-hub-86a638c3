@@ -215,12 +215,14 @@ const SimulateurRSU = () => {
     setScreen('dashboard');
   }, []);
 
-  // Simulation
+  // Simulation — only the selected plan
+  const simulatingPlans = simulatingPlanId ? plans.filter(p => p.id === simulatingPlanId) : plans;
+
   const handleSimulate = useCallback(() => {
-    const simResult = calculateRSUSimulation(plans, cessionParams);
+    const simResult = calculateRSUSimulation(simulatingPlans, cessionParams);
     setResult(simResult);
     setScreen('results');
-  }, [plans, cessionParams]);
+  }, [simulatingPlans, cessionParams]);
 
   const handleReset = useCallback(() => {
     setResult(null);
