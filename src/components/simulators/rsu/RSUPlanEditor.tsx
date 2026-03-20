@@ -1086,8 +1086,20 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                 )}
               </div>
 
-              {canGenerateCustom && (
-                <Button variant="outline" onClick={() => {
+              <div className="space-y-2">
+                {!startDate && (
+                  <p className="text-xs text-destructive flex items-center gap-1.5">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    Renseignez la date du premier vesting ci-dessus pour générer les périodes.
+                  </p>
+                )}
+                {totalActions <= 0 && startDate && (
+                  <p className="text-xs text-destructive flex items-center gap-1.5">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    Renseignez le nombre total de RSU attribuées ci-dessus.
+                  </p>
+                )}
+                <Button variant="outline" disabled={!canGenerateCustom} onClick={() => {
                   if (hasGenerated && vestings.some(v => v.cours > 0)) {
                     setShowRegenerateConfirm(true);
                   } else {
@@ -1097,7 +1109,7 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
                   <RefreshCw className="h-4 w-4" />
                   Générer les périodes de vesting
                 </Button>
-              )}
+              </div>
             </>
           )}
 
