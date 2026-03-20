@@ -127,16 +127,19 @@ export function calculateRSUSimulation(
   // ─── ÉTAPE 6 — Fiscalité R2 (plan par plan) ───
   let ir_R2_total = 0;
   let ps_R2_total = 0;
-  const r2Details = new Map<string, { ir: number; ps: number; abattement: number }>();
+  let contrib_R2_total = 0;
+  const r2Details = new Map<string, { ir: number; ps: number; abattement: number; contrib: number }>();
 
   for (const plan of plansR2) {
     const abattement = getAbattementDureeDetention(plan, dateCession);
     const base_ir = plan.gain_acquisition_total * (1 - abattement);
     const ir_plan = base_ir * tmi;
     const ps_plan = plan.gain_acquisition_total * 0.172; // assiette AVANT abattement
+    const contrib_plan = plan.gain_acquisition_total * 0.10; // contribution salariale 10%
     ir_R2_total += ir_plan;
     ps_R2_total += ps_plan;
-    r2Details.set(plan.id, { ir: ir_plan, ps: ps_plan, abattement });
+    contrib_R2_total += contrib_plan;
+    r2Details.set(plan.id, { ir: ir_plan, ps: ps_plan, abattement, contrib: contrib_plan });
   }
 
   // ─── ÉTAPE 7 — Fiscalité R3 ───
@@ -156,7 +159,7 @@ export function calculateRSUSimulation(
   // ─── ÉTAPE 9 — Totaux consolidés ───
   const total_ir = ir_R1_total + ir_R2_total + ir_R3 + ir_pv;
   const total_ps = ps_R1_total + ps_R2_total + ps_R3 + ps_pv;
-  const total_contrib = contrib_R1_total + contrib_R3;
+  const total_contrib = contrib_R1_total + contrib_R2_total + contrib_R3;
   const total_impots = total_ir + total_ps + total_contrib;
   const gain_brut_total = gain_consolide_R1R2 + gain_R3 + pv_totale;
   const gain_net = gain_brut_total - total_impots;
@@ -181,7 +184,7 @@ export function calculateRSUSimulation(
       ir_ga = detail.ir;
       ps_ga = detail.ps;
       abattement = detail.abattement;
-      contrib_sal = 0;
+      contrib_sal = detail.contrib;
       csg_crds = 0;
     } else {
       // R3 — pas d'abattement
