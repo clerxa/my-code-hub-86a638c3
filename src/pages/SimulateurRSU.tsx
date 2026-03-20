@@ -281,11 +281,11 @@ const SimulateurRSU = () => {
           {screen === 'cession' && (
             <RSUCessionParams
               key="cession"
-              plans={plans}
+              plans={simulatingPlans}
               params={cessionParams}
               onChange={setCessionParams}
               onSimulate={handleSimulate}
-              onBack={() => setScreen('dashboard')}
+              onBack={() => { setSimulatingPlanId(null); setScreen('dashboard'); }}
             />
           )}
 
