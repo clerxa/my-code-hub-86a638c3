@@ -74,8 +74,8 @@ export interface RSUSimulationResult {
 }
 
 export const REGIME_LABELS: Record<RSURegime, string> = {
-  AGA_PRE2012: 'AGA avant 2012 — taux forfaitaire 30%',
-  AGA_2012_2015: 'AGA 2012-2015 — barème IR, PS 15,5%',
+  AGA_PRE2012: 'AGA avant 2012 — taux forfaitaire 30%, PS 17,2%, contrib 10%',
+  AGA_2012_2015: 'AGA 2012-2015 — barème IR, PS 9,7%, contrib 10%',
   AGA_2015_2016: 'AGA 08/2015-12/2016 — abattement durée détention',
   AGA_2017: 'AGA 2017 — abattement + seuil 300k€',
   AGA_POST2018: 'AGA post-2018 — abattement 50% fixe sous 300k€',
