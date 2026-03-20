@@ -265,6 +265,7 @@ const SimulateurRSU = () => {
               onEditPlan={handleEditPlan}
               onDeletePlan={handleDeletePlan}
               onSimulate={() => setScreen('cession')}
+              onSimulatePlan={(id) => { setSimulatingPlanId(id); setScreen('cession'); }}
             />
           )}
 
