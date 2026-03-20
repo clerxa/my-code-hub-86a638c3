@@ -140,7 +140,7 @@ export function SimulatorCard({ name, description, icon, route, featureKey, dura
             {!isDisabled && getLockedBadge()}
             {!isDisabled && !isLocked && simulationsCount > 0 && (
               <Badge variant="secondary" className="text-xs gap-1">
-                {simulationsCount} simulation{simulationsCount > 1 ? 's' : ''}
+                {simulationsCount} plan{simulationsCount > 1 ? 's' : ''} en cours
               </Badge>
             )}
           </div>
