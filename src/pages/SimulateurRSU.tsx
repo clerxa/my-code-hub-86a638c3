@@ -30,6 +30,7 @@ const SimulateurRSU = () => {
   const [screen, setScreen] = useState<Screen>(loadSimId ? 'dashboard' : 'intro');
   const [plans, setPlans] = useState<RSUPlan[]>([]);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+  const [simulatingPlanId, setSimulatingPlanId] = useState<string | null>(null);
   const [isLoadingPlans, setIsLoadingPlans] = useState(true);
   const [cessionParams, setCessionParams] = useState<CessionParamsType>({
     prix_vente: 0,
@@ -165,7 +166,7 @@ const SimulateurRSU = () => {
   const handleBack = useCallback(() => {
     switch (screen) {
       case 'editor': setScreen('dashboard'); setEditingPlanId(null); break;
-      case 'cession': setScreen('dashboard'); break;
+      case 'cession': setSimulatingPlanId(null); setScreen('dashboard'); break;
       case 'results': setScreen('cession'); break;
       case 'dashboard': navigate(backTarget); break;
       default: navigate(backTarget);
@@ -214,15 +215,18 @@ const SimulateurRSU = () => {
     setScreen('dashboard');
   }, []);
 
-  // Simulation
+  // Simulation — only the selected plan
+  const simulatingPlans = simulatingPlanId ? plans.filter(p => p.id === simulatingPlanId) : plans;
+
   const handleSimulate = useCallback(() => {
-    const simResult = calculateRSUSimulation(plans, cessionParams);
+    const simResult = calculateRSUSimulation(simulatingPlans, cessionParams);
     setResult(simResult);
     setScreen('results');
-  }, [plans, cessionParams]);
+  }, [simulatingPlans, cessionParams]);
 
   const handleReset = useCallback(() => {
     setResult(null);
+    setSimulatingPlanId(null);
     setScreen('dashboard');
   }, []);
 
@@ -262,6 +266,7 @@ const SimulateurRSU = () => {
               onEditPlan={handleEditPlan}
               onDeletePlan={handleDeletePlan}
               onSimulate={() => setScreen('cession')}
+              onSimulatePlan={(id) => { setSimulatingPlanId(id); setScreen('cession'); }}
             />
           )}
 
@@ -277,11 +282,11 @@ const SimulateurRSU = () => {
           {screen === 'cession' && (
             <RSUCessionParams
               key="cession"
-              plans={plans}
+              plans={simulatingPlans}
               params={cessionParams}
               onChange={setCessionParams}
               onSimulate={handleSimulate}
-              onBack={() => setScreen('dashboard')}
+              onBack={() => { setSimulatingPlanId(null); setScreen('dashboard'); }}
             />
           )}
 
