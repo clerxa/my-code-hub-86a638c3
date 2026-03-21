@@ -1,8 +1,6 @@
 /**
  * Écran 4 — Résultats de la simulation RSU
- * Affichage conditionnel selon le régime fiscal :
- *   CAS 1 — Plan qualifié (AGA) : tout est payé à la cession
- *   CAS 2 — Plan non qualifié : charge sur bulletin + cash cession
+ * Affichage conditionnel selon le régime fiscal + mode avancé avec onglets par année
  */
 
 import { motion } from 'framer-motion';
@@ -16,9 +14,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip } from 'recharts';
-import type { RSUSimulationResult, RSUPlanResult } from '@/types/rsu';
+import type { RSUSimulationResult, RSUPlanResult, RSUResultatAnnuel } from '@/types/rsu';
 import { REGIME_COLORS, REGIME_SHORT_LABELS, isQualifiedRegime } from '@/types/rsu';
 import { setBookingReferrer } from '@/hooks/useBookingReferrer';
 
@@ -154,7 +153,6 @@ function PlanDetailCard({ plan, index }: { plan: RSUPlanResult; index: number })
 
 // ════════════════════════════════════════════════════════
 // CAS 1 — PLAN QUALIFIÉ (AGA)
-// Toute la fiscalité est payée à la cession
 // ════════════════════════════════════════════════════════
 function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
   const totalGA = result.plans.reduce((s, p) => s + p.gain_acquisition_eur, 0);
@@ -164,7 +162,6 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
   const totalIR_PV = result.plans.reduce((s, p) => s + p.ir_pv_cession, 0);
   const totalPS_PV = result.plans.reduce((s, p) => s + p.ps_pv_cession, 0);
 
-  // Get abattement & regime label
   const planRegime = result.plans.length > 0 ? result.plans[0].regime : 'AGA_POST2018';
   const abattementPct = result.plans.length > 0 ? result.plans[0].abattement_duree_detention : 0;
   const hasAbattement = abattementPct > 0;
@@ -180,7 +177,7 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
 
   return (
     <>
-      {/* Hero — Cash net reçu après cession */}
+      {/* Hero */}
       <motion.div {...anim(0.1)}>
         <Card className="overflow-hidden border-primary/20">
           <div className="bg-gradient-to-br from-primary/5 via-primary/3 to-transparent">
@@ -212,7 +209,7 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
         </Card>
       </motion.div>
 
-      {/* Waterfall — Décomposition linéaire avec split GA / PV */}
+      {/* Waterfall */}
       <motion.div {...anim(0.25)}>
         <Card>
           <CardHeader className="pb-2">
@@ -222,13 +219,11 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-0">
-            {/* --- Gains bruts --- */}
             <WaterfallRow label="Gain d'acquisition total" description="Valeur des actions au moment du vesting" value={totalGA} isPositive delay={0.3} />
             <WaterfallRow label="Plus-value de cession" description="Différence entre prix de vente et valeur au vesting" value={totalPV} isPositive delay={0.35} />
             <div className="border-t my-2" />
             <WaterfallRow label="Gain brut total" value={result.gain_brut_total} isPositive delay={0.4} />
 
-            {/* --- Fiscalité sur le gain d'acquisition --- */}
             <div className="mt-4 mb-2 px-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
                 <Landmark className="h-3.5 w-3.5" />
@@ -278,7 +273,6 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
               <WaterfallRow label="Contribution salariale" description="10%" value={result.total_contribution_salariale} delay={0.55} />
             )}
 
-            {/* --- Fiscalité sur la plus-value de cession --- */}
             {totalPV > 0 && (
               <>
                 <div className="mt-4 mb-2 px-4">
@@ -301,7 +295,6 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
         </Card>
       </motion.div>
 
-      {/* Donut */}
       <DonutChart data={donutData} delay={0.5} />
     </>
   );
@@ -309,10 +302,9 @@ function QualifiedResults({ result, onReset, onSave }: RSUResultsProps) {
 
 // ════════════════════════════════════════════════════════
 // CAS 2 — PLAN NON QUALIFIÉ
-// Charge sur bulletin (vesting) + cash à la cession
 // ════════════════════════════════════════════════════════
 function NonQualifiedResults({ result }: RSUResultsProps) {
-  const plan = result.plans[0]; // simulation isolée par plan
+  const plan = result.plans[0];
   const pvBrute = plan.pv_cession_eur;
   const irPV = plan.ir_pv_cession;
   const psPV = plan.ps_pv_cession;
@@ -328,7 +320,7 @@ function NonQualifiedResults({ result }: RSUResultsProps) {
 
   return (
     <>
-      {/* Bloc 1 — Cash reçu lors de la vente (hero) */}
+      {/* Bloc 1 — Cash reçu */}
       <motion.div {...anim(0.1)}>
         <Card className={`overflow-hidden ${isVenteImmediate ? 'border-amber-300/50 dark:border-amber-700/50' : 'border-primary/20'}`}>
           <div className={isVenteImmediate ? 'bg-gradient-to-br from-amber-50 via-amber-25 to-transparent dark:from-amber-950/20 dark:via-transparent' : 'bg-gradient-to-br from-primary/5 via-primary/3 to-transparent'}>
@@ -343,7 +335,6 @@ function NonQualifiedResults({ result }: RSUResultsProps) {
               }`} style={{ lineHeight: '1.1' }}>
                 {fmt(Math.max(0, cashNetCession))}
               </p>
-
               {isVenteImmediate && (
                 <div className="mt-4 p-3 rounded-lg bg-amber-100/50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 max-w-md mx-auto">
                   <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
@@ -351,7 +342,6 @@ function NonQualifiedResults({ result }: RSUResultsProps) {
                   </p>
                 </div>
               )}
-
               {!isVenteImmediate && (
                 <p className="text-xs text-muted-foreground mt-4 max-w-md mx-auto leading-relaxed">
                   Ce montant correspond au cash réellement perçu sur votre compte après prélèvements sur la plus-value de cession.
@@ -362,7 +352,7 @@ function NonQualifiedResults({ result }: RSUResultsProps) {
         </Card>
       </motion.div>
 
-      {/* Bloc 1 — Détail waterfall PV cession */}
+      {/* Détail PV cession */}
       {!isVenteImmediate && (
         <motion.div {...anim(0.2)}>
           <Card>
@@ -384,7 +374,7 @@ function NonQualifiedResults({ result }: RSUResultsProps) {
         </motion.div>
       )}
 
-      {/* Bloc 2 — Charge fiscale sur le bulletin de salaire */}
+      {/* Bloc 2 — Charge bulletin */}
       <motion.div {...anim(isVenteImmediate ? 0.2 : 0.35)}>
         <Card className={`overflow-hidden ${isVenteImmediate ? 'border-red-300/50 dark:border-red-700/50 ring-1 ring-red-200/50 dark:ring-red-800/30' : 'border-red-200/50 dark:border-red-800/30'}`}>
           <CardHeader className="pb-2">
@@ -479,7 +469,7 @@ function NonQualifiedResults({ result }: RSUResultsProps) {
 }
 
 // ────────────────────────────────────────────────────────
-// Shared: Donut chart
+// Donut chart
 // ────────────────────────────────────────────────────────
 function DonutChart({ data, delay }: { data: { name: string; value: number }[]; delay: number }) {
   return (
@@ -524,13 +514,191 @@ function DonutChart({ data, delay }: { data: { name: string; value: number }[]; 
 }
 
 // ════════════════════════════════════════════════════════
+// Onglet annuel (mode avancé)
+// ════════════════════════════════════════════════════════
+function AnnualTabContent({ annee }: { annee: RSUResultatAnnuel }) {
+  const tauxEffectif = annee.gain_brut > 0 ? (annee.total_impots / annee.gain_brut) * 100 : 0;
+
+  return (
+    <div className="space-y-4 pt-2">
+      {/* KPIs annuels */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card>
+          <CardContent className="py-4 text-center">
+            <p className="text-xs text-muted-foreground">Gain brut</p>
+            <p className="text-lg font-bold tabular-nums mt-1">{fmt(annee.gain_brut)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4 text-center">
+            <p className="text-xs text-muted-foreground">Cash net</p>
+            <p className="text-lg font-bold tabular-nums mt-1 text-emerald-600 dark:text-emerald-400">{fmt(annee.cash_recu)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4 text-center">
+            <p className="text-xs text-muted-foreground">Total impôts</p>
+            <p className="text-lg font-bold tabular-nums mt-1 text-red-600 dark:text-red-400">−{fmt(annee.total_impots)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4 text-center">
+            <p className="text-xs text-muted-foreground">Taux effectif</p>
+            <p className="text-lg font-bold tabular-nums mt-1">{pct(tauxEffectif)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Détail fiscal */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Landmark className="h-4 w-4 text-primary" />
+            Décomposition fiscale {annee.annee}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          <div className="grid gap-2 text-sm">
+            <div className="flex justify-between py-1.5 px-3 rounded hover:bg-muted/50">
+              <span className="text-muted-foreground">Impôt sur le revenu</span>
+              <span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(annee.total_ir)}</span>
+            </div>
+            <div className="flex justify-between py-1.5 px-3 rounded hover:bg-muted/50">
+              <span className="text-muted-foreground">Prélèvements sociaux</span>
+              <span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(annee.total_ps)}</span>
+            </div>
+            {annee.total_contrib > 0 && (
+              <div className="flex justify-between py-1.5 px-3 rounded hover:bg-muted/50">
+                <span className="text-muted-foreground">Contribution salariale</span>
+                <span className="font-medium tabular-nums text-red-600 dark:text-red-400">−{fmt(annee.total_contrib)}</span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {annee.seuil_300k_applique && (
+        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/30">
+          <CardContent className="py-3 flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-amber-800 dark:text-amber-200">
+              Le seuil de 300 000 € s'applique sur cette année fiscale. La fraction au-delà est imposée sans abattement.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {annee.impact_bulletin > 0 && (
+        <Card className="border-red-200/50 dark:border-red-800/30">
+          <CardContent className="py-3 flex items-start gap-2">
+            <Receipt className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-red-700 dark:text-red-300">
+              Impact sur bulletin de salaire (plans non qualifiés) : <strong>−{fmt(annee.impact_bulletin)}</strong>
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Plans de l'année */}
+      <div className="space-y-2">
+        <h4 className="text-sm font-semibold text-muted-foreground">Plans cédés en {annee.annee}</h4>
+        {annee.plans.map((plan, i) => (
+          <PlanDetailCard key={plan.plan_id} plan={plan} index={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════
+// Synthèse globale (mode avancé)
+// ════════════════════════════════════════════════════════
+function SyntheseGlobale({ result }: { result: RSUSimulationResult }) {
+  const netRatio = result.gain_brut_total > 0 ? (result.gain_net_total / result.gain_brut_total) * 100 : 0;
+  const annees = result.resultats_par_annee || [];
+
+  return (
+    <div className="space-y-4 pt-2">
+      {/* Hero synthèse */}
+      <Card className="overflow-hidden border-primary/20">
+        <div className="bg-gradient-to-br from-primary/5 via-primary/3 to-transparent">
+          <CardContent className="py-8 text-center">
+            <p className="text-sm font-medium text-muted-foreground mb-2">Cash net total toutes années</p>
+            <p className="text-4xl sm:text-5xl font-extrabold tracking-tight tabular-nums text-foreground" style={{ lineHeight: '1.1' }}>
+              {fmt(result.gain_net_total)}
+            </p>
+            <div className="flex items-center justify-center gap-3 mt-4">
+              <Badge variant="outline" className="text-xs tabular-nums">{pct(netRatio)} perçu</Badge>
+              <Badge variant="outline" className="text-xs tabular-nums">{pct(result.taux_effectif)} taux effectif global</Badge>
+            </div>
+          </CardContent>
+        </div>
+      </Card>
+
+      {/* Tableau récap par année */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-primary" />
+            Récapitulatif par année fiscale
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2.5 px-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Année</th>
+                  <th className="text-right py-2.5 px-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Plans</th>
+                  <th className="text-right py-2.5 px-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Gain brut</th>
+                  <th className="text-right py-2.5 px-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Impôts</th>
+                  <th className="text-right py-2.5 px-3 text-muted-foreground font-medium text-xs uppercase tracking-wide">Cash net</th>
+                </tr>
+              </thead>
+              <tbody>
+                {annees.map(a => (
+                  <tr key={a.annee} className="border-b border-dashed hover:bg-muted/30 transition-colors">
+                    <td className="py-3 px-3 font-semibold">{a.annee}</td>
+                    <td className="py-3 px-3 text-right tabular-nums text-muted-foreground">{a.plans.length}</td>
+                    <td className="py-3 px-3 text-right tabular-nums">{fmt(a.gain_brut)}</td>
+                    <td className="py-3 px-3 text-right tabular-nums text-red-600 dark:text-red-400">−{fmt(a.total_impots)}</td>
+                    <td className="py-3 px-3 text-right tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">{fmt(a.cash_recu)}</td>
+                  </tr>
+                ))}
+                <tr className="bg-muted/40">
+                  <td className="py-3 px-3 font-bold">Total</td>
+                  <td className="py-3 px-3 text-right tabular-nums font-bold">{result.plans.length}</td>
+                  <td className="py-3 px-3 text-right tabular-nums font-bold">{fmt(result.gain_brut_total)}</td>
+                  <td className="py-3 px-3 text-right tabular-nums font-bold text-red-600 dark:text-red-400">−{fmt(result.total_impots)}</td>
+                  <td className="py-3 px-3 text-right tabular-nums font-bold text-primary">{fmt(result.gain_net_total)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Donut */}
+      <DonutChart
+        data={[
+          { name: 'Cash net reçu', value: result.gain_net_total },
+          { name: 'Impôt sur le revenu', value: result.total_ir },
+          { name: 'Prélèvements sociaux', value: result.total_ps },
+          ...(result.total_contribution_salariale > 0 ? [{ name: 'Contribution salariale', value: result.total_contribution_salariale }] : []),
+        ]}
+        delay={0.3}
+      />
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════
 // MAIN — Routing conditionnel
 // ════════════════════════════════════════════════════════
 export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
   const expertUrl = 'https://www.perlib.fr/prendre-rdv?utm_source=fincare_app&utm_campaign=simulateur_rsu';
-
-  // Déterminer le type de plan (simulation isolée = 1 plan)
   const isNonQualifie = result.plans.length > 0 && result.plans.every(p => p.regime === 'NON_QUALIFIE');
+  const isAdvanced = result.mode === 'avance' && result.resultats_par_annee && result.resultats_par_annee.length > 0;
 
   return (
     <motion.div
@@ -539,15 +707,45 @@ export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      {/* Routing conditionnel */}
-      {isNonQualifie ? (
-        <NonQualifiedResults result={result} onReset={onReset} onSave={onSave} />
+      {/* Mode avancé — onglets par année */}
+      {isAdvanced ? (
+        <>
+          <Tabs defaultValue="synthese" className="w-full">
+            <TabsList className="w-full flex-wrap h-auto gap-1 p-1">
+              {result.resultats_par_annee!.map(a => (
+                <TabsTrigger key={a.annee} value={String(a.annee)} className="flex-1 min-w-[80px]">
+                  {a.annee}
+                </TabsTrigger>
+              ))}
+              <TabsTrigger value="synthese" className="flex-1 min-w-[120px]">
+                Synthèse globale
+              </TabsTrigger>
+            </TabsList>
+
+            {result.resultats_par_annee!.map(a => (
+              <TabsContent key={a.annee} value={String(a.annee)}>
+                <AnnualTabContent annee={a} />
+              </TabsContent>
+            ))}
+
+            <TabsContent value="synthese">
+              <SyntheseGlobale result={result} />
+            </TabsContent>
+          </Tabs>
+        </>
       ) : (
-        <QualifiedResults result={result} onReset={onReset} onSave={onSave} />
+        <>
+          {/* Mode simple — routing par type de plan */}
+          {isNonQualifie ? (
+            <NonQualifiedResults result={result} onReset={onReset} onSave={onSave} />
+          ) : (
+            <QualifiedResults result={result} onReset={onReset} onSave={onSave} />
+          )}
+        </>
       )}
 
-      {/* Plan-by-plan detail */}
-      {result.plans.length > 0 && (
+      {/* Plan detail (mode simple only) */}
+      {!isAdvanced && result.plans.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
             <Info className="h-4 w-4 text-muted-foreground" />
@@ -559,8 +757,8 @@ export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
         </div>
       )}
 
-      {/* Avertissement seuil 300k (qualifié seulement) */}
-      {!isNonQualifie && result.seuil_300k_applique && (
+      {/* Seuil 300k */}
+      {!isAdvanced && !isNonQualifie && result.seuil_300k_applique && (
         <motion.div {...anim(0.8)}>
           <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/30">
             <CardHeader className="pb-2">
