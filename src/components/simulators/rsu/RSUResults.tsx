@@ -794,9 +794,9 @@ export function RSUResults({ result, onReset, onSave, isSaving }: RSUResultsProp
           </a>
         </Button>
         {onSave && (
-          <Button variant="secondary" onClick={onSave} className="flex-1 gap-2" size="lg">
-            <Save className="h-4 w-4" />
-            Sauvegarder
+          <Button variant="secondary" onClick={onSave} disabled={isSaving} className="flex-1 gap-2" size="lg">
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
           </Button>
         )}
         <Button variant="outline" onClick={onReset} className="flex-1 gap-2" size="lg">
