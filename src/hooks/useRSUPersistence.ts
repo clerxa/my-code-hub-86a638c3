@@ -59,7 +59,7 @@ export interface SavedRSUSimulation {
   cessionParams: RSUCessionParams;
 }
 
-// ─── Load all plans (standalone, not tied to a simulation) ───
+// ─── Load all plans (workspace + fallback to legacy simulations table) ───
 export function useRSUPlans() {
   const [plans, setPlans] = useState<RSUPlan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,7 +70,7 @@ export function useRSUPlans() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setIsLoading(false); return; }
 
-      // Only load plans from the __workspace__ simulation (not saved simulations)
+      // 1. Try loading from new rsu_plans tables (workspace)
       const { data: workspace } = await supabase
         .from('rsu_simulations')
         .select('id')
@@ -78,50 +78,105 @@ export function useRSUPlans() {
         .eq('nom', '__workspace__')
         .maybeSingle();
 
-      if (!workspace) { setPlans([]); setIsLoading(false); return; }
+      let loadedPlans: RSUPlan[] = [];
 
-      // Get all plans from workspace only
-      const { data: dbPlans } = await supabase
-        .from('rsu_plans')
-        .select('*')
-        .eq('simulation_id', workspace.id);
+      if (workspace) {
+        const { data: dbPlans } = await supabase
+          .from('rsu_plans')
+          .select('*')
+          .eq('simulation_id', workspace.id);
 
-      if (!dbPlans || dbPlans.length === 0) { setPlans([]); setIsLoading(false); return; }
+        if (dbPlans && dbPlans.length > 0) {
+          const planIds = dbPlans.map(p => p.id);
+          const { data: dbVestings } = await supabase
+            .from('rsu_vestings')
+            .select('*')
+            .in('plan_id', planIds);
 
-      const planIds = dbPlans.map(p => p.id);
+          const vestingsByPlan = new Map<string, VestingLine[]>();
+          for (const v of (dbVestings || [])) {
+            const list = vestingsByPlan.get(v.plan_id) || [];
+            list.push({
+              id: v.id,
+              date: v.date,
+              nb_rsu: Number(v.nb_rsu),
+              cours: Number(v.cours),
+              taux_change: Number(v.taux_change),
+              gain_eur: Number(v.gain_eur),
+            });
+            vestingsByPlan.set(v.plan_id, list);
+          }
 
-      // Get all vestings
-      const { data: dbVestings } = await supabase
-        .from('rsu_vestings')
-        .select('*')
-        .in('plan_id', planIds);
-
-      const vestingsByPlan = new Map<string, VestingLine[]>();
-      for (const v of (dbVestings || [])) {
-        const list = vestingsByPlan.get(v.plan_id) || [];
-        list.push({
-          id: v.id,
-          date: v.date,
-          nb_rsu: Number(v.nb_rsu),
-          cours: Number(v.cours),
-          taux_change: Number(v.taux_change),
-          gain_eur: Number(v.gain_eur),
-        });
-        vestingsByPlan.set(v.plan_id, list);
+          loadedPlans = dbPlans.map(p => ({
+            id: p.id,
+            nom: p.nom,
+            ticker: p.ticker || undefined,
+            entreprise_nom: p.entreprise_nom || undefined,
+            annee_attribution: p.annee_attribution,
+            regime: p.regime as RSUPlan['regime'],
+            devise: p.devise as RSUPlan['devise'],
+            date_fin_conservation: p.date_fin_conservation || undefined,
+            vestings: vestingsByPlan.get(p.id) || [],
+            gain_acquisition_total: Number(p.gain_acquisition_total),
+          }));
+        }
       }
 
-      const loadedPlans: RSUPlan[] = dbPlans.map(p => ({
-        id: p.id,
-        nom: p.nom,
-        ticker: p.ticker || undefined,
-        entreprise_nom: p.entreprise_nom || undefined,
-        annee_attribution: p.annee_attribution,
-        regime: p.regime as RSUPlan['regime'],
-        devise: p.devise as RSUPlan['devise'],
-        date_fin_conservation: p.date_fin_conservation || undefined,
-        vestings: vestingsByPlan.get(p.id) || [],
-        gain_acquisition_total: Number(p.gain_acquisition_total),
-      }));
+      // 2. Fallback: if no plans in new tables, load from legacy simulations table
+      if (loadedPlans.length === 0) {
+        const { data: legacySims } = await supabase
+          .from('simulations')
+          .select('id, name, type, data, created_at')
+          .eq('user_id', user.id)
+          .eq('type', 'rsu')
+          .order('created_at', { ascending: false });
+
+        if (legacySims && legacySims.length > 0) {
+          for (const sim of legacySims) {
+            const d = sim.data as any;
+            if (!d || !Array.isArray(d.plans)) continue;
+            for (const plan of d.plans) {
+              const vestings: VestingLine[] = Array.isArray(plan.vestings)
+                ? plan.vestings.map((v: any) => ({
+                    id: v.id || crypto.randomUUID(),
+                    date: v.date,
+                    nb_rsu: Number(v.nb_rsu || 0),
+                    cours: Number(v.cours || 0),
+                    taux_change: Number(v.taux_change || 1),
+                    gain_eur: Number(v.gain_eur || 0),
+                  }))
+                : [];
+              loadedPlans.push({
+                id: plan.id,
+                nom: plan.nom || `RSU ${plan.annee_attribution || ''}`,
+                ticker: plan.ticker || undefined,
+                entreprise_nom: plan.entreprise_nom || undefined,
+                annee_attribution: plan.annee_attribution || 2020,
+                regime: (plan.regime || 'AGA_POST2018') as RSUPlan['regime'],
+                devise: (plan.devise || 'USD') as RSUPlan['devise'],
+                date_fin_conservation: plan.date_fin_conservation || undefined,
+                vestings,
+                gain_acquisition_total: Number(plan.gain_acquisition_total || 0),
+              });
+            }
+          }
+
+          // Deduplicate by plan id (same plan may exist in multiple saved simulations)
+          const seen = new Set<string>();
+          loadedPlans = loadedPlans.filter(p => {
+            if (seen.has(p.id)) return false;
+            seen.add(p.id);
+            return true;
+          });
+
+          // Auto-migrate to new tables in background
+          if (loadedPlans.length > 0) {
+            migrateToNewTables(user.id, loadedPlans).catch(e =>
+              console.error('Migration failed:', e)
+            );
+          }
+        }
+      }
 
       setPlans(loadedPlans);
     } catch (e) {
@@ -134,6 +189,72 @@ export function useRSUPlans() {
   useEffect(() => { loadPlans(); }, [loadPlans]);
 
   return { plans, setPlans, isLoading, reload: loadPlans };
+}
+
+// ─── Auto-migrate legacy plans to new rsu_* tables ───
+async function migrateToNewTables(userId: string, plans: RSUPlan[]) {
+  // Find or create workspace
+  let { data: existing } = await supabase
+    .from('rsu_simulations')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('nom', '__workspace__')
+    .maybeSingle();
+
+  let simId: string;
+  if (existing) {
+    simId = existing.id;
+  } else {
+    const { data: created, error } = await supabase
+      .from('rsu_simulations')
+      .insert({ user_id: userId, nom: '__workspace__', mode: 'simple', tmi: 30, prix_vente: 0, taux_change_vente: 1 })
+      .select('id')
+      .single();
+    if (error || !created) return;
+    simId = created.id;
+  }
+
+  // Check if workspace already has plans (avoid double migration)
+  const { data: existingPlans } = await supabase
+    .from('rsu_plans')
+    .select('id')
+    .eq('simulation_id', simId);
+  if (existingPlans && existingPlans.length > 0) return;
+
+  for (const plan of plans) {
+    const { error: planError } = await supabase
+      .from('rsu_plans')
+      .upsert({
+        id: plan.id,
+        simulation_id: simId,
+        nom: plan.nom,
+        ticker: plan.ticker || null,
+        entreprise_nom: plan.entreprise_nom || null,
+        annee_attribution: plan.annee_attribution,
+        regime: plan.regime,
+        devise: plan.devise,
+        date_fin_conservation: plan.date_fin_conservation || null,
+        date_cession: null,
+        gain_acquisition_total: plan.gain_acquisition_total,
+      }, { onConflict: 'id' });
+
+    if (planError) { console.error('Migration plan error:', planError); continue; }
+
+    if (plan.vestings.length > 0) {
+      await supabase.from('rsu_vestings').delete().eq('plan_id', plan.id);
+      const vestingRows = plan.vestings.map(v => ({
+        id: v.id,
+        plan_id: plan.id,
+        date: v.date,
+        nb_rsu: v.nb_rsu,
+        cours: v.cours,
+        taux_change: v.taux_change,
+        gain_eur: v.gain_eur,
+      }));
+      await supabase.from('rsu_vestings').insert(vestingRows);
+    }
+  }
+  console.log('RSU plans migrated to new tables');
 }
 
 // ─── Save a single plan (upsert into a default simulation) ───
