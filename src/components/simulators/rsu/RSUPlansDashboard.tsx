@@ -3,7 +3,7 @@
  */
 
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, TrendingUp, BarChart3 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Banknote, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +38,7 @@ interface RSUPlansDashboardProps {
   onSimulate: () => void;
   onViewPlan?: (id: string) => void;
   onSimulatePlan?: (id: string) => void;
+  onDeclareCessionPlan?: (id: string) => void;
   onViewSavedSimulations?: () => void;
 }
 
@@ -73,7 +74,15 @@ function getAverageVesting(plans: RSUPlan[]) {
 }
 
 export function RSUPlansDashboard({
-  plans, onAddPlan, onEditPlan, onDeletePlan, onSimulate, onViewPlan, onSimulatePlan, onViewSavedSimulations,
+  plans,
+  onAddPlan,
+  onEditPlan,
+  onDeletePlan,
+  onSimulate,
+  onViewPlan,
+  onSimulatePlan,
+  onDeclareCessionPlan,
+  onViewSavedSimulations,
 }: RSUPlansDashboardProps) {
   const totalGain = getTotalGain(plans);
   const totalActions = getTotalActions(plans);
@@ -245,14 +254,15 @@ export function RSUPlansDashboard({
                                   size="icon"
                                   className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary"
                                   onClick={() => {
-                                    if (onSimulatePlan) onSimulatePlan(plan.id);
+                                    if (onDeclareCessionPlan) onDeclareCessionPlan(plan.id);
+                                    else if (onSimulatePlan) onSimulatePlan(plan.id);
                                     else onSimulate();
                                   }}
                                 >
-                                  <TrendingUp className="h-3.5 w-3.5" />
+                                  <Banknote className="h-3.5 w-3.5" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent side="bottom">Simuler la cession</TooltipContent>
+                              <TooltipContent side="bottom">Déclarer une cession</TooltipContent>
                             </Tooltip>
 
                             <AlertDialog>

@@ -122,8 +122,9 @@ export function useRSUPlans() {
         }
       }
 
-      // 2. Fallback: if no plans in new tables, load from legacy simulations table
-      if (loadedPlans.length === 0) {
+      // 2. Fallback: only if workspace does not exist yet, load from legacy simulations table
+      // (otherwise, an empty workspace after deletions would resurrect legacy plans)
+      if (loadedPlans.length === 0 && !workspace) {
         const { data: legacySims } = await supabase
           .from('simulations')
           .select('id, name, type, data, created_at')
@@ -338,9 +339,44 @@ export async function savePlanToDb(plan: RSUPlan): Promise<string | null> {
 // ─── Delete a plan ───
 export async function deletePlanFromDb(planId: string): Promise<boolean> {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+
     // Vestings are cascade-deleted
     const { error } = await supabase.from('rsu_plans').delete().eq('id', planId);
     if (error) { console.error('Failed to delete plan:', error); return false; }
+
+    // Also remove from legacy simulations JSON to avoid plan resurrection via fallback
+    if (user) {
+      const { data: legacySims, error: legacyReadError } = await supabase
+        .from('simulations')
+        .select('id, data')
+        .eq('user_id', user.id)
+        .eq('type', 'rsu');
+
+      if (legacyReadError) {
+        console.error('Failed to load legacy RSU simulations for deletion sync:', legacyReadError);
+      } else if (legacySims && legacySims.length > 0) {
+        await Promise.all(
+          legacySims.map(async (sim) => {
+            const simData = sim.data as any;
+            if (!simData || !Array.isArray(simData.plans)) return;
+
+            const nextPlans = simData.plans.filter((p: any) => p?.id !== planId);
+            if (nextPlans.length === simData.plans.length) return;
+
+            const { error: legacyUpdateError } = await supabase
+              .from('simulations')
+              .update({ data: { ...simData, plans: nextPlans } })
+              .eq('id', sim.id);
+
+            if (legacyUpdateError) {
+              console.error('Failed to sync legacy RSU simulation after delete:', legacyUpdateError);
+            }
+          })
+        );
+      }
+    }
+
     return true;
   } catch (e) {
     console.error('Failed to delete plan:', e);

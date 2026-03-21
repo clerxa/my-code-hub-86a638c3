@@ -749,11 +749,15 @@ function PlanCard({ plan, getPriceEur, tmi, fxRate, portfolio }: { plan: Portfol
           )}
         </div>
 
-        {/* Simulate sale today */}
-        <CessionReveal plan={plan} getPriceEur={getPriceEur} tmi={tmi} fxRate={fxRate} />
+        {plan.type !== 'rsu' && (
+          <>
+            {/* Simulate sale today */}
+            <CessionReveal plan={plan} getPriceEur={getPriceEur} tmi={tmi} fxRate={fxRate} />
 
-        {/* Declare cession */}
-        <DeclareCessionDialog plan={plan} portfolio={portfolio} />
+            {/* Declare cession */}
+            <DeclareCessionDialog plan={plan} portfolio={portfolio} />
+          </>
+        )}
 
         <Button
           variant="ghost"
@@ -761,7 +765,7 @@ function PlanCard({ plan, getPriceEur, tmi, fxRate, portfolio }: { plan: Portfol
           className="w-full text-xs text-muted-foreground hover:text-primary"
           onClick={handleOpen}
         >
-          Ouvrir le plan →
+          {plan.type === 'rsu' ? 'Voir le plan' : 'Ouvrir le plan →'}
         </Button>
       </CardContent>
     </Card>
