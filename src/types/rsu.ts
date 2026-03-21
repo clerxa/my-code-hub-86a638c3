@@ -29,10 +29,12 @@ export interface RSUPlan {
 }
 
 export interface RSUCessionParams {
+  mode: 'simple' | 'avance';
   prix_vente: number;
   taux_change_vente: number;
   tmi: number; // 11, 30, 41, 45
-  date_cession: string;
+  date_cession: string; // mode simple — date globale
+  dates_cession_par_plan?: Record<string, string>; // mode avancé — une date par plan
   tmi_from_profile?: boolean;
 }
 
