@@ -259,6 +259,8 @@ const SimulateurRSU = () => {
               onReset={handleReset}
               onSave={handleSaveSimulation}
               isSaving={isSaving}
+              cessionParams={cessionParams}
+              plansSource={simulatingPlans}
             />
           )}
 

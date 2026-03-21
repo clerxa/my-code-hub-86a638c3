@@ -12,12 +12,13 @@ import {
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RSUComplianceWarning } from './RSUComplianceWarning';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip } from 'recharts';
-import type { RSUSimulationResult, RSUPlanResult, RSUResultatAnnuel } from '@/types/rsu';
+import type { RSUSimulationResult, RSUPlanResult, RSUResultatAnnuel, RSUPlan, RSUCessionParams as CessionParamsType } from '@/types/rsu';
 import { REGIME_COLORS, REGIME_SHORT_LABELS, isQualifiedRegime } from '@/types/rsu';
 import { setBookingReferrer } from '@/hooks/useBookingReferrer';
 
@@ -44,6 +45,8 @@ interface RSUResultsProps {
   onReset: () => void;
   onSave?: () => void;
   isSaving?: boolean;
+  cessionParams?: CessionParamsType;
+  plansSource?: RSUPlan[];
 }
 
 // ────────────────────────────────────────────────────────
@@ -696,7 +699,7 @@ function SyntheseGlobale({ result }: { result: RSUSimulationResult }) {
 // ════════════════════════════════════════════════════════
 // MAIN — Routing conditionnel
 // ════════════════════════════════════════════════════════
-export function RSUResults({ result, onReset, onSave, isSaving }: RSUResultsProps) {
+export function RSUResults({ result, onReset, onSave, isSaving, cessionParams, plansSource }: RSUResultsProps) {
   const expertUrl = 'https://www.perlib.fr/prendre-rdv?utm_source=fincare_app&utm_campaign=simulateur_rsu';
   const isNonQualifie = result.plans.length > 0 && result.plans.every(p => p.regime === 'NON_QUALIFIE');
   const isAdvanced = result.mode === 'avance' && result.resultats_par_annee && result.resultats_par_annee.length > 0;
@@ -708,6 +711,17 @@ export function RSUResults({ result, onReset, onSave, isSaving }: RSUResultsProp
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
+      {/* Compliance warning — always shown */}
+      <RSUComplianceWarning
+        plans={result.plans}
+        dateCessionGlobale={cessionParams?.date_cession}
+        datesCessionParPlan={cessionParams?.dates_cession_par_plan}
+        plansSource={(plansSource || []).map(p => ({
+          id: p.id,
+          regime: p.regime,
+          date_fin_conservation: p.date_fin_conservation,
+        }))}
+      />
       {/* Mode avancé — onglets par année */}
       {isAdvanced ? (
         <>
