@@ -215,12 +215,15 @@ export async function savePlanToDb(plan: RSUPlan): Promise<string | null> {
 }
 
 // ─── Delete a plan ───
-export async function deletePlanFromDb(planId: string): Promise<void> {
+export async function deletePlanFromDb(planId: string): Promise<boolean> {
   try {
     // Vestings are cascade-deleted
-    await supabase.from('rsu_plans').delete().eq('id', planId);
+    const { error } = await supabase.from('rsu_plans').delete().eq('id', planId);
+    if (error) { console.error('Failed to delete plan:', error); return false; }
+    return true;
   } catch (e) {
     console.error('Failed to delete plan:', e);
+    return false;
   }
 }
 
