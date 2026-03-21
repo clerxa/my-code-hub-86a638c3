@@ -113,8 +113,12 @@ const SimulateurRSU = () => {
 
   const handleDeletePlan = useCallback(async (id: string) => {
     setPlans(prev => prev.filter(p => p.id !== id));
-    await deletePlanFromDb(id);
-  }, [setPlans]);
+    const success = await deletePlanFromDb(id);
+    if (!success) {
+      toast.error('Erreur lors de la suppression');
+      reloadPlans();
+    }
+  }, [setPlans, reloadPlans]);
 
   const handleSavePlan = useCallback(async (plan: RSUPlan) => {
     setPlans(prev => {
