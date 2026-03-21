@@ -70,21 +70,21 @@ export function useRSUPlans() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setIsLoading(false); return; }
 
-      // Get all simulations for the user
-      const { data: sims } = await supabase
+      // Only load plans from the __workspace__ simulation (not saved simulations)
+      const { data: workspace } = await supabase
         .from('rsu_simulations')
         .select('id')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .eq('nom', '__workspace__')
+        .maybeSingle();
 
-      if (!sims || sims.length === 0) { setPlans([]); setIsLoading(false); return; }
+      if (!workspace) { setPlans([]); setIsLoading(false); return; }
 
-      const simIds = sims.map(s => s.id);
-
-      // Get all plans across all simulations
+      // Get all plans from workspace only
       const { data: dbPlans } = await supabase
         .from('rsu_plans')
         .select('*')
-        .in('simulation_id', simIds);
+        .eq('simulation_id', workspace.id);
 
       if (!dbPlans || dbPlans.length === 0) { setPlans([]); setIsLoading(false); return; }
 
