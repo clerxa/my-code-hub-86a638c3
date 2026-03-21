@@ -122,8 +122,9 @@ export function useRSUPlans() {
         }
       }
 
-      // 2. Fallback: if no plans in new tables, load from legacy simulations table
-      if (loadedPlans.length === 0) {
+      // 2. Fallback: only if workspace does not exist yet, load from legacy simulations table
+      // (otherwise, an empty workspace after deletions would resurrect legacy plans)
+      if (loadedPlans.length === 0 && !workspace) {
         const { data: legacySims } = await supabase
           .from('simulations')
           .select('id, name, type, data, created_at')
