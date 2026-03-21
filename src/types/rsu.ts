@@ -61,6 +61,20 @@ export interface RSUPlanResult {
   gain_net: number;
 }
 
+// Résultat par année fiscale (mode avancé)
+export interface RSUResultatAnnuel {
+  annee: number;
+  plans: RSUPlanResult[];
+  gain_brut: number;
+  total_ir: number;
+  total_ps: number;
+  total_contrib: number;
+  total_impots: number;
+  cash_recu: number;
+  impact_bulletin: number;
+  seuil_300k_applique: boolean;
+}
+
 // Résultat consolidé
 export interface RSUSimulationResult {
   plans: RSUPlanResult[];
@@ -73,6 +87,8 @@ export interface RSUSimulationResult {
   total_ps: number;
   total_contribution_salariale: number;
   total_csg_crds: number;
+  mode: 'simple' | 'avance';
+  resultats_par_annee?: RSUResultatAnnuel[];
 }
 
 export const REGIME_LABELS: Record<RSURegime, string> = {
