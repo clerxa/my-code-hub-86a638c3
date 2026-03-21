@@ -18,7 +18,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip } from 'recharts';
-import type { RSUSimulationResult, RSUPlanResult, RSUResultatAnnuel } from '@/types/rsu';
+import type { RSUSimulationResult, RSUPlanResult, RSUResultatAnnuel, RSUPlan, RSUCessionParams as CessionParamsType } from '@/types/rsu';
 import { REGIME_COLORS, REGIME_SHORT_LABELS, isQualifiedRegime } from '@/types/rsu';
 import { setBookingReferrer } from '@/hooks/useBookingReferrer';
 
