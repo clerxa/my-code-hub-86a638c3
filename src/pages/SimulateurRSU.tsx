@@ -43,6 +43,7 @@ const SimulateurRSU = () => {
   const [simulatingPlanId, setSimulatingPlanId] = useState<string | null>(null);
   const [isLoadingPlans, setIsLoadingPlans] = useState(true);
   const [cessionParams, setCessionParams] = useState<CessionParamsType>({
+    mode: 'simple',
     prix_vente: 0,
     taux_change_vente: 1,
     tmi: 30,

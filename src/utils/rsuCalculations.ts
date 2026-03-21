@@ -1,15 +1,17 @@
 /**
  * Calculs fiscaux RSU — 6 régimes AGA + Non qualifié
- *
- * AGA_PRE2012   — IR forfaitaire 30%, PS 17,2%, contrib salariale 10%
- * AGA_2012_2015 — Barème IR (TMI), PS 9,7% (CSG 9,2% + CRDS 0,5%), contrib 10%
- * AGA_2015_2016 — Barème IR + abattement durée détention, PS 17,2% avant abattement, ❌ pas de contrib
- * AGA_2017      — Barème IR + abattement durée détention sous 300k, PS 17,2% avant abattement, ❌ pas de contrib
- * AGA_POST2018  — Barème IR + abattement 50% fixe sous 300k, PS 17,2% avant abattement, ❌ pas de contrib
- * NON_QUALIFIE  — Barème IR (salaires) + cotisations salariales complètes au vesting, PFU 30% sur PV cession
+ * Supporte mode simple (une date) et avancé (une date par plan)
  */
 
-import type { RSUPlan, RSUCessionParams, RSUPlanResult, RSUSimulationResult } from '@/types/rsu';
+import type { RSUPlan, RSUCessionParams, RSUPlanResult, RSUSimulationResult, RSUResultatAnnuel } from '@/types/rsu';
+
+// ─── Résoudre la date de cession par plan ───
+function resoudreDateCession(plan: RSUPlan, params: RSUCessionParams): Date {
+  if (params.mode === 'avance' && params.dates_cession_par_plan?.[plan.id]) {
+    return new Date(params.dates_cession_par_plan[plan.id]);
+  }
+  return params.date_cession ? new Date(params.date_cession) : new Date();
+}
 
 // ─── Agrégats par plan ───
 function getPlanAggregates(plan: RSUPlan) {
@@ -50,57 +52,59 @@ interface GainTaxDetail {
   abattement: number;
 }
 
-function computeGainTax(plan: RSUPlan, tmi: number, dateCession: Date): GainTaxDetail {
+interface ConsolidatedTranches {
+  trancheA: number;
+  trancheB: number;
+}
+
+function computeGainTax(
+  plan: RSUPlan,
+  tmi: number,
+  dateCession: Date,
+  consolidated?: ConsolidatedTranches,
+): GainTaxDetail {
   const gain = plan.gain_acquisition_total;
   const tmiRate = tmi / 100;
 
   switch (plan.regime) {
     case 'AGA_PRE2012': {
-      // IR forfaitaire 30%, PS 17,2%, contribution salariale 10%
       return { ir: gain * 0.30, ps: gain * 0.172, contrib: gain * 0.10, abattement: 0 };
     }
 
     case 'AGA_2012_2015': {
-      // Barème IR (TMI), PS 9,7% (CSG 9,2% + CRDS 0,5%), contribution salariale 10%
       return { ir: gain * tmiRate, ps: gain * 0.097, contrib: gain * 0.10, abattement: 0 };
     }
 
     case 'AGA_2015_2016': {
-      // Barème IR après abattement conditionnel, PS 17,2% avant abattement, PAS de contrib
       const abattement = getAbattementDureeDetention(plan, dateCession);
       const baseIR = gain * (1 - abattement);
       return { ir: baseIR * tmiRate, ps: gain * 0.172, contrib: 0, abattement };
     }
 
     case 'AGA_2017': {
-      // Seuil 300k: tranche A = abattement conditionnel, tranche B = barème TS sans abattement
-      // PS 17,2% sur totalité avant abattement, PAS de contrib
       const abattement = getAbattementDureeDetention(plan, dateCession);
-      const trancheA = Math.min(gain, 300000);
-      const trancheB = Math.max(0, gain - 300000);
+      const trancheA = consolidated ? consolidated.trancheA : Math.min(gain, 300000);
+      const trancheB = consolidated ? consolidated.trancheB : Math.max(0, gain - 300000);
 
       const irA = trancheA * (1 - abattement) * tmiRate;
-      const irB = trancheB * tmiRate; // barème TS sans abattement
-      const ps = gain * 0.172; // PS 17,2% sur assiette brute totale
+      const irB = trancheB * tmiRate;
+      const ps = gain * 0.172;
 
       return { ir: irA + irB, ps, contrib: 0, abattement };
     }
 
     case 'AGA_POST2018': {
-      // Abattement fixe 50% sous 300k, barème TS au-delà sans abattement
-      // PS 17,2% sur totalité avant abattement, PAS de contrib
-      const trancheA = Math.min(gain, 300000);
-      const trancheB = Math.max(0, gain - 300000);
+      const trancheA = consolidated ? consolidated.trancheA : Math.min(gain, 300000);
+      const trancheB = consolidated ? consolidated.trancheB : Math.max(0, gain - 300000);
 
-      const irA = trancheA * 0.50 * tmiRate; // abattement fixe 50%
-      const irB = trancheB * tmiRate; // barème TS sans abattement
-      const ps = gain * 0.172; // PS 17,2% sur assiette brute totale
+      const irA = trancheA * 0.50 * tmiRate;
+      const irB = trancheB * tmiRate;
+      const ps = gain * 0.172;
 
       return { ir: irA + irB, ps, contrib: 0, abattement: 0.50 };
     }
 
     case 'NON_QUALIFIE': {
-      // Barème IR (salaires) + cotisations salariales complètes, pas d'abattement
       return { ir: gain * tmiRate, ps: gain * 0.097, contrib: gain * 0.10, abattement: 0 };
     }
 
@@ -109,82 +113,148 @@ function computeGainTax(plan: RSUPlan, tmi: number, dateCession: Date): GainTaxD
   }
 }
 
+// ─── Consolidation seuil 300k par année fiscale ───
+function computeConsolidatedTranches(
+  plans: RSUPlan[],
+  params: RSUCessionParams,
+): Map<string, ConsolidatedTranches> {
+  const result = new Map<string, ConsolidatedTranches>();
+
+  // Grouper les plans AGA_2017 + AGA_POST2018 par année fiscale de cession
+  const parAnneeFiscale = new Map<number, RSUPlan[]>();
+  for (const plan of plans.filter(p =>
+    p.regime === 'AGA_2017' || p.regime === 'AGA_POST2018'
+  )) {
+    const date = resoudreDateCession(plan, params);
+    const annee = date.getFullYear();
+    if (!parAnneeFiscale.has(annee)) parAnneeFiscale.set(annee, []);
+    parAnneeFiscale.get(annee)!.push(plan);
+  }
+
+  for (const [, plansAnnee] of parAnneeFiscale) {
+    const gainAnnee = plansAnnee.reduce((s, p) => s + p.gain_acquisition_total, 0);
+    if (gainAnnee === 0) continue;
+    const trancheA = Math.min(gainAnnee, 300000);
+    const trancheB = Math.max(0, gainAnnee - 300000);
+
+    for (const plan of plansAnnee) {
+      const ratio = plan.gain_acquisition_total / gainAnnee;
+      result.set(plan.id, {
+        trancheA: trancheA * ratio,
+        trancheB: trancheB * ratio,
+      });
+    }
+  }
+
+  return result;
+}
+
+// ─── Compute single plan result ───
+function computePlanResult(
+  plan: RSUPlan,
+  params: RSUCessionParams,
+  consolidated: Map<string, ConsolidatedTranches>,
+): RSUPlanResult {
+  const dateCession = resoudreDateCession(plan, params);
+  const pvData = getPVCession(plan, params);
+  const tax = computeGainTax(plan, params.tmi, dateCession, consolidated.get(plan.id));
+  const { nb_rsu_plan } = getPlanAggregates(plan);
+
+  const ir_pv_plan = pvData.pv_plan * 0.128;
+  const ps_pv_plan = pvData.pv_plan * 0.172;
+  const totalImPlan = tax.ir + tax.ps + tax.contrib + ir_pv_plan + ps_pv_plan;
+
+  return {
+    plan_id: plan.id,
+    plan_nom: plan.nom,
+    regime: plan.regime,
+    devise: plan.devise,
+    nb_actions_total: nb_rsu_plan,
+    gain_acquisition_eur: plan.gain_acquisition_total,
+    pv_cession_eur: pvData.pv_plan,
+    abattement_duree_detention: tax.abattement,
+    ir_gain_acquisition: tax.ir,
+    ps_gain_acquisition: tax.ps,
+    contribution_salariale: tax.contrib,
+    csg_crds: 0,
+    ir_pv_cession: ir_pv_plan,
+    ps_pv_cession: ps_pv_plan,
+    total_impots: totalImPlan,
+    gain_net: plan.gain_acquisition_total + pvData.pv_plan - totalImPlan,
+  };
+}
+
 // ─── CALCUL PRINCIPAL ───
 export function calculateRSUSimulation(
   plans: RSUPlan[],
   params: RSUCessionParams,
 ): RSUSimulationResult {
-  const dateCession = params.date_cession ? new Date(params.date_cession) : new Date();
+  // Consolidation seuil 300k (fonctionne pour les deux modes)
+  const consolidated = computeConsolidatedTranches(plans, params);
 
-  // PV cession par plan
-  const planPVs = new Map<string, ReturnType<typeof getPVCession>>();
-  for (const plan of plans) {
-    planPVs.set(plan.id, getPVCession(plan, params));
-  }
-
-  // Fiscalité gain d'acquisition par plan
-  const planTaxes = new Map<string, GainTaxDetail>();
-  let totalIR_GA = 0, totalPS_GA = 0, totalContrib = 0;
-
-  for (const plan of plans) {
-    const tax = computeGainTax(plan, params.tmi, dateCession);
-    planTaxes.set(plan.id, tax);
-    totalIR_GA += tax.ir;
-    totalPS_GA += tax.ps;
-    totalContrib += tax.contrib;
-  }
-
-  // PV cession totale → PFU
-  let pv_totale = 0;
-  for (const [, pv] of planPVs) {
-    pv_totale += pv.pv_plan;
-  }
-  const ir_pv = pv_totale * 0.128;
-  const ps_pv = pv_totale * 0.172;
+  // Compute all plan results
+  const planResults = plans.map(plan => computePlanResult(plan, params, consolidated));
 
   // Totaux
-  const totalGainAcq = plans.reduce((s, p) => s + p.gain_acquisition_total, 0);
-  const total_ir = totalIR_GA + ir_pv;
-  const total_ps = totalPS_GA + ps_pv;
-  const total_impots = total_ir + total_ps + totalContrib;
+  const totalGainAcq = planResults.reduce((s, p) => s + p.gain_acquisition_eur, 0);
+  const pv_totale = planResults.reduce((s, p) => s + p.pv_cession_eur, 0);
+  const total_ir = planResults.reduce((s, p) => s + p.ir_gain_acquisition + p.ir_pv_cession, 0);
+  const total_ps = planResults.reduce((s, p) => s + p.ps_gain_acquisition + p.ps_pv_cession, 0);
+  const totalContrib = planResults.reduce((s, p) => s + p.contribution_salariale, 0);
+  const total_impots = planResults.reduce((s, p) => s + p.total_impots, 0);
   const gain_brut_total = totalGainAcq + pv_totale;
   const gain_net = gain_brut_total - total_impots;
   const taux_effectif = gain_brut_total > 0 ? (total_impots / gain_brut_total) * 100 : 0;
 
-  // Seuil 300k applicable?
   const seuil_300k = plans.some(p =>
     (p.regime === 'AGA_2017' || p.regime === 'AGA_POST2018') && p.gain_acquisition_total > 300000
   );
 
-  // Résultats par plan
-  const planResults: RSUPlanResult[] = plans.map(plan => {
-    const pvData = planPVs.get(plan.id)!;
-    const tax = planTaxes.get(plan.id)!;
-    const { nb_rsu_plan } = getPlanAggregates(plan);
+  // Mode avancé: résultats par année fiscale
+  let resultats_par_annee: RSUResultatAnnuel[] | undefined;
 
-    const ir_pv_plan = pvData.pv_plan * 0.128;
-    const ps_pv_plan = pvData.pv_plan * 0.172;
-    const totalImPlan = tax.ir + tax.ps + tax.contrib + ir_pv_plan + ps_pv_plan;
+  if (params.mode === 'avance') {
+    const parAnnee = new Map<number, RSUPlanResult[]>();
+    for (const pr of planResults) {
+      const plan = plans.find(p => p.id === pr.plan_id)!;
+      const dateCession = resoudreDateCession(plan, params);
+      const annee = dateCession.getFullYear();
+      if (!parAnnee.has(annee)) parAnnee.set(annee, []);
+      parAnnee.get(annee)!.push(pr);
+    }
 
-    return {
-      plan_id: plan.id,
-      plan_nom: plan.nom,
-      regime: plan.regime,
-      devise: plan.devise,
-      nb_actions_total: nb_rsu_plan,
-      gain_acquisition_eur: plan.gain_acquisition_total,
-      pv_cession_eur: pvData.pv_plan,
-      abattement_duree_detention: tax.abattement,
-      ir_gain_acquisition: tax.ir,
-      ps_gain_acquisition: tax.ps,
-      contribution_salariale: tax.contrib,
-      csg_crds: 0,
-      ir_pv_cession: ir_pv_plan,
-      ps_pv_cession: ps_pv_plan,
-      total_impots: totalImPlan,
-      gain_net: plan.gain_acquisition_total + pvData.pv_plan - totalImPlan,
-    };
-  });
+    resultats_par_annee = Array.from(parAnnee.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([annee, plansAnnee]) => {
+        const gainBrut = plansAnnee.reduce((s, p) => s + p.gain_acquisition_eur + p.pv_cession_eur, 0);
+        const irAnnee = plansAnnee.reduce((s, p) => s + p.ir_gain_acquisition + p.ir_pv_cession, 0);
+        const psAnnee = plansAnnee.reduce((s, p) => s + p.ps_gain_acquisition + p.ps_pv_cession, 0);
+        const contribAnnee = plansAnnee.reduce((s, p) => s + p.contribution_salariale, 0);
+        const impotsAnnee = plansAnnee.reduce((s, p) => s + p.total_impots, 0);
+        const cashRecu = plansAnnee.reduce((s, p) => s + p.gain_net, 0);
+        const impactBulletin = plansAnnee
+          .filter(p => p.regime === 'NON_QUALIFIE')
+          .reduce((s, p) => s + p.ir_gain_acquisition + p.ps_gain_acquisition + p.contribution_salariale, 0);
+
+        const seuilAnnee = plansAnnee.some(p =>
+          (p.regime === 'AGA_2017' || p.regime === 'AGA_POST2018') &&
+          p.gain_acquisition_eur > 300000
+        );
+
+        return {
+          annee,
+          plans: plansAnnee,
+          gain_brut: gainBrut,
+          total_ir: irAnnee,
+          total_ps: psAnnee,
+          total_contrib: contribAnnee,
+          total_impots: impotsAnnee,
+          cash_recu: cashRecu,
+          impact_bulletin: impactBulletin,
+          seuil_300k_applique: seuilAnnee,
+        };
+      });
+  }
 
   return {
     plans: planResults,
@@ -197,5 +267,7 @@ export function calculateRSUSimulation(
     total_ps,
     total_contribution_salariale: totalContrib,
     total_csg_crds: 0,
+    mode: params.mode,
+    resultats_par_annee,
   };
 }
