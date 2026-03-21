@@ -38,6 +38,7 @@ interface RSUPlansDashboardProps {
   onSimulate: () => void;
   onViewPlan?: (id: string) => void;
   onSimulatePlan?: (id: string) => void;
+  onViewSavedSimulations?: () => void;
 }
 
 function getVestingDateRange(plan: RSUPlan) {
