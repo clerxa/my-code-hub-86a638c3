@@ -38,6 +38,7 @@ interface RSUPlansDashboardProps {
   onSimulate: () => void;
   onViewPlan?: (id: string) => void;
   onSimulatePlan?: (id: string) => void;
+  onViewSavedSimulations?: () => void;
 }
 
 function getVestingDateRange(plan: RSUPlan) {
@@ -72,7 +73,7 @@ function getAverageVesting(plans: RSUPlan[]) {
 }
 
 export function RSUPlansDashboard({
-  plans, onAddPlan, onEditPlan, onDeletePlan, onSimulate, onViewPlan, onSimulatePlan,
+  plans, onAddPlan, onEditPlan, onDeletePlan, onSimulate, onViewPlan, onSimulatePlan, onViewSavedSimulations,
 }: RSUPlansDashboardProps) {
   const totalGain = getTotalGain(plans);
   const totalActions = getTotalActions(plans);
@@ -142,12 +143,20 @@ export function RSUPlansDashboard({
           </motion.div>
 
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <h2 className="text-base font-semibold text-foreground">Détail des plans</h2>
-            <Button onClick={onAddPlan} variant="outline" size="sm" className="gap-2">
-              <Plus className="h-3.5 w-3.5" />
-              Ajouter un plan
-            </Button>
+            <div className="flex items-center gap-2">
+              {onViewSavedSimulations && (
+                <Button onClick={onViewSavedSimulations} variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+                  <BarChart3 className="h-3.5 w-3.5" />
+                  Mes simulations
+                </Button>
+              )}
+              <Button onClick={onAddPlan} variant="outline" size="sm" className="gap-2">
+                <Plus className="h-3.5 w-3.5" />
+                Ajouter un plan
+              </Button>
+            </div>
           </div>
 
           <div className="overflow-x-auto pb-1">

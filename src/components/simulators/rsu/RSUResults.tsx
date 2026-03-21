@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import {
   TrendingUp, Landmark, Wallet, AlertTriangle, ExternalLink, RotateCcw,
   Save, ArrowDown, Minus, Info, ChevronDown, ChevronUp, Receipt,
-  Calendar, DollarSign, FileWarning, BadgeCheck
+  Calendar, DollarSign, FileWarning, BadgeCheck, Loader2
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,7 @@ interface RSUResultsProps {
   result: RSUSimulationResult;
   onReset: () => void;
   onSave?: () => void;
+  isSaving?: boolean;
 }
 
 // ────────────────────────────────────────────────────────
@@ -695,7 +696,7 @@ function SyntheseGlobale({ result }: { result: RSUSimulationResult }) {
 // ════════════════════════════════════════════════════════
 // MAIN — Routing conditionnel
 // ════════════════════════════════════════════════════════
-export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
+export function RSUResults({ result, onReset, onSave, isSaving }: RSUResultsProps) {
   const expertUrl = 'https://www.perlib.fr/prendre-rdv?utm_source=fincare_app&utm_campaign=simulateur_rsu';
   const isNonQualifie = result.plans.length > 0 && result.plans.every(p => p.regime === 'NON_QUALIFIE');
   const isAdvanced = result.mode === 'avance' && result.resultats_par_annee && result.resultats_par_annee.length > 0;
@@ -793,9 +794,9 @@ export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
           </a>
         </Button>
         {onSave && (
-          <Button variant="secondary" onClick={onSave} className="flex-1 gap-2" size="lg">
-            <Save className="h-4 w-4" />
-            Sauvegarder
+          <Button variant="secondary" onClick={onSave} disabled={isSaving} className="flex-1 gap-2" size="lg">
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
           </Button>
         )}
         <Button variant="outline" onClick={onReset} className="flex-1 gap-2" size="lg">

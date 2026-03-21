@@ -5228,6 +5228,136 @@ export type Database = {
         }
         Relationships: []
       }
+      rsu_plans: {
+        Row: {
+          annee_attribution: number
+          created_at: string | null
+          date_cession: string | null
+          date_fin_conservation: string | null
+          devise: string
+          entreprise_nom: string | null
+          gain_acquisition_total: number
+          id: string
+          nom: string
+          regime: string
+          simulation_id: string
+          ticker: string | null
+        }
+        Insert: {
+          annee_attribution: number
+          created_at?: string | null
+          date_cession?: string | null
+          date_fin_conservation?: string | null
+          devise: string
+          entreprise_nom?: string | null
+          gain_acquisition_total?: number
+          id?: string
+          nom: string
+          regime: string
+          simulation_id: string
+          ticker?: string | null
+        }
+        Update: {
+          annee_attribution?: number
+          created_at?: string | null
+          date_cession?: string | null
+          date_fin_conservation?: string | null
+          devise?: string
+          entreprise_nom?: string | null
+          gain_acquisition_total?: number
+          id?: string
+          nom?: string
+          regime?: string
+          simulation_id?: string
+          ticker?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rsu_plans_simulation_id_fkey"
+            columns: ["simulation_id"]
+            isOneToOne: false
+            referencedRelation: "rsu_simulations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rsu_simulations: {
+        Row: {
+          created_at: string | null
+          date_cession_globale: string | null
+          id: string
+          mode: string
+          nom: string
+          prix_vente: number
+          taux_change_vente: number
+          tmi: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date_cession_globale?: string | null
+          id?: string
+          mode: string
+          nom?: string
+          prix_vente: number
+          taux_change_vente?: number
+          tmi: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date_cession_globale?: string | null
+          id?: string
+          mode?: string
+          nom?: string
+          prix_vente?: number
+          taux_change_vente?: number
+          tmi?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rsu_vestings: {
+        Row: {
+          cours: number
+          date: string
+          gain_eur: number
+          id: string
+          nb_rsu: number
+          plan_id: string
+          taux_change: number
+        }
+        Insert: {
+          cours: number
+          date: string
+          gain_eur?: number
+          id?: string
+          nb_rsu: number
+          plan_id: string
+          taux_change?: number
+        }
+        Update: {
+          cours?: number
+          date?: string
+          gain_eur?: number
+          id?: string
+          nb_rsu?: number
+          plan_id?: string
+          taux_change?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rsu_vestings_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "rsu_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sell_to_cover: {
         Row: {
           created_at: string | null
