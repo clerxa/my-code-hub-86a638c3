@@ -43,6 +43,7 @@ interface RSUResultsProps {
   result: RSUSimulationResult;
   onReset: () => void;
   onSave?: () => void;
+  isSaving?: boolean;
 }
 
 // ────────────────────────────────────────────────────────
