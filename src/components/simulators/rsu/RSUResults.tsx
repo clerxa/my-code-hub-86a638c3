@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import {
   TrendingUp, Landmark, Wallet, AlertTriangle, ExternalLink, RotateCcw,
   Save, ArrowDown, Minus, Info, ChevronDown, ChevronUp, Receipt,
-  Calendar, DollarSign, FileWarning, BadgeCheck
+  Calendar, DollarSign, FileWarning, BadgeCheck, Loader2
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
