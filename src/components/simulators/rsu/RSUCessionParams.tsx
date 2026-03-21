@@ -1,11 +1,11 @@
 /**
  * Écran 3 — Paramètres de cession
- * Date de cession complète, fetch cours/taux avec effet wow, TMI depuis profil
+ * Mode simple (une date pour tous) ou avancé (une date par plan)
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, HelpCircle, Loader2, Download, CheckCircle2, TrendingUp, UserCircle, Sparkles, CalendarClock } from 'lucide-react';
+import { ArrowRight, HelpCircle, Loader2, Download, CheckCircle2, TrendingUp, UserCircle, Sparkles, CalendarClock, Settings2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -57,20 +57,31 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
     }
   }, [hasProfile]);
 
+  // Initialize dates_cession_par_plan when switching to advanced mode
+  useEffect(() => {
+    if (params.mode === 'avance' && !params.dates_cession_par_plan) {
+      const dates: Record<string, string> = {};
+      for (const plan of plans) {
+        dates[plan.id] = params.date_cession || new Date().toISOString().split('T')[0];
+      }
+      onChange({ ...params, dates_cession_par_plan: dates });
+    }
+  }, [params.mode]);
+
   const handleFetchAll = async () => {
     setFetchDone(false);
     setShowWow(false);
 
     const updates: Partial<CessionParamsType> = {};
-
     const promises: Promise<void>[] = [];
+    const dateForFetch = params.date_cession;
 
-    if (ticker && params.date_cession) {
+    if (ticker && dateForFetch) {
       setLoadingPrice(true);
       setPriceNote('');
       promises.push(
-        fetchStockPricesBatch(ticker, [params.date_cession]).then(results => {
-          const result = results?.[params.date_cession];
+        fetchStockPricesBatch(ticker, [dateForFetch]).then(results => {
+          const result = results?.[dateForFetch];
           if (result?.price) {
             updates.prix_vente = Math.round(result.price * 100) / 100;
             setPriceNote(!result.isBusinessDay && result.closestDate
@@ -83,11 +94,11 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
       );
     }
 
-    if (hasUSD && params.date_cession) {
+    if (hasUSD && dateForFetch) {
       setLoadingFx(true);
       setFxNote('');
       promises.push(
-        fetchFxRate(params.date_cession).then(result => {
+        fetchFxRate(dateForFetch).then(result => {
           if (result?.rate) {
             updates.taux_change_vente = Math.round(result.rate * 10000) / 10000;
             setFxNote(!result.isBusinessDay ? 'Taux BCE du dernier jour ouvré' : 'Taux BCE');
@@ -99,7 +110,6 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
     }
 
     await Promise.all(promises);
-    // Apply all updates at once to avoid stale closure issues
     if (Object.keys(updates).length > 0) {
       onChange({ ...params, ...updates });
     }
@@ -108,7 +118,14 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
     setTimeout(() => setShowWow(false), 3000);
   };
 
-  const isValid = params.prix_vente > 0 && params.tmi > 0 && params.date_cession
+  const handlePlanDateChange = (planId: string, date: string) => {
+    const dates = { ...(params.dates_cession_par_plan || {}) };
+    dates[planId] = date;
+    onChange({ ...params, dates_cession_par_plan: dates });
+  };
+
+  const isValid = params.prix_vente > 0 && params.tmi > 0
+    && (params.mode === 'simple' ? !!params.date_cession : plans.every(p => params.dates_cession_par_plan?.[p.id]))
     && (!hasUSD || params.taux_change_vente > 0);
 
   return (
@@ -117,23 +134,66 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
+      {/* Mode toggle */}
+      <Card>
+        <CardContent className="pt-6">
+          <Label className="text-sm font-semibold mb-3 block">Mode de simulation</Label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => onChange({ ...params, mode: 'simple' })}
+              className={`flex items-start gap-3 p-4 rounded-lg border-2 text-left transition-all ${
+                params.mode === 'simple'
+                  ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                  : 'border-border hover:border-primary/40'
+              }`}
+            >
+              <div className={`rounded-full p-2 mt-0.5 ${params.mode === 'simple' ? 'bg-primary/10' : 'bg-muted'}`}>
+                <Zap className={`h-4 w-4 ${params.mode === 'simple' ? 'text-primary' : 'text-muted-foreground'}`} />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">Simulation rapide</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Je vends tout à une même date</p>
+              </div>
+            </button>
+            <button
+              onClick={() => onChange({ ...params, mode: 'avance' })}
+              className={`flex items-start gap-3 p-4 rounded-lg border-2 text-left transition-all ${
+                params.mode === 'avance'
+                  ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                  : 'border-border hover:border-primary/40'
+              }`}
+            >
+              <div className={`rounded-full p-2 mt-0.5 ${params.mode === 'avance' ? 'bg-primary/10' : 'bg-muted'}`}>
+                <Settings2 className={`h-4 w-4 ${params.mode === 'avance' ? 'text-primary' : 'text-muted-foreground'}`} />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">Simulation avancée</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Je définis une date de vente par plan</p>
+              </div>
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Paramètres de cession</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          {/* Date de cession */}
-          <div className="space-y-2">
-            <Label>Date de cession</Label>
-            <Input
-              type="date"
-              value={params.date_cession}
-              onChange={e => onChange({ ...params, date_cession: e.target.value })}
-            />
-          </div>
+          {/* Date de cession — mode simple */}
+          {params.mode === 'simple' && (
+            <div className="space-y-2">
+              <Label>Date de cession</Label>
+              <Input
+                type="date"
+                value={params.date_cession}
+                onChange={e => onChange({ ...params, date_cession: e.target.value })}
+              />
+            </div>
+          )}
 
-          {/* Bouton fetch cours/taux */}
-          {ticker && params.date_cession && (() => {
+          {/* Bouton fetch cours/taux — uniquement en mode simple */}
+          {params.mode === 'simple' && ticker && params.date_cession && (() => {
             const isFuture = new Date(params.date_cession) > new Date();
             return (
             <div className="relative">
@@ -301,7 +361,7 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
         </CardContent>
       </Card>
 
-      {/* Récap plans */}
+      {/* Récap plans — avec date par plan en mode avancé */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Plans simulés</CardTitle>
@@ -309,17 +369,32 @@ export function RSUCessionParams({ plans, params, onChange, onSimulate, onBack }
         <CardContent>
           <div className="space-y-3">
             {plans.map(plan => (
-              <div key={plan.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                <div className="flex items-center gap-3">
-                  <Badge className={REGIME_COLORS[plan.regime]}>{REGIME_SHORT_LABELS[plan.regime]}</Badge>
-                  <div>
-                    <p className="font-medium text-sm">{plan.nom}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {plan.vestings.reduce((s, v) => s + v.nb_rsu, 0)} actions · {plan.devise}
-                    </p>
+              <div key={plan.id} className={`py-3 border-b last:border-0 ${params.mode === 'avance' ? 'space-y-3' : ''}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Badge className={REGIME_COLORS[plan.regime]}>{REGIME_SHORT_LABELS[plan.regime]}</Badge>
+                    <div>
+                      <p className="font-medium text-sm">{plan.nom}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {plan.vestings.reduce((s, v) => s + v.nb_rsu, 0)} actions · {plan.devise}
+                      </p>
+                    </div>
                   </div>
+                  <p className="font-semibold text-sm">{fmt(plan.gain_acquisition_total)}</p>
                 </div>
-                <p className="font-semibold text-sm">{fmt(plan.gain_acquisition_total)}</p>
+
+                {/* Date de cession par plan en mode avancé */}
+                {params.mode === 'avance' && (
+                  <div className="ml-10 flex items-center gap-3">
+                    <Label className="text-xs text-muted-foreground whitespace-nowrap">Date de cession</Label>
+                    <Input
+                      type="date"
+                      className="h-8 text-sm max-w-[180px]"
+                      value={params.dates_cession_par_plan?.[plan.id] || ''}
+                      onChange={e => handlePlanDateChange(plan.id, e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>
