@@ -696,7 +696,7 @@ function SyntheseGlobale({ result }: { result: RSUSimulationResult }) {
 // ════════════════════════════════════════════════════════
 // MAIN — Routing conditionnel
 // ════════════════════════════════════════════════════════
-export function RSUResults({ result, onReset, onSave }: RSUResultsProps) {
+export function RSUResults({ result, onReset, onSave, isSaving }: RSUResultsProps) {
   const expertUrl = 'https://www.perlib.fr/prendre-rdv?utm_source=fincare_app&utm_campaign=simulateur_rsu';
   const isNonQualifie = result.plans.length > 0 && result.plans.every(p => p.regime === 'NON_QUALIFIE');
   const isAdvanced = result.mode === 'avance' && result.resultats_par_annee && result.resultats_par_annee.length > 0;
