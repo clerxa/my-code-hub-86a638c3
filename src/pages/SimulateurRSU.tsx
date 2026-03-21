@@ -232,6 +232,7 @@ const SimulateurRSU = () => {
               onDeletePlan={handleDeletePlan}
               onSimulate={() => setScreen('cession')}
               onSimulatePlan={(id) => { setSimulatingPlanId(id); setScreen('cession'); }}
+              onDeclareCessionPlan={(id) => { setSimulatingPlanId(id); setScreen('cession'); }}
               onViewSavedSimulations={() => setScreen('saved')}
             />
           )}
