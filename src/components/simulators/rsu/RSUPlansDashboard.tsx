@@ -73,7 +73,7 @@ function getAverageVesting(plans: RSUPlan[]) {
 }
 
 export function RSUPlansDashboard({
-  plans, onAddPlan, onEditPlan, onDeletePlan, onSimulate, onViewPlan, onSimulatePlan,
+  plans, onAddPlan, onEditPlan, onDeletePlan, onSimulate, onViewPlan, onSimulatePlan, onViewSavedSimulations,
 }: RSUPlansDashboardProps) {
   const totalGain = getTotalGain(plans);
   const totalActions = getTotalActions(plans);
