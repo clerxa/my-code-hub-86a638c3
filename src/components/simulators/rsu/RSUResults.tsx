@@ -45,6 +45,8 @@ interface RSUResultsProps {
   onReset: () => void;
   onSave?: () => void;
   isSaving?: boolean;
+  cessionParams?: CessionParamsType;
+  plansSource?: RSUPlan[];
 }
 
 // ────────────────────────────────────────────────────────
