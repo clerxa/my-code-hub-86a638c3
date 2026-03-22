@@ -393,10 +393,10 @@ export default function PanoramaPage() {
               {totalRevenusMensuel != null && (
                 <MetricChip label="Revenus" value={`${formatEuros(totalRevenusMensuel)}/mois`} />
               )}
-              {chargesFixes > 0 && (
+              {totalChargesAvecImpots > 0 && (
                 <>
                   <span className="text-muted-foreground font-medium">−</span>
-                  <MetricChip label="Charges" value={`${formatEuros(chargesFixes)}/mois`} />
+                  <MetricChip label="Charges + impôts" value={`${formatEuros(totalChargesAvecImpots)}/mois`} />
                 </>
               )}
               {capaciteEpargne != null && capaciteEpargne > 0 && (
