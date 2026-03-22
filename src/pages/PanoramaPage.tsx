@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { usePanorama } from "@/hooks/usePanorama";
 import { EmployeeLayout } from "@/components/employee/EmployeeLayout";
 import { useUserFinancialProfile } from "@/hooks/useUserFinancialProfile";
+import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
@@ -122,6 +123,9 @@ export default function PanoramaPage() {
     completeness: financialCompleteness,
   } = useUserFinancialProfile();
 
+  const { totals: realEstateTotals } = useUserRealEstateProperties();
+  const creditsImmoLocatif = (realEstateTotals?.mensualitesTotal ?? 0) + (realEstateTotals?.chargesTotal ?? 0);
+
 
   if (error) {
     return (
@@ -168,12 +172,12 @@ export default function PanoramaPage() {
   // charges_fixes_mensuelles is already the TOTAL of all charges (including loyer, crédits, pensions, immo locatif, etc.)
   // We use it as the single source of truth and compute "autres" as the remainder
   const chargesFixesTotal = fp?.charges_fixes_mensuelles ?? 0;
-  const chargesDejaAffichees = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0);
+  const chargesDejaAffichees = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0) + creditsImmoLocatif;
   const autresChargesCalculees = Math.max(0, chargesFixesTotal - chargesDejaAffichees);
   const chargesFixes = chargesFixesTotal;
   const impotMensuel = atlasData?.impot_net_total != null ? Math.round(atlasData.impot_net_total / 12) : null;
   const tauxMoyenAtlas = atlasData?.taux_moyen_pct ?? null;
-  const totalChargesAvecImpots = chargesFixes + (impotMensuel ?? 0);
+  const totalChargesAvecImpots = chargesFixes + creditsImmoLocatif + (impotMensuel ?? 0);
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
   const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - totalChargesAvecImpots - (capaciteEpargne ?? 0) : null;
   const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
@@ -364,6 +368,25 @@ export default function PanoramaPage() {
                       <p className="text-[10px] text-muted-foreground">Crédit auto</p>
                       <p className="text-sm font-semibold">{formatEuros(fp.credits_auto)}</p>
                     </div>
+                  )}
+                  {creditsImmoLocatif > 0 && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="rounded-md bg-muted/40 px-3 py-2 cursor-help">
+                            <p className="text-[10px] text-muted-foreground">Crédits immo locatif</p>
+                            <p className="text-sm font-semibold">{formatEuros(creditsImmoLocatif)}</p>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          <div className="space-y-1 text-xs">
+                            <p className="font-semibold mb-1.5">Détail immobilier locatif</p>
+                            {(realEstateTotals?.mensualitesTotal ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Mensualités crédits</span><span>{formatEuros(realEstateTotals.mensualitesTotal)}</span></div>}
+                            {(realEstateTotals?.chargesTotal ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Charges locatives</span><span>{formatEuros(realEstateTotals.chargesTotal)}</span></div>}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                   {(fp?.pensions_alimentaires ?? 0) > 0 && (
                     <div className="rounded-md bg-muted/40 px-3 py-2">
