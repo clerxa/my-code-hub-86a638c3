@@ -351,7 +351,7 @@ export function FinancialProfileWizard({
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5">
-                    <Label>Revenu imposable annuel (€){requiredMark("revenu_fiscal_annuel")}</Label>
+                    <Label>Revenu fiscal annuel du foyer (€){requiredMark("revenu_fiscal_annuel")}</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
