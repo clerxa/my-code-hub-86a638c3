@@ -16,6 +16,11 @@ const PERSONAL_DOMAINS = [
   'sfr.fr', 'bbox.fr'
 ];
 
+// Whitelisted personal emails allowed to bypass domain check
+const WHITELISTED_EMAILS = [
+  'xavier.clermont@gmail.com',
+];
+
 // Validate email format strictly
 function isValidEmail(email: string): boolean {
   // RFC 5322 simplified: no multiple @, valid domain, reasonable length
@@ -314,7 +319,7 @@ serve(async (req) => {
       console.log('Using provided company:', company.name);
     } else {
       // Original flow: check personal email and find/create company by domain
-      if (PERSONAL_DOMAINS.includes(domain)) {
+      if (PERSONAL_DOMAINS.includes(domain) && !WHITELISTED_EMAILS.includes(email.toLowerCase().trim())) {
         const { data: betaSetting } = await supabaseAdmin
           .from('global_settings')
           .select('value')
