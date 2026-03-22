@@ -26,6 +26,12 @@ const PERSONAL_EMAIL_DOMAINS = [
   'gmx.com', 'gmx.fr', 'yandex.com', 'mail.com', 'zoho.com'
 ];
 
+const WHITELISTED_EMAILS = ['xavier.clermont@gmail.com'];
+
+const isWhitelistedEmail = (email: string): boolean => {
+  return WHITELISTED_EMAILS.includes(email.toLowerCase().trim());
+};
+
 const isPersonalEmail = (email: string): boolean => {
   const domain = email.toLowerCase().split('@')[1];
   return PERSONAL_EMAIL_DOMAINS.includes(domain);
@@ -52,7 +58,7 @@ const Signup = () => {
   // Vérifier si l'email est personnel en temps réel
   const handleEmailChange = (value: string) => {
     setEmail(value);
-    if (value && value.includes('@') && isPersonalEmail(value)) {
+    if (value && value.includes('@') && isPersonalEmail(value) && !isWhitelistedEmail(value)) {
       setEmailError("Veuillez utiliser votre adresse email professionnelle pour vous inscrire.");
     } else {
       setEmailError(null);
@@ -106,7 +112,7 @@ const Signup = () => {
     e.preventDefault();
 
     // Vérification côté client des emails personnels
-    if (isPersonalEmail(email.trim())) {
+    if (isPersonalEmail(email.trim()) && !isWhitelistedEmail(email.trim())) {
       toast.error("Email professionnel requis", {
         description: "Veuillez utiliser votre adresse email professionnelle pour vous inscrire."
       });
