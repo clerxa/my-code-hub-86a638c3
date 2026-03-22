@@ -168,6 +168,21 @@ export const CHARGES_CATEGORIES = {
       { key: 'credit_consommation', label: 'Mensualité crédit consommation', placeholder: 'Ex: 200' },
     ],
   },
+  investissement_locatif: {
+    icon: '🏢',
+    label: 'Investissements locatifs',
+    fields: [
+      { key: 'investissement_locatif_credits', label: 'Crédits immobiliers locatifs (mensualités)', placeholder: 'Ex: 800' },
+      { key: 'investissement_locatif_charges', label: 'Charges d\'exploitation (copro, taxes, assurance...)', placeholder: 'Ex: 200' },
+    ],
+  },
+  impots: {
+    icon: '🧾',
+    label: 'Impôts',
+    fields: [
+      { key: 'impots', label: 'Impôt sur le revenu (mensuel)', placeholder: 'Ex: 500' },
+    ],
+  },
   autres: {
     icon: '💳',
     label: 'Autres charges mensuelles',
