@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import {
   ArrowRight, TrendingUp, FileText, Compass, UserCheck,
-  RefreshCw, ChevronRight, Info, Sparkles
+  RefreshCw, ChevronRight, Info, Sparkles, Calculator
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
