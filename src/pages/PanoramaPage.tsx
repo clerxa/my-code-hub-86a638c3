@@ -471,6 +471,7 @@ export default function PanoramaPage() {
             ))}
           </section>
         )}
+        </div>
 
         {/* ═══ SECTION 5 — DERNIÈRES SIMULATIONS (compact list) ═══ */}
         {synthesis?.simulations && synthesis.simulations.length > 0 && (
