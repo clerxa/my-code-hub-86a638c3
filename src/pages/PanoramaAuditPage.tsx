@@ -647,7 +647,7 @@ export default function PanoramaAuditPage() {
                     </div>
                     <div>
                       <CardTitle className="text-lg">Entreprise</CardTitle>
-                      <CardDescription>Votre employeur actuel</CardDescription>
+                      <CardDescription>Votre situation professionnelle personnelle</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
