@@ -498,8 +498,8 @@ export default function PanoramaPage() {
                                 const newEpargne = (capaciteEpargne ?? 0) + resteAVivre;
                                 if (user?.id) {
                                   supabase
-                                    .from("financial_profiles")
-                                    .update({ capacite_epargne_mensuelle: newEpargne })
+                                    .from("user_financial_profiles")
+                                    .update({ capacite_epargne_mensuelle: newEpargne } as any)
                                     .eq("user_id", user.id)
                                     .then(({ error }) => {
                                       if (!error) {
