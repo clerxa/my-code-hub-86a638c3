@@ -77,6 +77,7 @@ export function BudgetOverviewSection({
     depensesCourantesItems.forEach(i => { if (i.value > 0) detailItems.push({ name: i.label, value: i.value }); });
     if (totalEpargne > 0) detailItems.push({ name: "Épargne", value: totalEpargne });
     if (nonAlloue > 0) detailItems.push({ name: "Reste à vivre", value: nonAlloue });
+    detailItems.sort((a, b) => b.value - a.value);
 
     const ruleData: { name: string; value: number; color: string; pct: number; ideal: number }[] = [
       { name: "Charges fixes & impôts", value: totalFixes, color: RULE_COLORS.fixes, pct: pctFixes, ideal: 50 },
