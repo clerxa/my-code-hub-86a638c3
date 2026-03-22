@@ -230,7 +230,7 @@ export function StepRiskProfile({ onNext, onSkip }: StepRiskProfileProps) {
           onClick={onSkip}
           className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
         >
-          Passer cette étape →
+          Enregistrer et compléter plus tard
         </button>
       </div>
     </div>
