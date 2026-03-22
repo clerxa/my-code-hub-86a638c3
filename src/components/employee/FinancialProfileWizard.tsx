@@ -32,6 +32,7 @@ interface FinancialProfileWizardProps {
   
   requiredFieldKeys?: string[];
   initialStepId?: string | null;
+  chargesOnly?: boolean;
 }
 
 interface WizardStep {
