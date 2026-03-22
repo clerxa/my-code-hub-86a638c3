@@ -134,11 +134,17 @@ export function SimulatorCard({ name, description, icon, route, featureKey, dura
               </Badge>
             )}
             {!isDisabled && getLockedBadge()}
-            {!isDisabled && !isLocked && simulationsCount > 0 && (
-              <Badge variant="secondary" className="text-xs gap-1">
-                {simulationsCount} plan{simulationsCount > 1 ? 's' : ''} en cours
-              </Badge>
-            )}
+            {!isDisabled && !isLocked && simulationsCount > 0 && (() => {
+              const isEquity = ['/mes-plans-rsu', '/mes-plans-espp', '/mes-plans-bspce'].includes(route);
+              const label = isEquity
+                ? `${simulationsCount} plan${simulationsCount > 1 ? 's' : ''} en cours`
+                : `${simulationsCount} simulation${simulationsCount > 1 ? 's' : ''} réalisée${simulationsCount > 1 ? 's' : ''}`;
+              return (
+                <Badge variant="secondary" className="text-xs gap-1">
+                  {label}
+                </Badge>
+              );
+            })()}
           </div>
         </div>
 
