@@ -59,6 +59,8 @@ export function BudgetOverviewSection({
     const pctFixes = Math.round((totalFixes / totalRevenus) * 100);
     const pctCourantes = Math.round((totalCourantes / totalRevenus) * 100);
     const pctEpargne = Math.round((totalEpargne / totalRevenus) * 100);
+    const nonAlloue = Math.max(0, totalRevenus - totalFixes - totalCourantes - totalEpargne);
+    const pctNonAlloue = Math.max(0, 100 - pctFixes - pctCourantes - pctEpargne);
 
     // Detailed charges for breakdown pie
     const detailItems: { name: string; value: number }[] = [];
@@ -66,15 +68,21 @@ export function BudgetOverviewSection({
     if (impotMensuel > 0) detailItems.push({ name: "Impôts", value: impotMensuel });
     depensesCourantesItems.forEach(i => { if (i.value > 0) detailItems.push({ name: i.label, value: i.value }); });
     if (totalEpargne > 0) detailItems.push({ name: "Épargne", value: totalEpargne });
+    if (nonAlloue > 0) detailItems.push({ name: "Non alloué", value: nonAlloue });
+
+    const ruleData: { name: string; value: number; color: string; pct: number; ideal: number }[] = [
+      { name: "Charges fixes & impôts", value: totalFixes, color: RULE_COLORS.fixes, pct: pctFixes, ideal: 50 },
+      { name: "Dépenses courantes", value: totalCourantes, color: RULE_COLORS.courantes, pct: pctCourantes, ideal: 30 },
+      { name: "Épargne", value: totalEpargne, color: RULE_COLORS.epargne, pct: pctEpargne, ideal: 20 },
+    ];
+    if (pctNonAlloue > 0) {
+      ruleData.push({ name: "Non alloué", value: nonAlloue, color: "hsl(var(--muted-foreground) / 0.3)", pct: pctNonAlloue, ideal: 0 });
+    }
 
     return {
       totalFixes, totalCourantes, totalEpargne,
-      pctFixes, pctCourantes, pctEpargne,
-      ruleData: [
-        { name: "Charges fixes & impôts", value: totalFixes, color: RULE_COLORS.fixes, pct: pctFixes, ideal: 50 },
-        { name: "Dépenses courantes", value: totalCourantes, color: RULE_COLORS.courantes, pct: pctCourantes, ideal: 30 },
-        { name: "Épargne", value: totalEpargne, color: RULE_COLORS.epargne, pct: pctEpargne, ideal: 20 },
-      ],
+      pctFixes, pctCourantes, pctEpargne, pctNonAlloue,
+      ruleData,
       detailItems,
     };
   }, [totalRevenus, chargesFixesItems, depensesCourantesItems, impotMensuel, epargne]);
@@ -137,8 +145,9 @@ export function BudgetOverviewSection({
             </div>
             <div className="space-y-2 flex-1 min-w-0">
               {ruleData.map((item, i) => {
+                const isNonAlloue = item.ideal === 0 && item.name === "Non alloué";
                 const diff = item.pct - item.ideal;
-                const status = Math.abs(diff) <= 5 ? "ok" : diff > 0 ? "over" : "under";
+                const status = isNonAlloue ? "neutral" : Math.abs(diff) <= 5 ? "ok" : diff > 0 ? "over" : "under";
                 return (
                   <div key={i} className="space-y-0.5">
                     <div className="flex items-center justify-between gap-2">
@@ -148,32 +157,36 @@ export function BudgetOverviewSection({
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <span className="text-xs font-bold">{item.pct}%</span>
-                        <span className="text-[10px] text-muted-foreground">/ {item.ideal}%</span>
-                        {status === "ok" ? (
-                          <Minus className="h-3 w-3 text-emerald-500" />
-                        ) : status === "over" ? (
-                          <TrendingUp className="h-3 w-3 text-red-500" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-amber-500" />
+                        {!isNonAlloue && (
+                          <>
+                            <span className="text-[10px] text-muted-foreground">/ {item.ideal}%</span>
+                            {status === "ok" ? (
+                              <Minus className="h-3 w-3 text-emerald-500" />
+                            ) : status === "over" ? (
+                              <TrendingUp className="h-3 w-3 text-red-500" />
+                            ) : (
+                              <TrendingDown className="h-3 w-3 text-amber-500" />
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
-                    {/* Progress bar comparing actual vs ideal */}
-                    <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="absolute h-full rounded-full transition-all"
-                        style={{
-                          width: `${Math.min(100, item.pct)}%`,
-                          backgroundColor: item.color,
-                          opacity: 0.8,
-                        }}
-                      />
-                      {/* Ideal marker */}
-                      <div
-                        className="absolute top-0 h-full w-px bg-foreground/40"
-                        style={{ left: `${item.ideal}%` }}
-                      />
-                    </div>
+                    {!isNonAlloue && (
+                      <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="absolute h-full rounded-full transition-all"
+                          style={{
+                            width: `${Math.min(100, item.pct)}%`,
+                            backgroundColor: item.color,
+                            opacity: 0.8,
+                          }}
+                        />
+                        <div
+                          className="absolute top-0 h-full w-px bg-foreground/40"
+                          style={{ left: `${item.ideal}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
                 );
               })}
