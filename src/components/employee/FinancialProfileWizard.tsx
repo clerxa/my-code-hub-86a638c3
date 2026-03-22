@@ -349,28 +349,6 @@ export function FinancialProfileWizard({
                     </div>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1.5">
-                    <Label>Revenu fiscal annuel du foyer (€){requiredMark("revenu_fiscal_annuel")}</Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="text-xs max-w-xs">Revenu fiscal de référence de votre foyer, visible sur votre avis d'imposition.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={getNumericDisplayValue(formData.revenu_fiscal_annuel)}
-                    onChange={(e) => handleNumericInput("revenu_fiscal_annuel", e.target.value)}
-                    placeholder="Montant total déclaré aux impôts — vous + conjoint(e)"
-                  />
-                </div>
               </div>
             </div>
 
