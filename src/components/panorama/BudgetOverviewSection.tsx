@@ -51,6 +51,7 @@ export function BudgetOverviewSection({
 }: BudgetOverviewSectionProps) {
   const analysis = useMemo(() => {
     if (totalRevenus <= 0) return null;
+    console.log('[Budget 50/30/20] totalRevenus:', totalRevenus, 'chargesFixesItems:', chargesFixesItems, 'depensesCourantesItems:', depensesCourantesItems, 'impotMensuel:', impotMensuel, 'epargne:', epargne);
 
     const totalFixes = chargesFixesItems.reduce((s, i) => s + i.value, 0) + impotMensuel;
     const totalCourantes = depensesCourantesItems.reduce((s, i) => s + i.value, 0);
