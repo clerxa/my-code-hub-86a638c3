@@ -21,6 +21,11 @@ export interface ChargesDetailees {
   pension_alimentaire: number;
   // 💰 Crédit consommation
   credit_consommation: number;
+  // 🏢 Investissements locatifs
+  investissement_locatif_credits: number;
+  investissement_locatif_charges: number;
+  // 🧾 Impôts
+  impots: number;
   // Autres
   autres: number;
 }
