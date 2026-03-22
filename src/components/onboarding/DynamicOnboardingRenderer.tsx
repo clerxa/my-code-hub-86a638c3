@@ -322,9 +322,7 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
       return;
     }
     
-    // User is logged in (normal flow) - trigger CSAT before navigating
-    setShowCSATBeforeNavigate(true);
-    triggerCSAT();
+    navigateToDestination();
   };
 
   // Helper function to navigate to the final destination
