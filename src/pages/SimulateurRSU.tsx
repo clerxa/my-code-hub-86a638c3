@@ -45,6 +45,7 @@ const SimulateurRSU = () => {
   const introSeen = useRef(false);
   const [screen, setScreen] = useState<Screen>(loadSimId ? 'dashboard' : 'intro');
   const { plans, setPlans, isLoading: isLoadingPlans, reload: reloadPlans } = useRSUPlans();
+  const portfolio = useVegaPortfolio();
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [simulatingPlanId, setSimulatingPlanId] = useState<string | null>(null);
   const [cessionParams, setCessionParams] = useState<CessionParamsType>({
