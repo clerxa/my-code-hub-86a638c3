@@ -220,7 +220,7 @@ export function StepRiskProfile({ onNext, onSkip }: StepRiskProfileProps) {
             className="gap-2"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Voir mon profil <ArrowRight className="h-4 w-4" />
+            Terminer et accéder à mon tableau de bord <ArrowRight className="h-4 w-4" />
           </Button>
         )}
       </div>
