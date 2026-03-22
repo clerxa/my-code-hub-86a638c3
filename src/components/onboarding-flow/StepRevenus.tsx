@@ -57,7 +57,7 @@ export function StepRevenus({ onNext, onSkip }: StepRevenusProps) {
             <div>
               <CardTitle className="text-lg">Vos revenus professionnels</CardTitle>
               <CardDescription>
-                Ces montants permettent de calculer votre TMI et vos indicateurs PANORAMA.
+                Vos revenus sont la base de toute analyse financière : calcul de votre taux d'imposition, de votre capacité d'épargne et de votre reste à vivre. Plus ces données sont précises, plus vos recommandations seront pertinentes.
               </CardDescription>
             </div>
           </div>
