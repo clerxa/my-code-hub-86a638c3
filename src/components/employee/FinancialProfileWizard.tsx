@@ -42,11 +42,15 @@ interface WizardStep {
   icon: React.ReactNode;
 }
 
-const STEPS: WizardStep[] = [
+const REVENUE_STEPS: WizardStep[] = [
   { id: "revenus-pro", title: "Revenus professionnels", description: "Vos revenus du travail", icon: <Briefcase className="h-5 w-5" /> },
   { id: "revenus-capital", title: "Revenus du capital", description: "Dividendes, ventes d'actions...", icon: <Euro className="h-5 w-5" /> },
   { id: "revenus-fonciers", title: "Revenus fonciers", description: "Loyers perçus", icon: <Building className="h-5 w-5" /> },
-  { id: "charges", title: "Charges", description: "Vos dépenses mensuelles", icon: <PiggyBank className="h-5 w-5" /> },
+];
+
+const CHARGES_STEPS: WizardStep[] = [
+  { id: "charges", title: "Charges fixes", description: "Vos dépenses mensuelles fixes", icon: <PiggyBank className="h-5 w-5" /> },
+  { id: "charges-variables", title: "Dépenses courantes", description: "Courses, loisirs, shopping...", icon: <Wallet className="h-5 w-5" /> },
 ];
 
 export function FinancialProfileWizard({
