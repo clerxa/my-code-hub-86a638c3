@@ -123,6 +123,9 @@ export default function PanoramaPage() {
     completeness: financialCompleteness,
   } = useUserFinancialProfile();
 
+  const { totals: realEstateTotals } = useUserRealEstateProperties();
+  const creditsImmoLocatif = (realEstateTotals?.mensualitesTotal ?? 0) + (realEstateTotals?.chargesTotal ?? 0);
+
 
   if (error) {
     return (
