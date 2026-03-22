@@ -21,8 +21,6 @@ import { RealEstatePropertiesManager } from "./profile/RealEstatePropertiesManag
 import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
 import { cn } from "@/lib/utils";
 import { type FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
-import { useCSATTrigger } from "@/hooks/useCSATTrigger";
-import { CSATPanel } from "@/components/csat";
 
 interface FinancialProfileWizardProps {
   formData: FinancialProfileInput;
