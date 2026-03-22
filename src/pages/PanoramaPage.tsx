@@ -166,8 +166,11 @@ export default function PanoramaPage() {
   const autresRevenusMensuel = fp?.autres_revenus_mensuels ?? 0;
   const totalRevenusMensuel = revenuNetMensuel != null ? revenuNetMensuel + revenusFonciersMensuel + autresRevenusMensuel : null;
   const chargesFixes = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0) + (fp?.charges_fixes_mensuelles ?? 0);
+  const impotMensuel = atlasData?.impot_net_total != null ? Math.round(atlasData.impot_net_total / 12) : null;
+  const tauxMoyenAtlas = atlasData?.taux_moyen_pct ?? null;
+  const totalChargesAvecImpots = chargesFixes + (impotMensuel ?? 0);
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
-  const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - chargesFixes - (capaciteEpargne ?? 0) : null;
+  const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - totalChargesAvecImpots - (capaciteEpargne ?? 0) : null;
   const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
 
   // Patrimoine breakdown (immo net already in patrimoine_total now)
