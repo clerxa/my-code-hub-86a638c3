@@ -5,8 +5,6 @@ import { Award, CheckCircle2, Sparkles, Trophy, ArrowRight } from "lucide-react"
 import confetti from "canvas-confetti";
 import { useEffect } from "react";
 import fincareExpert from "@/assets/fincare_expert.png";
-import { useCSATTrigger } from "@/hooks/useCSATTrigger";
-import { CSATPanel } from "@/components/csat";
 
 interface ModuleEndProps {
   title: string;
