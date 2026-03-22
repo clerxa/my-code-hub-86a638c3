@@ -177,7 +177,7 @@ export default function PanoramaPage() {
   const chargesFixes = chargesFixesTotal;
   const impotMensuel = atlasData?.impot_net_total != null ? Math.round(atlasData.impot_net_total / 12) : null;
   const tauxMoyenAtlas = atlasData?.taux_moyen_pct ?? null;
-  const totalChargesAvecImpots = chargesFixes + (impotMensuel ?? 0);
+  const totalChargesAvecImpots = chargesFixes + creditsImmoLocatif + (impotMensuel ?? 0);
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
   const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - totalChargesAvecImpots - (capaciteEpargne ?? 0) : null;
   const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
