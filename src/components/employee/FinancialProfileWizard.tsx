@@ -66,7 +66,7 @@ export function FinancialProfileWizard({
   };
   const [currentStep, setCurrentStep] = useState(getStepIndex(initialStepId));
   const [showWhyInfo, setShowWhyInfo] = useState(false);
-  const [hasShownSpouseInvite, setHasShownSpouseInvite] = useState(false);
+  
 
   // React to external step navigation requests
   useEffect(() => {
