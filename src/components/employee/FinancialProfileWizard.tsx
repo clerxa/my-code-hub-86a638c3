@@ -297,7 +297,7 @@ export function FinancialProfileWizard({
             <div className="space-y-4">
               <h4 className="font-medium flex items-center gap-2">
                 <Briefcase className="h-4 w-4 text-primary" />
-                Vos revenus
+                Vos revenus — vous seul(e)
               </h4>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
