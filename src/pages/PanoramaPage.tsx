@@ -58,6 +58,7 @@ export default function PanoramaPage() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [hasAtlasAnalysis, setHasAtlasAnalysis] = useState<boolean | null>(null);
+  const [atlasData, setAtlasData] = useState<{ taux_moyen_pct: number | null; impot_net_total: number | null } | null>(null);
   const [onboardingStatus, setOnboardingStatus] = useState<{
     atlas_completed: boolean;
     audit_panorama_completed: boolean;
@@ -74,7 +75,7 @@ export default function PanoramaPage() {
   useEffect(() => {
     if (!user?.id) { setHasAtlasAnalysis(false); return; }
     const check = async () => {
-      const [atlasRes, profileRes] = await Promise.all([
+      const [atlasRes, profileRes, atlasDetailRes] = await Promise.all([
         supabase
           .from("ocr_avis_imposition_analyses" as any)
           .select("id", { count: "exact", head: true })
@@ -84,8 +85,18 @@ export default function PanoramaPage() {
           .select("atlas_completed, audit_panorama_completed, risk_profile_completed")
           .eq("id", user.id)
           .single(),
+        supabase
+          .from("ocr_avis_imposition_analyses" as any)
+          .select("taux_moyen_pct, impot_net_total")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
       ]);
       setHasAtlasAnalysis((atlasRes.count ?? 0) > 0);
+      if (atlasDetailRes.data) {
+        setAtlasData(atlasDetailRes.data as any);
+      }
       if (profileRes.data) {
         setOnboardingStatus(profileRes.data as any);
       }
@@ -155,8 +166,11 @@ export default function PanoramaPage() {
   const autresRevenusMensuel = fp?.autres_revenus_mensuels ?? 0;
   const totalRevenusMensuel = revenuNetMensuel != null ? revenuNetMensuel + revenusFonciersMensuel + autresRevenusMensuel : null;
   const chargesFixes = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0) + (fp?.charges_fixes_mensuelles ?? 0);
+  const impotMensuel = atlasData?.impot_net_total != null ? Math.round(atlasData.impot_net_total / 12) : null;
+  const tauxMoyenAtlas = atlasData?.taux_moyen_pct ?? null;
+  const totalChargesAvecImpots = chargesFixes + (impotMensuel ?? 0);
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
-  const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - chargesFixes - (capaciteEpargne ?? 0) : null;
+  const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - totalChargesAvecImpots - (capaciteEpargne ?? 0) : null;
   const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
 
   // Patrimoine breakdown (immo net already in patrimoine_total now)
@@ -318,7 +332,7 @@ export default function PanoramaPage() {
             </div>
 
             {/* Charges detail */}
-            {chargesFixes > 0 && (
+            {(chargesFixes > 0 || impotMensuel != null) && (
               <div className="space-y-2 mb-4">
                 <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Charges mensuelles</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -358,9 +372,17 @@ export default function PanoramaPage() {
                       <p className="text-sm font-semibold">{formatEuros(fp.charges_fixes_mensuelles)}</p>
                     </div>
                   )}
+                  {impotMensuel != null && impotMensuel > 0 && (
+                    <div className="rounded-md bg-blue-500/5 border border-blue-500/10 px-3 py-2">
+                      <p className="text-[10px] text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                        Impôts <span className="text-[8px] bg-blue-500/10 px-1 rounded">ATLAS</span>
+                      </p>
+                      <p className="text-sm font-semibold">{formatEuros(impotMensuel)}</p>
+                    </div>
+                  )}
                   <div className="rounded-md bg-destructive/5 border border-destructive/10 px-3 py-2">
                     <p className="text-[10px] text-destructive">Total charges</p>
-                    <p className="text-sm font-bold text-destructive">{formatEuros(chargesFixes)}<span className="text-[10px] font-normal">/mois</span></p>
+                    <p className="text-sm font-bold text-destructive">{formatEuros(totalChargesAvecImpots)}<span className="text-[10px] font-normal">/mois</span></p>
                   </div>
                 </div>
               </div>
@@ -371,10 +393,10 @@ export default function PanoramaPage() {
               {totalRevenusMensuel != null && (
                 <MetricChip label="Revenus" value={`${formatEuros(totalRevenusMensuel)}/mois`} />
               )}
-              {chargesFixes > 0 && (
+              {totalChargesAvecImpots > 0 && (
                 <>
                   <span className="text-muted-foreground font-medium">−</span>
-                  <MetricChip label="Charges" value={`${formatEuros(chargesFixes)}/mois`} />
+                  <MetricChip label="Charges + impôts" value={`${formatEuros(totalChargesAvecImpots)}/mois`} />
                 </>
               )}
               {capaciteEpargne != null && capaciteEpargne > 0 && (
@@ -444,8 +466,11 @@ export default function PanoramaPage() {
             <p className="text-xl font-bold">
               {tmi != null ? `TMI ${tmi}%` : "Non renseigné"}
             </p>
-            {synthesis?.financialProfile?.revenu_fiscal_annuel != null && (
-              <p className="text-xs text-muted-foreground">{formatEuros(synthesis.financialProfile.revenu_fiscal_annuel)}</p>
+            {tauxMoyenAtlas != null && (
+              <p className="text-xs text-muted-foreground">Taux moyen {tauxMoyenAtlas}%</p>
+            )}
+            {impotMensuel != null && impotMensuel > 0 && (
+              <p className="text-xs text-muted-foreground">{formatEuros(impotMensuel)}/mois</p>
             )}
           </ModuleCard>
 
