@@ -449,7 +449,7 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
     return (
       <div className="space-y-4">
         {/* Source info for épargne */}
-        {catKey === "epargne" && profileFields.has("ep_precaution") && (
+        {catKey === "epargne" && profileFields.has("epargne_totale") && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -457,7 +457,7 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
           >
             <UserCircle className="h-4 w-4 text-primary shrink-0" />
             <p className="text-xs text-primary">
-              Vos postes d'épargne sont pré-remplis à partir de votre <strong>capacité d'épargne mensuelle</strong> déclarée dans votre profil financier, répartie équitablement entre les 3 postes.
+              Votre épargne est pré-remplie à partir de votre <strong>capacité d'épargne mensuelle</strong> déclarée dans votre profil financier.
             </p>
           </motion.div>
         )}
