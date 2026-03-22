@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { usePanorama } from "@/hooks/usePanorama";
 import { EmployeeLayout } from "@/components/employee/EmployeeLayout";
 import { useUserFinancialProfile } from "@/hooks/useUserFinancialProfile";
+import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
