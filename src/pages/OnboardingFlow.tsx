@@ -16,10 +16,7 @@ const STEPS = [
   { id: 1, label: "Bienvenue", key: "bienvenue" },
   { id: 2, label: "Situation", key: "situation" },
   { id: 3, label: "Emploi", key: "professionnel" },
-  { id: 4, label: "Revenus", key: "revenus" },
-  { id: 5, label: "Charges", key: "charges" },
-  { id: 6, label: "Épargne", key: "epargne" },
-  { id: 7, label: "Fiscalité", key: "atlas" },
+  { id: 4, label: "Fiscalité", key: "atlas" },
 ];
 
 export default function OnboardingFlow() {
