@@ -23,14 +23,6 @@ export const ModuleEnd = ({
   onContinue,
   moduleId,
 }: ModuleEndProps) => {
-  // CSAT trigger
-  const { showCSAT, closeCSAT, triggerCSAT, contentType, contentId, contentName } = useCSATTrigger({
-    contentType: 'module',
-    contentId: moduleId?.toString() || title,
-    contentName: title,
-    moduleId,
-    autoTriggerOnMount: true,
-  });
   useEffect(() => {
     const duration = 3000;
     const end = Date.now() + duration;
