@@ -401,10 +401,13 @@ export default function PanoramaPage() {
             )}
           </ModuleCard>
         </section>
+        </div>
 
         {/* ═══ SECTION 3 — SYNTHÈSE FINANCIÈRE (compact line) ═══ */}
+        <div className="relative">
+          {!panoramaUnlocked && <LockedOverlay onUnlock={() => navigate("/employee/onboarding-flow")} />}
         {financialProfile && (
-          <section className="rounded-lg border border-border bg-card p-4">
+          <section className={cn("rounded-lg border border-border bg-card p-4", !panoramaUnlocked && "opacity-40 blur-[2px] pointer-events-none")}>
             {/* Flow line */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
               {revenuNet != null && (
