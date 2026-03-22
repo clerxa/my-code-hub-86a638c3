@@ -43,14 +43,6 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
   const [isCalculating, setIsCalculating] = useState(false);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [estimatedSavings, setEstimatedSavings] = useState(0);
-  const [showCSATBeforeNavigate, setShowCSATBeforeNavigate] = useState(false);
-
-  // CSAT trigger
-  const { showCSAT, closeCSAT, triggerCSAT, contentType, contentId, contentName } = useCSATTrigger({
-    contentType: 'onboarding',
-    contentId: flowId,
-    contentName: `Onboarding ${flowId}`,
-  });
   
   // Use stored session ID from sessionStorage, or generate one
   const [sessionId] = useState(() => {
