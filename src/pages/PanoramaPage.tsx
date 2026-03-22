@@ -262,8 +262,8 @@ export default function PanoramaPage() {
                   <div className="mt-4 space-y-1.5">
                     {vegaPortfolio.plans.slice(0, 3).map((plan, i) => (
                       <div key={i} className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 rounded px-3 py-1.5">
-                        <span className="font-medium text-foreground">{plan.planName}</span>
-                        <span>{plan.vestedShares} actions • {formatEuros(plan.valueEur)}</span>
+                        <span className="font-medium text-foreground">{plan.label}</span>
+                        <span>{plan.nbActions} actions • {formatEuros(plan.prixAcquisitionEur)}</span>
                       </div>
                     ))}
                   </div>
