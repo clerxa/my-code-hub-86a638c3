@@ -888,6 +888,27 @@ export default function PanoramaAuditPage() {
               />
             </TabsContent>
 
+            {/* Tab: Charges */}
+            <TabsContent value="charges" className="space-y-6 mt-6">
+              <div className="flex items-start gap-3 rounded-lg border border-blue-500/20 bg-blue-500/5 p-4 mb-4">
+                <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-800 dark:text-blue-300">
+                  Renseignez l'ensemble des charges de <strong>votre foyer fiscal</strong> : charges fixes et dépenses courantes.
+                </p>
+              </div>
+              <FinancialProfileWizard
+                formData={formData}
+                updateField={updateFinancialField}
+                onSave={() => saveProfile(formData, { onSuccess: () => setOriginalFormData(formData) })}
+                isSaving={savingFinancial}
+                situationFamiliale={formData.situation_familiale || profile?.marital_status || null}
+                hasEquityBenefits={false}
+                requiredFieldKeys={requiredFieldKeys}
+                initialStepId="charges"
+                chargesOnly
+              />
+            </TabsContent>
+
             {/* Tab: Savings */}
             <TabsContent value="savings" className="space-y-6 mt-6">
               {/* Note contextuelle foyer fiscal */}
