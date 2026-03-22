@@ -63,7 +63,7 @@ const STEP_2_FIELDS: FieldConfig[] = [
   { key: "abonnements", label: "Abonnements (streaming…)", icon: Tv, placeholder: "30" },
   { key: "shopping", label: "Shopping & divers", icon: Gem, placeholder: "50" },
   // Immobilier locatif charges
-  { key: "chargesImmoLocatif", label: "Charges immobilier locatif", icon: Building, placeholder: "0", tooltip: "Mensualités de crédit et charges liées à vos biens locatifs." },
+  { key: "chargesImmoLocatif", label: "Charges immobilier locatif", icon: Building, placeholder: "0", tooltip: "Mensualités de crédits immobiliers + charges d'exploitation (copropriété, taxes…) de vos biens locatifs — pré-rempli depuis votre section Revenus fonciers." },
 ];
 
 type FormValues = Record<string, number>;
