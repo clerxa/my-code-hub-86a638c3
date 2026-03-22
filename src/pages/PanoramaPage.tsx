@@ -504,6 +504,7 @@ export default function PanoramaPage() {
         {totalRevenusMensuel != null && totalRevenusMensuel > 0 && (
           <BudgetOverviewSection
             totalRevenus={totalRevenusMensuel}
+            totalChargesFixesImpots={totalChargesAvecImpots}
             chargesFixesItems={(() => {
               const items = [
                 { label: "Loyer", value: fp?.loyer_actuel ?? 0, category: "fixes" as const },
