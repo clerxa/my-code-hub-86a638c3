@@ -607,7 +607,7 @@ export default function PanoramaPage() {
           >
             {(() => {
               const epargneTotal = capaciteEpargne ?? capaciteEpargneCalculee ?? 0;
-              const epargneMensuelleAllouee = synthesis?.horizon?.total_monthly_savings ?? 0;
+              const epargneMensuelleAllouee = synthesis?.horizon?.projects?.reduce((s, p) => s + (p.monthly_allocation ?? 0), 0) ?? 0;
               const epargneRestante = Math.max(0, epargneTotal - epargneMensuelleAllouee);
               const hasHorizon = synthesis?.horizon?.projects_count != null && synthesis.horizon.projects_count > 0;
 
