@@ -18,8 +18,6 @@ import {
 import { cn } from "@/lib/utils";
 import { OnboardingScreen } from "@/types/onboarding-cms";
 import { useAuth } from "@/components/AuthProvider";
-import { useCSATTrigger } from "@/hooks/useCSATTrigger";
-import { CSATPanel } from "@/components/csat";
 interface DynamicOnboardingRendererProps {
   flowId?: string;
 }
