@@ -16,6 +16,11 @@ const PERSONAL_DOMAINS = [
   'sfr.fr', 'bbox.fr'
 ];
 
+// Whitelisted personal emails allowed to bypass domain check
+const WHITELISTED_EMAILS = [
+  'xavier.clermont@gmail.com',
+];
+
 // Validate email format strictly
 function isValidEmail(email: string): boolean {
   // RFC 5322 simplified: no multiple @, valid domain, reasonable length
