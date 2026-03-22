@@ -2,20 +2,26 @@
  * Écran 1 — Tableau de bord des plans RSU (vue table premium)
  */
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Banknote, BarChart3 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Banknote, BarChart3, TrendingUp, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+} from '@/components/ui/dialog';
+import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { RSUPlan } from '@/types/rsu';
+import type { RSUPlan, VestingLine } from '@/types/rsu';
 import { REGIME_COLORS, REGIME_SHORT_LABELS } from '@/types/rsu';
 
 const fmt = (v: number) =>
@@ -38,7 +44,8 @@ interface RSUPlansDashboardProps {
   onSimulate: () => void;
   onViewPlan?: (id: string) => void;
   onSimulatePlan?: (id: string) => void;
-  onDeclareCessionPlan?: (id: string) => void;
+  onDeclareCession?: (planId: string, nbActions: number) => Promise<void>;
+  isDeclaring?: boolean;
   onViewSavedSimulations?: () => void;
 }
 
@@ -73,6 +80,156 @@ function getAverageVesting(plans: RSUPlan[]) {
   return Math.round(total / plans.length);
 }
 
+// ─── FIFO helper for RSU vestings ───
+function computeRSUFifoDetail(vestings: VestingLine[], nbToSell: number): { date: string; nb: number }[] {
+  const sorted = [...vestings]
+    .filter(v => v.date)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const today = new Date();
+  // Only include vested lines
+  const available = sorted.filter(v => new Date(v.date) <= today);
+
+  let remaining = nbToSell;
+  const result: { date: string; nb: number }[] = [];
+  for (const v of available) {
+    if (remaining <= 0) break;
+    const take = Math.min(remaining, v.nb_rsu);
+    result.push({ date: v.date, nb: take });
+    remaining -= take;
+  }
+  return result;
+}
+
+function getVestedActions(plan: RSUPlan): number {
+  const today = new Date();
+  return plan.vestings
+    .filter(v => new Date(v.date) <= today)
+    .reduce((s, v) => s + v.nb_rsu, 0);
+}
+
+// ─── Declare Cession Dialog (FIFO) ───
+function RSUDeclareCessionDialog({
+  plan,
+  onDeclareCession,
+  isDeclaring,
+}: {
+  plan: RSUPlan;
+  onDeclareCession: (planId: string, nbActions: number) => Promise<void>;
+  isDeclaring: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [nbActions, setNbActions] = useState<string>('');
+  const nbParsed = parseInt(nbActions) || 0;
+  const vestedActions = getVestedActions(plan);
+  const isVestingComplete = getVestingProgress(plan) === 100;
+
+  const fifoDetail = nbParsed > 0 ? computeRSUFifoDetail(plan.vestings, nbParsed) : [];
+  const isValid = nbParsed > 0 && nbParsed <= vestedActions;
+
+  const handleSubmit = async () => {
+    if (!isValid) return;
+    await onDeclareCession(plan.id, nbParsed);
+    setOpen(false);
+    setNbActions('');
+  };
+
+  if (vestedActions <= 0) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <DialogTrigger asChild>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-lg text-muted-foreground hover:text-emerald-600"
+            >
+              <Banknote className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+        </DialogTrigger>
+        <TooltipContent side="bottom">Déclarer une cession</TooltipContent>
+      </Tooltip>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Banknote className="h-5 w-5 text-emerald-600" />
+            Déclarer une cession
+          </DialogTitle>
+          <DialogDescription>
+            <span className="font-medium text-foreground">{plan.nom}</span>
+            {' · '}{vestedActions} action{vestedActions > 1 ? 's' : ''} vestée{vestedActions > 1 ? 's' : ''} disponible{vestedActions > 1 ? 's' : ''}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="nb-actions-rsu">Nombre d'actions vendues</Label>
+            <Input
+              id="nb-actions-rsu"
+              type="number"
+              min={1}
+              max={vestedActions}
+              value={nbActions}
+              onChange={(e) => setNbActions(e.target.value)}
+              placeholder={`Max ${vestedActions}`}
+              className="font-mono"
+            />
+            {nbParsed > vestedActions && (
+              <p className="text-xs text-destructive flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                Maximum {vestedActions} actions disponibles
+              </p>
+            )}
+          </div>
+
+          {/* FIFO preview */}
+          {fifoDetail.length > 0 && isValid && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-2"
+            >
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Détail FIFO (First In, First Out)
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                Les actions les plus anciennes sont cédées en priorité
+              </p>
+              <div className="space-y-1">
+                {fifoDetail.map((d, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      Vesting du {new Date(d.date).toLocaleDateString('fr-FR')}
+                    </span>
+                    <Badge variant="secondary" className="text-[10px] font-mono">
+                      {d.nb} action{d.nb > 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" size="sm" onClick={() => setOpen(false)}>Annuler</Button>
+          <Button
+            size="sm"
+            disabled={!isValid || isDeclaring}
+            onClick={handleSubmit}
+            className="gap-1.5"
+          >
+            {isDeclaring ? 'Enregistrement…' : 'Confirmer la cession'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function RSUPlansDashboard({
   plans,
   onAddPlan,
@@ -81,13 +238,14 @@ export function RSUPlansDashboard({
   onSimulate,
   onViewPlan,
   onSimulatePlan,
-  onDeclareCessionPlan,
+  onDeclareCession,
+  isDeclaring = false,
   onViewSavedSimulations,
 }: RSUPlansDashboardProps) {
   const totalGain = getTotalGain(plans);
   const totalActions = getTotalActions(plans);
   const avgVesting = getAverageVesting(plans);
-  const plansTableCols = 'grid-cols-[minmax(260px,2.1fr)_minmax(130px,0.9fr)_minmax(100px,0.8fr)_minmax(180px,1.05fr)_minmax(230px,1.4fr)_minmax(190px,1fr)_124px]';
+  const plansTableCols = 'grid-cols-[minmax(260px,2.1fr)_minmax(130px,0.9fr)_minmax(100px,0.8fr)_minmax(180px,1.05fr)_minmax(230px,1.4fr)_minmax(190px,1fr)_148px]';
 
   return (
     <motion.div
@@ -247,6 +405,7 @@ export function RSUPlansDashboard({
                               <TooltipContent side="bottom">Modifier</TooltipContent>
                             </Tooltip>
 
+                            {/* Simuler une cession */}
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
@@ -254,16 +413,24 @@ export function RSUPlansDashboard({
                                   size="icon"
                                   className="h-8 w-8 rounded-lg text-muted-foreground hover:text-primary"
                                   onClick={() => {
-                                    if (onDeclareCessionPlan) onDeclareCessionPlan(plan.id);
-                                    else if (onSimulatePlan) onSimulatePlan(plan.id);
+                                    if (onSimulatePlan) onSimulatePlan(plan.id);
                                     else onSimulate();
                                   }}
                                 >
-                                  <Banknote className="h-3.5 w-3.5" />
+                                  <TrendingUp className="h-3.5 w-3.5" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent side="bottom">Déclarer une cession</TooltipContent>
+                              <TooltipContent side="bottom">Simuler une cession</TooltipContent>
                             </Tooltip>
+
+                            {/* Déclarer une cession (FIFO) */}
+                            {onDeclareCession && (
+                              <RSUDeclareCessionDialog
+                                plan={plan}
+                                onDeclareCession={onDeclareCession}
+                                isDeclaring={isDeclaring}
+                              />
+                            )}
 
                             <AlertDialog>
                               <Tooltip>

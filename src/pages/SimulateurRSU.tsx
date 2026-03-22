@@ -12,6 +12,7 @@ import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer
 import { SimulationValidationOverlay } from '@/components/simulators/SimulationValidationOverlay';
 import type { ValidationStep } from '@/components/simulators/SimulationValidationOverlay';
 import { RSUPlansDashboard, RSUPlanEditor, RSUCessionParams, RSUResults, RSUIntroScreen } from '@/components/simulators/rsu';
+import { useVegaPortfolio } from '@/hooks/useVegaPortfolio';
 import { RSUSavedSimulations } from '@/components/simulators/rsu/RSUSavedSimulations';
 import { calculateRSUSimulation } from '@/utils/rsuCalculations';
 import { useSimulationDefaults } from '@/contexts/GlobalSettingsContext';
@@ -44,6 +45,7 @@ const SimulateurRSU = () => {
   const introSeen = useRef(false);
   const [screen, setScreen] = useState<Screen>(loadSimId ? 'dashboard' : 'intro');
   const { plans, setPlans, isLoading: isLoadingPlans, reload: reloadPlans } = useRSUPlans();
+  const portfolio = useVegaPortfolio();
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [simulatingPlanId, setSimulatingPlanId] = useState<string | null>(null);
   const [cessionParams, setCessionParams] = useState<CessionParamsType>({
@@ -232,7 +234,14 @@ const SimulateurRSU = () => {
               onDeletePlan={handleDeletePlan}
               onSimulate={() => setScreen('cession')}
               onSimulatePlan={(id) => { setSimulatingPlanId(id); setScreen('cession'); }}
-              onDeclareCessionPlan={(id) => { setSimulatingPlanId(id); setScreen('cession'); }}
+              onDeclareCession={async (planId, nbActions) => {
+                // Find the matching portfolio plan to get simulationId
+                const portfolioPlan = portfolio.plans.find(p => p.id.endsWith(planId));
+                if (portfolioPlan) {
+                  await portfolio.declareCession(portfolioPlan.id, portfolioPlan.simulationId, nbActions);
+                }
+              }}
+              isDeclaring={portfolio.isDeclaring}
               onViewSavedSimulations={() => setScreen('saved')}
             />
           )}
