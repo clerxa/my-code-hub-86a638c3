@@ -295,14 +295,8 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
         }
         // Épargne — source: capacité d'épargne mensuelle du profil financier
         if (data.capaciteEpargneMensuelle > 0) {
-          const perBucket = Math.round(data.capaciteEpargneMensuelle / 3);
-          updated.ep_precaution = perBucket;
-          updated.ep_projets = perBucket;
-          updated.investissement = data.capaciteEpargneMensuelle - 2 * perBucket;
-          const epSource = `Capacité d'épargne mensuelle (${data.capaciteEpargneMensuelle.toLocaleString("fr-FR")} €) répartie en 3 postes`;
-          filledMap.set("ep_precaution", epSource);
-          filledMap.set("ep_projets", epSource);
-          filledMap.set("investissement", epSource);
+          updated.epargne_totale = data.capaciteEpargneMensuelle;
+          filledMap.set("epargne_totale", `Capacité d'épargne mensuelle (${data.capaciteEpargneMensuelle.toLocaleString("fr-FR")} €) importée de votre profil`);
         }
         return updated;
       });
