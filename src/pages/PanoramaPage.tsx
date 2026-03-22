@@ -149,8 +149,8 @@ export default function PanoramaPage() {
 
   // Financial data
   const fp = financialProfile as any;
-  const revenuNet = fp?.revenu_mensuel_net != null ? fp.revenu_mensuel_net / 12 : null;
-  const chargesFixes = (fp?.charges_loyer_credit ?? 0) + (fp?.charges_transport ?? 0) + (fp?.charges_alimentation ?? 0) + (fp?.charges_abonnements ?? 0) + (fp?.charges_autres ?? 0);
+  const revenuNet = fp?.revenu_mensuel_net ?? null;
+  const chargesFixes = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0) + (fp?.charges_fixes_mensuelles ?? 0);
   const pasEstime = fp?.prelevement_source_mensuel ?? null;
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
   const resteAVivre = revenuNet != null ? revenuNet - chargesFixes - (pasEstime ?? 0) - (capaciteEpargne ?? 0) : null;
