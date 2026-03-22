@@ -148,7 +148,7 @@ const DEFAULT_SIMULATION_DEFAULTS: SimulationDefaults = {
   epargne_seuil_charges_eleve: 0.6,
   epargne_objectif_mois: 12,
   // Capacité d'épargne
-  brut_net_ratio: 78,
+  brut_net_ratio: 77,
   optimisation_reduction_rate: 10,
   budget_rule_besoins: 50,
   budget_rule_envies: 30,
