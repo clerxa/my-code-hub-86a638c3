@@ -264,12 +264,16 @@ const App = () => (
               }
             />
             <Route
-              path="/employee/first-login"
+              path="/employee/onboarding-flow"
               element={
                 <ProtectedRoute>
-                  <FirstLoginOnboarding />
+                  <OnboardingFlow />
                 </ProtectedRoute>
               }
+            />
+            <Route
+              path="/employee/first-login"
+              element={<Navigate to="/employee/onboarding-flow" replace />}
             />
             <Route
               path="/employee/diagnostic"

@@ -48,12 +48,12 @@ const Index = () => {
 
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("first_login_onboarding_completed")
+        .select("onboarding_completed, onboarding_step")
         .eq("id", session.user.id)
         .single();
 
-      if (!(profileData as any)?.first_login_onboarding_completed) {
-        navigate("/employee/first-login");
+      if (!(profileData as any)?.onboarding_completed) {
+        navigate("/employee/onboarding-flow");
       } else {
         navigate("/employee");
       }
