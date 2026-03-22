@@ -63,7 +63,10 @@ export function FinancialProfileWizard({
   
   requiredFieldKeys = [],
   initialStepId = null,
+  chargesOnly = false,
 }: FinancialProfileWizardProps) {
+  const STEPS = chargesOnly ? CHARGES_STEPS : REVENUE_STEPS;
+  
   const getStepIndex = (stepId: string | null) => {
     if (!stepId) return 0;
     const idx = STEPS.findIndex(s => s.id === stepId);
