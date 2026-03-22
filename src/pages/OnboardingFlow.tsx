@@ -7,19 +7,13 @@ import { OnboardingStepBar } from "@/components/onboarding-flow/OnboardingStepBa
 import { StepBienvenue } from "@/components/onboarding-flow/StepBienvenue";
 import { StepSituationPersonnelle } from "@/components/onboarding-flow/StepSituationPersonnelle";
 import { StepSituationPro } from "@/components/onboarding-flow/StepSituationPro";
-import { StepRevenus } from "@/components/onboarding-flow/StepRevenus";
-import { StepCharges } from "@/components/onboarding-flow/StepCharges";
-import { StepEpargne } from "@/components/onboarding-flow/StepEpargne";
 import { StepAtlas } from "@/components/onboarding-flow/StepAtlas";
 
 const STEPS = [
   { id: 1, label: "Bienvenue", key: "bienvenue" },
   { id: 2, label: "Situation", key: "situation" },
   { id: 3, label: "Emploi", key: "professionnel" },
-  { id: 4, label: "Revenus", key: "revenus" },
-  { id: 5, label: "Charges", key: "charges" },
-  { id: 6, label: "Épargne", key: "epargne" },
-  { id: 7, label: "Fiscalité", key: "atlas" },
+  { id: 4, label: "Fiscalité", key: "atlas" },
 ];
 
 export default function OnboardingFlow() {
@@ -103,16 +97,7 @@ export default function OnboardingFlow() {
           <StepSituationPro onNext={() => advanceStep(4)} onSkip={() => advanceStep(4)} onBack={goBack} />
         )}
         {currentStep === 4 && (
-          <StepRevenus onNext={() => advanceStep(5)} onSkip={() => advanceStep(5)} onBack={goBack} />
-        )}
-        {currentStep === 5 && (
-          <StepCharges onNext={() => advanceStep(6)} onSkip={() => advanceStep(6)} onBack={goBack} />
-        )}
-        {currentStep === 6 && (
-          <StepEpargne onNext={() => advanceStep(7, "audit_panorama_completed")} onSkip={() => advanceStep(7)} onBack={goBack} />
-        )}
-        {currentStep === 7 && (
-          <StepAtlas onNext={() => advanceStep(8, "atlas_completed")} onSkip={() => advanceStep(8)} onBack={goBack} />
+          <StepAtlas onNext={() => advanceStep(5, "atlas_completed")} onSkip={() => advanceStep(5)} onBack={goBack} />
         )}
       </div>
     </div>
