@@ -155,9 +155,8 @@ export default function PanoramaPage() {
   const autresRevenusMensuel = fp?.autres_revenus_mensuels ?? 0;
   const totalRevenusMensuel = revenuNetMensuel != null ? revenuNetMensuel + revenusFonciersMensuel + autresRevenusMensuel : null;
   const chargesFixes = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0) + (fp?.charges_fixes_mensuelles ?? 0);
-  const pasEstime = fp?.prelevement_source_mensuel ?? null;
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
-  const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - chargesFixes - (pasEstime ?? 0) - (capaciteEpargne ?? 0) : null;
+  const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - chargesFixes - (capaciteEpargne ?? 0) : null;
   const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
 
   // Patrimoine breakdown (immo net already in patrimoine_total now)
