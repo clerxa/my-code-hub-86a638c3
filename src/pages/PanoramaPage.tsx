@@ -161,11 +161,11 @@ export default function PanoramaPage() {
             </div>
             <TooltipProvider>
               <div className="flex items-center gap-2 min-w-0 md:w-72">
-                <span className="text-xs text-muted-foreground whitespace-nowrap">Profil {completeness_score}%</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">Profil {financialCompleteness}%</span>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="flex-1 cursor-help" onClick={() => completeness_score < 100 && navigate("/panorama/audit")}>
-                      <Progress value={completeness_score} className="h-1.5" />
+                    <div className="flex-1 cursor-help" onClick={() => financialCompleteness < 100 && navigate("/panorama/audit")}>
+                      <Progress value={financialCompleteness} className="h-1.5" />
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="max-w-xs">
