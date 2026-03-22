@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import {
   ArrowRight, TrendingUp, FileText, Compass, UserCheck,
-  RefreshCw, ChevronRight, Info, Lock, AlertTriangle
+  RefreshCw, ChevronRight, Info, Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -164,46 +164,33 @@ export default function PanoramaPage() {
   // Vesting imminent
   const imminentVesting = timeline.find(e => e.type === "vesting" && e.daysUntil <= 60);
 
-  // Onboarding unlock check
-  const panoramaUnlocked =
+  // Profile completeness nudge (non-blocking)
+  const profileComplete =
     onboardingStatus?.atlas_completed &&
-    onboardingStatus?.audit_panorama_completed &&
-    onboardingStatus?.risk_profile_completed;
-
-  const stepsRemaining = [
-    !onboardingStatus?.atlas_completed,
-    !onboardingStatus?.audit_panorama_completed,
-    !onboardingStatus?.risk_profile_completed,
-  ].filter(Boolean).length;
+    onboardingStatus?.audit_panorama_completed;
 
   return (
     <EmployeeLayout activeSection="panorama">
       <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-4">
 
-        {/* ═══ ONBOARDING BANNER ═══ */}
-        {!panoramaUnlocked && onboardingStatus && (
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
-                <p className="text-sm text-amber-800 dark:text-amber-300">
-                  <strong>{stepsRemaining} étape{stepsRemaining > 1 ? "s" : ""} restante{stepsRemaining > 1 ? "s" : ""}</strong> pour débloquer votre tableau de bord complet
+        {/* ═══ EDUCATIONAL NUDGE BANNER ═══ */}
+        {!profileComplete && onboardingStatus && (
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-lg border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Sparkles className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Plus vous renseignez votre profil, plus vos analyses seront précises
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Complétez votre audit patrimonial pour obtenir des recommandations personnalisées
                 </p>
               </div>
-              <div className="flex gap-3 text-xs">
-                <span className={onboardingStatus.atlas_completed ? "text-emerald-600" : "text-muted-foreground"}>
-                  {onboardingStatus.atlas_completed ? "✅" : "⬜"} Situation fiscale
-                </span>
-                <span className={onboardingStatus.audit_panorama_completed ? "text-emerald-600" : "text-muted-foreground"}>
-                  {onboardingStatus.audit_panorama_completed ? "✅" : "⬜"} Profil patrimonial
-                </span>
-                <span className={onboardingStatus.risk_profile_completed ? "text-emerald-600" : "text-muted-foreground"}>
-                  {onboardingStatus.risk_profile_completed ? "✅" : "⬜"} Profil de risque
-                </span>
-              </div>
             </div>
-            <Button size="sm" variant="outline" onClick={() => navigate("/employee/onboarding-flow")} className="shrink-0 gap-1">
-              Continuer <ArrowRight className="h-3.5 w-3.5" />
+            <Button size="sm" onClick={() => navigate("/panorama/audit")} className="shrink-0 gap-1.5">
+              Compléter mon profil <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </div>
         )}
@@ -292,9 +279,7 @@ export default function PanoramaPage() {
         </section>
 
         {/* ═══ SECTION 2 — MODULE GRID (asymmetric) ═══ */}
-        <div className="relative">
-          {!panoramaUnlocked && <LockedOverlay onUnlock={() => navigate("/employee/onboarding-flow")} />}
-        <section className={cn("grid grid-cols-1 md:grid-cols-3 gap-3", !panoramaUnlocked && "opacity-40 blur-[2px] pointer-events-none")}>
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* VEGA — large card spanning 2 cols */}
           <div
             className="md:col-span-2 md:row-span-3 rounded-lg border border-border bg-card p-5 cursor-pointer hover:shadow-md transition-shadow group"
@@ -394,13 +379,10 @@ export default function PanoramaPage() {
             )}
           </ModuleCard>
         </section>
-        </div>
 
         {/* ═══ SECTION 3 — SYNTHÈSE FINANCIÈRE (compact line) ═══ */}
-        <div className="relative">
-          {!panoramaUnlocked && <LockedOverlay onUnlock={() => navigate("/employee/onboarding-flow")} />}
         {financialProfile && (
-          <section className={cn("rounded-lg border border-border bg-card p-4", !panoramaUnlocked && "opacity-40 blur-[2px] pointer-events-none")}>
+          <section className="rounded-lg border border-border bg-card p-4">
             {/* Flow line */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
               {revenuNet != null && (
@@ -444,13 +426,10 @@ export default function PanoramaPage() {
             </div>
           </section>
         )}
-        </div>
 
         {/* ═══ SECTION 4 — TIMELINE (badges horizontaux) ═══ */}
-        <div className="relative">
-          {!panoramaUnlocked && <LockedOverlay onUnlock={() => navigate("/employee/onboarding-flow")} />}
         {timeline.length > 0 && (
-          <section className={cn("flex gap-2 overflow-x-auto pb-1 -mx-1 px-1", !panoramaUnlocked && "opacity-40 blur-[2px] pointer-events-none")}>
+          <section className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
             {timeline.map((event, i) => (
               <div
                 key={i}
@@ -464,7 +443,7 @@ export default function PanoramaPage() {
             ))}
           </section>
         )}
-        </div>
+
 
         {/* ═══ SECTION 5 — DERNIÈRES SIMULATIONS (compact list) ═══ */}
         {synthesis?.simulations && synthesis.simulations.length > 0 && (
@@ -557,16 +536,3 @@ function MetricChip({ label, value, highlight }: { label: string; value: string;
   );
 }
 
-function LockedOverlay({ onUnlock }: { onUnlock: () => void }) {
-  return (
-    <div className="absolute inset-0 bg-background/60 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center gap-3 z-10">
-      <Lock className="h-6 w-6 text-muted-foreground" />
-      <p className="text-sm text-muted-foreground text-center px-4">
-        Complétez votre profil pour accéder à cette section
-      </p>
-      <Button size="sm" onClick={onUnlock} className="gap-1">
-        Compléter mon profil <ArrowRight className="h-3.5 w-3.5" />
-      </Button>
-    </div>
-  );
-}
