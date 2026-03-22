@@ -77,9 +77,7 @@ const EXPENSE_ITEMS = {
     { key: "sante", label: "Santé", emoji: "💊", defaultVal: 50, max: 3000, tooltip: "Pharmacie, consultations non remboursées… (mensuel)" },
   ],
   epargne: [
-    { key: "ep_precaution", label: "Épargne de précaution", emoji: "🏦", defaultVal: 200, max: 10000, tooltip: "Livret A, LDDS — votre matelas de sécurité (mensuel)" },
-    { key: "ep_projets", label: "Épargne projets", emoji: "🎯", defaultVal: 200, max: 10000, tooltip: "Vacances, apport immobilier, achat important… (mensuel)" },
-    { key: "investissement", label: "Investissement long terme", emoji: "📈", defaultVal: 200, max: 10000, tooltip: "PEA, assurance-vie, SCPI… (mensuel)" },
+    { key: "epargne_totale", label: "Épargne mensuelle totale", emoji: "🏦", defaultVal: 600, max: 30000, tooltip: "Tout ce que vous mettez de côté chaque mois : livrets, projets, investissements…" },
   ],
 };
 
