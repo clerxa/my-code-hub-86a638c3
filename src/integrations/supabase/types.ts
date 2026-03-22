@@ -5947,13 +5947,17 @@ export type Database = {
           charges_assurance_habitation: number | null
           charges_autres: number | null
           charges_copropriete_taxes: number | null
+          charges_courses_alimentaires: number | null
           charges_energie: number | null
           charges_fixes_mensuelles: number | null
           charges_frais_scolarite: number | null
           charges_internet: number | null
           charges_lld_loa_auto: number | null
+          charges_loisirs: number | null
           charges_mobile: number | null
+          charges_shopping: number | null
           charges_transport_commun: number | null
+          charges_variables_autres: number | null
           created_at: string
           credits_auto: number | null
           credits_consommation: number | null
@@ -6035,13 +6039,17 @@ export type Database = {
           charges_assurance_habitation?: number | null
           charges_autres?: number | null
           charges_copropriete_taxes?: number | null
+          charges_courses_alimentaires?: number | null
           charges_energie?: number | null
           charges_fixes_mensuelles?: number | null
           charges_frais_scolarite?: number | null
           charges_internet?: number | null
           charges_lld_loa_auto?: number | null
+          charges_loisirs?: number | null
           charges_mobile?: number | null
+          charges_shopping?: number | null
           charges_transport_commun?: number | null
+          charges_variables_autres?: number | null
           created_at?: string
           credits_auto?: number | null
           credits_consommation?: number | null
@@ -6123,13 +6131,17 @@ export type Database = {
           charges_assurance_habitation?: number | null
           charges_autres?: number | null
           charges_copropriete_taxes?: number | null
+          charges_courses_alimentaires?: number | null
           charges_energie?: number | null
           charges_fixes_mensuelles?: number | null
           charges_frais_scolarite?: number | null
           charges_internet?: number | null
           charges_lld_loa_auto?: number | null
+          charges_loisirs?: number | null
           charges_mobile?: number | null
+          charges_shopping?: number | null
           charges_transport_commun?: number | null
+          charges_variables_autres?: number | null
           created_at?: string
           credits_auto?: number | null
           credits_consommation?: number | null

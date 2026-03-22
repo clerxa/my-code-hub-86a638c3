@@ -33,6 +33,7 @@ const tabs = [
   { id: "situation", label: "Situation", icon: Users },
   { id: "professional", label: "Professionnel", icon: Briefcase },
   { id: "financial", label: "Revenus", icon: Wallet },
+  { id: "charges", label: "Charges", icon: Euro },
   { id: "savings", label: "Épargne", icon: PiggyBank },
   { id: "objectives", label: "Objectifs", icon: Target },
 ];
@@ -54,11 +55,11 @@ export const AUDIT_FIELD_TO_TAB: Record<string, string> = {
   revenu_annuel_brut_conjoint: "financial",
   autres_revenus_mensuels: "financial",
   revenus_locatifs: "financial",
-  charges_fixes_mensuelles: "financial",
-  loyer_actuel: "financial",
-  credits_immobilier: "financial",
-  credits_consommation: "financial",
-  credits_auto: "financial",
+  charges_fixes_mensuelles: "charges",
+  loyer_actuel: "charges",
+  credits_immobilier: "charges",
+  credits_consommation: "charges",
+  credits_auto: "charges",
   epargne_livrets: "savings",
   epargne_actuelle: "savings",
   capacite_epargne_mensuelle: "savings",
@@ -99,6 +100,10 @@ const FIELD_TO_WIZARD_STEP: Record<string, string> = {
   charges_frais_scolarite: "charges",
   pensions_alimentaires: "charges",
   charges_autres: "charges",
+  charges_courses_alimentaires: "charges",
+  charges_loisirs: "charges",
+  charges_shopping: "charges",
+  charges_variables_autres: "charges",
 };
 
 interface ProfileData {
@@ -163,6 +168,8 @@ export default function PanoramaAuditPage() {
     setSearchParams({ tab: value });
     if (value === "financial" && fieldKey && FIELD_TO_WIZARD_STEP[fieldKey]) {
       setWizardInitialStep(FIELD_TO_WIZARD_STEP[fieldKey]);
+    } else if (value === "charges" && fieldKey && FIELD_TO_WIZARD_STEP[fieldKey]) {
+      setWizardInitialStep(FIELD_TO_WIZARD_STEP[fieldKey]);
     } else {
       setWizardInitialStep(null);
     }
@@ -226,6 +233,10 @@ export default function PanoramaAuditPage() {
       charges_abonnements: financialProfile.charges_abonnements,
       charges_frais_scolarite: financialProfile.charges_frais_scolarite,
       charges_autres: financialProfile.charges_autres,
+      charges_courses_alimentaires: (financialProfile as any).charges_courses_alimentaires ?? 0,
+      charges_loisirs: (financialProfile as any).charges_loisirs ?? 0,
+      charges_shopping: (financialProfile as any).charges_shopping ?? 0,
+      charges_variables_autres: (financialProfile as any).charges_variables_autres ?? 0,
       statut_residence: financialProfile.statut_residence,
       epargne_actuelle: financialProfile.epargne_actuelle,
       epargne_livrets: financialProfile.epargne_livrets,
@@ -472,7 +483,7 @@ export default function PanoramaAuditPage() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="w-full grid grid-cols-5 h-auto p-1 bg-card border shadow-sm">
+            <TabsList className="w-full grid grid-cols-6 h-auto p-1 bg-card border shadow-sm">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -874,6 +885,27 @@ export default function PanoramaAuditPage() {
                 
                 requiredFieldKeys={requiredFieldKeys}
                 initialStepId={wizardInitialStep}
+              />
+            </TabsContent>
+
+            {/* Tab: Charges */}
+            <TabsContent value="charges" className="space-y-6 mt-6">
+              <div className="flex items-start gap-3 rounded-lg border border-blue-500/20 bg-blue-500/5 p-4 mb-4">
+                <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-800 dark:text-blue-300">
+                  Renseignez l'ensemble des charges de <strong>votre foyer fiscal</strong> : charges fixes et dépenses courantes.
+                </p>
+              </div>
+              <FinancialProfileWizard
+                formData={formData}
+                updateField={updateFinancialField}
+                onSave={() => saveProfile(formData, { onSuccess: () => setOriginalFormData(formData) })}
+                isSaving={savingFinancial}
+                situationFamiliale={formData.situation_familiale || profile?.marital_status || null}
+                hasEquityBenefits={false}
+                requiredFieldKeys={requiredFieldKeys}
+                initialStepId="charges"
+                chargesOnly
               />
             </TabsContent>
 

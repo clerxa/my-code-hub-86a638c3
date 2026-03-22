@@ -52,6 +52,11 @@ export interface UserFinancialProfile {
   charges_frais_scolarite: number;
   // 💳 Autres
   charges_autres: number;
+  // 🛒 Charges variables
+  charges_courses_alimentaires: number;
+  charges_loisirs: number;
+  charges_shopping: number;
+  charges_variables_autres: number;
   // Residence status
   statut_residence: string | null;
   // Assets - Savings
