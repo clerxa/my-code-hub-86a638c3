@@ -356,10 +356,10 @@ export default function PanoramaPage() {
                   <MetricChip label="PAS estimé" value={`${formatEuros(pasEstime)}/mois`} />
                 </>
               )}
-              {epargneMensuelle != null && epargneMensuelle > 0 && (
+              {capaciteEpargne != null && capaciteEpargne > 0 && (
                 <>
                   <span className="text-muted-foreground">−</span>
-                  <MetricChip label="Épargne mensuelle" value={`${formatEuros(epargneMensuelle)}/mois`} />
+                  <MetricChip label="Capacité d'épargne" value={`${formatEuros(capaciteEpargne)}/mois`} />
                 </>
               )}
               {resteAVivre != null && (
