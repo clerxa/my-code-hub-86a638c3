@@ -297,13 +297,13 @@ export function FinancialProfileWizard({
             <div className="space-y-4">
               <h4 className="font-medium flex items-center gap-2">
                 <Briefcase className="h-4 w-4 text-primary" />
-                Vos revenus
+                Vos revenus — vous seul(e)
               </h4>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5">
-                    <Label>Votre revenu annuel brut (€){requiredMark("revenu_annuel_brut")}</Label>
+                    <Label>Revenu annuel brut (€) — vous seul(e){requiredMark("revenu_annuel_brut")}</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -351,14 +351,14 @@ export function FinancialProfileWizard({
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5">
-                    <Label>Revenu imposable annuel (€){requiredMark("revenu_fiscal_annuel")}</Label>
+                    <Label>Revenu fiscal annuel du foyer (€){requiredMark("revenu_fiscal_annuel")}</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p className="text-xs max-w-xs">Montant déclaré aux impôts (N-1 si année en cours inconnue)</p>
+                          <p className="text-xs max-w-xs">Revenu fiscal de référence de votre foyer, visible sur votre avis d'imposition.</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -368,7 +368,7 @@ export function FinancialProfileWizard({
                     inputMode="numeric"
                     value={getNumericDisplayValue(formData.revenu_fiscal_annuel)}
                     onChange={(e) => handleNumericInput("revenu_fiscal_annuel", e.target.value)}
-                    placeholder="Ex: 50 000"
+                    placeholder="Montant total déclaré aux impôts — vous + conjoint(e)"
                   />
                 </div>
               </div>
@@ -428,6 +428,33 @@ export function FinancialProfileWizard({
                       </TooltipProvider>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Total revenus foyer */}
+            {((formData.revenu_annuel_brut ?? 0) > 0 || (formData.revenu_annuel_brut_conjoint ?? 0) > 0) && (
+              <div className="p-4 rounded-lg bg-muted/50 border">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">
+                    Revenus bruts annuels du foyer
+                  </span>
+                  <span className="font-semibold text-primary">
+                    {((formData.revenu_annuel_brut ?? 0) + 
+                      (formData.revenu_annuel_brut_conjoint ?? 0)
+                    ).toLocaleString('fr-FR')} €
+                  </span>
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-xs text-muted-foreground">
+                    Revenus nets mensuels estimés du foyer
+                  </span>
+                  <span className="text-sm font-medium">
+                    {Math.round(
+                      ((formData.revenu_annuel_brut ?? 0) + 
+                       (formData.revenu_annuel_brut_conjoint ?? 0)) * 0.77 / 12
+                    ).toLocaleString('fr-FR')} €/mois
+                  </span>
                 </div>
               </div>
             )}
