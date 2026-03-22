@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { SimulatorHeader } from "@/components/simulators/SimulatorHeader";
 import { SimulatorDisclaimer } from "@/components/simulators/SimulatorDisclaimer";
 import { SimulationValidationOverlay } from "@/components/simulators/SimulationValidationOverlay";
+import { CapaciteEpargneIntroScreen } from "@/components/simulators/capacite-epargne/CapaciteEpargneIntroScreen";
 import { useFinancialProfilePrefill } from "@/hooks/useFinancialProfilePrefill";
 import { useSimulationTracking } from "@/hooks/useSimulationTracking";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,11 +22,11 @@ import {
   Wifi, CreditCard, GraduationCap, Receipt,
   ShoppingBag, Gamepad2, Tv, Gem, PiggyBank, TrendingUp,
   Lightbulb, ArrowRight, PartyPopper, CheckCircle2, Copy, Info,
+  Building,
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
 import { cn } from "@/lib/utils";
 import { useFiscalRules, useSimulationDefaults } from "@/contexts/GlobalSettingsContext";
-import { calculateImpotAnnuel } from "@/utils/taxCalculations";
 
 // ─── Types ──────────────────────────────────────────────
 interface FieldConfig {
@@ -33,36 +34,35 @@ interface FieldConfig {
   label: string;
   icon: React.ElementType;
   placeholder?: string;
+  tooltip?: string;
 }
 
 // ─── Field definitions per step ──────────────────────────
 const STEP_1_FIELDS: FieldConfig[] = [
-  { key: "salaire", label: "Salaire net mensuel", icon: Wallet, placeholder: "2 500" },
-  { key: "primes", label: "Primes mensualisées", icon: TrendingUp, placeholder: "0" },
+  { key: "salaire", label: "Salaire net mensuel du foyer", icon: Wallet, placeholder: "3 500" },
+  { key: "revenusFonciers", label: "Revenus fonciers mensuels", icon: Building, placeholder: "0" },
   { key: "autresRevenus", label: "Autres revenus", icon: PiggyBank, placeholder: "0" },
 ];
 
 const STEP_2_FIELDS: FieldConfig[] = [
+  // Charges fixes
   { key: "loyer", label: "Loyer / Prêt immobilier", icon: Home, placeholder: "800" },
   { key: "factures", label: "Énergie & factures", icon: Zap, placeholder: "150" },
   { key: "transports", label: "Transports", icon: Car, placeholder: "75" },
   { key: "assurances", label: "Assurances", icon: Shield, placeholder: "50" },
   { key: "telecom", label: "Internet & mobile", icon: Wifi, placeholder: "50" },
-  { key: "impots", label: "Impôts mensualisés", icon: Receipt, placeholder: "0" },
+  { key: "impots", label: "Impôts mensualisés", icon: Receipt, placeholder: "0", tooltip: "Estimé depuis votre profil ATLAS ou calculé automatiquement." },
   { key: "credits", label: "Crédits en cours", icon: CreditCard, placeholder: "0" },
   { key: "scolarite", label: "Frais de scolarité", icon: GraduationCap, placeholder: "0" },
-];
-
-const STEP_3_FIELDS: FieldConfig[] = [
+  { key: "pensionAlimentaire", label: "Pension alimentaire", icon: Receipt, placeholder: "0" },
+  { key: "autresCharges", label: "Autres charges fixes", icon: Receipt, placeholder: "0" },
+  // Style de vie
   { key: "courses", label: "Courses alimentaires", icon: ShoppingBag, placeholder: "400" },
   { key: "loisirs", label: "Loisirs & sorties", icon: Gamepad2, placeholder: "100" },
   { key: "abonnements", label: "Abonnements (streaming…)", icon: Tv, placeholder: "30" },
   { key: "shopping", label: "Shopping & divers", icon: Gem, placeholder: "50" },
-];
-
-const INTERSTITIAL_MESSAGES = [
-  { title: "Beau moteur ! 🚀", subtitle: "Voyons maintenant comment ce flux est utilisé." },
-  { title: "Vos fondations sont posées 🧱", subtitle: "Passons au plaisir et aux loisirs." },
+  // Immobilier locatif charges
+  { key: "chargesImmoLocatif", label: "Charges immobilier locatif", icon: Building, placeholder: "0", tooltip: "Mensualités de crédit et charges liées à vos biens locatifs." },
 ];
 
 type FormValues = Record<string, number>;
@@ -76,15 +76,35 @@ const SimulateurCapaciteEpargne = () => {
   const { getPrefillData, hasProfile } = useFinancialProfilePrefill();
   const { validateSimulation } = useSimulationTracking();
 
-  // step: 0-2 = input, 3 = validating overlay, 4 = results
-  const [step, setStep] = useState(0);
-  const [showInterstitial, setShowInterstitial] = useState(false);
+  // showIntro → step 0-1 input → validating → results
+  const [showIntro, setShowIntro] = useState(true);
+  const [step, setStep] = useState(0); // 0 = revenus, 1 = dépenses
   const [isValidating, setIsValidating] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [optimisation, setOptimisation] = useState(false);
   const [values, setValues] = useState<FormValues>({});
   const [prefilled, setPrefilled] = useState(false);
   const [prefilledKeys, setPrefilledKeys] = useState<Set<string>>(new Set());
   const [savingToProfile, setSavingToProfile] = useState(false);
+  const [atlasImpot, setAtlasImpot] = useState<number | null>(null);
+
+  // Load Atlas tax data
+  useEffect(() => {
+    if (!user?.id) return;
+    const loadAtlas = async () => {
+      const { data } = await supabase
+        .from("ocr_avis_imposition_analyses" as any)
+        .select("impot_net_total")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data?.impot_net_total != null) {
+        setAtlasImpot(Math.round((data as any).impot_net_total / 12));
+      }
+    };
+    loadAtlas();
+  }, [user?.id]);
 
   // Prefill from financial profile
   useEffect(() => {
@@ -95,17 +115,21 @@ const SimulateurCapaciteEpargne = () => {
     const p = data.profile;
     const newValues: FormValues = {};
 
-    // Salaire net mensuel : on prend revenu_mensuel_net, sinon on menusalise le revenu annuel brut
+    // Salaire net mensuel du foyer
     if (p.revenu_mensuel_net > 0) {
       newValues.salaire = Math.round(p.revenu_mensuel_net / 12);
     } else if (p.revenu_annuel_brut > 0) {
-      newValues.salaire = Math.round((p.revenu_annuel_brut * (simulationDefaults.brut_net_ratio / 100)) / 12);
+      const brut = (p.revenu_annuel_brut || 0) + (p.revenu_annuel_brut_conjoint || 0);
+      newValues.salaire = Math.round((brut * (simulationDefaults.brut_net_ratio / 100)) / 12);
     }
-    if (p.autres_revenus_mensuels > 0) newValues.autresRevenus = p.autres_revenus_mensuels;
-    // Revenus locatifs mensualisés
-    if (p.revenus_locatifs > 0) newValues.autresRevenus = (newValues.autresRevenus || 0) + Math.round(p.revenus_locatifs / 12);
 
-    // Besoins
+    // Revenus fonciers
+    if (p.revenus_locatifs > 0) newValues.revenusFonciers = Math.round(p.revenus_locatifs / 12);
+
+    // Autres revenus
+    if (p.autres_revenus_mensuels > 0) newValues.autresRevenus = p.autres_revenus_mensuels;
+
+    // Charges fixes
     if (p.loyer_actuel > 0 || p.credits_immobilier > 0)
       newValues.loyer = (p.loyer_actuel || 0) + (p.credits_immobilier || 0);
     if (p.charges_energie > 0) newValues.factures = p.charges_energie;
@@ -117,73 +141,88 @@ const SimulateurCapaciteEpargne = () => {
     if (p.credits_consommation > 0 || p.credits_auto > 0)
       newValues.credits = (p.credits_consommation || 0) + (p.credits_auto || 0);
     if (p.charges_frais_scolarite > 0) newValues.scolarite = p.charges_frais_scolarite;
+    if (p.pensions_alimentaires > 0) newValues.pensionAlimentaire = p.pensions_alimentaires;
+    if (p.charges_autres > 0) newValues.autresCharges = p.charges_autres;
+    if (p.charges_copropriete_taxes > 0) newValues.autresCharges = (newValues.autresCharges || 0) + p.charges_copropriete_taxes;
 
-    // Estimation impôts mensualisés (1 part fiscale uniquement)
-    const salaireMensuel = newValues.salaire || 0;
-    if (salaireMensuel > 0) {
-      const revenuImposableAnnuel = p.revenu_fiscal_annuel > 0 ? p.revenu_fiscal_annuel : salaireMensuel * 12;
-      const impotAnnuel = calculateImpotAnnuel(revenuImposableAnnuel, 1, tax_brackets);
-      newValues.impots = Math.round(impotAnnuel / 12);
+    // Abonnements from profile
+    if (p.charges_abonnements > 0) newValues.abonnements = p.charges_abonnements;
+
+    // Charges immobilier locatif (credits on rental properties)
+    // We check if they have revenus_locatifs > 0 and patrimoine_immo_credit_restant to estimate monthly
+    if (p.patrimoine_immo_credit_restant > 0 && p.revenus_locatifs > 0) {
+      // Rough estimate: credit restant spread over assumed remaining years
+      // This is a rough heuristic; users can adjust
     }
 
-    // Envies
-    if (p.charges_abonnements > 0) newValues.abonnements = p.charges_abonnements;
-    // shopping reste à 0 par défaut (pas de correspondance directe dans le profil)
-
-    // Track which keys were prefilled
     setPrefilledKeys(new Set(Object.keys(newValues)));
     setValues(newValues);
     setPrefilled(true);
-  }, [getPrefillData, prefilled]);
+  }, [getPrefillData, prefilled, simulationDefaults.brut_net_ratio]);
+
+  // Apply atlas impot once loaded
+  useEffect(() => {
+    if (atlasImpot != null && !values.impots) {
+      setValues(prev => ({ ...prev, impots: atlasImpot }));
+      setPrefilledKeys(prev => new Set([...prev, "impots"]));
+    }
+  }, [atlasImpot]);
 
   // ─── Calculations ─────────────────────────────────────
   const calculations = useMemo(() => {
     const sum = (keys: string[]) => keys.reduce((acc, k) => acc + (values[k] || 0), 0);
 
     const revenus = sum(STEP_1_FIELDS.map(f => f.key));
-    const besoins = sum(STEP_2_FIELDS.map(f => f.key));
-    let envies = sum(STEP_3_FIELDS.map(f => f.key));
+    let depenses = sum(STEP_2_FIELDS.map(f => f.key));
 
-    if (optimisation) envies = Math.round(envies * (1 - simulationDefaults.optimisation_reduction_rate / 100));
+    if (optimisation) {
+      // Reduce "envies" portion (courses, loisirs, abonnements, shopping) by optimisation rate
+      const enviesKeys = ["courses", "loisirs", "abonnements", "shopping"];
+      const enviesTotal = sum(enviesKeys);
+      const reduction = Math.round(enviesTotal * (simulationDefaults.optimisation_reduction_rate / 100));
+      depenses -= reduction;
+    }
 
-    const epargne = Math.max(0, revenus - besoins - envies);
+    const epargne = Math.max(0, revenus - depenses);
     const projectionAnnuelle = epargne * 12;
+
+    // Split for chart: fixed charges vs lifestyle
+    const chargesFixesKeys = ["loyer", "factures", "transports", "assurances", "telecom", "impots", "credits", "scolarite", "pensionAlimentaire", "autresCharges", "chargesImmoLocatif"];
+    const enviesKeys = ["courses", "loisirs", "abonnements", "shopping"];
+    const besoins = sum(chargesFixesKeys);
+    let envies = sum(enviesKeys);
+    if (optimisation) envies = Math.round(envies * (1 - simulationDefaults.optimisation_reduction_rate / 100));
 
     const pctBesoins = revenus > 0 ? Math.round((besoins / revenus) * 100) : 0;
     const pctEnvies = revenus > 0 ? Math.round((envies / revenus) * 100) : 0;
     const pctEpargne = revenus > 0 ? Math.round((epargne / revenus) * 100) : 0;
 
-    return { revenus, besoins, envies, epargne, projectionAnnuelle, pctBesoins, pctEnvies, pctEpargne };
-  }, [values, optimisation]);
+    return { revenus, depenses, besoins, envies, epargne, projectionAnnuelle, pctBesoins, pctEnvies, pctEpargne };
+  }, [values, optimisation, simulationDefaults.optimisation_reduction_rate]);
 
   // Track on results
   useEffect(() => {
-    if (step === 4 && calculations.revenus > 0) {
+    if (showResults && calculations.revenus > 0) {
       validateSimulation({
         simulatorType: "capacite_epargne",
         simulationData: { ...values },
         resultsData: { ...calculations },
       });
     }
-  }, [step]);
+  }, [showResults]);
 
   // ─── Navigation ───────────────────────────────────────
   const handleNext = () => {
-    if (step < 2) {
-      setShowInterstitial(true);
-      setTimeout(() => {
-        setShowInterstitial(false);
-        setStep(s => s + 1);
-      }, 2000);
+    if (step < 1) {
+      setStep(1);
     } else {
-      // Step 2 → launch validation overlay
       setIsValidating(true);
     }
   };
 
   const handleValidationComplete = () => {
     setIsValidating(false);
-    setStep(4); // Show results
+    setShowResults(true);
   };
 
   const handlePrev = () => {
@@ -217,17 +256,16 @@ const SimulateurCapaciteEpargne = () => {
 
   // ─── Donut Data ──────────────────────────────────────
   const donutData = [
-    { name: "Besoins", value: calculations.besoins || 1, fill: "hsl(var(--primary))" },
-    { name: "Envies", value: calculations.envies || 1, fill: "hsl(38 92% 50%)" },
+    { name: "Charges fixes", value: calculations.besoins || 1, fill: "hsl(var(--primary))" },
+    { name: "Style de vie", value: calculations.envies || 1, fill: "hsl(38 92% 50%)" },
     { name: "Épargne", value: calculations.epargne || 1, fill: "hsl(142 71% 45%)" },
   ];
 
-  const stepFields = [STEP_1_FIELDS, STEP_2_FIELDS, STEP_3_FIELDS];
-  const stepTitles = ["Vos Revenus", "Vos Besoins (Incompressibles)", "Votre Style de Vie (Envies)"];
+  const stepFields = [STEP_1_FIELDS, STEP_2_FIELDS];
+  const stepTitles = ["Revenus du foyer", "Vos dépenses mensuelles"];
   const stepSubtitles = [
-    "Commençons par identifier vos entrées d'argent mensuelles",
-    "Les dépenses essentielles de votre quotidien",
-    "Les plaisirs et loisirs qui font votre qualité de vie",
+    "Les entrées d'argent mensuelles de votre foyer",
+    "Charges fixes, crédits, impôts et dépenses courantes",
   ];
 
   const slideVariants = {
@@ -235,6 +273,22 @@ const SimulateurCapaciteEpargne = () => {
     center: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: -30 },
   };
+
+  // Show intro screen
+  if (showIntro) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 max-w-3xl py-6">
+          <SimulatorHeader
+            title="Capacité d'Épargne"
+            description="Découvrez votre potentiel de liberté financière"
+            onBack={() => navigate('/employee/simulations')}
+          />
+          <CapaciteEpargneIntroScreen onStart={() => setShowIntro(false)} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -252,7 +306,7 @@ const SimulateurCapaciteEpargne = () => {
           onBack={() => navigate('/employee/simulations')}
         />
 
-        {hasProfile && step < 3 && (
+        {hasProfile && !showResults && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
             <Badge variant="outline" className="gap-1.5 text-xs border-primary/30 text-primary bg-primary/5">
               <CheckCircle2 className="h-3.5 w-3.5" /> Données pré-remplies depuis votre profil financier
@@ -260,31 +314,12 @@ const SimulateurCapaciteEpargne = () => {
           </motion.div>
         )}
 
-        {/* Interstitial overlay */}
-        <AnimatePresence>
-          {showInterstitial && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
-            >
-              <div className="text-center space-y-3">
-                <motion.div initial={{ y: 10 }} animate={{ y: 0 }} className="text-2xl font-bold">
-                  {INTERSTITIAL_MESSAGES[step]?.title}
-                </motion.div>
-                <p className="text-muted-foreground">{INTERSTITIAL_MESSAGES[step]?.subtitle}</p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ─── Input Steps (0-2) ──────────────────────── */}
-        {step <= 2 && (
+        {/* ─── Input Steps (0-1) ──────────────────────── */}
+        {!showResults && (
           <>
             {/* Step indicator */}
             <div className="flex items-center gap-2 mb-6">
-              {[0, 1, 2].map(i => (
+              {[0, 1].map(i => (
                 <div key={i} className="flex items-center gap-2 flex-1">
                   <div className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all",
@@ -293,7 +328,7 @@ const SimulateurCapaciteEpargne = () => {
                   )}>
                     {i < step ? "✓" : i + 1}
                   </div>
-                  {i < 2 && <div className={cn("flex-1 h-0.5 rounded", i < step ? "bg-primary/40" : "bg-muted")} />}
+                  {i < 1 && <div className={cn("flex-1 h-0.5 rounded", i < step ? "bg-primary/40" : "bg-muted")} />}
                 </div>
               ))}
             </div>
@@ -318,19 +353,18 @@ const SimulateurCapaciteEpargne = () => {
                       {stepFields[step].map(field => {
                         const Icon = field.icon;
                         const isPrefilled = prefilledKeys.has(field.key);
-                        const isImpots = field.key === "impots";
                         return (
                           <div key={field.key} className="space-y-1.5">
                             <Label className="text-sm font-medium flex items-center gap-2">
                               <Icon className="h-4 w-4 text-muted-foreground" />
                               {field.label}
-                              {isImpots && (
+                              {field.tooltip && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                                   </TooltipTrigger>
                                   <TooltipContent side="top" className="max-w-[250px] text-xs">
-                                    Estimé automatiquement sur la base d'une part fiscale. Le montant peut être modifié manuellement.
+                                    {field.tooltip}
                                   </TooltipContent>
                                 </Tooltip>
                               )}
@@ -348,7 +382,7 @@ const SimulateurCapaciteEpargne = () => {
                             </div>
                             {isPrefilled && (
                               <p className="text-[11px] text-primary/70 flex items-center gap-1">
-                                <CheckCircle2 className="h-3 w-3" /> Récupéré du profil financier
+                                <CheckCircle2 className="h-3 w-3" /> Récupéré du profil
                               </p>
                             )}
                           </div>
@@ -364,7 +398,7 @@ const SimulateurCapaciteEpargne = () => {
                         </Button>
                       ) : <div />}
                       <Button onClick={handleNext} className="gap-2">
-                        {step === 2 ? "Calculer ma capacité" : "Suivant"}
+                        {step === 1 ? "Calculer ma capacité" : "Suivant"}
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>
@@ -379,8 +413,8 @@ const SimulateurCapaciteEpargne = () => {
           </>
         )}
 
-        {/* ─── Results (step 4) ──────────────────────── */}
-        {step === 4 && (
+        {/* ─── Results ──────────────────────── */}
+        {showResults && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -443,8 +477,8 @@ const SimulateurCapaciteEpargne = () => {
                   </div>
                   <div className="space-y-2">
                     {[
-                      { label: "Besoins", value: calculations.besoins, pct: calculations.pctBesoins, color: "bg-primary" },
-                      { label: "Envies", value: calculations.envies, pct: calculations.pctEnvies, color: "bg-amber-500" },
+                      { label: "Charges fixes", value: calculations.besoins, pct: calculations.pctBesoins, color: "bg-primary" },
+                      { label: "Style de vie", value: calculations.envies, pct: calculations.pctEnvies, color: "bg-amber-500" },
                       { label: "Épargne", value: calculations.epargne, pct: calculations.pctEpargne, color: "bg-emerald-500" },
                     ].map(item => (
                       <div key={item.label} className="flex items-center justify-between text-sm">
@@ -464,8 +498,8 @@ const SimulateurCapaciteEpargne = () => {
                   <h3 className="font-semibold mb-4">Jauge {simulationDefaults.budget_rule_besoins}/{simulationDefaults.budget_rule_envies}/{simulationDefaults.budget_rule_epargne}</h3>
                   <div className="space-y-5">
                     {[
-                      { label: "Besoins", actual: calculations.pctBesoins, ideal: simulationDefaults.budget_rule_besoins, color: "bg-primary" },
-                      { label: "Envies", actual: calculations.pctEnvies, ideal: simulationDefaults.budget_rule_envies, color: "bg-amber-500" },
+                      { label: "Charges fixes", actual: calculations.pctBesoins, ideal: simulationDefaults.budget_rule_besoins, color: "bg-primary" },
+                      { label: "Style de vie", actual: calculations.pctEnvies, ideal: simulationDefaults.budget_rule_envies, color: "bg-amber-500" },
                       { label: "Épargne", actual: calculations.pctEpargne, ideal: simulationDefaults.budget_rule_epargne, color: "bg-emerald-500" },
                     ].map(g => (
                       <div key={g.label} className="space-y-1.5">
@@ -501,7 +535,7 @@ const SimulateurCapaciteEpargne = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium">Mode "Et si ?"</p>
-                        <p className="text-xs text-muted-foreground">Réduire les envies de 10%</p>
+                        <p className="text-xs text-muted-foreground">Réduire le style de vie de 10%</p>
                       </div>
                       <Switch checked={optimisation} onCheckedChange={setOptimisation} />
                     </div>
@@ -564,7 +598,7 @@ const SimulateurCapaciteEpargne = () => {
 
             {/* Actions */}
             <div className="flex items-center justify-between pb-20">
-              <Button variant="outline" onClick={() => setStep(0)} className="gap-2">
+              <Button variant="outline" onClick={() => { setShowResults(false); setStep(0); }} className="gap-2">
                 <ChevronLeft className="h-4 w-4" /> Nouvelle simulation
               </Button>
               <Button onClick={() => navigate("/employee/simulateurs")} className="gap-2">
