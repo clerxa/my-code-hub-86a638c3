@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { CommunicationKitTab } from "@/components/admin/CommunicationKitTab";
+import { AddToCalendarButton } from "@/components/webinar/AddToCalendarButton";
 
 interface ValidatedWebinar {
   module_id: number;
@@ -182,39 +183,53 @@ export const UpcomingWebinars = ({ companyId, showCard = true }: UpcomingWebinar
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2">
-            {webinar.registration_url && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
-                onClick={() => window.open(webinar.registration_url!, "_blank")}
-              >
-                <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                S'inscrire
-              </Button>
-            )}
-            
-            {isContactEntreprise && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
-                    onClick={() => setSelectedWebinarId(webinar.module_id)}
-                  >
-                    <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                    <span className="hidden xs:inline">Kit </span>Communication
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-[95vw] sm:max-w-5xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="text-sm sm:text-base">Kit de Communication - {webinar.title}</DialogTitle>
-                  </DialogHeader>
-                  <CommunicationKitTab preselectedModuleId={webinar.module_id} preselectedCompanyId={resolvedCompanyId} />
-                </DialogContent>
-              </Dialog>
+          <div className="space-y-2">
+            <div className="flex flex-col sm:flex-row gap-2">
+              {webinar.registration_url && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
+                  onClick={() => window.open(webinar.registration_url!, "_blank")}
+                >
+                  <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  S'inscrire
+                </Button>
+              )}
+              
+              {isContactEntreprise && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
+                      onClick={() => setSelectedWebinarId(webinar.module_id)}
+                    >
+                      <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                      <span className="hidden xs:inline">Kit </span>Communication
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[95vw] sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="text-sm sm:text-base">Kit de Communication - {webinar.title}</DialogTitle>
+                    </DialogHeader>
+                    <CommunicationKitTab preselectedModuleId={webinar.module_id} preselectedCompanyId={resolvedCompanyId} />
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
+
+            {new Date(webinar.session_date) > new Date() && (
+              <AddToCalendarButton
+                className="w-full text-xs sm:text-sm h-8 sm:h-9"
+                event={{
+                  title: `MyFinCare — ${webinar.title}`,
+                  startDate: new Date(webinar.session_date),
+                  endDate: new Date(new Date(webinar.session_date).getTime() + 45 * 60 * 1000),
+                  description: webinar.description?.replace(/<[^>]*>/g, '') || '',
+                }}
+              />
             )}
           </div>
         </div>
