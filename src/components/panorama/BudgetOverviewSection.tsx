@@ -68,6 +68,10 @@ export function BudgetOverviewSection({
     const detailItems: { name: string; value: number }[] = [];
     chargesFixesItems.forEach(i => { if (i.value > 0) detailItems.push({ name: i.label, value: i.value }); });
     if (impotMensuel > 0) detailItems.push({ name: "Impôts", value: impotMensuel });
+    // Add "Autres" if items + impot don't cover totalFixes
+    const itemsFixesSum = chargesFixesItems.reduce((s, i) => s + i.value, 0) + impotMensuel;
+    const ecartFixes = totalFixes - itemsFixesSum;
+    if (ecartFixes > 50) detailItems.push({ name: "Autres charges fixes", value: ecartFixes });
     depensesCourantesItems.forEach(i => { if (i.value > 0) detailItems.push({ name: i.label, value: i.value }); });
     if (totalEpargne > 0) detailItems.push({ name: "Épargne", value: totalEpargne });
     if (nonAlloue > 0) detailItems.push({ name: "Reste à vivre", value: nonAlloue });
