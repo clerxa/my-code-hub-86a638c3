@@ -74,15 +74,7 @@ export function SimulationValidationOverlay({
   }, [isValidating, onComplete]);
 
   if (!isValidating) {
-    return (
-      <CSATPanel
-        open={showCSAT}
-        onOpenChange={closeCSAT}
-        contentType={contentType}
-        contentId={contentId}
-        contentName={contentName}
-      />
-    );
+    return null;
   }
 
   const CurrentIcon = showSuccess ? CheckCircle2 : STEPS[currentStep].icon;

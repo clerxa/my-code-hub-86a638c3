@@ -360,12 +360,8 @@ export const BetaLabTab: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="csat" className="mt-6">
-          <CSATAdminTab />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 };

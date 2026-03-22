@@ -1029,14 +1029,6 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
         </div>
       </div>
 
-      {/* CSAT Panel */}
-      <CSATPanel
-        open={showCSAT}
-        onOpenChange={handleCSATClose}
-        contentType={contentType}
-        contentId={contentId}
-        contentName={contentName}
-      />
     </div>
   );
 }
