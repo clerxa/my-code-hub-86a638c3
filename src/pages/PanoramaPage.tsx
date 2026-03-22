@@ -279,9 +279,7 @@ export default function PanoramaPage() {
         </section>
 
         {/* ═══ SECTION 2 — MODULE GRID (asymmetric) ═══ */}
-        <div className="relative">
-          {!panoramaUnlocked && <LockedOverlay onUnlock={() => navigate("/employee/onboarding-flow")} />}
-        <section className={cn("grid grid-cols-1 md:grid-cols-3 gap-3", !panoramaUnlocked && "opacity-40 blur-[2px] pointer-events-none")}>
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* VEGA — large card spanning 2 cols */}
           <div
             className="md:col-span-2 md:row-span-3 rounded-lg border border-border bg-card p-5 cursor-pointer hover:shadow-md transition-shadow group"
