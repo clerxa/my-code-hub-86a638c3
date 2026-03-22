@@ -12,6 +12,7 @@ import { SimulatorDisclaimer } from "@/components/simulators/SimulatorDisclaimer
 import { SimulationValidationOverlay } from "@/components/simulators/SimulationValidationOverlay";
 import { CapaciteEpargneIntroScreen } from "@/components/simulators/capacite-epargne/CapaciteEpargneIntroScreen";
 import { useFinancialProfilePrefill } from "@/hooks/useFinancialProfilePrefill";
+import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
 import { useSimulationTracking } from "@/hooks/useSimulationTracking";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
