@@ -139,7 +139,7 @@ export default function PanoramaAuditPage() {
   const [originalFormData, setOriginalFormData] = useState<FinancialProfileInput>({});
   const financialFormInitRef = useRef(false);
   const lastFinancialUpdatedAtRef = useRef<string | null>(null);
-  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  
 
   // Detect changes
   const hasProfileChanges = useMemo(() => {
