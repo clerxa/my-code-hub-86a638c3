@@ -165,7 +165,7 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
             <div>
               <CardTitle className="text-lg">Épargne & Patrimoine</CardTitle>
               <CardDescription>
-                Indiquez vos montants — même approximatifs, c'est utile pour vos projections.
+                Votre patrimoine financier et immobilier constitue la base de votre bilan patrimonial. Même des montants approximatifs nous permettent de vous fournir des recommandations adaptées à votre situation réelle.
               </CardDescription>
             </div>
           </div>
