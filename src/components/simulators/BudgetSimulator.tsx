@@ -567,23 +567,34 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
           </div>
         </div>
 
-        {/* Items */}
+        {/* Items with section headers */}
         <div className="space-y-2">
-          {items.map((item) => (
-            <BudgetSliderItem
-              key={item.key}
-              emoji={item.emoji}
-              label={item.label}
-              tooltip={item.tooltip}
-              value={values[item.key] ?? 0}
-              max={item.max}
-              step={10}
-              colorClass={colorClass}
-              onChange={(v) => updateValue(item.key, v)}
-              fromProfile={profileFields.has(item.key)}
-              profileSource={profileFields.get(item.key)}
-            />
-          ))}
+          {EXPENSE_SECTIONS[catKey].map((entry, idx) => {
+            if (entry.type === "header") {
+              return (
+                <div key={`header-${idx}`} className="pt-4 pb-1 first:pt-0">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    {entry.label}
+                  </p>
+                </div>
+              );
+            }
+            return (
+              <BudgetSliderItem
+                key={entry.key}
+                emoji={entry.emoji}
+                label={entry.label}
+                tooltip={entry.tooltip}
+                value={values[entry.key] ?? 0}
+                max={entry.max}
+                step={10}
+                colorClass={colorClass}
+                onChange={(v) => updateValue(entry.key, v)}
+                fromProfile={profileFields.has(entry.key)}
+                profileSource={profileFields.get(entry.key)}
+              />
+            );
+          })}
         </div>
       </div>
     );
