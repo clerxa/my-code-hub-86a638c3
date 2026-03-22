@@ -139,7 +139,7 @@ export default function RiskProfilePage() {
         totalWeightedScore += normalizedScore;
 
         // Save response
-        await supabase
+        const { error: responseError } = await supabase
           .from('user_risk_responses')
           .upsert({
             user_id: user.id,
@@ -149,6 +149,10 @@ export default function RiskProfilePage() {
           }, {
             onConflict: 'user_id,question_id'
           });
+        if (responseError) {
+          console.error('Error saving response:', responseError);
+          throw responseError;
+        }
       }
 
       // Determine profile type based on thresholds
