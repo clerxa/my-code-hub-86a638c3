@@ -500,6 +500,40 @@ export default function PanoramaPage() {
           </section>
         )}
 
+        {/* ═══ SECTION 2bis — BUDGET 50/30/20 ═══ */}
+        {totalRevenusMensuel != null && totalRevenusMensuel > 0 && (
+          <BudgetOverviewSection
+            totalRevenus={totalRevenusMensuel}
+            chargesFixesItems={[
+              { label: "Loyer", value: fp?.loyer_actuel ?? 0, category: "fixes" },
+              { label: "Crédit immobilier", value: fp?.credits_immobilier ?? 0, category: "fixes" },
+              { label: "Crédit conso", value: fp?.credits_consommation ?? 0, category: "fixes" },
+              { label: "Crédit auto", value: fp?.credits_auto ?? 0, category: "fixes" },
+              { label: "Crédits immo locatif", value: creditsImmoLocatif, category: "fixes" },
+              { label: "Pensions alimentaires", value: fp?.pensions_alimentaires ?? 0, category: "fixes" },
+              { label: "Énergie", value: fp?.charges_energie ?? 0, category: "fixes" },
+              { label: "Copropriété / Taxes", value: fp?.charges_copropriete_taxes ?? 0, category: "fixes" },
+              { label: "Assurance habitation", value: fp?.charges_assurance_habitation ?? 0, category: "fixes" },
+              { label: "Transport", value: fp?.charges_transport_commun ?? 0, category: "fixes" },
+              { label: "Assurance auto", value: fp?.charges_assurance_auto ?? 0, category: "fixes" },
+              { label: "LLD / LOA auto", value: fp?.charges_lld_loa_auto ?? 0, category: "fixes" },
+              { label: "Internet", value: fp?.charges_internet ?? 0, category: "fixes" },
+              { label: "Mobile", value: fp?.charges_mobile ?? 0, category: "fixes" },
+              { label: "Abonnements", value: fp?.charges_abonnements ?? 0, category: "fixes" },
+              { label: "Frais scolarité", value: fp?.charges_frais_scolarite ?? 0, category: "fixes" },
+              { label: "Autres charges fixes", value: fp?.charges_autres ?? 0, category: "fixes" },
+            ].filter(i => i.value > 0)}
+            depensesCourantesItems={[
+              { label: "Courses alimentaires", value: (fp as any)?.charges_courses_alimentaires ?? 0, category: "courantes" },
+              { label: "Loisirs & sorties", value: (fp as any)?.charges_loisirs ?? 0, category: "courantes" },
+              { label: "Shopping & divers", value: (fp as any)?.charges_shopping ?? 0, category: "courantes" },
+              { label: "Autres dépenses courantes", value: (fp as any)?.charges_variables_autres ?? 0, category: "courantes" },
+            ].filter(i => i.value > 0)}
+            impotMensuel={impotMensuel ?? 0}
+            epargne={capaciteEpargne ?? capaciteEpargneCalculee ?? 0}
+          />
+        )}
+
         {/* ═══ SECTION 3 — MODULE GRID (4 cols equal) ═══ */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {/* VEGA */}
