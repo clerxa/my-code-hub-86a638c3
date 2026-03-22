@@ -149,15 +149,15 @@ export default function PanoramaPage() {
 
   // Financial data
   const fp = financialProfile as any;
-  const revenuNet = fp?.revenu_mensuel_net ?? null;
+  const revenuNet = fp?.revenu_mensuel_net != null ? fp.revenu_mensuel_net / 12 : null;
   const chargesFixes = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0) + (fp?.charges_fixes_mensuelles ?? 0);
   const pasEstime = fp?.prelevement_source_mensuel ?? null;
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
   const resteAVivre = revenuNet != null ? revenuNet - chargesFixes - (pasEstime ?? 0) - (capaciteEpargne ?? 0) : null;
   const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
 
-  // Patrimoine breakdown
-  const patrimoineFinancier = synthesis?.financialProfile?.patrimoine_total ?? 0;
+  // Patrimoine breakdown (immo net already in patrimoine_total now)
+  const patrimoineFinancier = (synthesis?.financialProfile?.patrimoine_total ?? 0) - ((fp?.patrimoine_immo_valeur ?? 0) - (fp?.patrimoine_immo_credit_restant ?? 0));
   const patrimoineImmo = (fp?.patrimoine_immo_valeur ?? 0) - (fp?.patrimoine_immo_credit_restant ?? 0);
   const patrimoineActions = vegaPortfolio.totalValueEur ?? 0;
 
