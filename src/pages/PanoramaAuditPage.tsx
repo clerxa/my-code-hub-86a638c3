@@ -948,6 +948,8 @@ export default function PanoramaAuditPage() {
                       { key: "patrimoine_assurance_vie" as const, label: "Assurance-vie du foyer (€)", desc: undefined },
                       { key: "patrimoine_per" as const, label: "PER du foyer (€)", desc: "Plan Épargne Retraite — tous les plans du foyer" },
                       { key: "patrimoine_pea" as const, label: "PEA / CTO du foyer (€)", desc: undefined },
+                      { key: "valeur_pee" as const, label: "PEE du foyer (€)", desc: "Plan d'Épargne Entreprise" },
+                      { key: "valeur_perco" as const, label: "PERCO / PERCOL du foyer (€)", desc: "Plan d'Épargne Retraite Collectif" },
                       { key: "patrimoine_scpi" as const, label: "SCPI du foyer (€)", desc: undefined },
                       { key: "patrimoine_crypto" as const, label: "Cryptomonnaies (€)", desc: "Bitcoin, Ethereum..." },
                       { key: "patrimoine_private_equity" as const, label: "Private Equity (€)", desc: "FCPR, FCPI, FIP..." },
