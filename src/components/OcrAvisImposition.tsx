@@ -1122,7 +1122,23 @@ const OcrAvisImposition = ({ importOnly = false }: { importOnly?: boolean } = {}
       )}
 
       {/* ─── Results ─── */}
-      {data && (
+      {data && importOnly && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="p-6 text-center space-y-3">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
+              <CheckCircle className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground">Avis importé avec succès ✅</h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              Vos données fiscales ont été extraites et enregistrées. Vous pourrez consulter l'analyse détaillée dans le module ATLAS depuis votre tableau de bord.
+            </p>
+            <Button variant="outline" size="sm" onClick={reset}>
+              Importer un autre avis
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+      {data && !importOnly && (
         <AtlasResultsStepper onReset={reset}>
           {/* ═══════════════ ÉCRAN 1 — Synthèse & Foyer ═══════════════ */}
           <div className="space-y-6">
