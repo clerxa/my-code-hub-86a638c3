@@ -9,8 +9,6 @@ import {
 import confetti from "canvas-confetti";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCSATTrigger } from "@/hooks/useCSATTrigger";
-import { CSATPanel } from "@/components/csat";
 
 interface CelebrationSettings {
   video_url: string;
@@ -50,20 +48,6 @@ export const ParcoursCompletionCelebration = ({
   const [showContent, setShowContent] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // CSAT trigger
-  const { showCSAT, closeCSAT, triggerCSAT, contentType, contentId, contentName } = useCSATTrigger({
-    contentType: 'parcours',
-    contentId: parcoursId || parcoursTitle,
-    contentName: parcoursTitle,
-    parcoursId,
-  });
-
-  // Trigger CSAT when celebration opens
-  useEffect(() => {
-    if (isOpen) {
-      triggerCSAT();
-    }
-  }, [isOpen, triggerCSAT]);
 
   // Fetch settings
   useEffect(() => {
@@ -407,15 +391,6 @@ export const ParcoursCompletionCelebration = ({
 
       </DialogContent>
 
-      {/* CSAT Panel - Outside dialog so it doesn't get cut off */}
-      <CSATPanel
-        open={showCSAT}
-        onOpenChange={closeCSAT}
-        contentType={contentType}
-        contentId={contentId}
-        contentName={contentName}
-        parcoursId={parcoursId}
-      />
     </Dialog>
   );
 };

@@ -18,8 +18,6 @@ import {
 import { cn } from "@/lib/utils";
 import { OnboardingScreen } from "@/types/onboarding-cms";
 import { useAuth } from "@/components/AuthProvider";
-import { useCSATTrigger } from "@/hooks/useCSATTrigger";
-import { CSATPanel } from "@/components/csat";
 interface DynamicOnboardingRendererProps {
   flowId?: string;
 }
@@ -45,14 +43,6 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
   const [isCalculating, setIsCalculating] = useState(false);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [estimatedSavings, setEstimatedSavings] = useState(0);
-  const [showCSATBeforeNavigate, setShowCSATBeforeNavigate] = useState(false);
-
-  // CSAT trigger
-  const { showCSAT, closeCSAT, triggerCSAT, contentType, contentId, contentName } = useCSATTrigger({
-    contentType: 'onboarding',
-    contentId: flowId,
-    contentName: `Onboarding ${flowId}`,
-  });
   
   // Use stored session ID from sessionStorage, or generate one
   const [sessionId] = useState(() => {
@@ -318,10 +308,6 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
     // Check for external URL first
     const externalUrl = currentScreen?.metadata?.redirectExternalUrl;
     if (externalUrl) {
-      // Only trigger CSAT if user is logged in and not invitation flow
-      if (user && !isInvitationFlow) {
-        triggerCSAT();
-      }
       window.open(externalUrl, '_blank');
       return;
     }
@@ -332,9 +318,7 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
       return;
     }
     
-    // User is logged in (normal flow) - trigger CSAT before navigating
-    setShowCSATBeforeNavigate(true);
-    triggerCSAT();
+    navigateToDestination();
   };
 
   // Helper function to navigate to the final destination
@@ -377,13 +361,6 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
     navigate(internalUrl);
   };
 
-  // Handle CSAT close and navigate
-  const handleCSATClose = () => {
-    closeCSAT();
-    if (showCSATBeforeNavigate) {
-      navigateToDestination();
-    }
-  };
 
   // Format value with unit from metadata
   const formatValue = (value: number, unit?: string) => {
@@ -1048,14 +1025,6 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
         </div>
       </div>
 
-      {/* CSAT Panel */}
-      <CSATPanel
-        open={showCSAT}
-        onOpenChange={handleCSATClose}
-        contentType={contentType}
-        contentId={contentId}
-        contentName={contentName}
-      />
     </div>
   );
 }

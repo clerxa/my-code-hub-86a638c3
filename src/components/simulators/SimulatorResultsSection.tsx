@@ -185,7 +185,7 @@ export function SimulatorResultsSection({
         </motion.div>
       )}
 
-      {/* Action Nouvelle simulation - avec padding-bottom pour éviter le recouvrement par le CSATPanel */}
+      {/* Action Nouvelle simulation */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Save, FlaskConical, Eye, MessageSquare, Palette, Mail, AlertTriangle } from 'lucide-react';
+
+import { Loader2, Save, FlaskConical, Eye, Palette, Mail, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { CSATAdminTab } from './CSATAdminTab';
+
 
 interface BetaBadgeSettings {
   enabled: boolean;
@@ -195,19 +195,9 @@ export const BetaLabTab: React.FC = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="badge" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="badge" className="gap-2">
-            <Palette className="h-4 w-4" />
-            Badge Beta
-          </TabsTrigger>
-          <TabsTrigger value="csat" className="gap-2">
-            <MessageSquare className="h-4 w-4" />
-            CSAT
-          </TabsTrigger>
-        </TabsList>
+      <div className="w-full">
 
-        <TabsContent value="badge" className="mt-6 space-y-6">
+        <div className="mt-6 space-y-6">
           {/* Personal Emails Toggle */}
           <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800">
             <CardHeader>
@@ -370,12 +360,8 @@ export const BetaLabTab: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="csat" className="mt-6">
-          <CSATAdminTab />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 };

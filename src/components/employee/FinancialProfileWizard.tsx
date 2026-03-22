@@ -21,8 +21,6 @@ import { RealEstatePropertiesManager } from "./profile/RealEstatePropertiesManag
 import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
 import { cn } from "@/lib/utils";
 import { type FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
-import { useCSATTrigger } from "@/hooks/useCSATTrigger";
-import { CSATPanel } from "@/components/csat";
 
 interface FinancialProfileWizardProps {
   formData: FinancialProfileInput;
@@ -85,12 +83,6 @@ export function FinancialProfileWizard({
   // Progress calculation
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
-  // CSAT trigger
-  const { showCSAT, closeCSAT, triggerCSAT, contentType, contentId, contentName } = useCSATTrigger({
-    contentType: 'financial_profile',
-    contentId: 'financial-profile-wizard',
-    contentName: 'Profil Financier',
-  });
 
   // Calculate total monthly charges automatically
   // Only includes loyer OR credits_immobilier based on statut_residence (never both)
@@ -217,8 +209,6 @@ export function FinancialProfileWizard({
   const handleFinish = () => {
     onSave();
     toast.success("Profil financier enregistré avec succès !");
-    // Trigger CSAT after profile completion
-    triggerCSAT();
   };
 
   const renderStepIndicator = () => (
@@ -903,14 +893,6 @@ export function FinancialProfileWizard({
         )}
       </div>
 
-      {/* CSAT Panel */}
-      <CSATPanel
-        open={showCSAT}
-        onOpenChange={closeCSAT}
-        contentType={contentType}
-        contentId={contentId}
-        contentName={contentName}
-      />
     </div>
   );
 }

@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Sparkles, Brain, TrendingUp, Calculator } from "lucide-react";
-import { useCSATTrigger } from "@/hooks/useCSATTrigger";
-import { CSATPanel } from "@/components/csat";
 
 export interface ValidationStep {
   icon: React.ComponentType<{ className?: string }>;
@@ -36,12 +34,6 @@ export function SimulationValidationOverlay({
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // CSAT trigger
-  const { showCSAT, closeCSAT, triggerCSAT, contentType, contentId, contentName } = useCSATTrigger({
-    contentType: 'simulator',
-    contentId: simulatorId,
-    contentName: simulatorName,
-  });
 
   useEffect(() => {
     if (!isValidating) {
@@ -67,8 +59,6 @@ export function SimulationValidationOverlay({
     // Show success state
     const successTimer = setTimeout(() => {
       setShowSuccess(true);
-      // Trigger CSAT after success
-      triggerCSAT();
     }, totalElapsed);
     timers.push(successTimer);
 
@@ -81,18 +71,10 @@ export function SimulationValidationOverlay({
     return () => {
       timers.forEach(clearTimeout);
     };
-  }, [isValidating, onComplete, triggerCSAT]);
+  }, [isValidating, onComplete]);
 
   if (!isValidating) {
-    return (
-      <CSATPanel
-        open={showCSAT}
-        onOpenChange={closeCSAT}
-        contentType={contentType}
-        contentId={contentId}
-        contentName={contentName}
-      />
-    );
+    return null;
   }
 
   const CurrentIcon = showSuccess ? CheckCircle2 : STEPS[currentStep].icon;
