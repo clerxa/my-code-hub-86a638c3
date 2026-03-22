@@ -372,12 +372,12 @@ const SimulateurEpargnePrecaution = () => {
   // Vérifier si un champ est pré-rempli depuis le profil
   const isFieldPrefilled = (key: string) => prefilledFields.has(key);
 
-  // Composant pour afficher une catégorie de charges
-  const ChargesCategoryCard = ({ categoryKey, category }: { categoryKey: string; category: typeof CHARGES_CATEGORIES[keyof typeof CHARGES_CATEGORIES] }) => {
+  // Render function (not a component) to avoid remounting inputs on state change
+  const renderChargesCategoryCard = (categoryKey: string, category: typeof CHARGES_CATEGORIES[keyof typeof CHARGES_CATEGORIES]) => {
     const hasPrefilledFields = category.fields.some(f => isFieldPrefilled(f.key));
     
     return (
-      <Card className={`border-border/50 ${hasPrefilledFields ? 'ring-1 ring-primary/30' : ''}`}>
+      <Card key={categoryKey} className={`border-border/50 ${hasPrefilledFields ? 'ring-1 ring-primary/30' : ''}`}>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <span>{category.icon}</span>
@@ -393,6 +393,7 @@ const SimulateurEpargnePrecaution = () => {
         <CardContent className="space-y-3">
           {category.fields.map(field => {
             const isPrefilled = isFieldPrefilled(field.key);
+            const fieldValue = chargesDetailees[field.key as keyof ChargesDetailees];
             return (
               <div key={field.key} className="space-y-1">
                 <div className="flex items-center gap-2">
@@ -405,16 +406,15 @@ const SimulateurEpargnePrecaution = () => {
                 </div>
                 <div className="relative">
                   <Input
-                    type="text"
+                    type="number"
                     inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={chargesDetailees[field.key as keyof ChargesDetailees] === 0 ? '' : chargesDetailees[field.key as keyof ChargesDetailees]}
+                    min={0}
+                    value={fieldValue === 0 ? '' : fieldValue}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9]/g, '');
-                      updateCharge(field.key as keyof ChargesDetailees, val === '' ? 0 : parseInt(val, 10));
+                      updateCharge(field.key as keyof ChargesDetailees, parseFloat(e.target.value) || 0);
                     }}
                     placeholder={field.placeholder}
-                    className={`pr-8 ${isPrefilled ? 'border-primary/30 bg-primary/5' : ''}`}
+                    className={`pr-16 ${isPrefilled ? 'border-primary/30 bg-primary/5' : ''}`}
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">€/mois</span>
                 </div>
