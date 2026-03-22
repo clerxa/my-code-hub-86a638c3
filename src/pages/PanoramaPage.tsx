@@ -74,11 +74,21 @@ export default function PanoramaPage() {
   useEffect(() => {
     if (!user?.id) { setHasAtlasAnalysis(false); return; }
     const check = async () => {
-      const { count } = await supabase
-        .from("ocr_avis_imposition_analyses" as any)
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id);
-      setHasAtlasAnalysis((count ?? 0) > 0);
+      const [atlasRes, profileRes] = await Promise.all([
+        supabase
+          .from("ocr_avis_imposition_analyses" as any)
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id),
+        supabase
+          .from("profiles")
+          .select("atlas_completed, audit_panorama_completed, risk_profile_completed")
+          .eq("id", user.id)
+          .single(),
+      ]);
+      setHasAtlasAnalysis((atlasRes.count ?? 0) > 0);
+      if (profileRes.data) {
+        setOnboardingStatus(profileRes.data as any);
+      }
     };
     check();
   }, [user?.id]);
