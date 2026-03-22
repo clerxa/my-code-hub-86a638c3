@@ -51,6 +51,8 @@ export function BudgetOverviewSection({
   impotMensuel,
   epargne,
 }: BudgetOverviewSectionProps) {
+  const [showInfo, setShowInfo] = useState(false);
+
   const analysis = useMemo(() => {
     if (totalRevenus <= 0) return null;
 
