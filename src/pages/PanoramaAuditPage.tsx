@@ -33,6 +33,7 @@ const tabs = [
   { id: "situation", label: "Situation", icon: Users },
   { id: "professional", label: "Professionnel", icon: Briefcase },
   { id: "financial", label: "Revenus", icon: Wallet },
+  { id: "charges", label: "Charges", icon: Euro },
   { id: "savings", label: "Épargne", icon: PiggyBank },
   { id: "objectives", label: "Objectifs", icon: Target },
 ];
