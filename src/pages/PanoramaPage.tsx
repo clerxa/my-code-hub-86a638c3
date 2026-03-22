@@ -149,11 +149,14 @@ export default function PanoramaPage() {
 
   // Financial data
   const fp = financialProfile as any;
-  const revenuNet = fp?.revenu_mensuel_net != null ? fp.revenu_mensuel_net / 12 : null;
+  const revenuBrutAnnuel = (fp?.revenu_annuel_brut ?? 0) + (fp?.revenu_annuel_brut_conjoint ?? 0);
+  const revenuNetMensuel = revenuBrutAnnuel > 0 ? Math.round(revenuBrutAnnuel * 0.77 / 12) : (fp?.revenu_mensuel_net != null ? fp.revenu_mensuel_net / 12 : null);
+  const revenusFonciersMensuel = fp?.revenus_locatifs ? Math.round(fp.revenus_locatifs / 12) : 0;
+  const autresRevenusMensuel = fp?.autres_revenus_mensuels ?? 0;
+  const totalRevenusMensuel = revenuNetMensuel != null ? revenuNetMensuel + revenusFonciersMensuel + autresRevenusMensuel : null;
   const chargesFixes = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0) + (fp?.charges_fixes_mensuelles ?? 0);
-  const pasEstime = fp?.prelevement_source_mensuel ?? null;
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
-  const resteAVivre = revenuNet != null ? revenuNet - chargesFixes - (pasEstime ?? 0) - (capaciteEpargne ?? 0) : null;
+  const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - chargesFixes - (capaciteEpargne ?? 0) : null;
   const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
 
   // Patrimoine breakdown (immo net already in patrimoine_total now)
@@ -282,20 +285,102 @@ export default function PanoramaPage() {
         {financialProfile && (
           <section className="rounded-lg border border-border bg-card p-5">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Synthèse financière du foyer</h3>
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm">
-              {revenuNet != null && (
-                <MetricChip label="Revenus nets" value={`${formatEuros(revenuNet)}/mois`} />
+            
+            {/* Revenus detail */}
+            <div className="space-y-2 mb-4">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Revenus mensuels</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {revenuNetMensuel != null && revenuNetMensuel > 0 && (
+                  <div className="rounded-md bg-muted/40 px-3 py-2">
+                    <p className="text-[10px] text-muted-foreground">Salaires nets</p>
+                    <p className="text-sm font-semibold">{formatEuros(revenuNetMensuel)}</p>
+                  </div>
+                )}
+                {revenusFonciersMensuel > 0 && (
+                  <div className="rounded-md bg-muted/40 px-3 py-2">
+                    <p className="text-[10px] text-muted-foreground">Revenus fonciers</p>
+                    <p className="text-sm font-semibold">{formatEuros(revenusFonciersMensuel)}</p>
+                  </div>
+                )}
+                {autresRevenusMensuel > 0 && (
+                  <div className="rounded-md bg-muted/40 px-3 py-2">
+                    <p className="text-[10px] text-muted-foreground">Autres revenus</p>
+                    <p className="text-sm font-semibold">{formatEuros(autresRevenusMensuel)}</p>
+                  </div>
+                )}
+                {totalRevenusMensuel != null && totalRevenusMensuel > 0 && (
+                  <div className="rounded-md bg-primary/5 border border-primary/10 px-3 py-2">
+                    <p className="text-[10px] text-primary">Total revenus</p>
+                    <p className="text-sm font-bold text-primary">{formatEuros(totalRevenusMensuel)}<span className="text-[10px] font-normal">/mois</span></p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Charges detail */}
+            {chargesFixes > 0 && (
+              <div className="space-y-2 mb-4">
+                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Charges mensuelles</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {(fp?.loyer_actuel ?? 0) > 0 && (
+                    <div className="rounded-md bg-muted/40 px-3 py-2">
+                      <p className="text-[10px] text-muted-foreground">Loyer</p>
+                      <p className="text-sm font-semibold">{formatEuros(fp.loyer_actuel)}</p>
+                    </div>
+                  )}
+                  {(fp?.credits_immobilier ?? 0) > 0 && (
+                    <div className="rounded-md bg-muted/40 px-3 py-2">
+                      <p className="text-[10px] text-muted-foreground">Crédit immo</p>
+                      <p className="text-sm font-semibold">{formatEuros(fp.credits_immobilier)}</p>
+                    </div>
+                  )}
+                  {(fp?.credits_consommation ?? 0) > 0 && (
+                    <div className="rounded-md bg-muted/40 px-3 py-2">
+                      <p className="text-[10px] text-muted-foreground">Crédit conso</p>
+                      <p className="text-sm font-semibold">{formatEuros(fp.credits_consommation)}</p>
+                    </div>
+                  )}
+                  {(fp?.credits_auto ?? 0) > 0 && (
+                    <div className="rounded-md bg-muted/40 px-3 py-2">
+                      <p className="text-[10px] text-muted-foreground">Crédit auto</p>
+                      <p className="text-sm font-semibold">{formatEuros(fp.credits_auto)}</p>
+                    </div>
+                  )}
+                  {(fp?.pensions_alimentaires ?? 0) > 0 && (
+                    <div className="rounded-md bg-muted/40 px-3 py-2">
+                      <p className="text-[10px] text-muted-foreground">Pensions</p>
+                      <p className="text-sm font-semibold">{formatEuros(fp.pensions_alimentaires)}</p>
+                    </div>
+                  )}
+                  {(fp?.charges_fixes_mensuelles ?? 0) > 0 && (
+                    <div className="rounded-md bg-muted/40 px-3 py-2">
+                      <p className="text-[10px] text-muted-foreground">Autres charges</p>
+                      <p className="text-sm font-semibold">{formatEuros(fp.charges_fixes_mensuelles)}</p>
+                    </div>
+                  )}
+                  <div className="rounded-md bg-destructive/5 border border-destructive/10 px-3 py-2">
+                    <p className="text-[10px] text-destructive">Total charges</p>
+                    <p className="text-sm font-bold text-destructive">{formatEuros(chargesFixes)}<span className="text-[10px] font-normal">/mois</span></p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Summary flow */}
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm pt-3 border-t border-border">
+              {totalRevenusMensuel != null && (
+                <MetricChip label="Revenus" value={`${formatEuros(totalRevenusMensuel)}/mois`} />
               )}
               {chargesFixes > 0 && (
                 <>
                   <span className="text-muted-foreground font-medium">−</span>
-                  <MetricChip label="Charges fixes" value={`${formatEuros(chargesFixes)}/mois`} />
+                  <MetricChip label="Charges" value={`${formatEuros(chargesFixes)}/mois`} />
                 </>
               )}
               {capaciteEpargne != null && capaciteEpargne > 0 && (
                 <>
                   <span className="text-muted-foreground font-medium">−</span>
-                  <MetricChip label="Capacité d'épargne" value={`${formatEuros(capaciteEpargne)}/mois`} />
+                  <MetricChip label="Épargne" value={`${formatEuros(capaciteEpargne)}/mois`} />
                 </>
               )}
               {resteAVivre != null && (
@@ -305,6 +390,8 @@ export default function PanoramaPage() {
                 </>
               )}
             </div>
+
+            {/* Patrimoine breakdown line */}
             <div className="mt-4 pt-4 border-t border-border flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
               <span>Financier <strong className="text-foreground">{formatEuros(patrimoineFinancier)}</strong></span>
               <span className="text-border">|</span>
