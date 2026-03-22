@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { 
   ArrowLeft, ArrowRight, Check, Euro, Users, Briefcase, 
-  Building, PiggyBank, Info, HelpCircle, UserPlus, ChevronDown, ChevronUp, Wallet
+  Building, PiggyBank, Info, HelpCircle, ChevronDown, ChevronUp, Wallet
 } from "lucide-react";
 import { RealEstatePropertiesManager } from "./profile/RealEstatePropertiesManager";
 import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
@@ -29,7 +29,7 @@ interface FinancialProfileWizardProps {
   isSaving: boolean;
   situationFamiliale: string | null;
   hasEquityBenefits: boolean;
-  onInviteSpouse?: () => void;
+  
   requiredFieldKeys?: string[];
   initialStepId?: string | null;
 }
@@ -55,7 +55,7 @@ export function FinancialProfileWizard({
   isSaving,
   situationFamiliale,
   hasEquityBenefits,
-  onInviteSpouse,
+  
   requiredFieldKeys = [],
   initialStepId = null,
 }: FinancialProfileWizardProps) {
@@ -66,7 +66,7 @@ export function FinancialProfileWizard({
   };
   const [currentStep, setCurrentStep] = useState(getStepIndex(initialStepId));
   const [showWhyInfo, setShowWhyInfo] = useState(false);
-  const [hasShownSpouseInvite, setHasShownSpouseInvite] = useState(false);
+  
 
   // React to external step navigation requests
   useEffect(() => {
@@ -193,10 +193,6 @@ export function FinancialProfileWizard({
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
       
-      // Show spouse invite after second step if married/pacs and not shown yet
-      if (currentStep === 1 && isMarriedOrPacs && !hasShownSpouseInvite && onInviteSpouse) {
-        setHasShownSpouseInvite(true);
-      }
     }
   };
 
@@ -349,28 +345,6 @@ export function FinancialProfileWizard({
                     </div>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1.5">
-                    <Label>Revenu fiscal annuel du foyer (€){requiredMark("revenu_fiscal_annuel")}</Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="text-xs max-w-xs">Revenu fiscal de référence de votre foyer, visible sur votre avis d'imposition.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={getNumericDisplayValue(formData.revenu_fiscal_annuel)}
-                    onChange={(e) => handleNumericInput("revenu_fiscal_annuel", e.target.value)}
-                    placeholder="Montant total déclaré aux impôts — vous + conjoint(e)"
-                  />
-                </div>
               </div>
             </div>
 
@@ -459,33 +433,30 @@ export function FinancialProfileWizard({
               </div>
             )}
 
-            {/* Spouse invite card - next to conjoint revenue */}
-            {isMarriedOrPacs && onInviteSpouse && (
-              <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-primary/20">
-                      <UserPlus className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium">Invitez votre conjoint(e)</h4>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Votre conjoint(e) peut aussi bénéficier de l'accompagnement FinCare.
-                      </p>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="mt-3"
-                        onClick={onInviteSpouse}
-                      >
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Inviter mon/ma conjoint(e)
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Revenu fiscal de référence du foyer — importé par ATLAS */}
+            <div className="space-y-2 pt-4 border-t">
+              <div className="flex items-center gap-2">
+                <Label>Revenu fiscal de référence du foyer (€){requiredMark("revenu_fiscal_annuel")}</Label>
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary/10 text-primary">importé par ATLAS</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs max-w-xs">Ce montant est importé automatiquement depuis votre avis d'imposition (module ATLAS). Vous pouvez aussi le saisir manuellement.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Input
+                type="text"
+                inputMode="numeric"
+                value={getNumericDisplayValue(formData.revenu_fiscal_annuel)}
+                onChange={(e) => handleNumericInput("revenu_fiscal_annuel", e.target.value)}
+                placeholder="Visible sur votre avis d'imposition — ligne « Revenu fiscal de référence »"
+              />
+            </div>
 
             {/* Equity income - only if has equity benefits */}
             {hasEquityBenefits && (
