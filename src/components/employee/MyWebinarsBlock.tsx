@@ -246,39 +246,53 @@ export const MyWebinarsBlock = ({ companyId, onUpcomingCountChange }: MyWebinars
           </div>
         )}
 
-        <div className="flex gap-2">
-          {webinar.registration_url && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={() => window.open(webinar.registration_url!, "_blank")}
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              {isPast ? "Voir le replay" : (registration?.registered_at ? "Accéder au webinaire" : "S'inscrire")}
-            </Button>
-          )}
-          
-          {isContactEntreprise && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => setSelectedWebinarId(webinar.module_id)}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Kit Communication
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Kit de Communication - {webinar.title}</DialogTitle>
-                </DialogHeader>
-                <CommunicationKitTab preselectedModuleId={webinar.module_id} preselectedCompanyId={resolvedCompanyId} />
-              </DialogContent>
-            </Dialog>
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            {webinar.registration_url && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => window.open(webinar.registration_url!, "_blank")}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                {isPast ? "Voir le replay" : (registration?.registered_at ? "Accéder au webinaire" : "S'inscrire")}
+              </Button>
+            )}
+            
+            {isContactEntreprise && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => setSelectedWebinarId(webinar.module_id)}
+                  >
+                    <Mail className="h-4 w-4 mr-2" />
+                    Kit Communication
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Kit de Communication - {webinar.title}</DialogTitle>
+                  </DialogHeader>
+                  <CommunicationKitTab preselectedModuleId={webinar.module_id} preselectedCompanyId={resolvedCompanyId} />
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+
+          {!isPast && (
+            <AddToCalendarButton
+              className="w-full"
+              event={{
+                title: `MyFinCare — ${webinar.title}`,
+                startDate: new Date(webinar.session_date),
+                endDate: new Date(new Date(webinar.session_date).getTime() + 45 * 60 * 1000),
+                description: webinar.description?.replace(/<[^>]*>/g, '') || '',
+              }}
+            />
           )}
         </div>
       </div>
