@@ -91,7 +91,7 @@ export function BudgetOverviewSection({
       ruleData,
       detailItems,
     };
-  }, [totalRevenus, chargesFixesItems, depensesCourantesItems, impotMensuel, epargne]);
+  }, [totalRevenus, totalChargesFixesImpots, chargesFixesItems, depensesCourantesItems, impotMensuel, epargne]);
 
   if (!analysis || totalRevenus <= 0) return null;
 
