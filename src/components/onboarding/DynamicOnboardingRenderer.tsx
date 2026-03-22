@@ -365,13 +365,6 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
     navigate(internalUrl);
   };
 
-  // Handle CSAT close and navigate
-  const handleCSATClose = () => {
-    closeCSAT();
-    if (showCSATBeforeNavigate) {
-      navigateToDestination();
-    }
-  };
 
   // Format value with unit from metadata
   const formatValue = (value: number, unit?: string) => {
