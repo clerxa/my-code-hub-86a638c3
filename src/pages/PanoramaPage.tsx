@@ -9,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { usePanorama } from "@/hooks/usePanorama";
 import { EmployeeLayout } from "@/components/employee/EmployeeLayout";
 import { useUserFinancialProfile } from "@/hooks/useUserFinancialProfile";
-import { PanoramaAtlasGate } from "@/components/panorama/PanoramaAtlasGate";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import {
@@ -111,13 +111,6 @@ export default function PanoramaPage() {
     completeness: financialCompleteness,
   } = useUserFinancialProfile();
 
-  if (hasAtlasAnalysis === false) {
-    return (
-      <EmployeeLayout activeSection="panorama">
-        <PanoramaAtlasGate />
-      </EmployeeLayout>
-    );
-  }
 
   if (error) {
     return (
@@ -132,7 +125,7 @@ export default function PanoramaPage() {
     );
   }
 
-  const isLoading = loading || financialLoading || hasAtlasAnalysis === null;
+  const isLoading = loading || financialLoading;
 
   if (isLoading) {
     return (
