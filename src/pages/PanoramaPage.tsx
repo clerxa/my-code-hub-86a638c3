@@ -454,12 +454,30 @@ export default function PanoramaPage() {
                   <MetricChip label="Charges + impôts" value={`${formatEuros(totalChargesAvecImpots)}/mois`} />
                 </>
               )}
-              {capaciteEpargne != null && capaciteEpargne > 0 && (
+              {capaciteEpargne != null && capaciteEpargne > 0 ? (
                 <>
                   <span className="text-muted-foreground font-medium">−</span>
                   <MetricChip label="Épargne" value={`${formatEuros(capaciteEpargne)}/mois`} />
                 </>
-              )}
+              ) : capaciteEpargneCalculee != null && capaciteEpargneCalculee > 0 && totalRevenusMensuel != null && totalRevenusMensuel > 0 ? (
+                <>
+                  <span className="text-muted-foreground font-medium">−</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/50 border border-dashed border-primary/30 cursor-help">
+                          <Calculator className="h-3 w-3 text-primary" />
+                          <span className="text-[10px] text-muted-foreground">Épargne estimée</span>
+                          <span className="text-sm font-semibold text-primary">{formatEuros(capaciteEpargneCalculee)}/mois</span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-xs">
+                        <p className="text-xs">Calculé automatiquement : Revenus − Charges − Impôts. Affinez cette valeur dans votre audit patrimonial.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </>
+              ) : null}
               {resteAVivre != null && (
                 <>
                   <span className="text-muted-foreground font-bold">=</span>
