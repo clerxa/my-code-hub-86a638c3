@@ -494,25 +494,13 @@ const SimulateurEpargnePrecaution = () => {
       isValid: () => true,
     },
     {
-      id: "charges-logement",
-      title: "Logement & Énergie",
-      subtitle: "Vos dépenses mensuelles de logement",
-      icon: Home,
-      content: (
-        <div className="space-y-4">
-          <ChargesCategoryCard categoryKey="logement" category={CHARGES_CATEGORIES.logement} />
-        </div>
-      ),
-      isValid: () => true,
-    },
-    {
       id: "charges-transport",
       title: "Transports & Mobilité",
       subtitle: "Vos dépenses de déplacement",
       icon: Car,
       content: (
         <div className="space-y-4">
-          <ChargesCategoryCard categoryKey="transport" category={CHARGES_CATEGORIES.transport} />
+          {renderChargesCategoryCard("transport", CHARGES_CATEGORIES.transport)}
         </div>
       ),
       isValid: () => true,
@@ -524,7 +512,7 @@ const SimulateurEpargnePrecaution = () => {
       icon: Smartphone,
       content: (
         <div className="space-y-4">
-          <ChargesCategoryCard categoryKey="communication" category={CHARGES_CATEGORIES.communication} />
+          {renderChargesCategoryCard("communication", CHARGES_CATEGORIES.communication)}
         </div>
       ),
       isValid: () => true,
@@ -536,7 +524,7 @@ const SimulateurEpargnePrecaution = () => {
       icon: Users2,
       content: (
         <div className="space-y-4">
-          <ChargesCategoryCard categoryKey="famille" category={CHARGES_CATEGORIES.famille} />
+          {renderChargesCategoryCard("famille", CHARGES_CATEGORIES.famille)}
         </div>
       ),
       isValid: () => true,
@@ -544,14 +532,15 @@ const SimulateurEpargnePrecaution = () => {
     {
       id: "charges-credit-autres",
       title: "Crédits & Autres",
-      subtitle: "Crédits consommation et autres charges",
+      subtitle: "Crédits, investissements locatifs et autres charges",
       icon: CreditCard,
       content: (
         <div className="space-y-4">
-          <ChargesCategoryCard categoryKey="credit" category={CHARGES_CATEGORIES.credit} />
-          <ChargesCategoryCard categoryKey="investissement_locatif" category={CHARGES_CATEGORIES.investissement_locatif} />
-          <ChargesCategoryCard categoryKey="impots" category={CHARGES_CATEGORIES.impots} />
-          <ChargesCategoryCard categoryKey="autres" category={CHARGES_CATEGORIES.autres} />
+          {renderChargesCategoryCard("logement", CHARGES_CATEGORIES.logement)}
+          {renderChargesCategoryCard("credit", CHARGES_CATEGORIES.credit)}
+          {renderChargesCategoryCard("investissement_locatif", CHARGES_CATEGORIES.investissement_locatif)}
+          {renderChargesCategoryCard("impots", CHARGES_CATEGORIES.impots)}
+          {renderChargesCategoryCard("autres", CHARGES_CATEGORIES.autres)}
           
           {/* Récapitulatif des charges */}
           <Card className="bg-primary/5 border-primary/20">
