@@ -58,6 +58,11 @@ export default function PanoramaPage() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [hasAtlasAnalysis, setHasAtlasAnalysis] = useState<boolean | null>(null);
+  const [onboardingStatus, setOnboardingStatus] = useState<{
+    atlas_completed: boolean;
+    audit_panorama_completed: boolean;
+    risk_profile_completed: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (searchParams.get("welcome") === "true") {
