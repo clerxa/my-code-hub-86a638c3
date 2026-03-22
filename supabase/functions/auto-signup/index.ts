@@ -319,7 +319,7 @@ serve(async (req) => {
       console.log('Using provided company:', company.name);
     } else {
       // Original flow: check personal email and find/create company by domain
-      if (PERSONAL_DOMAINS.includes(domain)) {
+      if (PERSONAL_DOMAINS.includes(domain) && !WHITELISTED_EMAILS.includes(email.toLowerCase().trim())) {
         const { data: betaSetting } = await supabaseAdmin
           .from('global_settings')
           .select('value')
