@@ -1,22 +1,23 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowRight, Loader2, Briefcase, TrendingUp, PiggyBank } from "lucide-react";
+import { Briefcase, TrendingUp, PiggyBank } from "lucide-react";
 import { useUserFinancialProfile, type FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { OnboardingNavButtons } from "./OnboardingNavButtons";
 
 interface StepSituationProProps {
   onNext: () => void;
   onSkip: () => void;
+  onBack?: () => void;
 }
 
-export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
+export function StepSituationPro({ onNext, onSkip, onBack }: StepSituationProProps) {
   const { user } = useAuth();
   const { saveProfile, isSaving, profile } = useUserFinancialProfile();
   const [jobTitle, setJobTitle] = useState("");
@@ -24,23 +25,19 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
     type_contrat: profile?.type_contrat || "",
     anciennete_annees: profile?.anciennete_annees || 0,
     secteur_activite: profile?.secteur_activite || null,
-    // Equity
     has_rsu_aga: profile?.has_rsu_aga || false,
     has_espp: profile?.has_espp || false,
     has_stock_options: profile?.has_stock_options || false,
     has_bspce: profile?.has_bspce || false,
     has_equity_autres: profile?.has_equity_autres || false,
-    // Equity values
     valeur_rsu_aga: profile?.valeur_rsu_aga || 0,
     valeur_espp: profile?.valeur_espp || 0,
     valeur_stock_options: profile?.valeur_stock_options || 0,
     valeur_bspce: profile?.valeur_bspce || 0,
-    // Épargne salariale
     has_pee: profile?.has_pee || false,
     has_perco: profile?.has_perco || false,
     has_pero: profile?.has_pero || false,
     has_epargne_autres: profile?.has_epargne_autres || false,
-    // Épargne values
     valeur_pee: profile?.valeur_pee || 0,
     valeur_perco: profile?.valeur_perco || 0,
   });
@@ -79,13 +76,13 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <Briefcase className="h-5 w-5 text-primary" />
+            <div className="p-2.5 rounded-xl bg-[image:var(--gradient-hero)] shadow-md">
+              <Briefcase className="h-5 w-5 text-white" />
             </div>
             <div>
               <CardTitle className="text-lg">Situation professionnelle</CardTitle>
               <CardDescription>
-                Votre type de contrat et votre ancienneté impactent vos droits sociaux, votre capacité d'emprunt et vos avantages fiscaux. Le secteur d'activité nous aide à contextualiser vos dispositifs d'épargne.
+                Votre type de contrat et votre ancienneté impactent vos droits sociaux, votre capacité d'emprunt et vos avantages fiscaux.
               </CardDescription>
             </div>
           </div>
@@ -94,18 +91,11 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Poste occupé</Label>
-              <Input
-                value={jobTitle}
-                onChange={(e) => setJobTitle(e.target.value)}
-                placeholder="Ex: Chef de projet, Développeur..."
-              />
+              <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Ex: Chef de projet, Développeur..." />
             </div>
             <div className="space-y-2">
               <Label>Type de contrat</Label>
-              <Select
-                value={formData.type_contrat || ""}
-                onValueChange={(v) => updateField("type_contrat", v)}
-              >
+              <Select value={formData.type_contrat || ""} onValueChange={(v) => updateField("type_contrat", v)}>
                 <SelectTrigger><SelectValue placeholder="Sélectionnez" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="CDI">CDI</SelectItem>
@@ -117,14 +107,10 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
               </Select>
             </div>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Secteur d'activité</Label>
-              <Select
-                value={formData.secteur_activite || ""}
-                onValueChange={(v) => updateField("secteur_activite", v)}
-              >
+              <Select value={formData.secteur_activite || ""} onValueChange={(v) => updateField("secteur_activite", v)}>
                 <SelectTrigger><SelectValue placeholder="Sélectionnez" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="tech">Tech / Numérique</SelectItem>
@@ -140,29 +126,23 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
             </div>
             <div className="space-y-2">
               <Label>Ancienneté (années)</Label>
-              <Input
-                type="number"
-                min={0}
-                value={formData.anciennete_annees || ""}
-                onChange={(e) => updateField("anciennete_annees", parseInt(e.target.value) || 0)}
-                placeholder="Ex: 3"
-              />
+              <Input type="number" min={0} value={formData.anciennete_annees || ""} onChange={(e) => updateField("anciennete_annees", parseInt(e.target.value) || 0)} placeholder="Ex: 3" />
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Equity */}
-      <Card className="border-primary/20 bg-primary/5 shadow-sm">
+      <Card className="border-primary/20 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <TrendingUp className="h-5 w-5 text-primary" />
+            <div className="p-2.5 rounded-xl bg-[image:var(--gradient-legend)] shadow-md">
+              <TrendingUp className="h-5 w-5 text-white" />
             </div>
             <div>
               <CardTitle className="text-lg">Rémunération en actions</CardTitle>
               <CardDescription>
-                Ces dispositifs représentent souvent une part significative de votre patrimoine. Les identifier nous permet de calculer votre patrimoine total et d'anticiper les impacts fiscaux lors de la cession.
+                Ces dispositifs représentent souvent une part significative de votre patrimoine. Les identifier permet de calculer votre patrimoine total et d'anticiper les impacts fiscaux.
               </CardDescription>
             </div>
           </div>
@@ -171,51 +151,21 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
           <div className="grid grid-cols-2 gap-2">
             {equityItems.map(item => (
               <div key={item.key} className="space-y-2">
-                <label
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
-                    formData[item.key]
-                      ? "bg-primary/5 border-primary"
-                      : "bg-background hover:bg-muted border-border"
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={formData[item.key] as boolean || false}
-                    onChange={(e) => updateField(item.key, e.target.checked)}
-                    className="h-4 w-4 rounded border-border accent-primary"
-                  />
+                <label className={cn("flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all", formData[item.key] ? "bg-primary/5 border-primary" : "bg-background hover:bg-muted border-border")}>
+                  <input type="checkbox" checked={formData[item.key] as boolean || false} onChange={(e) => updateField(item.key, e.target.checked)} className="h-4 w-4 rounded border-border accent-primary" />
                   <div>
                     <span className="font-medium text-sm">{item.label}</span>
                     <p className="text-xs text-muted-foreground">{item.desc}</p>
                   </div>
                 </label>
                 {formData[item.key] && (
-                  <Input
-                    type="number"
-                    min={0}
-                    value={(formData[item.valKey] as number) || ""}
-                    onChange={(e) => updateField(item.valKey, parseFloat(e.target.value) || 0)}
-                    placeholder="Valeur estimée (€)"
-                    className="h-8 text-sm"
-                  />
+                  <Input type="number" min={0} value={(formData[item.valKey] as number) || ""} onChange={(e) => updateField(item.valKey, parseFloat(e.target.value) || 0)} placeholder="Valeur estimée (€)" className="h-8 text-sm" />
                 )}
               </div>
             ))}
           </div>
-
-          <label className={cn(
-            "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
-            formData.has_equity_autres
-              ? "bg-primary/5 border-primary"
-              : "bg-background hover:bg-muted border-border"
-          )}>
-            <input
-              type="checkbox"
-              checked={formData.has_equity_autres as boolean || false}
-              onChange={(e) => updateField("has_equity_autres", e.target.checked)}
-              className="h-4 w-4 rounded border-border accent-primary"
-            />
+          <label className={cn("flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all", formData.has_equity_autres ? "bg-primary/5 border-primary" : "bg-background hover:bg-muted border-border")}>
+            <input type="checkbox" checked={formData.has_equity_autres as boolean || false} onChange={(e) => updateField("has_equity_autres", e.target.checked)} className="h-4 w-4 rounded border-border accent-primary" />
             <div>
               <span className="font-medium text-sm">Autres dispositifs</span>
               <p className="text-xs text-muted-foreground">Warrants, AGA spécifiques...</p>
@@ -228,13 +178,13 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <PiggyBank className="h-5 w-5 text-primary" />
+            <div className="p-2.5 rounded-xl bg-[image:var(--gradient-origin)] shadow-md">
+              <PiggyBank className="h-5 w-5 text-white" />
             </div>
             <div>
               <CardTitle className="text-lg">Épargne salariale</CardTitle>
               <CardDescription>
-                Vos plans d'épargne salariale bénéficient souvent d'abondements et d'avantages fiscaux. Les connaître nous permet d'intégrer ces montants dans votre patrimoine global.
+                Vos plans d'épargne salariale bénéficient souvent d'abondements et d'avantages fiscaux.
               </CardDescription>
             </div>
           </div>
@@ -243,51 +193,21 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {savingsItems.map(item => (
               <div key={item.key} className="space-y-2">
-                <label
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
-                    formData[item.key]
-                      ? "bg-primary/5 border-primary"
-                      : "bg-background hover:bg-muted border-border"
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={formData[item.key] as boolean || false}
-                    onChange={(e) => updateField(item.key, e.target.checked)}
-                    className="h-4 w-4 rounded border-border accent-primary"
-                  />
+                <label className={cn("flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all", formData[item.key] ? "bg-primary/5 border-primary" : "bg-background hover:bg-muted border-border")}>
+                  <input type="checkbox" checked={formData[item.key] as boolean || false} onChange={(e) => updateField(item.key, e.target.checked)} className="h-4 w-4 rounded border-border accent-primary" />
                   <div>
                     <span className="font-medium text-sm">{item.label}</span>
                     <p className="text-xs text-muted-foreground">{item.desc}</p>
                   </div>
                 </label>
                 {formData[item.key] && item.valKey && (
-                  <Input
-                    type="number"
-                    min={0}
-                    value={(formData[item.valKey] as number) || ""}
-                    onChange={(e) => updateField(item.valKey, parseFloat(e.target.value) || 0)}
-                    placeholder="Valeur estimée (€)"
-                    className="h-8 text-sm"
-                  />
+                  <Input type="number" min={0} value={(formData[item.valKey] as number) || ""} onChange={(e) => updateField(item.valKey, parseFloat(e.target.value) || 0)} placeholder="Valeur estimée (€)" className="h-8 text-sm" />
                 )}
               </div>
             ))}
           </div>
-
-          <label className={cn(
-            "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
-            formData.has_epargne_autres
-              ? "bg-primary/5 border-primary"
-              : "bg-background hover:bg-muted border-border"
-          )}>
-            <input
-              type="checkbox"
-              checked={formData.has_epargne_autres as boolean || false}
-              onChange={(e) => updateField("has_epargne_autres", e.target.checked)}
-              className="h-4 w-4 rounded border-border accent-primary"
-            />
+          <label className={cn("flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all", formData.has_epargne_autres ? "bg-primary/5 border-primary" : "bg-background hover:bg-muted border-border")}>
+            <input type="checkbox" checked={formData.has_epargne_autres as boolean || false} onChange={(e) => updateField("has_epargne_autres", e.target.checked)} className="h-4 w-4 rounded border-border accent-primary" />
             <div>
               <span className="font-medium text-sm">Autres dispositifs d'épargne</span>
               <p className="text-xs text-muted-foreground">CET, intéressement non investi...</p>
@@ -296,18 +216,7 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
         </CardContent>
       </Card>
 
-      <div className="flex flex-col items-center gap-3 pt-2">
-        <Button onClick={handleSubmit} disabled={isSaving} size="lg" className="gap-2 px-8 shadow-md">
-          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          Continuer <ArrowRight className="h-4 w-4" />
-        </Button>
-        <button
-          onClick={onSkip}
-          className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
-        >
-          Enregistrer et compléter plus tard
-        </button>
-      </div>
+      <OnboardingNavButtons onNext={handleSubmit} onSkip={onSkip} onBack={onBack} isLoading={isSaving} />
     </motion.div>
   );
 }

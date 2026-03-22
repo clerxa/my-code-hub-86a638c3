@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import OcrAvisImposition from "@/components/OcrAvisImposition";
 import { motion } from "framer-motion";
+import { OnboardingNavButtons } from "./OnboardingNavButtons";
 
 interface StepAtlasProps {
   onNext: () => void;
   onSkip: () => void;
+  onBack?: () => void;
 }
 
-export function StepAtlas({ onNext, onSkip }: StepAtlasProps) {
+export function StepAtlas({ onNext, onSkip, onBack }: StepAtlasProps) {
   const [canContinue, setCanContinue] = useState(false);
 
   useEffect(() => {
@@ -28,8 +29,8 @@ export function StepAtlas({ onNext, onSkip }: StepAtlasProps) {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <FileText className="h-5 w-5 text-primary" />
+            <div className="p-2.5 rounded-xl bg-[image:var(--gradient-hero)] shadow-md">
+              <FileText className="h-5 w-5 text-white" />
             </div>
             <div>
               <CardTitle className="text-lg">Importez votre avis d'imposition</CardTitle>
@@ -47,17 +48,11 @@ export function StepAtlas({ onNext, onSkip }: StepAtlasProps) {
         </CardContent>
       </Card>
 
-      <div className="flex flex-col items-center gap-3 pt-2">
-        <Button onClick={onNext} disabled={!canContinue} size="lg" className="gap-2 px-8 shadow-md">
-          Continuer <ArrowRight className="h-4 w-4" />
-        </Button>
-        <button
-          onClick={onSkip}
-          className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
-        >
-          Enregistrer et compléter plus tard
-        </button>
-      </div>
+      <OnboardingNavButtons
+        onNext={onNext}
+        onSkip={onSkip}
+        onBack={onBack}
+      />
     </motion.div>
   );
 }

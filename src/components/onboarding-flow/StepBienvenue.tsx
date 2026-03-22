@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Loader2, Shield, Mail, Phone, Sparkles } from "lucide-react";
+import { Shield, Mail, Phone, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { OnboardingNavButtons } from "./OnboardingNavButtons";
 
 interface StepBienvenueProps {
   onNext: () => void;
@@ -56,11 +56,13 @@ export function StepBienvenue({ onNext, onSkip }: StepBienvenueProps) {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10"
+          className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[image:var(--gradient-hero)] shadow-lg"
         >
-          <Sparkles className="h-8 w-8 text-primary" />
+          <Sparkles className="h-8 w-8 text-white" />
         </motion.div>
-        <h2 className="text-2xl font-bold">Bienvenue sur MyFinCare 🎉</h2>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          Bienvenue sur MyFinCare 🎉
+        </h2>
         <p className="text-muted-foreground max-w-md mx-auto">
           Nous allons personnaliser votre expérience en quelques minutes.
           Vos données sont <strong>confidentielles</strong> et <strong>sécurisées</strong>.
@@ -69,13 +71,17 @@ export function StepBienvenue({ onNext, onSkip }: StepBienvenueProps) {
 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Mail className="h-5 w-5 text-primary" />
-            Vos coordonnées personnelles
-          </CardTitle>
-          <CardDescription>
-            Facultatif mais recommandé pour sécuriser votre compte
-          </CardDescription>
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-[image:var(--gradient-hero)] shadow-md">
+              <Mail className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Vos coordonnées personnelles</CardTitle>
+              <CardDescription>
+                Facultatif mais recommandé pour sécuriser votre compte
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="space-y-2">
@@ -110,18 +116,13 @@ export function StepBienvenue({ onNext, onSkip }: StepBienvenueProps) {
         </CardContent>
       </Card>
 
-      <div className="flex flex-col items-center gap-3 pt-2">
-        <Button onClick={handleSubmit} disabled={saving} size="lg" className="gap-2 px-8 shadow-md">
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          C'est parti ! <ArrowRight className="h-4 w-4" />
-        </Button>
-        <button
-          onClick={onSkip}
-          className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
-        >
-          Je compléterai plus tard
-        </button>
-      </div>
+      <OnboardingNavButtons
+        onNext={handleSubmit}
+        onSkip={onSkip}
+        isLoading={saving}
+        nextLabel="C'est parti !"
+        skipLabel="Je compléterai plus tard"
+      />
     </motion.div>
   );
 }

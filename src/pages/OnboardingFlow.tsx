@@ -5,21 +5,23 @@ import { useAuth } from "@/components/AuthProvider";
 import { Loader2, Shield } from "lucide-react";
 import { OnboardingStepBar } from "@/components/onboarding-flow/OnboardingStepBar";
 import { StepBienvenue } from "@/components/onboarding-flow/StepBienvenue";
+import { StepAtlas } from "@/components/onboarding-flow/StepAtlas";
 import { StepSituationPersonnelle } from "@/components/onboarding-flow/StepSituationPersonnelle";
 import { StepSituationPro } from "@/components/onboarding-flow/StepSituationPro";
 import { StepRevenus } from "@/components/onboarding-flow/StepRevenus";
-import { StepChargesEpargne } from "@/components/onboarding-flow/StepChargesEpargne";
-import { StepAtlas } from "@/components/onboarding-flow/StepAtlas";
+import { StepCharges } from "@/components/onboarding-flow/StepCharges";
+import { StepEpargne } from "@/components/onboarding-flow/StepEpargne";
 import { StepRiskProfile } from "@/components/onboarding-flow/StepRiskProfile";
 
 const STEPS = [
   { id: 1, label: "Bienvenue", key: "bienvenue" },
-  { id: 2, label: "Situation", key: "situation" },
-  { id: 3, label: "Emploi", key: "professionnel" },
-  { id: 4, label: "Revenus", key: "revenus" },
-  { id: 5, label: "Charges & Épargne", key: "charges" },
-  { id: 6, label: "Fiscalité", key: "atlas" },
-  { id: 7, label: "Profil de risque", key: "risk" },
+  { id: 2, label: "Fiscalité", key: "atlas" },
+  { id: 3, label: "Situation", key: "situation" },
+  { id: 4, label: "Emploi", key: "professionnel" },
+  { id: 5, label: "Revenus", key: "revenus" },
+  { id: 6, label: "Charges", key: "charges" },
+  { id: 7, label: "Épargne", key: "epargne" },
+  { id: 8, label: "Profil de risque", key: "risk" },
 ];
 
 export default function OnboardingFlow() {
@@ -58,7 +60,13 @@ export default function OnboardingFlow() {
       navigate("/panorama?welcome=true");
     } else {
       setCurrentStep(nextStep);
-      // Scroll to top on step change
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const goBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(prev => prev - 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
@@ -73,9 +81,9 @@ export default function OnboardingFlow() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center p-4 pt-8 md:pt-12">
-      {/* Logo */}
+      {/* Logo with gradient */}
       <div className="mb-6">
-        <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+        <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
           MyFinCare
         </span>
       </div>
@@ -98,39 +106,52 @@ export default function OnboardingFlow() {
           />
         )}
         {currentStep === 2 && (
-          <StepSituationPersonnelle
-            onNext={() => advanceStep(3)}
+          <StepAtlas
+            onNext={() => advanceStep(3, "atlas_completed")}
             onSkip={() => advanceStep(3)}
+            onBack={goBack}
           />
         )}
         {currentStep === 3 && (
-          <StepSituationPro
+          <StepSituationPersonnelle
             onNext={() => advanceStep(4)}
             onSkip={() => advanceStep(4)}
+            onBack={goBack}
           />
         )}
         {currentStep === 4 && (
-          <StepRevenus
+          <StepSituationPro
             onNext={() => advanceStep(5)}
             onSkip={() => advanceStep(5)}
+            onBack={goBack}
           />
         )}
         {currentStep === 5 && (
-          <StepChargesEpargne
-            onNext={() => advanceStep(6, "audit_panorama_completed")}
+          <StepRevenus
+            onNext={() => advanceStep(6)}
             onSkip={() => advanceStep(6)}
+            onBack={goBack}
           />
         )}
         {currentStep === 6 && (
-          <StepAtlas
-            onNext={() => advanceStep(7, "atlas_completed")}
+          <StepCharges
+            onNext={() => advanceStep(7)}
             onSkip={() => advanceStep(7)}
+            onBack={goBack}
           />
         )}
         {currentStep === 7 && (
-          <StepRiskProfile
-            onNext={() => advanceStep(8, "risk_profile_completed")}
+          <StepEpargne
+            onNext={() => advanceStep(8, "audit_panorama_completed")}
             onSkip={() => advanceStep(8)}
+            onBack={goBack}
+          />
+        )}
+        {currentStep === 8 && (
+          <StepRiskProfile
+            onNext={() => advanceStep(9, "risk_profile_completed")}
+            onSkip={() => advanceStep(9)}
+            onBack={goBack}
           />
         )}
       </div>

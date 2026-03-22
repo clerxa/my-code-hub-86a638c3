@@ -11,13 +11,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { toast } from "sonner";
 import { QuestionWithAnswers, RiskProfileSettings } from "@/types/risk-profile";
+import { OnboardingNavButtons } from "./OnboardingNavButtons";
 
 interface StepRiskProfileProps {
   onNext: () => void;
   onSkip: () => void;
+  onBack?: () => void;
 }
 
-export function StepRiskProfile({ onNext, onSkip }: StepRiskProfileProps) {
+export function StepRiskProfile({ onNext, onSkip, onBack }: StepRiskProfileProps) {
   const { user } = useAuth();
   const [questions, setQuestions] = useState<QuestionWithAnswers[]>([]);
   const [responses, setResponses] = useState<Record<string, string>>({});
@@ -132,9 +134,7 @@ export function StepRiskProfile({ onNext, onSkip }: StepRiskProfileProps) {
             Questionnaire non disponible pour le moment.
           </CardContent>
         </Card>
-        <div className="flex justify-center">
-          <Button onClick={onSkip}>Passer cette étape</Button>
-        </div>
+        <OnboardingNavButtons onNext={onSkip} onSkip={onSkip} onBack={onBack} nextLabel="Passer cette étape" />
       </div>
     );
   }
@@ -144,14 +144,16 @@ export function StepRiskProfile({ onNext, onSkip }: StepRiskProfileProps) {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="border-border/50 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <Shield className="h-6 w-6 text-primary" />
+            <div className="p-2.5 rounded-xl bg-[image:var(--gradient-hero)] shadow-md">
+              <Shield className="h-5 w-5 text-white" />
+            </div>
             <div>
-              <CardTitle className="text-xl">Évaluez votre profil investisseur</CardTitle>
+              <CardTitle className="text-lg">Évaluez votre profil investisseur</CardTitle>
               <CardDescription>
-                Ce questionnaire réglementaire (AMF/MiFID II) permet de déterminer votre tolérance au risque. Vos réponses orientent les recommandations de placement adaptées à votre profil — question {currentQ + 1} sur {questions.length}.
+                Ce questionnaire réglementaire (AMF/MiFID II) permet de déterminer votre tolérance au risque — question {currentQ + 1} sur {questions.length}.
               </CardDescription>
             </div>
           </div>
@@ -197,11 +199,10 @@ export function StepRiskProfile({ onNext, onSkip }: StepRiskProfileProps) {
       <div className="flex items-center justify-between">
         <Button
           variant="outline"
-          onClick={() => setCurrentQ((p) => Math.max(0, p - 1))}
-          disabled={currentQ === 0}
+          onClick={() => currentQ === 0 && onBack ? onBack() : setCurrentQ((p) => Math.max(0, p - 1))}
           className="gap-2"
         >
-          <ArrowLeft className="h-4 w-4" /> Précédent
+          <ArrowLeft className="h-4 w-4" /> {currentQ === 0 ? "Retour" : "Précédent"}
         </Button>
 
         {currentQ < questions.length - 1 ? (
@@ -219,7 +220,7 @@ export function StepRiskProfile({ onNext, onSkip }: StepRiskProfileProps) {
             className="gap-2"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Terminer et accéder à mon tableau de bord <ArrowRight className="h-4 w-4" />
+            Accéder à mon tableau de bord <ArrowRight className="h-4 w-4" />
           </Button>
         )}
       </div>

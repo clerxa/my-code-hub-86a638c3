@@ -1,48 +1,28 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowRight, Loader2, Wallet, PiggyBank, Home, Info, Building2 } from "lucide-react";
+import { PiggyBank, Building2, Info } from "lucide-react";
 import { useUserFinancialProfile, type FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
 import { motion } from "framer-motion";
+import { OnboardingNavButtons } from "./OnboardingNavButtons";
 
-interface StepChargesEpargneProps {
+interface StepEpargneProps {
   onNext: () => void;
   onSkip: () => void;
+  onBack?: () => void;
 }
 
-export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) {
+export function StepEpargne({ onNext, onSkip, onBack }: StepEpargneProps) {
   const { saveProfile, isSaving, profile } = useUserFinancialProfile();
   const [formData, setFormData] = useState<FinancialProfileInput>({
-    // Legacy charges
-    charges_fixes_mensuelles: profile?.charges_fixes_mensuelles || 0,
-    loyer_actuel: profile?.loyer_actuel || 0,
-    credits_immobilier: profile?.credits_immobilier || 0,
-    credits_consommation: profile?.credits_consommation || 0,
-    credits_auto: profile?.credits_auto || 0,
-    pensions_alimentaires: profile?.pensions_alimentaires || 0,
-    // Detailed charges
-    charges_copropriete_taxes: profile?.charges_copropriete_taxes || 0,
-    charges_energie: profile?.charges_energie || 0,
-    charges_assurance_habitation: profile?.charges_assurance_habitation || 0,
-    charges_transport_commun: profile?.charges_transport_commun || 0,
-    charges_assurance_auto: profile?.charges_assurance_auto || 0,
-    charges_lld_loa_auto: profile?.charges_lld_loa_auto || 0,
-    charges_internet: profile?.charges_internet || 0,
-    charges_mobile: profile?.charges_mobile || 0,
-    charges_abonnements: profile?.charges_abonnements || 0,
-    charges_frais_scolarite: profile?.charges_frais_scolarite || 0,
-    charges_autres: profile?.charges_autres || 0,
-    // Épargne
     capacite_epargne_mensuelle: profile?.capacite_epargne_mensuelle || 0,
     epargne_actuelle: profile?.epargne_actuelle || 0,
     epargne_livrets: profile?.epargne_livrets || 0,
     apport_disponible: profile?.apport_disponible || 0,
-    // Patrimoine financier
     patrimoine_assurance_vie: profile?.patrimoine_assurance_vie || 0,
     patrimoine_per: profile?.patrimoine_per || 0,
     patrimoine_pea: profile?.patrimoine_pea || 0,
@@ -50,14 +30,11 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
     patrimoine_crypto: profile?.patrimoine_crypto || 0,
     patrimoine_private_equity: profile?.patrimoine_private_equity || 0,
     patrimoine_autres: profile?.patrimoine_autres || 0,
-    // Patrimoine immobilier
     patrimoine_immo_valeur: profile?.patrimoine_immo_valeur || 0,
     patrimoine_immo_credit_restant: profile?.patrimoine_immo_credit_restant || 0,
-    // Fiscal
     tmi: profile?.tmi || 0,
     parts_fiscales: profile?.parts_fiscales || 1,
     plafond_per_reportable: profile?.plafond_per_reportable || 0,
-    // Projets immobiliers
     objectif_achat_immo: profile?.objectif_achat_immo || false,
     projet_residence_principale: profile?.projet_residence_principale || false,
     projet_residence_secondaire: profile?.projet_residence_secondaire || false,
@@ -98,74 +75,17 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
-      {/* Charges logement */}
+      {/* Épargne */}
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <Home className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">🏠 Logement & Énergie</CardTitle>
-              <CardDescription>Le logement est généralement votre premier poste de dépenses. Ces données servent à calculer votre reste à vivre et votre taux d'endettement.</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <NumField fieldKey="loyer_actuel" label="Loyer (€/mois)" placeholder="Ex: 900" />
-            <NumField fieldKey="credits_immobilier" label="Crédit immobilier (€/mois)" placeholder="Ex: 1 200" />
-            <NumField fieldKey="charges_copropriete_taxes" label="Copropriété & taxes (€/mois)" placeholder="Ex: 150" />
-            <NumField fieldKey="charges_energie" label="Énergie (€/mois)" placeholder="Ex: 120" />
-            <NumField fieldKey="charges_assurance_habitation" label="Assurance habitation (€/mois)" placeholder="Ex: 30" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Charges transport */}
-      <Card className="border-border/50 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">🚗 Transports & Mobilité</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <NumField fieldKey="charges_transport_commun" label="Transport en commun (€/mois)" placeholder="Ex: 75" />
-            <NumField fieldKey="charges_assurance_auto" label="Assurance auto (€/mois)" placeholder="Ex: 50" />
-            <NumField fieldKey="charges_lld_loa_auto" label="LLD / LOA auto (€/mois)" placeholder="Ex: 300" />
-            <NumField fieldKey="credits_auto" label="Crédit auto (€/mois)" placeholder="Ex: 200" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Autres charges */}
-      <Card className="border-border/50 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">📱 Autres charges récurrentes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <NumField fieldKey="charges_internet" label="Internet (€/mois)" placeholder="Ex: 35" />
-            <NumField fieldKey="charges_mobile" label="Mobile (€/mois)" placeholder="Ex: 20" />
-            <NumField fieldKey="charges_abonnements" label="Abonnements (€/mois)" placeholder="Ex: 40" desc="Netflix, Spotify, salle de sport..." />
-            <NumField fieldKey="charges_frais_scolarite" label="Frais de scolarité (€/mois)" placeholder="0" />
-            <NumField fieldKey="credits_consommation" label="Crédit conso (€/mois)" placeholder="0" />
-            <NumField fieldKey="pensions_alimentaires" label="Pension alimentaire (€/mois)" placeholder="0" />
-            <NumField fieldKey="charges_autres" label="Autres charges (€/mois)" placeholder="0" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Épargne & Patrimoine */}
-      <Card className="border-border/50 shadow-sm">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <PiggyBank className="h-5 w-5 text-primary" />
+            <div className="p-2.5 rounded-xl bg-[image:var(--gradient-hero)] shadow-md">
+              <PiggyBank className="h-5 w-5 text-white" />
             </div>
             <div>
               <CardTitle className="text-lg">Épargne & Patrimoine</CardTitle>
               <CardDescription>
-                Votre patrimoine financier et immobilier constitue la base de votre bilan patrimonial. Même des montants approximatifs nous permettent de vous fournir des recommandations adaptées à votre situation réelle.
+                Votre patrimoine financier et immobilier constitue la base de votre bilan patrimonial. Même des montants approximatifs nous permettent de vous fournir des recommandations adaptées.
               </CardDescription>
             </div>
           </div>
@@ -205,24 +125,16 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">💶 Fiscalité</CardTitle>
-          <CardDescription>Votre tranche marginale d'imposition (TMI) détermine l'impact réel de chaque décision financière : épargne PER, cession d'actions, investissement locatif. Si vous ne la connaissez pas, elle pourra être calculée à l'étape suivante via votre avis d'imposition.</CardDescription>
+          <CardDescription>Votre tranche marginale d'imposition (TMI) détermine l'impact réel de chaque décision financière. Si vous ne la connaissez pas, elle a pu être extraite automatiquement de votre avis d'imposition.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div className="space-y-1">
               <Label className="text-sm flex items-center gap-1.5">
                 TMI (%)
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger><Info className="h-3.5 w-3.5 text-muted-foreground" /></TooltipTrigger>
-                    <TooltipContent><p className="text-xs max-w-xs">Tranche Marginale d'Imposition : 0%, 11%, 30%, 41% ou 45%.</p></TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <TooltipProvider><Tooltip><TooltipTrigger><Info className="h-3.5 w-3.5 text-muted-foreground" /></TooltipTrigger><TooltipContent><p className="text-xs max-w-xs">Tranche Marginale d'Imposition : 0%, 11%, 30%, 41% ou 45%.</p></TooltipContent></Tooltip></TooltipProvider>
               </Label>
-              <Select
-                value={String(formData.tmi || "")}
-                onValueChange={(v) => updateField("tmi", parseFloat(v))}
-              >
+              <Select value={String(formData.tmi || "")} onValueChange={(v) => updateField("tmi", parseFloat(v))}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Sélectionnez" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="0">0 %</SelectItem>
@@ -243,22 +155,19 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <Building2 className="h-5 w-5 text-primary" />
+            <div className="p-2.5 rounded-xl bg-[image:var(--gradient-origin)] shadow-md">
+              <Building2 className="h-5 w-5 text-white" />
             </div>
             <div>
               <CardTitle className="text-lg">Projets immobiliers</CardTitle>
-              <CardDescription>Identifier vos projets nous permet de dimensionner votre capacité d'emprunt, d'estimer votre apport nécessaire et de prioriser votre stratégie d'épargne.</CardDescription>
+              <CardDescription>Identifier vos projets nous permet de dimensionner votre capacité d'emprunt et de prioriser votre stratégie d'épargne.</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-3 rounded-lg border border-border">
             <Label className="text-sm">Avez-vous un projet d'achat immobilier ?</Label>
-            <Switch
-              checked={formData.objectif_achat_immo as boolean || false}
-              onCheckedChange={(v) => updateField("objectif_achat_immo", v)}
-            />
+            <Switch checked={formData.objectif_achat_immo as boolean || false} onCheckedChange={(v) => updateField("objectif_achat_immo", v)} />
           </div>
 
           {formData.objectif_achat_immo && (
@@ -272,32 +181,19 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
                   <div key={item.key} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label className="text-sm">{item.label}</Label>
-                      <Switch
-                        checked={formData[item.key] as boolean || false}
-                        onCheckedChange={(v) => updateField(item.key, v)}
-                      />
+                      <Switch checked={formData[item.key] as boolean || false} onCheckedChange={(v) => updateField(item.key, v)} />
                     </div>
                     {formData[item.key] && (
-                      <Input
-                        type="number" min={0}
-                        value={(formData[item.budgetKey] as number) || ""}
-                        onChange={(e) => updateField(item.budgetKey, parseFloat(e.target.value) || 0)}
-                        placeholder="Budget estimé (€)"
-                        className="h-9 text-sm"
-                      />
+                      <Input type="number" min={0} value={(formData[item.budgetKey] as number) || ""} onChange={(e) => updateField(item.budgetKey, parseFloat(e.target.value) || 0)} placeholder="Budget estimé (€)" className="h-9 text-sm" />
                     )}
                   </div>
                 ))}
               </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <NumField fieldKey="budget_achat_immo" label="Budget global (€)" placeholder="Ex: 300 000" />
                 <div className="space-y-1">
                   <Label className="text-sm">Durée d'emprunt souhaitée</Label>
-                  <Select
-                    value={String(formData.duree_emprunt_souhaitee || 20)}
-                    onValueChange={(v) => updateField("duree_emprunt_souhaitee", parseInt(v))}
-                  >
+                  <Select value={String(formData.duree_emprunt_souhaitee || 20)} onValueChange={(v) => updateField("duree_emprunt_souhaitee", parseInt(v))}>
                     <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {[10, 15, 20, 25, 30].map(n => (
@@ -312,18 +208,7 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
         </CardContent>
       </Card>
 
-      <div className="flex flex-col items-center gap-3 pt-2">
-        <Button onClick={handleSubmit} disabled={isSaving} size="lg" className="gap-2 px-8 shadow-md">
-          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          Continuer <ArrowRight className="h-4 w-4" />
-        </Button>
-        <button
-          onClick={onSkip}
-          className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
-        >
-          Enregistrer et compléter plus tard
-        </button>
-      </div>
+      <OnboardingNavButtons onNext={handleSubmit} onSkip={onSkip} onBack={onBack} isLoading={isSaving} />
     </motion.div>
   );
 }
