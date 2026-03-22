@@ -169,7 +169,7 @@ export default function RiskProfilePage() {
       }
 
       // Save profile
-      await supabase
+      const { error: profileError } = await supabase
         .from('risk_profile')
         .upsert({
           user_id: user.id,
@@ -179,6 +179,10 @@ export default function RiskProfilePage() {
         }, {
           onConflict: 'user_id'
         });
+      if (profileError) {
+        console.error('Error saving risk profile:', profileError);
+        throw profileError;
+      }
 
       const newProfile: RiskProfile = {
         user_id: user.id,
