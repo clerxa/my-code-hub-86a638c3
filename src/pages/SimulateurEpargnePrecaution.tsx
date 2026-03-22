@@ -137,12 +137,19 @@ const SimulateurEpargnePrecaution = () => {
       const data = getPrefillData();
       
       if (data.chargesDetailees) {
-        // Utiliser directement les charges détaillées du profil
-        setChargesDetailees(data.chargesDetailees);
+        const charges = { ...data.chargesDetailees };
+        
+        // Injecter les investissements locatifs depuis le portefeuille immobilier
+        if (realEstateTotals) {
+          charges.investissement_locatif_credits = realEstateTotals.mensualitesTotal ?? 0;
+          charges.investissement_locatif_charges = realEstateTotals.chargesTotal ?? 0;
+        }
+        
+        setChargesDetailees(charges);
         
         // Tracker les champs pré-remplis (ceux > 0)
         const filledFields = new Set<string>();
-        Object.entries(data.chargesDetailees).forEach(([key, value]) => {
+        Object.entries(charges).forEach(([key, value]) => {
           if (value > 0) filledFields.add(key);
         });
         if (data.epargneActuelle > 0) filledFields.add('epargne_actuelle');
@@ -165,9 +172,31 @@ const SimulateurEpargnePrecaution = () => {
         setTypeContrat(contratMapping[data.typeContrat]);
       }
       
+      // Récupérer les impôts depuis ATLAS
+      if (user?.id) {
+        supabase
+          .from("ocr_avis_imposition_analyses" as any)
+          .select("impot_net_total")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+          .then(({ data: atlasData }) => {
+            if (atlasData?.impot_net_total) {
+              const impotMensuel = Math.round(atlasData.impot_net_total / 12);
+              setChargesDetailees(prev => ({ ...prev, impots: impotMensuel }));
+              setPrefilledFields(prev => {
+                const next = new Set(prev);
+                if (impotMensuel > 0) next.add('impots');
+                return next;
+              });
+            }
+          });
+      }
+      
       setProfileApplied(true);
     }
-  }, [isProfileLoading, hasProfile, profileApplied, getPrefillData, location.state]);
+  }, [isProfileLoading, hasProfile, profileApplied, getPrefillData, location.state, realEstateTotals, user?.id]);
 
   // Charger une simulation existante
   useEffect(() => {
