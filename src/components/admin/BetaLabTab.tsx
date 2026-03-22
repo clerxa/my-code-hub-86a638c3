@@ -195,17 +195,7 @@ export const BetaLabTab: React.FC = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="badge" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="badge" className="gap-2">
-            <Palette className="h-4 w-4" />
-            Badge Beta
-          </TabsTrigger>
-          <TabsTrigger value="csat" className="gap-2">
-            <MessageSquare className="h-4 w-4" />
-            CSAT
-          </TabsTrigger>
-        </TabsList>
+      <div className="w-full">
 
         <TabsContent value="badge" className="mt-6 space-y-6">
           {/* Personal Emails Toggle */}
