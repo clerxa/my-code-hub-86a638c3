@@ -529,14 +529,38 @@ export default function PanoramaPage() {
             colorClass={moduleTitleColors.risque}
             onClick={() => navigate("/risk-profile")}
           >
-            {synthesis?.riskProfile ? (
-              <>
-                <p className="text-xl font-bold">{synthesis.riskProfile.profile_type ?? "Évalué"}</p>
-                {synthesis.riskProfile.total_weighted_score != null && (
-                  <p className="text-xs text-muted-foreground">Score {synthesis.riskProfile.total_weighted_score}</p>
-                )}
-              </>
-            ) : (
+            {synthesis?.riskProfile ? (() => {
+              const profileType = synthesis.riskProfile.profile_type ?? "Évalué";
+              const score = synthesis.riskProfile.total_weighted_score;
+              const profileColorMap: Record<string, string> = {
+                'Prudent': 'text-blue-600',
+                'Équilibré': 'text-emerald-600',
+                'Dynamique': 'text-orange-600',
+                'Audacieux': 'text-red-600',
+              };
+              const profileDescMap: Record<string, string> = {
+                'Prudent': 'Sécurité et préservation du capital',
+                'Équilibré': 'Équilibre sécurité / performance',
+                'Dynamique': 'Croissance et tolérance aux fluctuations',
+                'Audacieux': 'Performance maximale, forte volatilité',
+              };
+              const color = profileColorMap[profileType] || 'text-foreground';
+              const desc = profileDescMap[profileType];
+              return (
+                <div className="space-y-1">
+                  <p className={cn("text-xl font-bold", color)}>{profileType}</p>
+                  {score != null && (
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${Math.min(100, score)}%` }} />
+                      </div>
+                      <span className="text-[10px] text-muted-foreground font-medium">{score}/100</span>
+                    </div>
+                  )}
+                  {desc && <p className="text-[10px] text-muted-foreground leading-tight">{desc}</p>}
+                </div>
+              );
+            })() : (
               <p className="text-sm text-muted-foreground">Non évalué</p>
             )}
           </ModuleCard>
