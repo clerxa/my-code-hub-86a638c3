@@ -60,7 +60,7 @@ export function PanoramaAtlasGate() {
         <div className="rounded-lg border border-primary/20 bg-primary/5 px-5 py-4 text-center">
           <p className="text-sm text-primary font-medium">
             📋 L'avis d'imposition reflète vos revenus de l'année précédente (N-1). 
-            Vous pourrez ensuite compléter votre situation actuelle dans l'audit patrimonial.
+            Vous pourrez ensuite compléter votre situation actuelle dans « Ma situation financière ».
           </p>
         </div>
       </motion.div>

@@ -447,7 +447,7 @@ export default function PanoramaAuditPage() {
               <ArrowLeft className="h-4 w-4" /> Retour à PANORAMA
             </Button>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold">Audit patrimonial</h1>
+              <h1 className="text-2xl md:text-3xl font-bold">Ma situation financière</h1>
               <p className="text-muted-foreground mt-1">
                 Complétez votre situation pour des recommandations personnalisées
               </p>

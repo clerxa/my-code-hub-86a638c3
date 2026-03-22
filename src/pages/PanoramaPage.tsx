@@ -472,7 +472,7 @@ export default function PanoramaPage() {
                         </div>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" className="max-w-xs">
-                        <p className="text-xs">Calculé automatiquement : Revenus − Charges − Impôts. Affinez cette valeur dans votre audit patrimonial.</p>
+                        <p className="text-xs">Calculé automatiquement : Revenus − Charges − Impôts. Affinez cette valeur dans « Ma situation financière ».</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
