@@ -591,7 +591,7 @@ const SimpleDataRow = ({ label, value }: { label: string; value: string }) => (
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-const OcrAvisImposition = () => {
+const OcrAvisImposition = ({ importOnly = false }: { importOnly?: boolean } = {}) => {
   const { user } = useAuth();
   const [data, setData] = useState<AvisData | null>(null);
   const [loading, setLoading] = useState(false);
