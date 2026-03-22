@@ -155,6 +155,10 @@ export function FinancialProfileWizard({
     formData.pensions_alimentaires,
     formData.credits_consommation,
     formData.charges_autres,
+    formData.charges_courses_alimentaires,
+    formData.charges_loisirs,
+    formData.charges_shopping,
+    formData.charges_variables_autres,
     realEstateTotals.mensualitesTotal,
     realEstateTotals.chargesTotal,
   ]);
