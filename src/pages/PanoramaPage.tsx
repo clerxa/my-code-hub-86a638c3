@@ -111,13 +111,6 @@ export default function PanoramaPage() {
     completeness: financialCompleteness,
   } = useUserFinancialProfile();
 
-  if (hasAtlasAnalysis === false) {
-    return (
-      <EmployeeLayout activeSection="panorama">
-        <PanoramaAtlasGate />
-      </EmployeeLayout>
-    );
-  }
 
   if (error) {
     return (
