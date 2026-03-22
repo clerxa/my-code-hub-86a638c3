@@ -1016,6 +1016,11 @@ export default function PanoramaAuditPage() {
 
             {/* Tab: Objectives */}
             <TabsContent value="objectives" className="space-y-6 mt-6">
+              <Card className="mb-4">
+                <CardHeader className="pb-2">
+                  <CardDescription>Les projets et objectifs de votre foyer</CardDescription>
+                </CardHeader>
+              </Card>
               <ObjectivesTab />
             </TabsContent>
           </Tabs>

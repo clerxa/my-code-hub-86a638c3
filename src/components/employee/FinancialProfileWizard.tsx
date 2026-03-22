@@ -432,6 +432,33 @@ export function FinancialProfileWizard({
               </div>
             )}
 
+            {/* Total revenus foyer */}
+            {((formData.revenu_annuel_brut ?? 0) > 0 || (formData.revenu_annuel_brut_conjoint ?? 0) > 0) && (
+              <div className="p-4 rounded-lg bg-muted/50 border">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">
+                    Revenus bruts annuels du foyer
+                  </span>
+                  <span className="font-semibold text-primary">
+                    {((formData.revenu_annuel_brut ?? 0) + 
+                      (formData.revenu_annuel_brut_conjoint ?? 0)
+                    ).toLocaleString('fr-FR')} €
+                  </span>
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-xs text-muted-foreground">
+                    Revenus nets mensuels estimés du foyer
+                  </span>
+                  <span className="text-sm font-medium">
+                    {Math.round(
+                      ((formData.revenu_annuel_brut ?? 0) + 
+                       (formData.revenu_annuel_brut_conjoint ?? 0)) * 0.77 / 12
+                    ).toLocaleString('fr-FR')} €/mois
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Spouse invite card - next to conjoint revenue */}
             {isMarriedOrPacs && onInviteSpouse && (
               <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
