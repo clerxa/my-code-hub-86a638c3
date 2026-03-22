@@ -29,10 +29,20 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
     has_espp: profile?.has_espp || false,
     has_stock_options: profile?.has_stock_options || false,
     has_bspce: profile?.has_bspce || false,
+    has_equity_autres: profile?.has_equity_autres || false,
+    // Equity values
+    valeur_rsu_aga: profile?.valeur_rsu_aga || 0,
+    valeur_espp: profile?.valeur_espp || 0,
+    valeur_stock_options: profile?.valeur_stock_options || 0,
+    valeur_bspce: profile?.valeur_bspce || 0,
     // Épargne salariale
     has_pee: profile?.has_pee || false,
     has_perco: profile?.has_perco || false,
     has_pero: profile?.has_pero || false,
+    has_epargne_autres: profile?.has_epargne_autres || false,
+    // Épargne values
+    valeur_pee: profile?.valeur_pee || 0,
+    valeur_perco: profile?.valeur_perco || 0,
   });
 
   const updateField = <K extends keyof FinancialProfileInput>(field: K, value: FinancialProfileInput[K]) => {
@@ -40,7 +50,6 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
   };
 
   const handleSubmit = async () => {
-    // Sync job_title to profiles
     if (jobTitle.trim()) {
       await supabase.from("profiles").update({ job_title: jobTitle.trim() }).eq("id", user!.id);
     }
@@ -48,16 +57,16 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
   };
 
   const equityItems = [
-    { key: "has_rsu_aga" as const, label: "RSU / AGA", desc: "Actions gratuites" },
-    { key: "has_espp" as const, label: "ESPP", desc: "Plan d'achat d'actions" },
-    { key: "has_stock_options" as const, label: "Stock-options", desc: "Options sur actions" },
-    { key: "has_bspce" as const, label: "BSPCE", desc: "Bons de souscription" },
+    { key: "has_rsu_aga" as const, valKey: "valeur_rsu_aga" as const, label: "RSU / AGA", desc: "Actions gratuites" },
+    { key: "has_espp" as const, valKey: "valeur_espp" as const, label: "ESPP", desc: "Plan d'achat d'actions" },
+    { key: "has_stock_options" as const, valKey: "valeur_stock_options" as const, label: "Stock-options", desc: "Options sur actions" },
+    { key: "has_bspce" as const, valKey: "valeur_bspce" as const, label: "BSPCE", desc: "Bons de souscription" },
   ];
 
   const savingsItems = [
-    { key: "has_pee" as const, label: "PEE", desc: "Plan d'Épargne Entreprise" },
-    { key: "has_perco" as const, label: "PERCO / PERCOL", desc: "Épargne Retraite Collectif" },
-    { key: "has_pero" as const, label: "PERO (Art. 83)", desc: "Retraite Obligatoire" },
+    { key: "has_pee" as const, valKey: "valeur_pee" as const, label: "PEE", desc: "Plan d'Épargne Entreprise" },
+    { key: "has_perco" as const, valKey: "valeur_perco" as const, label: "PERCO / PERCOL", desc: "Épargne Retraite Collectif" },
+    { key: "has_pero" as const, valKey: null, label: "PERO (Art. 83)", desc: "Retraite Obligatoire" },
   ];
 
   return (
@@ -143,7 +152,7 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
         </CardContent>
       </Card>
 
-      {/* Avantages entreprise */}
+      {/* Equity */}
       <Card className="border-primary/20 bg-primary/5 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
@@ -151,24 +160,18 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
               <TrendingUp className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg">Avantages de votre entreprise</CardTitle>
+              <CardTitle className="text-lg">Rémunération en actions</CardTitle>
               <CardDescription>
-                Cochez les dispositifs dont vous bénéficiez — vous pourrez les détailler plus tard.
+                Cochez les dispositifs dont vous bénéficiez et estimez leur valeur actuelle.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-5">
-          {/* Equity */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="h-1 w-4 rounded bg-primary" />
-              <h4 className="font-medium text-sm">Rémunération en actions</h4>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {equityItems.map(item => (
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-2">
+            {equityItems.map(item => (
+              <div key={item.key} className="space-y-2">
                 <label
-                  key={item.key}
                   className={cn(
                     "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
                     formData[item.key]
@@ -187,20 +190,60 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
                     <p className="text-xs text-muted-foreground">{item.desc}</p>
                   </div>
                 </label>
-              ))}
-            </div>
+                {formData[item.key] && (
+                  <Input
+                    type="number"
+                    min={0}
+                    value={(formData[item.valKey] as number) || ""}
+                    onChange={(e) => updateField(item.valKey, parseFloat(e.target.value) || 0)}
+                    placeholder="Valeur estimée (€)"
+                    className="h-8 text-sm"
+                  />
+                )}
+              </div>
+            ))}
           </div>
 
-          {/* Épargne salariale */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="h-1 w-4 rounded bg-primary" />
-              <h4 className="font-medium text-sm">Épargne salariale</h4>
+          <label className={cn(
+            "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
+            formData.has_equity_autres
+              ? "bg-primary/5 border-primary"
+              : "bg-background hover:bg-muted border-border"
+          )}>
+            <input
+              type="checkbox"
+              checked={formData.has_equity_autres as boolean || false}
+              onChange={(e) => updateField("has_equity_autres", e.target.checked)}
+              className="h-4 w-4 rounded border-border accent-primary"
+            />
+            <div>
+              <span className="font-medium text-sm">Autres dispositifs</span>
+              <p className="text-xs text-muted-foreground">Warrants, AGA spécifiques...</p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {savingsItems.map(item => (
+          </label>
+        </CardContent>
+      </Card>
+
+      {/* Épargne salariale */}
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-primary/10">
+              <PiggyBank className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Épargne salariale</CardTitle>
+              <CardDescription>
+                Les plans d'épargne proposés par votre employeur.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {savingsItems.map(item => (
+              <div key={item.key} className="space-y-2">
                 <label
-                  key={item.key}
                   className={cn(
                     "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
                     formData[item.key]
@@ -219,9 +262,37 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
                     <p className="text-xs text-muted-foreground">{item.desc}</p>
                   </div>
                 </label>
-              ))}
-            </div>
+                {formData[item.key] && item.valKey && (
+                  <Input
+                    type="number"
+                    min={0}
+                    value={(formData[item.valKey] as number) || ""}
+                    onChange={(e) => updateField(item.valKey, parseFloat(e.target.value) || 0)}
+                    placeholder="Valeur estimée (€)"
+                    className="h-8 text-sm"
+                  />
+                )}
+              </div>
+            ))}
           </div>
+
+          <label className={cn(
+            "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
+            formData.has_epargne_autres
+              ? "bg-primary/5 border-primary"
+              : "bg-background hover:bg-muted border-border"
+          )}>
+            <input
+              type="checkbox"
+              checked={formData.has_epargne_autres as boolean || false}
+              onChange={(e) => updateField("has_epargne_autres", e.target.checked)}
+              className="h-4 w-4 rounded border-border accent-primary"
+            />
+            <div>
+              <span className="font-medium text-sm">Autres dispositifs d'épargne</span>
+              <p className="text-xs text-muted-foreground">CET, intéressement non investi...</p>
+            </div>
+          </label>
         </CardContent>
       </Card>
 
