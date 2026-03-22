@@ -1,0 +1,242 @@
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowRight, Loader2, Briefcase, TrendingUp, PiggyBank } from "lucide-react";
+import { useUserFinancialProfile, type FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/AuthProvider";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+
+interface StepSituationProProps {
+  onNext: () => void;
+  onSkip: () => void;
+}
+
+export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
+  const { user } = useAuth();
+  const { saveProfile, isSaving, profile } = useUserFinancialProfile();
+  const [jobTitle, setJobTitle] = useState("");
+  const [formData, setFormData] = useState<FinancialProfileInput>({
+    type_contrat: profile?.type_contrat || "",
+    anciennete_annees: profile?.anciennete_annees || 0,
+    secteur_activite: profile?.secteur_activite || null,
+    // Equity
+    has_rsu_aga: profile?.has_rsu_aga || false,
+    has_espp: profile?.has_espp || false,
+    has_stock_options: profile?.has_stock_options || false,
+    has_bspce: profile?.has_bspce || false,
+    // Épargne salariale
+    has_pee: profile?.has_pee || false,
+    has_perco: profile?.has_perco || false,
+    has_pero: profile?.has_pero || false,
+  });
+
+  const updateField = <K extends keyof FinancialProfileInput>(field: K, value: FinancialProfileInput[K]) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async () => {
+    // Sync job_title to profiles
+    if (jobTitle.trim()) {
+      await supabase.from("profiles").update({ job_title: jobTitle.trim() }).eq("id", user!.id);
+    }
+    saveProfile(formData, { onSuccess: () => onNext() });
+  };
+
+  const equityItems = [
+    { key: "has_rsu_aga" as const, label: "RSU / AGA", desc: "Actions gratuites" },
+    { key: "has_espp" as const, label: "ESPP", desc: "Plan d'achat d'actions" },
+    { key: "has_stock_options" as const, label: "Stock-options", desc: "Options sur actions" },
+    { key: "has_bspce" as const, label: "BSPCE", desc: "Bons de souscription" },
+  ];
+
+  const savingsItems = [
+    { key: "has_pee" as const, label: "PEE", desc: "Plan d'Épargne Entreprise" },
+    { key: "has_perco" as const, label: "PERCO / PERCOL", desc: "Épargne Retraite Collectif" },
+    { key: "has_pero" as const, label: "PERO (Art. 83)", desc: "Retraite Obligatoire" },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-6"
+    >
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-primary/10">
+              <Briefcase className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Situation professionnelle</CardTitle>
+              <CardDescription>
+                Votre emploi et les avantages proposés par votre entreprise.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Poste occupé</Label>
+              <Input
+                value={jobTitle}
+                onChange={(e) => setJobTitle(e.target.value)}
+                placeholder="Ex: Chef de projet, Développeur..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Type de contrat</Label>
+              <Select
+                value={formData.type_contrat || ""}
+                onValueChange={(v) => updateField("type_contrat", v)}
+              >
+                <SelectTrigger><SelectValue placeholder="Sélectionnez" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CDI">CDI</SelectItem>
+                  <SelectItem value="CDD">CDD</SelectItem>
+                  <SelectItem value="Freelance">Freelance / Indépendant</SelectItem>
+                  <SelectItem value="Fonctionnaire">Fonctionnaire</SelectItem>
+                  <SelectItem value="Autre">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Secteur d'activité</Label>
+              <Select
+                value={formData.secteur_activite || ""}
+                onValueChange={(v) => updateField("secteur_activite", v)}
+              >
+                <SelectTrigger><SelectValue placeholder="Sélectionnez" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tech">Tech / Numérique</SelectItem>
+                  <SelectItem value="finance">Finance / Banque</SelectItem>
+                  <SelectItem value="sante">Santé / Pharma</SelectItem>
+                  <SelectItem value="industrie">Industrie</SelectItem>
+                  <SelectItem value="commerce">Commerce / Distribution</SelectItem>
+                  <SelectItem value="conseil">Conseil / Services</SelectItem>
+                  <SelectItem value="public">Secteur public</SelectItem>
+                  <SelectItem value="autre">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Ancienneté (années)</Label>
+              <Input
+                type="number"
+                min={0}
+                value={formData.anciennete_annees || ""}
+                onChange={(e) => updateField("anciennete_annees", parseInt(e.target.value) || 0)}
+                placeholder="Ex: 3"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Avantages entreprise */}
+      <Card className="border-primary/20 bg-primary/5 shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-primary/10">
+              <TrendingUp className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Avantages de votre entreprise</CardTitle>
+              <CardDescription>
+                Cochez les dispositifs dont vous bénéficiez — vous pourrez les détailler plus tard.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {/* Equity */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="h-1 w-4 rounded bg-primary" />
+              <h4 className="font-medium text-sm">Rémunération en actions</h4>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {equityItems.map(item => (
+                <label
+                  key={item.key}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
+                    formData[item.key]
+                      ? "bg-primary/5 border-primary"
+                      : "bg-background hover:bg-muted border-border"
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={formData[item.key] as boolean || false}
+                    onChange={(e) => updateField(item.key, e.target.checked)}
+                    className="h-4 w-4 rounded border-border accent-primary"
+                  />
+                  <div>
+                    <span className="font-medium text-sm">{item.label}</span>
+                    <p className="text-xs text-muted-foreground">{item.desc}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Épargne salariale */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="h-1 w-4 rounded bg-primary" />
+              <h4 className="font-medium text-sm">Épargne salariale</h4>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {savingsItems.map(item => (
+                <label
+                  key={item.key}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
+                    formData[item.key]
+                      ? "bg-primary/5 border-primary"
+                      : "bg-background hover:bg-muted border-border"
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={formData[item.key] as boolean || false}
+                    onChange={(e) => updateField(item.key, e.target.checked)}
+                    className="h-4 w-4 rounded border-border accent-primary"
+                  />
+                  <div>
+                    <span className="font-medium text-sm">{item.label}</span>
+                    <p className="text-xs text-muted-foreground">{item.desc}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex flex-col items-center gap-3 pt-2">
+        <Button onClick={handleSubmit} disabled={isSaving} size="lg" className="gap-2 px-8 shadow-md">
+          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          Continuer <ArrowRight className="h-4 w-4" />
+        </Button>
+        <button
+          onClick={onSkip}
+          className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
+        >
+          Enregistrer et compléter plus tard
+        </button>
+      </div>
+    </motion.div>
+  );
+}

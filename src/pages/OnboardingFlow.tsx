@@ -2,20 +2,24 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
-import { Loader2 } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
 import { OnboardingStepBar } from "@/components/onboarding-flow/OnboardingStepBar";
+import { StepBienvenue } from "@/components/onboarding-flow/StepBienvenue";
+import { StepSituationPersonnelle } from "@/components/onboarding-flow/StepSituationPersonnelle";
+import { StepSituationPro } from "@/components/onboarding-flow/StepSituationPro";
+import { StepRevenus } from "@/components/onboarding-flow/StepRevenus";
+import { StepChargesEpargne } from "@/components/onboarding-flow/StepChargesEpargne";
 import { StepAtlas } from "@/components/onboarding-flow/StepAtlas";
-import { StepAuditPanorama } from "@/components/onboarding-flow/StepAuditPanorama";
 import { StepRiskProfile } from "@/components/onboarding-flow/StepRiskProfile";
-import { StepHorizon } from "@/components/onboarding-flow/StepHorizon";
-import { StepVega } from "@/components/onboarding-flow/StepVega";
 
 const STEPS = [
-  { id: 1, label: "Situation fiscale", key: "atlas" },
-  { id: 2, label: "Profil patrimonial", key: "audit" },
-  { id: 3, label: "Profil de risque", key: "risk" },
-  { id: 4, label: "Projets & Épargne", key: "horizon" },
-  { id: 5, label: "Actionnariat", key: "vega" },
+  { id: 1, label: "Bienvenue", key: "bienvenue" },
+  { id: 2, label: "Situation", key: "situation" },
+  { id: 3, label: "Emploi", key: "professionnel" },
+  { id: 4, label: "Revenus", key: "revenus" },
+  { id: 5, label: "Charges & Épargne", key: "charges" },
+  { id: 6, label: "Fiscalité", key: "atlas" },
+  { id: 7, label: "Profil de risque", key: "risk" },
 ];
 
 export default function OnboardingFlow() {
@@ -46,14 +50,16 @@ export default function OnboardingFlow() {
   const advanceStep = async (nextStep: number, completionKey?: string) => {
     const updates: Record<string, any> = { onboarding_step: nextStep };
     if (completionKey) updates[completionKey] = true;
-    if (nextStep > 5) updates.onboarding_completed = true;
+    if (nextStep > STEPS.length) updates.onboarding_completed = true;
 
     await supabase.from("profiles").update(updates).eq("id", user!.id);
 
-    if (nextStep > 5) {
+    if (nextStep > STEPS.length) {
       navigate("/panorama?welcome=true");
     } else {
       setCurrentStep(nextStep);
+      // Scroll to top on step change
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -66,9 +72,9 @@ export default function OnboardingFlow() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center p-4 pt-12">
+    <div className="min-h-screen bg-background flex flex-col items-center p-4 pt-8 md:pt-12">
       {/* Logo */}
-      <div className="mb-8">
+      <div className="mb-6">
         <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
           MyFinCare
         </span>
@@ -77,36 +83,54 @@ export default function OnboardingFlow() {
       {/* Stepper */}
       <OnboardingStepBar steps={STEPS} currentStep={currentStep} />
 
+      {/* Trust badge */}
+      <div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground">
+        <Shield className="h-3.5 w-3.5" />
+        <span>Vos données sont chiffrées et confidentielles</span>
+      </div>
+
       {/* Step content */}
-      <div className="w-full max-w-2xl mt-8 pb-16">
+      <div className="w-full max-w-2xl mt-6 pb-16">
         {currentStep === 1 && (
-          <StepAtlas
-            onNext={() => advanceStep(2, "atlas_completed")}
+          <StepBienvenue
+            onNext={() => advanceStep(2)}
             onSkip={() => advanceStep(2)}
           />
         )}
         {currentStep === 2 && (
-          <StepAuditPanorama
-            onNext={() => advanceStep(3, "audit_panorama_completed")}
+          <StepSituationPersonnelle
+            onNext={() => advanceStep(3)}
             onSkip={() => advanceStep(3)}
           />
         )}
         {currentStep === 3 && (
-          <StepRiskProfile
-            onNext={() => advanceStep(4, "risk_profile_completed")}
+          <StepSituationPro
+            onNext={() => advanceStep(4)}
             onSkip={() => advanceStep(4)}
           />
         )}
         {currentStep === 4 && (
-          <StepHorizon
-            onNext={() => advanceStep(5, "horizon_completed")}
+          <StepRevenus
+            onNext={() => advanceStep(5)}
             onSkip={() => advanceStep(5)}
           />
         )}
         {currentStep === 5 && (
-          <StepVega
-            onNext={() => advanceStep(6)}
+          <StepChargesEpargne
+            onNext={() => advanceStep(6, "audit_panorama_completed")}
             onSkip={() => advanceStep(6)}
+          />
+        )}
+        {currentStep === 6 && (
+          <StepAtlas
+            onNext={() => advanceStep(7, "atlas_completed")}
+            onSkip={() => advanceStep(7)}
+          />
+        )}
+        {currentStep === 7 && (
+          <StepRiskProfile
+            onNext={() => advanceStep(8, "risk_profile_completed")}
+            onSkip={() => advanceStep(8)}
           />
         )}
       </div>
