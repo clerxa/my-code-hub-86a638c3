@@ -111,7 +111,6 @@ export function BudgetOverviewSection({
     );
   };
 
-  const [showInfo, setShowInfo] = useState(false);
 
   return (
     <section className="rounded-lg border border-border bg-card p-5">
