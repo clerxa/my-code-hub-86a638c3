@@ -109,6 +109,8 @@ export function BudgetOverviewSection({
     );
   };
 
+  const [showInfo, setShowInfo] = useState(false);
+
   return (
     <section className="rounded-lg border border-border bg-card p-5">
       <div className="flex items-center gap-2 mb-4">
@@ -240,6 +242,31 @@ export function BudgetOverviewSection({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Disclaimer 50/30/20 */}
+      <div className="mt-4 border-t border-border pt-3">
+        <button
+          onClick={() => setShowInfo(!showInfo)}
+          className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Info className="h-3 w-3" />
+          <span className="underline underline-offset-2 decoration-dotted">À propos de la règle 50/30/20</span>
+          <ChevronDown className={cn("h-3 w-3 transition-transform", showInfo && "rotate-180")} />
+        </button>
+        {showInfo && (
+          <div className="mt-2.5 rounded-md bg-muted/30 px-3.5 py-3 space-y-2 text-[11px] leading-relaxed text-muted-foreground">
+            <p>
+              Cette règle est un repère pédagogique simple pour structurer un budget : 50% pour les besoins essentiels, 30% pour les envies, 20% pour l'épargne. Elle permet de visualiser rapidement si votre budget est équilibré.
+            </p>
+            <p>
+              Elle a cependant des limites importantes. Elle ne tient pas compte du coût de la vie dans votre ville — à Paris ou Lyon, le logement seul dépasse souvent 40% du revenu net. Elle ne s'adapte pas à votre étape de vie : une famille avec de jeunes enfants, un primo-accédant ou un futur retraité ont des contraintes budgétaires très différentes. Enfin, elle est basée sur un revenu individuel et ne reflète pas la réalité d'un foyer avec deux revenus et des charges partagées.
+            </p>
+            <p className="text-[10px] italic">
+              MyFinCare vous présente ce modèle à titre indicatif uniquement. Les ratios affichés sont calculés sur la base des informations que vous avez renseignées et ne constituent pas un conseil financier personnalisé.
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );
