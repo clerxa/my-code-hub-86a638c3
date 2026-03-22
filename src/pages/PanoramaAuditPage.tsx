@@ -907,11 +907,20 @@ export default function PanoramaAuditPage() {
 
             {/* Tab: Savings */}
             <TabsContent value="savings" className="space-y-6 mt-6">
+              {/* Note contextuelle foyer fiscal */}
+              <div className="flex items-start gap-3 rounded-lg border border-blue-500/20 bg-blue-500/5 p-4 mb-4">
+                <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-800 dark:text-blue-300">
+                  Ces informations concernent <strong>votre foyer fiscal</strong>. 
+                  Si vous vivez en couple, incluez les revenus et charges de votre conjoint(e).
+                </p>
+              </div>
+
               <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
                 <div className="flex items-start gap-3">
                   <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-muted-foreground">
-                    <strong>Conseil :</strong> En indiquant les montants de vos placements, nous serons en mesure de calculer votre taux de diversification et vous proposer des recommandations personnalisées.
+                    <strong>Conseil :</strong> En indiquant les montants des placements de votre foyer, nous serons en mesure de calculer votre taux de diversification et vous proposer des recommandations personnalisées.
                   </p>
                 </div>
               </div>
@@ -923,22 +932,22 @@ export default function PanoramaAuditPage() {
                       <Wallet className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">Patrimoine financier</CardTitle>
-                      <CardDescription>Sélectionnez vos types de placements et indiquez les montants (optionnel)</CardDescription>
+                      <CardTitle className="text-lg">Patrimoine financier du foyer</CardTitle>
+                      <CardDescription>Incluez l'ensemble des placements de votre foyer fiscal (vous + conjoint(e))</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[
-                      { key: "epargne_livrets" as const, label: "Épargne sur livrets (€)", desc: "Livret A, LDDS, LEP...", required: true },
-                      { key: "patrimoine_assurance_vie" as const, label: "Assurance-vie (€)", desc: undefined },
-                      { key: "patrimoine_per" as const, label: "PER (€)", desc: "Plan Épargne Retraite" },
-                      { key: "patrimoine_pea" as const, label: "PEA / CTO (€)", desc: undefined },
-                      { key: "patrimoine_scpi" as const, label: "SCPI (€)", desc: undefined },
+                      { key: "epargne_livrets" as const, label: "Épargne sur livrets du foyer (€)", desc: "Livret A, LDDS, LEP — tous comptes confondus", required: true },
+                      { key: "patrimoine_assurance_vie" as const, label: "Assurance-vie du foyer (€)", desc: undefined },
+                      { key: "patrimoine_per" as const, label: "PER du foyer (€)", desc: "Plan Épargne Retraite — tous les plans du foyer" },
+                      { key: "patrimoine_pea" as const, label: "PEA / CTO du foyer (€)", desc: undefined },
+                      { key: "patrimoine_scpi" as const, label: "SCPI du foyer (€)", desc: undefined },
                       { key: "patrimoine_crypto" as const, label: "Cryptomonnaies (€)", desc: "Bitcoin, Ethereum..." },
                       { key: "patrimoine_private_equity" as const, label: "Private Equity (€)", desc: "FCPR, FCPI, FIP..." },
-                      { key: "patrimoine_autres" as const, label: "Autres placements (€)", desc: "Or, bijoux, montres, œuvres d'art..." },
+                      { key: "patrimoine_autres" as const, label: "Autres placements du foyer (€)", desc: "Or, bijoux, montres, œuvres d'art..." },
                     ].map((item) => (
                       <div key={item.key} className="space-y-1.5">
                         <Label className="text-sm">{item.label}{item.required ? reqMark(item.key) : ''}</Label>
@@ -966,7 +975,7 @@ export default function PanoramaAuditPage() {
                       return (
                         <div className="mt-4 p-4 rounded-lg bg-muted/50">
                           <div className="flex justify-between items-center">
-                            <span className="font-medium">Total patrimoine financier</span>
+                            <span className="font-medium">Total patrimoine financier du foyer</span>
                             <span className="text-lg font-semibold text-primary">{totalFinancier.toLocaleString('fr-FR')} €</span>
                           </div>
                         </div>
@@ -985,21 +994,21 @@ export default function PanoramaAuditPage() {
                       <PiggyBank className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">Capacité d'épargne</CardTitle>
-                      <CardDescription>Votre capacité à mettre de côté chaque mois</CardDescription>
+                      <CardTitle className="text-lg">Capacité d'épargne du foyer</CardTitle>
+                      <CardDescription>Ce que votre foyer met de côté chaque mois, tous comptes confondus</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className={cn("space-y-2 p-3 rounded-lg transition-all duration-700", highlightedField === "capacite_epargne_mensuelle" && "ring-2 ring-primary bg-primary/10 animate-pulse")} data-field="capacite_epargne_mensuelle">
-                    <Label>Capacité d'épargne mensuelle (€/mois){reqMark("capacite_epargne_mensuelle")}</Label>
+                    <Label>Épargne mensuelle du foyer (€/mois){reqMark("capacite_epargne_mensuelle")}</Label>
                     <Input
                       type="number"
                       value={formData.capacite_epargne_mensuelle ?? ""}
                       onChange={(e) => updateFinancialField("capacite_epargne_mensuelle", parseFloat(e.target.value) || 0)}
                       placeholder="Ex: 300"
                     />
-                    <p className="text-xs text-muted-foreground">Montant que vous pouvez épargner chaque mois après vos dépenses</p>
+                    <p className="text-xs text-muted-foreground">Total épargné chaque mois par votre foyer, après toutes les dépenses</p>
                   </div>
                 </CardContent>
               </Card>
