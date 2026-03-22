@@ -178,11 +178,10 @@ export default function PanoramaPage() {
   const chargesFixes = chargesFixesTotal;
   const impotMensuel = atlasData?.impot_net_total != null ? Math.round(atlasData.impot_net_total / 12) : null;
   const tauxMoyenAtlas = atlasData?.taux_moyen_pct ?? null;
-  // chargesFixesTotal includes already all fixed charges (loyer, crédits, immo locatif, etc.)
-  // Only add immo locatif delta if it exceeds what's already in charges_fixes_mensuelles
-  const immoLocatifDelta = Math.max(0, creditsImmoLocatif - (fp?.credits_immobilier ?? 0));
-  const chargesFixesEffectives = chargesFixesTotal + immoLocatifDelta;
-  const totalChargesAvecImpots = chargesFixesEffectives + (impotMensuel ?? 0);
+  // charges_fixes_mensuelles already includes ALL charges: loyer/crédit RP, crédits conso/auto,
+  // pensions, charges détaillées, dépenses variables, AND creditsImmoLocatif (real estate table).
+  // No delta needed — just use chargesFixesTotal directly.
+  const totalChargesAvecImpots = chargesFixesTotal + (impotMensuel ?? 0);
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
   const capaciteEpargneCalculee = totalRevenusMensuel != null ? Math.max(0, totalRevenusMensuel - totalChargesAvecImpots) : null;
   const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - totalChargesAvecImpots - (capaciteEpargne ?? 0) : null;
@@ -515,7 +514,7 @@ export default function PanoramaPage() {
                 { label: "Crédit immobilier", value: fp?.credits_immobilier ?? 0, category: "fixes" as const },
                 { label: "Crédit conso", value: fp?.credits_consommation ?? 0, category: "fixes" as const },
                 { label: "Crédit auto", value: fp?.credits_auto ?? 0, category: "fixes" as const },
-                { label: "Investissements locatifs", value: Math.max(creditsImmoLocatif, revenusFonciersMensuel), category: "fixes" as const },
+                { label: "Investissements locatifs", value: creditsImmoLocatif, category: "fixes" as const },
                 { label: "Pensions alimentaires", value: fp?.pensions_alimentaires ?? 0, category: "fixes" as const },
                 { label: "Énergie", value: fp?.charges_energie ?? 0, category: "fixes" as const },
                 { label: "Copropriété / Taxes", value: fp?.charges_copropriete_taxes ?? 0, category: "fixes" as const },
@@ -532,7 +531,7 @@ export default function PanoramaPage() {
               // Ensure total matches charges_fixes_mensuelles + immo locatif
               const depCourantes = ((fp as any)?.charges_courses_alimentaires ?? 0) + ((fp as any)?.charges_loisirs ?? 0) + ((fp as any)?.charges_shopping ?? 0) + ((fp as any)?.charges_variables_autres ?? 0);
               const totalItems = items.reduce((s, i) => s + i.value, 0);
-              const totalFixesAttendu = chargesFixesEffectives - depCourantes;
+              const totalFixesAttendu = chargesFixesTotal - depCourantes;
               const ecart = totalFixesAttendu - totalItems;
               if (ecart > 50) {
                 items.push({ label: "Autres charges", value: ecart, category: "fixes" as const });
