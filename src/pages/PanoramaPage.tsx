@@ -171,9 +171,49 @@ export default function PanoramaPage() {
   // Vesting imminent
   const imminentVesting = timeline.find(e => e.type === "vesting" && e.daysUntil <= 60);
 
+  // Onboarding unlock check
+  const panoramaUnlocked =
+    onboardingStatus?.atlas_completed &&
+    onboardingStatus?.audit_panorama_completed &&
+    onboardingStatus?.risk_profile_completed;
+
+  const stepsRemaining = [
+    !onboardingStatus?.atlas_completed,
+    !onboardingStatus?.audit_panorama_completed,
+    !onboardingStatus?.risk_profile_completed,
+  ].filter(Boolean).length;
+
   return (
     <EmployeeLayout activeSection="panorama">
       <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-4">
+
+        {/* ═══ ONBOARDING BANNER ═══ */}
+        {!panoramaUnlocked && onboardingStatus && (
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <p className="text-sm text-amber-800 dark:text-amber-300">
+                  <strong>{stepsRemaining} étape{stepsRemaining > 1 ? "s" : ""} restante{stepsRemaining > 1 ? "s" : ""}</strong> pour débloquer votre tableau de bord complet
+                </p>
+              </div>
+              <div className="flex gap-3 text-xs">
+                <span className={onboardingStatus.atlas_completed ? "text-emerald-600" : "text-muted-foreground"}>
+                  {onboardingStatus.atlas_completed ? "✅" : "⬜"} Situation fiscale
+                </span>
+                <span className={onboardingStatus.audit_panorama_completed ? "text-emerald-600" : "text-muted-foreground"}>
+                  {onboardingStatus.audit_panorama_completed ? "✅" : "⬜"} Profil patrimonial
+                </span>
+                <span className={onboardingStatus.risk_profile_completed ? "text-emerald-600" : "text-muted-foreground"}>
+                  {onboardingStatus.risk_profile_completed ? "✅" : "⬜"} Profil de risque
+                </span>
+              </div>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => navigate("/employee/onboarding-flow")} className="shrink-0 gap-1">
+              Continuer <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
 
         {/* ═══ SECTION 1 — HERO BAND ═══ */}
         <section className="rounded-lg border border-border bg-card p-4 md:p-5">
