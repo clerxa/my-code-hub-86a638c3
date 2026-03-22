@@ -308,10 +308,6 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
     // Check for external URL first
     const externalUrl = currentScreen?.metadata?.redirectExternalUrl;
     if (externalUrl) {
-      // Only trigger CSAT if user is logged in and not invitation flow
-      if (user && !isInvitationFlow) {
-        triggerCSAT();
-      }
       window.open(externalUrl, '_blank');
       return;
     }
