@@ -1025,16 +1025,6 @@ export default function PanoramaAuditPage() {
             </TabsContent>
           </Tabs>
 
-          {/* Invite spouse dialog */}
-          {profile?.company_id && (
-            <InviteColleagueDialog
-              open={showInviteDialog}
-              onOpenChange={setShowInviteDialog}
-              companyId={profile.company_id}
-              companyName={company?.name || ""}
-              isSpouseInvite={true}
-            />
-          )}
         </div>
       </div>
 
