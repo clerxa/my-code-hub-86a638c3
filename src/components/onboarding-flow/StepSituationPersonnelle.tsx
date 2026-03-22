@@ -1,21 +1,22 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowRight, Loader2, Users, Calendar } from "lucide-react";
+import { Users, Calendar } from "lucide-react";
 import { useUserFinancialProfile, type FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { motion } from "framer-motion";
+import { OnboardingNavButtons } from "./OnboardingNavButtons";
 
 interface StepSituationPersonnelleProps {
   onNext: () => void;
   onSkip: () => void;
+  onBack?: () => void;
 }
 
-export function StepSituationPersonnelle({ onNext, onSkip }: StepSituationPersonnelleProps) {
+export function StepSituationPersonnelle({ onNext, onSkip, onBack }: StepSituationPersonnelleProps) {
   const { user } = useAuth();
   const { saveProfile, isSaving, profile } = useUserFinancialProfile();
   const [formData, setFormData] = useState<FinancialProfileInput>({
@@ -53,8 +54,8 @@ export function StepSituationPersonnelle({ onNext, onSkip }: StepSituationPerson
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <Users className="h-5 w-5 text-primary" />
+            <div className="p-2.5 rounded-xl bg-[image:var(--gradient-hero)] shadow-md">
+              <Users className="h-5 w-5 text-white" />
             </div>
             <div>
               <CardTitle className="text-lg">Votre situation personnelle</CardTitle>
@@ -136,18 +137,12 @@ export function StepSituationPersonnelle({ onNext, onSkip }: StepSituationPerson
         </CardContent>
       </Card>
 
-      <div className="flex flex-col items-center gap-3 pt-2">
-        <Button onClick={handleSubmit} disabled={isSaving} size="lg" className="gap-2 px-8 shadow-md">
-          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          Continuer <ArrowRight className="h-4 w-4" />
-        </Button>
-        <button
-          onClick={onSkip}
-          className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
-        >
-          Enregistrer et compléter plus tard
-        </button>
-      </div>
+      <OnboardingNavButtons
+        onNext={handleSubmit}
+        onSkip={onSkip}
+        onBack={onBack}
+        isLoading={isSaving}
+      />
     </motion.div>
   );
 }
