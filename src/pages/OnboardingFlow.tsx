@@ -100,16 +100,7 @@ export default function OnboardingFlow() {
           <StepSituationPro onNext={() => advanceStep(4)} onSkip={() => advanceStep(4)} onBack={goBack} />
         )}
         {currentStep === 4 && (
-          <StepRevenus onNext={() => advanceStep(5)} onSkip={() => advanceStep(5)} onBack={goBack} />
-        )}
-        {currentStep === 5 && (
-          <StepCharges onNext={() => advanceStep(6)} onSkip={() => advanceStep(6)} onBack={goBack} />
-        )}
-        {currentStep === 6 && (
-          <StepEpargne onNext={() => advanceStep(7, "audit_panorama_completed")} onSkip={() => advanceStep(7)} onBack={goBack} />
-        )}
-        {currentStep === 7 && (
-          <StepAtlas onNext={() => advanceStep(8, "atlas_completed")} onSkip={() => advanceStep(8)} onBack={goBack} />
+          <StepAtlas onNext={() => advanceStep(5, "atlas_completed")} onSkip={() => advanceStep(5)} onBack={goBack} />
         )}
       </div>
     </div>
