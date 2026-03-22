@@ -379,7 +379,6 @@ export default function PanoramaPage() {
             )}
           </ModuleCard>
         </section>
-        </div>
 
         {/* ═══ SECTION 3 — SYNTHÈSE FINANCIÈRE (compact line) ═══ */}
         <div className="relative">
