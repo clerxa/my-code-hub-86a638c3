@@ -55,7 +55,7 @@ export function FinancialProfileWizard({
   isSaving,
   situationFamiliale,
   hasEquityBenefits,
-  onInviteSpouse,
+  
   requiredFieldKeys = [],
   initialStepId = null,
 }: FinancialProfileWizardProps) {
