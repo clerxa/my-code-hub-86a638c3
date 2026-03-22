@@ -178,10 +178,11 @@ export default function PanoramaPage() {
   const chargesFixes = chargesFixesTotal;
   const impotMensuel = atlasData?.impot_net_total != null ? Math.round(atlasData.impot_net_total / 12) : null;
   const tauxMoyenAtlas = atlasData?.taux_moyen_pct ?? null;
-  // charges_fixes_mensuelles already includes ALL charges: loyer/crédit RP, crédits conso/auto,
-  // pensions, charges détaillées, dépenses variables, AND creditsImmoLocatif (real estate table).
-  // No delta needed — just use chargesFixesTotal directly.
-  const totalChargesAvecImpots = chargesFixesTotal + (impotMensuel ?? 0);
+  // charges_fixes_mensuelles includes variable expenses (courses, loisirs, shopping, etc.)
+  // We must exclude them for the "fixed charges" bucket in the 50/30/20 rule
+  const depensesCourantes = ((fp as any)?.charges_courses_alimentaires ?? 0) + ((fp as any)?.charges_loisirs ?? 0) + ((fp as any)?.charges_shopping ?? 0) + ((fp as any)?.charges_variables_autres ?? 0);
+  const chargesFixesPures = chargesFixesTotal - depensesCourantes;
+  const totalChargesAvecImpots = chargesFixesPures + (impotMensuel ?? 0);
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
   const capaciteEpargneCalculee = totalRevenusMensuel != null ? Math.max(0, totalRevenusMensuel - totalChargesAvecImpots) : null;
   const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - totalChargesAvecImpots - (capaciteEpargne ?? 0) : null;
@@ -529,9 +530,8 @@ export default function PanoramaPage() {
                 { label: "Autres charges fixes", value: fp?.charges_autres ?? 0, category: "fixes" as const },
               ].filter(i => i.value > 0);
               // Ensure total matches charges_fixes_mensuelles + immo locatif
-              const depCourantes = ((fp as any)?.charges_courses_alimentaires ?? 0) + ((fp as any)?.charges_loisirs ?? 0) + ((fp as any)?.charges_shopping ?? 0) + ((fp as any)?.charges_variables_autres ?? 0);
               const totalItems = items.reduce((s, i) => s + i.value, 0);
-              const totalFixesAttendu = chargesFixesTotal - depCourantes;
+              const totalFixesAttendu = chargesFixesPures;
               const ecart = totalFixesAttendu - totalItems;
               if (ecart > 50) {
                 items.push({ label: "Autres charges", value: ecart, category: "fixes" as const });
