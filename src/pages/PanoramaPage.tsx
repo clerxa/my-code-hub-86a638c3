@@ -12,6 +12,7 @@ import { useUserFinancialProfile } from "@/hooks/useUserFinancialProfile";
 import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
 
 import { supabase } from "@/integrations/supabase/client";
+import { BudgetOverviewSection } from "@/components/panorama/BudgetOverviewSection";
 import { useAuth } from "@/components/AuthProvider";
 import {
   ArrowRight, TrendingUp, FileText, Compass, UserCheck,
