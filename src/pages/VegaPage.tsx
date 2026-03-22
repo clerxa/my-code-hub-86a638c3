@@ -95,13 +95,38 @@ export default function VegaPage() {
     queryKey: ['vega-sim-counts', user?.id],
     queryFn: async () => {
       if (!user) return {};
-      const { data, error } = await supabase
+
+      // Legacy counts for ESPP/BSPCE (and RSU fallback if needed)
+      const { data: legacySims, error: legacyError } = await supabase
         .from('simulations')
         .select('type')
         .eq('user_id', user.id);
-      if (error) throw error;
+      if (legacyError) throw legacyError;
+
       const counts: Record<string, number> = {};
-      data?.forEach((sim) => { counts[sim.type] = (counts[sim.type] || 0) + 1; });
+      legacySims?.forEach((sim) => {
+        counts[sim.type] = (counts[sim.type] || 0) + 1;
+      });
+
+      // RSU source of truth: dedicated rsu_* tables (workspace)
+      const { data: workspace, error: workspaceError } = await supabase
+        .from('rsu_simulations')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('nom', '__workspace__')
+        .maybeSingle();
+      if (workspaceError) throw workspaceError;
+
+      if (workspace?.id) {
+        const { count: rsuPlansCount, error: rsuCountError } = await supabase
+          .from('rsu_plans')
+          .select('id', { count: 'exact', head: true })
+          .eq('simulation_id', workspace.id);
+
+        if (rsuCountError) throw rsuCountError;
+        counts.rsu = rsuPlansCount ?? 0;
+      }
+
       return counts;
     },
     enabled: !!user,
