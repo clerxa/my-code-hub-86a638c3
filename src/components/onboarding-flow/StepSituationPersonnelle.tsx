@@ -8,7 +8,6 @@ import { ArrowRight, Loader2, Users, Calendar } from "lucide-react";
 import { useUserFinancialProfile, type FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
-import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 interface StepSituationPersonnelleProps {
@@ -23,6 +22,7 @@ export function StepSituationPersonnelle({ onNext, onSkip }: StepSituationPerson
     date_naissance: profile?.date_naissance || "",
     situation_familiale: profile?.situation_familiale || "",
     nb_enfants: profile?.nb_enfants || 0,
+    nb_personnes_foyer: profile?.nb_personnes_foyer || 1,
     statut_residence: profile?.statut_residence || null,
   });
 
@@ -31,7 +31,6 @@ export function StepSituationPersonnelle({ onNext, onSkip }: StepSituationPerson
   };
 
   const handleSubmit = async () => {
-    // Also sync to profiles table
     const profileUpdates: Record<string, any> = {};
     if (formData.date_naissance) profileUpdates.birth_date = formData.date_naissance;
     if (formData.situation_familiale) profileUpdates.marital_status = formData.situation_familiale;
@@ -98,14 +97,26 @@ export function StepSituationPersonnelle({ onNext, onSkip }: StepSituationPerson
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Nombre d'enfants à charge</Label>
-            <Input
-              type="number"
-              min={0}
-              value={formData.nb_enfants ?? 0}
-              onChange={(e) => updateField("nb_enfants", parseInt(e.target.value) || 0)}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Nombre d'enfants à charge</Label>
+              <Input
+                type="number"
+                min={0}
+                value={formData.nb_enfants ?? 0}
+                onChange={(e) => updateField("nb_enfants", parseInt(e.target.value) || 0)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Nombre de personnes dans le foyer</Label>
+              <Input
+                type="number"
+                min={1}
+                value={formData.nb_personnes_foyer ?? 1}
+                onChange={(e) => updateField("nb_personnes_foyer", parseInt(e.target.value) || 1)}
+              />
+              <p className="text-xs text-muted-foreground">Vous inclus(e)</p>
+            </div>
           </div>
 
           <div className="space-y-2">
