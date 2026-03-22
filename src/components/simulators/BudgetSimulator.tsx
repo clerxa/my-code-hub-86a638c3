@@ -77,9 +77,7 @@ const EXPENSE_ITEMS = {
     { key: "sante", label: "Santé", emoji: "💊", defaultVal: 50, max: 3000, tooltip: "Pharmacie, consultations non remboursées… (mensuel)" },
   ],
   epargne: [
-    { key: "ep_precaution", label: "Épargne de précaution", emoji: "🏦", defaultVal: 200, max: 10000, tooltip: "Livret A, LDDS — votre matelas de sécurité (mensuel)" },
-    { key: "ep_projets", label: "Épargne projets", emoji: "🎯", defaultVal: 200, max: 10000, tooltip: "Vacances, apport immobilier, achat important… (mensuel)" },
-    { key: "investissement", label: "Investissement long terme", emoji: "📈", defaultVal: 200, max: 10000, tooltip: "PEA, assurance-vie, SCPI… (mensuel)" },
+    { key: "epargne_totale", label: "Épargne mensuelle totale", emoji: "🏦", defaultVal: 600, max: 30000, tooltip: "Tout ce que vous mettez de côté chaque mois : livrets, projets, investissements…" },
   ],
 };
 
@@ -297,14 +295,8 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
         }
         // Épargne — source: capacité d'épargne mensuelle du profil financier
         if (data.capaciteEpargneMensuelle > 0) {
-          const perBucket = Math.round(data.capaciteEpargneMensuelle / 3);
-          updated.ep_precaution = perBucket;
-          updated.ep_projets = perBucket;
-          updated.investissement = data.capaciteEpargneMensuelle - 2 * perBucket;
-          const epSource = `Capacité d'épargne mensuelle (${data.capaciteEpargneMensuelle.toLocaleString("fr-FR")} €) répartie en 3 postes`;
-          filledMap.set("ep_precaution", epSource);
-          filledMap.set("ep_projets", epSource);
-          filledMap.set("investissement", epSource);
+          updated.epargne_totale = data.capaciteEpargneMensuelle;
+          filledMap.set("epargne_totale", `Capacité d'épargne mensuelle (${data.capaciteEpargneMensuelle.toLocaleString("fr-FR")} €) importée de votre profil`);
         }
         return updated;
       });
@@ -457,7 +449,7 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
     return (
       <div className="space-y-4">
         {/* Source info for épargne */}
-        {catKey === "epargne" && profileFields.has("ep_precaution") && (
+        {catKey === "epargne" && profileFields.has("epargne_totale") && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -465,7 +457,7 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
           >
             <UserCircle className="h-4 w-4 text-primary shrink-0" />
             <p className="text-xs text-primary">
-              Vos postes d'épargne sont pré-remplis à partir de votre <strong>capacité d'épargne mensuelle</strong> déclarée dans votre profil financier, répartie équitablement entre les 3 postes.
+              Votre épargne est pré-remplie à partir de votre <strong>capacité d'épargne mensuelle</strong> déclarée dans votre profil financier.
             </p>
           </motion.div>
         )}
