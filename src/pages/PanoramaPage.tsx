@@ -532,7 +532,7 @@ export default function PanoramaPage() {
               // Ensure total matches charges_fixes_mensuelles + immo locatif
               const depCourantes = ((fp as any)?.charges_courses_alimentaires ?? 0) + ((fp as any)?.charges_loisirs ?? 0) + ((fp as any)?.charges_shopping ?? 0) + ((fp as any)?.charges_variables_autres ?? 0);
               const totalItems = items.reduce((s, i) => s + i.value, 0);
-              const totalFixesAttendu = chargesFixesTotal + Math.max(0, Math.max(creditsImmoLocatif, revenusFonciersMensuel) - creditsImmoLocatif) - depCourantes;
+              const totalFixesAttendu = chargesFixesEffectives - depCourantes;
               const ecart = totalFixesAttendu - totalItems;
               if (ecart > 50) {
                 items.push({ label: "Autres charges", value: ecart, category: "fixes" as const });
