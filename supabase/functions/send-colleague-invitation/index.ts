@@ -82,13 +82,51 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Company:", company);
 
+    const primaryColor = company?.primary_color || "#3b82f6";
+
+    // Fetch upcoming webinars for this company
+    const { data: webinarSelections } = await supabase
+      .from("company_webinar_selections")
+      .select(`
+        module_id,
+        modules(title),
+        webinar_sessions(session_date, registration_url)
+      `)
+      .eq("company_id", invitation.company_id);
+
+    const now = new Date();
+    const upcomingWebinars = (webinarSelections || [])
+      .filter((s: any) => s.webinar_sessions?.session_date && new Date(s.webinar_sessions.session_date) > now)
+      .sort((a: any, b: any) => new Date(a.webinar_sessions.session_date).getTime() - new Date(b.webinar_sessions.session_date).getTime())
+      .slice(0, 3);
+
+    // Build webinar HTML block
+    let webinarHtml = "";
+    if (upcomingWebinars.length > 0) {
+      const webinarItems = upcomingWebinars.map((w: any) => {
+        const date = new Date(w.webinar_sessions.session_date).toLocaleDateString("fr-FR", {
+          weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
+        });
+        const title = w.modules?.title || "Webinar";
+        const regUrl = w.webinar_sessions?.registration_url;
+        const linkHtml = regUrl
+          ? ` — <a href="${regUrl}" target="_blank" style="color: ${primaryColor}; text-decoration: underline;">S'inscrire</a>`
+          : "";
+        return `<li style="margin-bottom: 12px;">📅 <strong>${title}</strong><br/><span style="color: #666666; font-size: 14px;">${date}${linkHtml}</span></li>`;
+      }).join("");
+
+      webinarHtml = `
+              <p style="color: #333333; font-family: Arial, sans-serif; font-size: 16px; line-height: 24px; margin: 30px 0 10px 0;"><strong>📺 Prochains webinaires à ne pas manquer :</strong></p>
+              <ul style="color: #333333; font-family: Arial, sans-serif; font-size: 16px; line-height: 24px; margin: 0 0 20px 0; padding-left: 20px; list-style: none;">
+                ${webinarItems}
+              </ul>`;
+    }
+
     // Generate onboarding link with tracking token
-    // Users will complete onboarding first, then be redirected to signup
     const baseUrl = Deno.env.get("SITE_URL") || "https://myfincare.fr";
     const trackingParams = `invitation=${invitation.invitation_token}&company=${invitation.company_id}`;
     const registrationLink = `${baseUrl}/onboarding?${trackingParams}`;
     const inviterName = `${inviter?.first_name || ""} ${inviter?.last_name || ""}`.trim() || "Un collègue";
-    const primaryColor = company?.primary_color || "#3b82f6";
 
     // Fetch email template from admin settings
     const { data: templateData } = await supabase
@@ -122,6 +160,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <li style="margin-bottom: 8px;">Suivre des formations sur la gestion de patrimoine</li>
                 <li style="margin-bottom: 8px;">Prendre rendez-vous avec un expert financier</li>
               </ul>
+              {{webinar_block}}
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
                 <tr>
                   <td style="border-radius: 8px; background-color: {{primary_color}};">
@@ -145,22 +184,16 @@ const handler = async (req: Request): Promise<Response> => {
     // Determine button link - ALWAYS use /onboarding path for colleague invitations
     let buttonLink = template.buttonLink || defaultTemplate.buttonLink;
     
-    // If buttonLink is the placeholder or empty, use the registration link (which already points to /onboarding)
     if (!buttonLink || buttonLink === "{{registration_link}}") {
       buttonLink = registrationLink;
     } else {
-      // Custom URL provided - we need to ensure it goes to /onboarding
-      // Parse the custom URL and replace the path with /onboarding
       try {
         const customUrl = new URL(buttonLink);
-        // Force the path to /onboarding for colleague invitations
         customUrl.pathname = '/onboarding';
-        // Add tracking parameters
         customUrl.searchParams.set('invitation', invitation.invitation_token);
         customUrl.searchParams.set('company', invitation.company_id);
         buttonLink = customUrl.toString();
       } catch (e) {
-        // If URL parsing fails, fall back to default registration link
         console.error("Error parsing custom URL, using default:", e);
         buttonLink = registrationLink;
       }
@@ -168,7 +201,6 @@ const handler = async (req: Request): Promise<Response> => {
     
     const buttonText = template.buttonText || defaultTemplate.buttonText;
 
-    console.log("Custom buttonLink from admin:", template.buttonLink);
     console.log("Final buttonLink with tracking:", buttonLink);
 
     // Replace all placeholders
@@ -177,8 +209,6 @@ const handler = async (req: Request): Promise<Response> => {
       .replace(/\{\{company_name\}\}/g, company?.name || "")
       .replace(/\{\{colleague_first_name\}\}/g, invitation.colleague_first_name);
 
-    // IMPORTANT: Replace {{registration_link}} with the custom buttonLink from admin settings
-    // This allows admins to customize the destination URL in the email
     let body = (template.body || defaultTemplate.body)
       .replace(/\{\{inviter_name\}\}/g, inviterName)
       .replace(/\{\{company_name\}\}/g, company?.name || "")
@@ -187,18 +217,18 @@ const handler = async (req: Request): Promise<Response> => {
       .replace(/\{\{primary_color\}\}/g, primaryColor)
       .replace(/\{\{button_link\}\}/g, buttonLink)
       .replace(/\{\{button_text\}\}/g, buttonText)
-      .replace(/\{\{registration_link\}\}/g, buttonLink);
+      .replace(/\{\{registration_link\}\}/g, buttonLink)
+      .replace(/\{\{webinar_block\}\}/g, webinarHtml);
 
     // Remove any conditional message blocks since we no longer use message field
     body = body.replace(/\{\{#if message\}\}[\s\S]*?\{\{\/if\}\}/g, "");
     body = body.replace(/\{\{message\}\}/g, "");
 
-    // Add tracking pixel for email open detection (insert before closing </body> tag)
+    // Add tracking pixel for email open detection
     const trackingPixelUrl = `${supabaseUrl}/functions/v1/track-invitation?token=${invitation.invitation_token}&action=open`;
     const trackingPixel = `<img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />`;
     body = body.replace(/<\/body>/i, `${trackingPixel}</body>`);
       
-    console.log("Using admin template, button link:", buttonLink);
     console.log("Sending email to:", invitation.colleague_email);
     console.log("Subject:", subject);
 
