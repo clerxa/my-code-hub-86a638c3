@@ -82,7 +82,7 @@ import Partnership from "./pages/Partnership";
 import EmployeePartnership from "./pages/EmployeePartnership";
 import RiskProfile from "./pages/RiskProfile";
 import ExpertBookingLanding from "./pages/ExpertBookingLanding";
-import FirstLoginOnboarding from "./pages/FirstLoginOnboarding";
+import OnboardingFlow from "./pages/OnboardingFlow";
 import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
@@ -264,12 +264,16 @@ const App = () => (
               }
             />
             <Route
-              path="/employee/first-login"
+              path="/employee/onboarding-flow"
               element={
                 <ProtectedRoute>
-                  <FirstLoginOnboarding />
+                  <OnboardingFlow />
                 </ProtectedRoute>
               }
+            />
+            <Route
+              path="/employee/first-login"
+              element={<Navigate to="/employee/onboarding-flow" replace />}
             />
             <Route
               path="/employee/diagnostic"
