@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import { useUserFinancialProfile, type FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
 import { FinancialProfileWizard } from "@/components/employee/FinancialProfileWizard";
 import { ObjectivesTab } from "@/components/employee/ObjectivesTab";
-import { InviteColleagueDialog } from "@/components/employee/InviteColleagueDialog";
+
 import { calculateTMI, calculatePartsFiscales } from "@/utils/taxCalculations";
 import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
 
