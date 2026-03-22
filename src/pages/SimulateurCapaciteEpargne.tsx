@@ -98,7 +98,7 @@ const SimulateurCapaciteEpargne = () => {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(1)
-        .maybeSingle();
+        .maybeSingle() as any;
       if (data?.impot_net_total != null) {
         setAtlasImpot(Math.round((data as any).impot_net_total / 12));
       }
