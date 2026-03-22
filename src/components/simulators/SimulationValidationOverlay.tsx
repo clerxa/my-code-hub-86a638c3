@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Sparkles, Brain, TrendingUp, Calculator } from "lucide-react";
-import { useCSATTrigger } from "@/hooks/useCSATTrigger";
-import { CSATPanel } from "@/components/csat";
 
 export interface ValidationStep {
   icon: React.ComponentType<{ className?: string }>;
