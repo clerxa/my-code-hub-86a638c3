@@ -303,7 +303,7 @@ export function FinancialProfileWizard({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5">
-                    <Label>Votre revenu annuel brut (€){requiredMark("revenu_annuel_brut")}</Label>
+                    <Label>Revenu annuel brut (€) — vous seul(e){requiredMark("revenu_annuel_brut")}</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
