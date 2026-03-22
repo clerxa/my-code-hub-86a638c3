@@ -12,6 +12,7 @@ import { SimulatorDisclaimer } from "@/components/simulators/SimulatorDisclaimer
 import { SimulationValidationOverlay } from "@/components/simulators/SimulationValidationOverlay";
 import { CapaciteEpargneIntroScreen } from "@/components/simulators/capacite-epargne/CapaciteEpargneIntroScreen";
 import { useFinancialProfilePrefill } from "@/hooks/useFinancialProfilePrefill";
+import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
 import { useSimulationTracking } from "@/hooks/useSimulationTracking";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
@@ -74,6 +75,7 @@ const SimulateurCapaciteEpargne = () => {
   const { tax_brackets } = useFiscalRules();
   const simulationDefaults = useSimulationDefaults();
   const { getPrefillData, hasProfile } = useFinancialProfilePrefill();
+  const { totals: realEstateTotals } = useUserRealEstateProperties();
   const { validateSimulation } = useSimulationTracking();
 
   // showIntro → step 0-1 input → validating → results
@@ -148,17 +150,16 @@ const SimulateurCapaciteEpargne = () => {
     // Abonnements from profile
     if (p.charges_abonnements > 0) newValues.abonnements = p.charges_abonnements;
 
-    // Charges immobilier locatif (credits on rental properties)
-    // We check if they have revenus_locatifs > 0 and patrimoine_immo_credit_restant to estimate monthly
-    if (p.patrimoine_immo_credit_restant > 0 && p.revenus_locatifs > 0) {
-      // Rough estimate: credit restant spread over assumed remaining years
-      // This is a rough heuristic; users can adjust
+    // Charges immobilier locatif from real estate portfolio
+    const immoLocatifTotal = (realEstateTotals.mensualitesTotal || 0) + (realEstateTotals.chargesTotal || 0);
+    if (immoLocatifTotal > 0) {
+      newValues.chargesImmoLocatif = immoLocatifTotal;
     }
 
     setPrefilledKeys(new Set(Object.keys(newValues)));
     setValues(newValues);
     setPrefilled(true);
-  }, [getPrefillData, prefilled, simulationDefaults.brut_net_ratio]);
+  }, [getPrefillData, prefilled, simulationDefaults.brut_net_ratio, realEstateTotals.mensualitesTotal, realEstateTotals.chargesTotal]);
 
   // Apply atlas impot once loaded
   useEffect(() => {
