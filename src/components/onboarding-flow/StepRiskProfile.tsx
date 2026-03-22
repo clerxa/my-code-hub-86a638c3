@@ -107,7 +107,6 @@ export function StepRiskProfile({ onNext, onSkip }: StepRiskProfileProps) {
         { onConflict: "user_id" }
       );
 
-      toast.success(`Profil de risque : ${profileType}`);
       onNext();
     } catch (e) {
       console.error(e);

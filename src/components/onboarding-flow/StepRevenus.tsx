@@ -174,7 +174,7 @@ export function StepRevenus({ onNext, onSkip }: StepRevenusProps) {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Revenus complémentaires</CardTitle>
-          <CardDescription>Revenus réguliers hors salaire principal.</CardDescription>
+          <CardDescription>Les revenus locatifs, dividendes et plus-values sont soumis à des règles fiscales spécifiques. Les identifier nous permet d'optimiser votre stratégie globale.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

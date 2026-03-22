@@ -248,7 +248,7 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
             </div>
             <div>
               <CardTitle className="text-lg">Projets immobiliers</CardTitle>
-              <CardDescription>Avez-vous un projet d'achat à moyen ou long terme ?</CardDescription>
+              <CardDescription>Identifier vos projets nous permet de dimensionner votre capacité d'emprunt, d'estimer votre apport nécessaire et de prioriser votre stratégie d'épargne.</CardDescription>
             </div>
           </div>
         </CardHeader>

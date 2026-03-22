@@ -234,7 +234,7 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
             <div>
               <CardTitle className="text-lg">Épargne salariale</CardTitle>
               <CardDescription>
-                Les plans d'épargne proposés par votre employeur.
+                Vos plans d'épargne salariale bénéficient souvent d'abondements et d'avantages fiscaux. Les connaître nous permet d'intégrer ces montants dans votre patrimoine global.
               </CardDescription>
             </div>
           </div>
