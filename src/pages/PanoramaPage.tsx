@@ -417,6 +417,10 @@ export default function PanoramaPage() {
                             {(fp?.charges_abonnements ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Abonnements</span><span>{formatEuros(fp.charges_abonnements)}</span></div>}
                             {(fp?.charges_frais_scolarite ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Frais scolarité</span><span>{formatEuros(fp.charges_frais_scolarite)}</span></div>}
                             {(fp?.charges_autres ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Autres</span><span>{formatEuros(fp.charges_autres)}</span></div>}
+                            {((fp as any)?.charges_courses_alimentaires ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Courses alimentaires</span><span>{formatEuros((fp as any).charges_courses_alimentaires)}</span></div>}
+                            {((fp as any)?.charges_loisirs ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Loisirs & sorties</span><span>{formatEuros((fp as any).charges_loisirs)}</span></div>}
+                            {((fp as any)?.charges_shopping ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Shopping & divers</span><span>{formatEuros((fp as any).charges_shopping)}</span></div>}
+                            {((fp as any)?.charges_variables_autres ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Autres dépenses courantes</span><span>{formatEuros((fp as any).charges_variables_autres)}</span></div>}
                           </div>
                         </TooltipContent>
                       </Tooltip>
