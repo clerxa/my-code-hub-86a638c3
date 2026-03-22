@@ -169,7 +169,7 @@ export default function PanoramaPage() {
   // charges_fixes_mensuelles is already the TOTAL of all charges (including loyer, crédits, pensions, immo locatif, etc.)
   // We use it as the single source of truth and compute "autres" as the remainder
   const chargesFixesTotal = fp?.charges_fixes_mensuelles ?? 0;
-  const chargesDejaAffichees = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0);
+  const chargesDejaAffichees = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0) + creditsImmoLocatif;
   const autresChargesCalculees = Math.max(0, chargesFixesTotal - chargesDejaAffichees);
   const chargesFixes = chargesFixesTotal;
   const impotMensuel = atlasData?.impot_net_total != null ? Math.round(atlasData.impot_net_total / 12) : null;
