@@ -120,6 +120,11 @@ export function FinancialProfileWizard({
       formData.pensions_alimentaires || 0,
       formData.credits_consommation || 0,
       formData.charges_autres || 0,
+      // Variable charges
+      formData.charges_courses_alimentaires || 0,
+      formData.charges_loisirs || 0,
+      formData.charges_shopping || 0,
+      formData.charges_variables_autres || 0,
       // Add investment property charges (mortgage + charges)
       realEstateTotals.mensualitesTotal,
       realEstateTotals.chargesTotal,
