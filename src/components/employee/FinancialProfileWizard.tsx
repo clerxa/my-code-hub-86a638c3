@@ -83,12 +83,6 @@ export function FinancialProfileWizard({
   // Progress calculation
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
-  // CSAT trigger
-  const { showCSAT, closeCSAT, triggerCSAT, contentType, contentId, contentName } = useCSATTrigger({
-    contentType: 'financial_profile',
-    contentId: 'financial-profile-wizard',
-    contentName: 'Profil Financier',
-  });
 
   // Calculate total monthly charges automatically
   // Only includes loyer OR credits_immobilier based on statut_residence (never both)
