@@ -371,13 +371,13 @@ export default function PanoramaPage() {
                       <p className="text-sm font-semibold">{formatEuros(fp.pensions_alimentaires)}</p>
                     </div>
                   )}
-                  {(fp?.charges_fixes_mensuelles ?? 0) > 0 && (
+                  {autresChargesCalculees > 0 && (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div className="rounded-md bg-muted/40 px-3 py-2 cursor-help">
                             <p className="text-[10px] text-muted-foreground">Autres charges</p>
-                            <p className="text-sm font-semibold">{formatEuros(fp.charges_fixes_mensuelles)}</p>
+                            <p className="text-sm font-semibold">{formatEuros(autresChargesCalculees)}</p>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-xs">
