@@ -563,3 +563,17 @@ function MetricChip({ label, value, highlight }: { label: string; value: string;
     </div>
   );
 }
+
+function LockedOverlay({ onUnlock }: { onUnlock: () => void }) {
+  return (
+    <div className="absolute inset-0 bg-background/60 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center gap-3 z-10">
+      <Lock className="h-6 w-6 text-muted-foreground" />
+      <p className="text-sm text-muted-foreground text-center px-4">
+        Complétez votre profil pour accéder à cette section
+      </p>
+      <Button size="sm" onClick={onUnlock} className="gap-1">
+        Compléter mon profil <ArrowRight className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  );
+}
