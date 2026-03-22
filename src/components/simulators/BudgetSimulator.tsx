@@ -283,8 +283,11 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
           source: "Crédits consommation + LOA/LLD auto du profil",
         },
         credit_immo_locatif: {
-          value: data.chargesDetailees.credit_immobilier || 0,
-          source: "Crédits immobilier du profil financier",
+          value: (data.chargesDetailees.credit_immobilier || 0) + 
+            realEstateProperties.reduce((sum, p) => sum + Number(p.mensualite_credit || 0), 0),
+          source: realEstateProperties.length > 0 
+            ? `Crédits immobilier du profil + ${realEstateProperties.length} bien(s) locatif(s)`
+            : "Crédits immobilier du profil financier",
         },
         transport: {
           value: data.chargesDetailees.transport_commun || 0,
