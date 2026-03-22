@@ -85,7 +85,7 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
             <div>
               <CardTitle className="text-lg">Situation professionnelle</CardTitle>
               <CardDescription>
-                Votre emploi et les avantages proposés par votre entreprise.
+                Votre type de contrat et votre ancienneté impactent vos droits sociaux, votre capacité d'emprunt et vos avantages fiscaux. Le secteur d'activité nous aide à contextualiser vos dispositifs d'épargne.
               </CardDescription>
             </div>
           </div>
@@ -162,7 +162,7 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
             <div>
               <CardTitle className="text-lg">Rémunération en actions</CardTitle>
               <CardDescription>
-                Cochez les dispositifs dont vous bénéficiez et estimez leur valeur actuelle.
+                Ces dispositifs représentent souvent une part significative de votre patrimoine. Les identifier nous permet de calculer votre patrimoine total et d'anticiper les impacts fiscaux lors de la cession.
               </CardDescription>
             </div>
           </div>
@@ -234,7 +234,7 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
             <div>
               <CardTitle className="text-lg">Épargne salariale</CardTitle>
               <CardDescription>
-                Les plans d'épargne proposés par votre employeur.
+                Vos plans d'épargne salariale bénéficient souvent d'abondements et d'avantages fiscaux. Les connaître nous permet d'intégrer ces montants dans votre patrimoine global.
               </CardDescription>
             </div>
           </div>

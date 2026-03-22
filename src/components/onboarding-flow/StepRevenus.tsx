@@ -57,7 +57,7 @@ export function StepRevenus({ onNext, onSkip }: StepRevenusProps) {
             <div>
               <CardTitle className="text-lg">Vos revenus professionnels</CardTitle>
               <CardDescription>
-                Ces montants permettent de calculer votre TMI et vos indicateurs PANORAMA.
+                Vos revenus sont la base de toute analyse financière : calcul de votre taux d'imposition, de votre capacité d'épargne et de votre reste à vivre. Plus ces données sont précises, plus vos recommandations seront pertinentes.
               </CardDescription>
             </div>
           </div>
@@ -174,7 +174,7 @@ export function StepRevenus({ onNext, onSkip }: StepRevenusProps) {
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Revenus complémentaires</CardTitle>
-          <CardDescription>Revenus réguliers hors salaire principal.</CardDescription>
+          <CardDescription>Les revenus locatifs, dividendes et plus-values sont soumis à des règles fiscales spécifiques. Les identifier nous permet d'optimiser votre stratégie globale.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

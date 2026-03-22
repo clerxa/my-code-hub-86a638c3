@@ -107,7 +107,6 @@ export function StepRiskProfile({ onNext, onSkip }: StepRiskProfileProps) {
         { onConflict: "user_id" }
       );
 
-      toast.success(`Profil de risque : ${profileType}`);
       onNext();
     } catch (e) {
       console.error(e);
@@ -152,7 +151,7 @@ export function StepRiskProfile({ onNext, onSkip }: StepRiskProfileProps) {
             <div>
               <CardTitle className="text-xl">Évaluez votre profil investisseur</CardTitle>
               <CardDescription>
-                Question {currentQ + 1} sur {questions.length} — environ 3 minutes
+                Ce questionnaire réglementaire (AMF/MiFID II) permet de déterminer votre tolérance au risque. Vos réponses orientent les recommandations de placement adaptées à votre profil — question {currentQ + 1} sur {questions.length}.
               </CardDescription>
             </div>
           </div>

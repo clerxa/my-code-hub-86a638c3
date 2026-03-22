@@ -34,7 +34,7 @@ export function StepAtlas({ onNext, onSkip }: StepAtlasProps) {
             <div>
               <CardTitle className="text-lg">Importez votre avis d'imposition</CardTitle>
               <CardDescription>
-                MyFinCare analyse automatiquement votre situation fiscale pour personnaliser votre tableau de bord.
+                Votre avis d'imposition contient votre revenu fiscal de référence et votre TMI — deux données essentielles pour calibrer toutes vos simulations fiscales et patrimoniales. L'import automatique vous évite de chercher ces informations manuellement.
               </CardDescription>
             </div>
           </div>

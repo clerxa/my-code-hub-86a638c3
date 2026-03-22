@@ -59,7 +59,7 @@ export function StepSituationPersonnelle({ onNext, onSkip }: StepSituationPerson
             <div>
               <CardTitle className="text-lg">Votre situation personnelle</CardTitle>
               <CardDescription>
-                Ces informations personnalisent vos recommandations fiscales et patrimoniales.
+                Votre situation familiale détermine votre nombre de parts fiscales et influence directement votre taux d'imposition. Ces données nous permettent d'adapter toutes vos projections.
               </CardDescription>
             </div>
           </div>

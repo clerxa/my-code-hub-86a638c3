@@ -107,7 +107,7 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
             </div>
             <div>
               <CardTitle className="text-lg">🏠 Logement & Énergie</CardTitle>
-              <CardDescription>Charges liées à votre résidence principale.</CardDescription>
+              <CardDescription>Le logement est généralement votre premier poste de dépenses. Ces données servent à calculer votre reste à vivre et votre taux d'endettement.</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -165,7 +165,7 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
             <div>
               <CardTitle className="text-lg">Épargne & Patrimoine</CardTitle>
               <CardDescription>
-                Indiquez vos montants — même approximatifs, c'est utile pour vos projections.
+                Votre patrimoine financier et immobilier constitue la base de votre bilan patrimonial. Même des montants approximatifs nous permettent de vous fournir des recommandations adaptées à votre situation réelle.
               </CardDescription>
             </div>
           </div>
@@ -205,7 +205,7 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">💶 Fiscalité</CardTitle>
-          <CardDescription>Si vous ne connaissez pas votre TMI, passez — il sera calculé automatiquement à l'étape suivante.</CardDescription>
+          <CardDescription>Votre tranche marginale d'imposition (TMI) détermine l'impact réel de chaque décision financière : épargne PER, cession d'actions, investissement locatif. Si vous ne la connaissez pas, elle pourra être calculée à l'étape suivante via votre avis d'imposition.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -248,7 +248,7 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
             </div>
             <div>
               <CardTitle className="text-lg">Projets immobiliers</CardTitle>
-              <CardDescription>Avez-vous un projet d'achat à moyen ou long terme ?</CardDescription>
+              <CardDescription>Identifier vos projets nous permet de dimensionner votre capacité d'emprunt, d'estimer votre apport nécessaire et de prioriser votre stratégie d'épargne.</CardDescription>
             </div>
           </div>
         </CardHeader>
