@@ -68,7 +68,7 @@ export function BudgetOverviewSection({
     if (impotMensuel > 0) detailItems.push({ name: "Impôts", value: impotMensuel });
     depensesCourantesItems.forEach(i => { if (i.value > 0) detailItems.push({ name: i.label, value: i.value }); });
     if (totalEpargne > 0) detailItems.push({ name: "Épargne", value: totalEpargne });
-    if (nonAlloue > 0) detailItems.push({ name: "Non alloué", value: nonAlloue });
+    if (nonAlloue > 0) detailItems.push({ name: "Reste à vivre", value: nonAlloue });
 
     const ruleData: { name: string; value: number; color: string; pct: number; ideal: number }[] = [
       { name: "Charges fixes & impôts", value: totalFixes, color: RULE_COLORS.fixes, pct: pctFixes, ideal: 50 },
@@ -76,7 +76,7 @@ export function BudgetOverviewSection({
       { name: "Épargne", value: totalEpargne, color: RULE_COLORS.epargne, pct: pctEpargne, ideal: 20 },
     ];
     if (pctNonAlloue > 0) {
-      ruleData.push({ name: "Non alloué", value: nonAlloue, color: "hsl(var(--muted-foreground) / 0.3)", pct: pctNonAlloue, ideal: 0 });
+      ruleData.push({ name: "Reste à vivre", value: nonAlloue, color: "hsl(var(--muted-foreground) / 0.3)", pct: pctNonAlloue, ideal: 0 });
     }
 
     return {
@@ -145,7 +145,7 @@ export function BudgetOverviewSection({
             </div>
             <div className="space-y-2 flex-1 min-w-0">
               {ruleData.map((item, i) => {
-                const isNonAlloue = item.ideal === 0 && item.name === "Non alloué";
+                const isNonAlloue = item.ideal === 0 && item.name === "Reste à vivre";
                 const diff = item.pct - item.ideal;
                 const status = isNonAlloue ? "neutral" : Math.abs(diff) <= 5 ? "ok" : diff > 0 ? "over" : "under";
                 return (
