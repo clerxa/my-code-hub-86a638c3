@@ -117,12 +117,13 @@ const SimulateurCapaciteEpargne = () => {
     const p = data.profile;
     const newValues: FormValues = {};
 
-    // Salaire net mensuel du foyer
-    if (p.revenu_mensuel_net > 0) {
+    // Salaire net mensuel du foyer — même logique que Panorama
+    const brutTotal = (p.revenu_annuel_brut || 0) + (p.revenu_annuel_brut_conjoint || 0);
+    if (brutTotal > 0) {
+      newValues.salaire = Math.round(brutTotal * (simulationDefaults.brut_net_ratio / 100) / 12);
+    } else if (p.revenu_mensuel_net > 0) {
+      // revenu_mensuel_net is actually stored as annual net
       newValues.salaire = Math.round(p.revenu_mensuel_net / 12);
-    } else if (p.revenu_annuel_brut > 0) {
-      const brut = (p.revenu_annuel_brut || 0) + (p.revenu_annuel_brut_conjoint || 0);
-      newValues.salaire = Math.round((brut * (simulationDefaults.brut_net_ratio / 100)) / 12);
     }
 
     // Revenus fonciers
