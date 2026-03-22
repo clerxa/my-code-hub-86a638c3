@@ -197,7 +197,7 @@ export const BetaLabTab: React.FC = () => {
 
       <div className="w-full">
 
-        <TabsContent value="badge" className="mt-6 space-y-6">
+        <div className="mt-6 space-y-6">
           {/* Personal Emails Toggle */}
           <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800">
             <CardHeader>
