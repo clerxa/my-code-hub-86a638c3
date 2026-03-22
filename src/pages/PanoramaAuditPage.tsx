@@ -168,6 +168,8 @@ export default function PanoramaAuditPage() {
     setSearchParams({ tab: value });
     if (value === "financial" && fieldKey && FIELD_TO_WIZARD_STEP[fieldKey]) {
       setWizardInitialStep(FIELD_TO_WIZARD_STEP[fieldKey]);
+    } else if (value === "charges" && fieldKey && FIELD_TO_WIZARD_STEP[fieldKey]) {
+      setWizardInitialStep(FIELD_TO_WIZARD_STEP[fieldKey]);
     } else {
       setWizardInitialStep(null);
     }
