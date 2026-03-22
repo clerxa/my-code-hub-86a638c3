@@ -21,6 +21,12 @@ const PERSONAL_EMAIL_DOMAINS = [
   'gmx.com', 'gmx.fr', 'yandex.com', 'mail.com', 'zoho.com'
 ];
 
+const WHITELISTED_EMAILS = ['xavier.clermont@gmail.com'];
+
+const isWhitelistedEmail = (email: string): boolean => {
+  return WHITELISTED_EMAILS.includes(email.toLowerCase().trim());
+};
+
 const isPersonalEmail = (email: string): boolean => {
   const domain = email.toLowerCase().split('@')[1];
   return PERSONAL_EMAIL_DOMAINS.includes(domain);
@@ -94,6 +100,7 @@ const CompanySignup = () => {
   // Validate email based on company rules
   const validateEmail = (value: string): string | null => {
     if (!value || !value.includes("@") || !company) return null;
+    if (isWhitelistedEmail(value)) return null;
 
     const domain = value.toLowerCase().split("@")[1];
     const personal = isPersonalEmail(value);

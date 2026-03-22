@@ -300,7 +300,7 @@ serve(async (req) => {
       }
       
       // For beta companies, skip personal email check
-      if (!companyData.is_beta && PERSONAL_DOMAINS.includes(domain)) {
+      if (!companyData.is_beta && PERSONAL_DOMAINS.includes(domain) && !WHITELISTED_EMAILS.includes(email.toLowerCase().trim())) {
         // Non-beta company with personal email: check partnership
         const hasPartnership = companyData.partnership_type && companyData.partnership_type.toLowerCase() !== 'aucun';
         if (!hasPartnership) {
