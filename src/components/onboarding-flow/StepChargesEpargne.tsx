@@ -107,7 +107,7 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
             </div>
             <div>
               <CardTitle className="text-lg">🏠 Logement & Énergie</CardTitle>
-              <CardDescription>Charges liées à votre résidence principale.</CardDescription>
+              <CardDescription>Le logement est généralement votre premier poste de dépenses. Ces données servent à calculer votre reste à vivre et votre taux d'endettement.</CardDescription>
             </div>
           </div>
         </CardHeader>
