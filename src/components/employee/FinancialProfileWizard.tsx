@@ -358,7 +358,7 @@ export function FinancialProfileWizard({
                           <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p className="text-xs max-w-xs">Montant déclaré aux impôts (N-1 si année en cours inconnue)</p>
+                          <p className="text-xs max-w-xs">Revenu fiscal de référence de votre foyer, visible sur votre avis d'imposition.</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
