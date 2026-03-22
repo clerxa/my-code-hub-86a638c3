@@ -899,7 +899,7 @@ export default function PanoramaAuditPage() {
                 isSaving={savingFinancial}
                 situationFamiliale={formData.situation_familiale || profile?.marital_status || null}
                 hasEquityBenefits={formData.has_rsu_aga || formData.has_espp || formData.has_stock_options || formData.has_bspce || formData.has_equity_autres || false}
-                onInviteSpouse={() => setShowInviteDialog(true)}
+                
                 requiredFieldKeys={requiredFieldKeys}
                 initialStepId={wizardInitialStep}
               />
