@@ -183,9 +183,10 @@ export default function PanoramaPage() {
   const depensesCourantes = ((fp as any)?.charges_courses_alimentaires ?? 0) + ((fp as any)?.charges_loisirs ?? 0) + ((fp as any)?.charges_shopping ?? 0) + ((fp as any)?.charges_variables_autres ?? 0);
   const chargesFixesPures = chargesFixesTotal - depensesCourantes;
   const totalChargesAvecImpots = chargesFixesPures + (impotMensuel ?? 0);
+  const totalDepensesMensuelles = totalChargesAvecImpots + depensesCourantes;
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
-  const capaciteEpargneCalculee = totalRevenusMensuel != null ? Math.max(0, totalRevenusMensuel - totalChargesAvecImpots) : null;
-  const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - totalChargesAvecImpots - (capaciteEpargne ?? 0) : null;
+  const capaciteEpargneCalculee = totalRevenusMensuel != null ? Math.max(0, totalRevenusMensuel - totalDepensesMensuelles) : null;
+  const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - totalDepensesMensuelles - (capaciteEpargne ?? 0) : null;
   const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
 
   // Patrimoine breakdown (immo net already in patrimoine_total now)
@@ -453,10 +454,10 @@ export default function PanoramaPage() {
               {totalRevenusMensuel != null && (
                 <MetricChip label="Revenus" value={`${formatEuros(totalRevenusMensuel)}/mois`} />
               )}
-              {totalChargesAvecImpots > 0 && (
+              {totalDepensesMensuelles > 0 && (
                 <>
                   <span className="text-muted-foreground font-medium">−</span>
-                  <MetricChip label="Charges + impôts" value={`${formatEuros(totalChargesAvecImpots)}/mois`} />
+                  <MetricChip label="Charges + dépenses + impôts" value={`${formatEuros(totalDepensesMensuelles)}/mois`} />
                 </>
               )}
               {capaciteEpargne != null && capaciteEpargne > 0 ? (
