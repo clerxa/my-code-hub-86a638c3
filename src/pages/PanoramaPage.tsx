@@ -451,10 +451,13 @@ export default function PanoramaPage() {
             </div>
           </section>
         )}
+        </div>
 
         {/* ═══ SECTION 4 — TIMELINE (badges horizontaux) ═══ */}
+        <div className="relative">
+          {!panoramaUnlocked && <LockedOverlay onUnlock={() => navigate("/employee/onboarding-flow")} />}
         {timeline.length > 0 && (
-          <section className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+          <section className={cn("flex gap-2 overflow-x-auto pb-1 -mx-1 px-1", !panoramaUnlocked && "opacity-40 blur-[2px] pointer-events-none")}>
             {timeline.map((event, i) => (
               <div
                 key={i}
