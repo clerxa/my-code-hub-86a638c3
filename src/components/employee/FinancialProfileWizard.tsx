@@ -193,10 +193,6 @@ export function FinancialProfileWizard({
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
       
-      // Show spouse invite after second step if married/pacs and not shown yet
-      if (currentStep === 1 && isMarriedOrPacs && !hasShownSpouseInvite && onInviteSpouse) {
-        setHasShownSpouseInvite(true);
-      }
     }
   };
 
