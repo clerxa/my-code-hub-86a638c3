@@ -132,11 +132,11 @@ export default function PanoramaPage() {
 
   // Financial data
   const fp = financialProfile as any;
-  const revenuNet = fp?.revenu_mensuel_net ?? null;
+  const revenuNet = fp?.revenu_mensuel_net != null ? fp.revenu_mensuel_net / 12 : null;
   const chargesFixes = (fp?.charges_loyer_credit ?? 0) + (fp?.charges_transport ?? 0) + (fp?.charges_alimentation ?? 0) + (fp?.charges_abonnements ?? 0) + (fp?.charges_autres ?? 0);
   const pasEstime = fp?.prelevement_source_mensuel ?? null;
-  const epargneMensuelle = fp?.capacite_epargne_mensuelle ?? null;
-  const resteAVivre = revenuNet != null ? revenuNet - chargesFixes - (pasEstime ?? 0) - (epargneMensuelle ?? 0) : null;
+  const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
+  const resteAVivre = revenuNet != null ? revenuNet - chargesFixes - (pasEstime ?? 0) - (capaciteEpargne ?? 0) : null;
   const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
 
   // Patrimoine breakdown
@@ -176,14 +176,12 @@ export default function PanoramaPage() {
                     )}
                   </TooltipContent>
                 </Tooltip>
-                {financialCompleteness < 100 && (
-                  <button
-                    onClick={() => navigate("/panorama/audit")}
-                    className="text-xs text-primary hover:underline whitespace-nowrap"
-                  >
-                    Compléter
-                  </button>
-                )}
+                <button
+                  onClick={() => navigate("/panorama/audit")}
+                  className="text-xs text-primary hover:underline whitespace-nowrap"
+                >
+                  {financialCompleteness < 100 ? "Compléter" : "Modifier"}
+                </button>
               </div>
             </TooltipProvider>
           </div>
@@ -358,10 +356,10 @@ export default function PanoramaPage() {
                   <MetricChip label="PAS estimé" value={`${formatEuros(pasEstime)}/mois`} />
                 </>
               )}
-              {epargneMensuelle != null && epargneMensuelle > 0 && (
+              {capaciteEpargne != null && capaciteEpargne > 0 && (
                 <>
                   <span className="text-muted-foreground">−</span>
-                  <MetricChip label="Épargne mensuelle" value={`${formatEuros(epargneMensuelle)}/mois`} />
+                  <MetricChip label="Capacité d'épargne" value={`${formatEuros(capaciteEpargne)}/mois`} />
                 </>
               )}
               {resteAVivre != null && (
