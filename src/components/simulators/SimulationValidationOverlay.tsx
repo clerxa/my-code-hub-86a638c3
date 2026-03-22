@@ -71,7 +71,7 @@ export function SimulationValidationOverlay({
     return () => {
       timers.forEach(clearTimeout);
     };
-  }, [isValidating, onComplete, triggerCSAT]);
+  }, [isValidating, onComplete]);
 
   if (!isValidating) {
     return (
