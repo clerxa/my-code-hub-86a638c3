@@ -100,6 +100,10 @@ const FIELD_TO_WIZARD_STEP: Record<string, string> = {
   charges_frais_scolarite: "charges",
   pensions_alimentaires: "charges",
   charges_autres: "charges",
+  charges_courses_alimentaires: "charges",
+  charges_loisirs: "charges",
+  charges_shopping: "charges",
+  charges_variables_autres: "charges",
 };
 
 interface ProfileData {
