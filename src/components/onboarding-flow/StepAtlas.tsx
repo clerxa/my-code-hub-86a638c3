@@ -12,13 +12,6 @@ interface StepAtlasProps {
 }
 
 export function StepAtlas({ onNext, onSkip, onBack }: StepAtlasProps) {
-  const [canContinue, setCanContinue] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setCanContinue(true), 5000);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -35,13 +28,13 @@ export function StepAtlas({ onNext, onSkip, onBack }: StepAtlasProps) {
             <div>
               <CardTitle className="text-lg">Importez votre avis d'imposition</CardTitle>
               <CardDescription>
-                Votre avis d'imposition contient votre revenu fiscal de référence et votre TMI — deux données essentielles pour calibrer toutes vos simulations fiscales et patrimoniales. L'import automatique vous évite de chercher ces informations manuellement.
+                Votre avis d'imposition contient votre revenu fiscal de référence et votre TMI — deux données essentielles pour calibrer toutes vos simulations fiscales et patrimoniales.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <OcrAvisImposition />
+          <OcrAvisImposition importOnly />
           <p className="text-sm text-muted-foreground flex items-center gap-1.5 pt-2">
             🔒 Votre document est analysé de manière sécurisée et n'est jamais stocké.
           </p>
@@ -52,6 +45,7 @@ export function StepAtlas({ onNext, onSkip, onBack }: StepAtlasProps) {
         onNext={onNext}
         onSkip={onSkip}
         onBack={onBack}
+        nextLabel="Terminer et accéder à mon tableau de bord"
       />
     </motion.div>
   );
