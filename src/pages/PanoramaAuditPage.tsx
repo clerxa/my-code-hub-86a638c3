@@ -764,37 +764,23 @@ export default function PanoramaAuditPage() {
                         </div>
                       </label>
                       {([
-                        { field: "has_rsu_aga" as const, valField: "valeur_rsu_aga" as const, label: "RSU / AGA", desc: "Restricted Stock Units / Actions Gratuites" },
-                        { field: "has_espp" as const, valField: "valeur_espp" as const, label: "ESPP", desc: "Employee Stock Purchase Plan" },
-                        { field: "has_stock_options" as const, valField: "valeur_stock_options" as const, label: "Stock Options", desc: "Options d'achat d'actions" },
-                        { field: "has_bspce" as const, valField: "valeur_bspce" as const, label: "BSPCE", desc: "Bons de Souscription (startups)" },
+                        { field: "has_rsu_aga" as const, label: "RSU / AGA", desc: "Restricted Stock Units / Actions Gratuites" },
+                        { field: "has_espp" as const, label: "ESPP", desc: "Employee Stock Purchase Plan" },
+                        { field: "has_stock_options" as const, label: "Stock Options", desc: "Options d'achat d'actions" },
+                        { field: "has_bspce" as const, label: "BSPCE", desc: "Bons de Souscription (startups)" },
                       ]).map(item => (
-                        <div key={item.field} className="p-3 rounded-lg hover:bg-background transition-colors space-y-2">
-                          <label className="flex items-center gap-3 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={formData[item.field] || false}
-                              onChange={(e) => {
-                                updateFinancialField(item.field, e.target.checked);
-                                if (!e.target.checked) updateFinancialField(item.valField, 0);
-                              }}
-                              className="h-4 w-4 rounded border-border"
-                            />
-                            <div>
-                              <span className="font-medium text-sm">{item.label}</span>
-                              <p className="text-xs text-muted-foreground">{item.desc}</p>
-                            </div>
-                          </label>
-                          {formData[item.field] && (
-                            <Input
-                              type="number"
-                              value={formData[item.valField] ?? ""}
-                              onChange={(e) => updateFinancialField(item.valField, parseFloat(e.target.value) || 0)}
-                              placeholder="Valeur estimée (€)"
-                              className="ml-7"
-                            />
-                          )}
-                        </div>
+                        <label key={item.field} className="flex items-center gap-3 p-3 rounded-lg hover:bg-background transition-colors cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData[item.field] || false}
+                            onChange={(e) => updateFinancialField(item.field, e.target.checked)}
+                            className="h-4 w-4 rounded border-border"
+                          />
+                          <div>
+                            <span className="font-medium text-sm">{item.label}</span>
+                            <p className="text-xs text-muted-foreground">{item.desc}</p>
+                          </div>
+                        </label>
                       ))}
                       <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-background transition-colors cursor-pointer">
                         <input
