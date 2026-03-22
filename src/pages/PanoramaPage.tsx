@@ -504,25 +504,36 @@ export default function PanoramaPage() {
         {totalRevenusMensuel != null && totalRevenusMensuel > 0 && (
           <BudgetOverviewSection
             totalRevenus={totalRevenusMensuel}
-            chargesFixesItems={([
-              { label: "Loyer", value: fp?.loyer_actuel ?? 0, category: "fixes" as const },
-              { label: "Crédit immobilier", value: fp?.credits_immobilier ?? 0, category: "fixes" as const },
-              { label: "Crédit conso", value: fp?.credits_consommation ?? 0, category: "fixes" as const },
-              { label: "Crédit auto", value: fp?.credits_auto ?? 0, category: "fixes" as const },
-              { label: "Investissements locatifs", value: Math.max(creditsImmoLocatif, revenusFonciersMensuel), category: "fixes" as const },
-              { label: "Pensions alimentaires", value: fp?.pensions_alimentaires ?? 0, category: "fixes" as const },
-              { label: "Énergie", value: fp?.charges_energie ?? 0, category: "fixes" as const },
-              { label: "Copropriété / Taxes", value: fp?.charges_copropriete_taxes ?? 0, category: "fixes" as const },
-              { label: "Assurance habitation", value: fp?.charges_assurance_habitation ?? 0, category: "fixes" as const },
-              { label: "Transport", value: fp?.charges_transport_commun ?? 0, category: "fixes" as const },
-              { label: "Assurance auto", value: fp?.charges_assurance_auto ?? 0, category: "fixes" as const },
-              { label: "LLD / LOA auto", value: fp?.charges_lld_loa_auto ?? 0, category: "fixes" as const },
-              { label: "Internet", value: fp?.charges_internet ?? 0, category: "fixes" as const },
-              { label: "Mobile", value: fp?.charges_mobile ?? 0, category: "fixes" as const },
-              { label: "Abonnements", value: fp?.charges_abonnements ?? 0, category: "fixes" as const },
-              { label: "Frais scolarité", value: fp?.charges_frais_scolarite ?? 0, category: "fixes" as const },
-              { label: "Autres charges fixes", value: fp?.charges_autres ?? 0, category: "fixes" as const },
-            ]).filter(i => i.value > 0)}
+            chargesFixesItems={(() => {
+              const items = [
+                { label: "Loyer", value: fp?.loyer_actuel ?? 0, category: "fixes" as const },
+                { label: "Crédit immobilier", value: fp?.credits_immobilier ?? 0, category: "fixes" as const },
+                { label: "Crédit conso", value: fp?.credits_consommation ?? 0, category: "fixes" as const },
+                { label: "Crédit auto", value: fp?.credits_auto ?? 0, category: "fixes" as const },
+                { label: "Investissements locatifs", value: Math.max(creditsImmoLocatif, revenusFonciersMensuel), category: "fixes" as const },
+                { label: "Pensions alimentaires", value: fp?.pensions_alimentaires ?? 0, category: "fixes" as const },
+                { label: "Énergie", value: fp?.charges_energie ?? 0, category: "fixes" as const },
+                { label: "Copropriété / Taxes", value: fp?.charges_copropriete_taxes ?? 0, category: "fixes" as const },
+                { label: "Assurance habitation", value: fp?.charges_assurance_habitation ?? 0, category: "fixes" as const },
+                { label: "Transport", value: fp?.charges_transport_commun ?? 0, category: "fixes" as const },
+                { label: "Assurance auto", value: fp?.charges_assurance_auto ?? 0, category: "fixes" as const },
+                { label: "LLD / LOA auto", value: fp?.charges_lld_loa_auto ?? 0, category: "fixes" as const },
+                { label: "Internet", value: fp?.charges_internet ?? 0, category: "fixes" as const },
+                { label: "Mobile", value: fp?.charges_mobile ?? 0, category: "fixes" as const },
+                { label: "Abonnements", value: fp?.charges_abonnements ?? 0, category: "fixes" as const },
+                { label: "Frais scolarité", value: fp?.charges_frais_scolarite ?? 0, category: "fixes" as const },
+                { label: "Autres charges fixes", value: fp?.charges_autres ?? 0, category: "fixes" as const },
+              ].filter(i => i.value > 0);
+              // Ensure total matches charges_fixes_mensuelles + immo locatif
+              const depCourantes = ((fp as any)?.charges_courses_alimentaires ?? 0) + ((fp as any)?.charges_loisirs ?? 0) + ((fp as any)?.charges_shopping ?? 0) + ((fp as any)?.charges_variables_autres ?? 0);
+              const totalItems = items.reduce((s, i) => s + i.value, 0);
+              const totalFixesAttendu = chargesFixesTotal + Math.max(0, Math.max(creditsImmoLocatif, revenusFonciersMensuel) - creditsImmoLocatif) - depCourantes;
+              const ecart = totalFixesAttendu - totalItems;
+              if (ecart > 50) {
+                items.push({ label: "Autres charges", value: ecart, category: "fixes" as const });
+              }
+              return items;
+            })()}
             depensesCourantesItems={([
               { label: "Courses alimentaires", value: (fp as any)?.charges_courses_alimentaires ?? 0, category: "courantes" as const },
               { label: "Loisirs & sorties", value: (fp as any)?.charges_loisirs ?? 0, category: "courantes" as const },
