@@ -220,7 +220,7 @@ export function StepRiskProfile({ onNext, onSkip }: StepRiskProfileProps) {
             className="gap-2"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Voir mon profil <ArrowRight className="h-4 w-4" />
+            Terminer et accéder à mon tableau de bord <ArrowRight className="h-4 w-4" />
           </Button>
         )}
       </div>
@@ -230,7 +230,7 @@ export function StepRiskProfile({ onNext, onSkip }: StepRiskProfileProps) {
           onClick={onSkip}
           className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
         >
-          Passer cette étape →
+          Enregistrer et compléter plus tard
         </button>
       </div>
     </div>
