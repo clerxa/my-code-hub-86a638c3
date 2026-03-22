@@ -493,6 +493,20 @@ export default function PanoramaPage() {
 
             {/* Patrimoine breakdown line */}
             <div className="mt-4 pt-4 border-t border-border flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-help flex items-center gap-1">
+                      Épargne de précaution <strong className="text-foreground">{formatEuros(fp?.epargne_livrets ?? 0)}</strong>
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p className="text-xs">Correspond au montant disponible sur vos livrets (Livret A, LDDS, LEP…). C'est votre épargne liquide mobilisable immédiatement en cas d'imprévu.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <span className="text-border">|</span>
               <span>Financier <strong className="text-foreground">{formatEuros(patrimoineFinancier)}</strong></span>
               <span className="text-border">|</span>
               <span>Immobilier <strong className="text-foreground">{formatEuros(patrimoineImmo)}</strong></span>
