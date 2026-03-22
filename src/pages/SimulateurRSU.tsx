@@ -5,6 +5,8 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Scale, Receipt, BarChart3, Sparkles } from 'lucide-react';
 import { SimulatorHeader } from '@/components/simulators/SimulatorHeader';
