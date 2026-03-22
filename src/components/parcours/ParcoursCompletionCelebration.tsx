@@ -391,15 +391,6 @@ export const ParcoursCompletionCelebration = ({
 
       </DialogContent>
 
-      {/* CSAT Panel - Outside dialog so it doesn't get cut off */}
-      <CSATPanel
-        open={showCSAT}
-        onOpenChange={closeCSAT}
-        contentType={contentType}
-        contentId={contentId}
-        contentName={contentName}
-        parcoursId={parcoursId}
-      />
     </Dialog>
   );
 };

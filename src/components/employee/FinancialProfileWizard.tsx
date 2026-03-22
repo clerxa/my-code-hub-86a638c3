@@ -893,14 +893,6 @@ export function FinancialProfileWizard({
         )}
       </div>
 
-      {/* CSAT Panel */}
-      <CSATPanel
-        open={showCSAT}
-        onOpenChange={closeCSAT}
-        contentType={contentType}
-        contentId={contentId}
-        contentName={contentName}
-      />
     </div>
   );
 }

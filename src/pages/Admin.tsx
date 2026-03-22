@@ -130,7 +130,7 @@ const Admin = () => {
     "financial-profile-settings": "Page Profil Financier",
     "workflow-hub": "Workflow Hub",
     "celebration": "Célébration Parcours",
-    "csat": "CSAT Beta",
+    
     "notifications": "Notifications",
     "recommendations": "Recommandations",
     "simulator-ctas": "CTAs Simulateurs",
