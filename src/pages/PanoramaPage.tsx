@@ -605,16 +605,47 @@ export default function PanoramaPage() {
             colorClass={moduleTitleColors.horizon}
             onClick={() => navigate("/employee/horizon")}
           >
-            <p className="text-xl font-bold">
-              {synthesis?.horizon?.total_initial_capital != null
-                ? formatEuros(synthesis.horizon.total_initial_capital)
-                : synthesis?.financialProfile?.epargne_actuelle != null
-                  ? formatEuros(synthesis.financialProfile.epargne_actuelle)
-                  : "Non renseigné"}
-            </p>
-            {synthesis?.horizon?.projects_count != null && synthesis.horizon.projects_count > 0 && (
-              <p className="text-xs text-muted-foreground">{synthesis.horizon.projects_count} projets</p>
-            )}
+            {(() => {
+              const epargneTotal = capaciteEpargne ?? capaciteEpargneCalculee ?? 0;
+              const epargneMensuelleAllouee = synthesis?.horizon?.total_monthly_savings ?? 0;
+              const epargneRestante = Math.max(0, epargneTotal - epargneMensuelleAllouee);
+              const hasHorizon = synthesis?.horizon?.projects_count != null && synthesis.horizon.projects_count > 0;
+
+              return (
+                <>
+                  {hasHorizon ? (
+                    <>
+                      <p className="text-xl font-bold">{synthesis!.horizon!.projects_count} projets</p>
+                      <div className="mt-1.5 space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Allouée</span>
+                          <span className="font-semibold text-amber-600 dark:text-amber-400">{formatEuros(epargneMensuelleAllouee)}/m</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Disponible</span>
+                          <span className={cn("font-semibold", epargneRestante > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground")}>{formatEuros(epargneRestante)}/m</span>
+                        </div>
+                        {epargneTotal > 0 && (
+                          <div className="relative h-1.5 bg-muted rounded-full overflow-hidden mt-1">
+                            <div
+                              className="absolute h-full rounded-full bg-amber-500/80"
+                              style={{ width: `${Math.min(100, (epargneMensuelleAllouee / epargneTotal) * 100)}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground">Aucun projet</p>
+                      {epargneTotal > 0 && (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">{formatEuros(epargneTotal)}/m disponible</p>
+                      )}
+                    </>
+                  )}
+                </>
+              );
+            })()}
           </ModuleCard>
 
           {/* PROFIL RISQUE */}
