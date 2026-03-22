@@ -85,7 +85,7 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
             <div>
               <CardTitle className="text-lg">Situation professionnelle</CardTitle>
               <CardDescription>
-                Votre emploi et les avantages proposés par votre entreprise.
+                Votre type de contrat et votre ancienneté impactent vos droits sociaux, votre capacité d'emprunt et vos avantages fiscaux. Le secteur d'activité nous aide à contextualiser vos dispositifs d'épargne.
               </CardDescription>
             </div>
           </div>
