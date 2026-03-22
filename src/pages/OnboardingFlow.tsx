@@ -7,9 +7,6 @@ import { OnboardingStepBar } from "@/components/onboarding-flow/OnboardingStepBa
 import { StepBienvenue } from "@/components/onboarding-flow/StepBienvenue";
 import { StepSituationPersonnelle } from "@/components/onboarding-flow/StepSituationPersonnelle";
 import { StepSituationPro } from "@/components/onboarding-flow/StepSituationPro";
-import { StepRevenus } from "@/components/onboarding-flow/StepRevenus";
-import { StepCharges } from "@/components/onboarding-flow/StepCharges";
-import { StepEpargne } from "@/components/onboarding-flow/StepEpargne";
 import { StepAtlas } from "@/components/onboarding-flow/StepAtlas";
 
 const STEPS = [
