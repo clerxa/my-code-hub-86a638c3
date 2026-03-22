@@ -264,6 +264,14 @@ const App = () => (
               }
             />
             <Route
+              path="/employee/first-login"
+              element={
+                <ProtectedRoute>
+                  <FirstLoginOnboarding />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/employee/diagnostic"
               element={
                 <ProtectedRoute>
