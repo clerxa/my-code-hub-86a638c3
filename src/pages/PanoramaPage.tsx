@@ -122,6 +122,7 @@ export default function PanoramaPage() {
     profile: financialProfile,
     isLoading: financialLoading,
     completeness: financialCompleteness,
+    saveProfile,
   } = useUserFinancialProfile();
 
   const { totals: realEstateTotals } = useUserRealEstateProperties();
