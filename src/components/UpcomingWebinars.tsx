@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { CommunicationKitTab } from "@/components/admin/CommunicationKitTab";
+import { AddToCalendarButton } from "@/components/webinar/AddToCalendarButton";
 
 interface ValidatedWebinar {
   module_id: number;
