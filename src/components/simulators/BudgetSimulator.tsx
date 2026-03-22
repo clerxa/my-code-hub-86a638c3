@@ -24,6 +24,7 @@ import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
@@ -62,12 +63,17 @@ const STEPS_CONFIG = [
 
 const EXPENSE_ITEMS = {
   incompressibles: [
-    { key: "logement", label: "Logement", emoji: "🏠", defaultVal: 800, max: 10000, tooltip: "Loyer ou mensualité de crédit immobilier (mensuel)" },
-    { key: "impots", label: "Impôts & prélèvements", emoji: "📋", defaultVal: 200, max: 5000, tooltip: "Impôts non prélevés à la source, taxe foncière… (mensuel)" },
-    { key: "credit", label: "Remboursement crédit", emoji: "💳", defaultVal: 150, max: 5000, tooltip: "Crédits conso, auto, étudiant… (mensuel)" },
-    { key: "transport", label: "Transport fixe", emoji: "🚌", defaultVal: 150, max: 3000, tooltip: "Abonnement transport, essence, leasing… (mensuel)" },
+    { key: "logement", label: "Loyer / crédit résidence", emoji: "🏠", defaultVal: 800, max: 10000, tooltip: "Loyer ou mensualité de crédit de votre résidence principale" },
+    { key: "copropriete_taxes", label: "Copropriété & taxes", emoji: "🏢", defaultVal: 0, max: 5000, tooltip: "Charges de copropriété, taxe foncière… (mensuel)" },
+    { key: "energie", label: "Énergie", emoji: "⚡", defaultVal: 0, max: 2000, tooltip: "Électricité, gaz, chauffage… (mensuel)" },
+    { key: "impots", label: "Impôts & prélèvements", emoji: "📋", defaultVal: 200, max: 5000, tooltip: "Impôts non prélevés à la source… (mensuel)" },
+    { key: "credit", label: "Crédits conso & auto", emoji: "💳", defaultVal: 150, max: 5000, tooltip: "Crédits consommation, auto, étudiant… (mensuel)" },
+    { key: "credit_immo_locatif", label: "Crédits immobilier locatif", emoji: "🏘️", defaultVal: 0, max: 10000, tooltip: "Mensualités de crédit de vos biens locatifs (mensuel)" },
+    { key: "transport", label: "Transport", emoji: "🚌", defaultVal: 150, max: 3000, tooltip: "Transport en commun, essence, leasing auto… (mensuel)" },
     { key: "assurances", label: "Assurances", emoji: "🛡️", defaultVal: 100, max: 3000, tooltip: "Habitation, auto, santé complémentaire… (mensuel)" },
-    { key: "abonnements", label: "Abonnements", emoji: "📱", defaultVal: 100, max: 2000, tooltip: "Téléphone, internet, streaming… (mensuel)" },
+    { key: "abonnements", label: "Abonnements & télécom", emoji: "📱", defaultVal: 100, max: 2000, tooltip: "Téléphone, internet, streaming… (mensuel)" },
+    { key: "pension_alimentaire", label: "Pension alimentaire", emoji: "👨‍👧", defaultVal: 0, max: 5000, tooltip: "Pension alimentaire versée (mensuel)" },
+    { key: "frais_scolarite", label: "Frais de scolarité", emoji: "🎓", defaultVal: 0, max: 5000, tooltip: "Scolarité, crèche, garde d'enfants… (mensuel)" },
   ],
   compressibles: [
     { key: "alimentation", label: "Alimentation", emoji: "🛒", defaultVal: 400, max: 5000, tooltip: "Courses, cantine, livraisons… (mensuel)" },
@@ -227,7 +233,8 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
     }
   }, [savedData, savedLoaded]);
 
-  // Financial profile prefill
+  // Financial profile prefill + real estate properties
+  const { properties: realEstateProperties } = useUserRealEstateProperties();
   const { getPrefillData, hasProfile, isLoading: isProfileLoading } = useFinancialProfilePrefill();
   const [profileApplied, setProfileApplied] = useState(false);
 
@@ -261,15 +268,30 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
       const chargesMap: Record<string, { value: number; source: string }> = {
         logement: {
           value: data.chargesDetailees.loyer || data.loyerActuel || 0,
-          source: "Loyer / crédit immobilier du profil financier",
+          source: "Loyer / crédit résidence du profil financier",
+        },
+        copropriete_taxes: {
+          value: data.chargesDetailees.copropriete_taxes || 0,
+          source: "Copropriété & taxes du profil financier",
+        },
+        energie: {
+          value: data.chargesDetailees.energie || 0,
+          source: "Énergie du profil financier",
         },
         credit: {
-          value: (data.chargesDetailees.credit_immobilier || 0) + (data.chargesDetailees.credit_consommation || 0),
-          source: "Crédits immobilier + consommation du profil",
+          value: (data.chargesDetailees.credit_consommation || 0) + (data.chargesDetailees.lld_loa_auto || 0),
+          source: "Crédits consommation + LOA/LLD auto du profil",
+        },
+        credit_immo_locatif: {
+          value: (data.chargesDetailees.credit_immobilier || 0) + 
+            realEstateProperties.reduce((sum, p) => sum + Number(p.mensualite_credit || 0), 0),
+          source: realEstateProperties.length > 0 
+            ? `Crédits immobilier du profil + ${realEstateProperties.length} bien(s) locatif(s)`
+            : "Crédits immobilier du profil financier",
         },
         transport: {
-          value: (data.chargesDetailees.transport_commun || 0) + (data.chargesDetailees.lld_loa_auto || 0),
-          source: "Transport en commun + LOA/LLD auto du profil",
+          value: data.chargesDetailees.transport_commun || 0,
+          source: "Transport en commun du profil",
         },
         assurances: {
           value: (data.chargesDetailees.assurance_habitation || 0) + (data.chargesDetailees.assurance_auto || 0),
@@ -279,9 +301,13 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
           value: (data.chargesDetailees.abonnements || 0) + (data.chargesDetailees.internet || 0) + (data.chargesDetailees.mobile || 0),
           source: "Abonnements + internet + mobile du profil",
         },
-        divers: {
-          value: data.chargesDetailees.autres || 0,
-          source: "Autres charges du profil financier",
+        pension_alimentaire: {
+          value: data.chargesDetailees.pension_alimentaire || 0,
+          source: "Pension alimentaire du profil financier",
+        },
+        frais_scolarite: {
+          value: data.chargesDetailees.frais_scolarite || 0,
+          source: "Frais de scolarité du profil financier",
         },
       };
 
