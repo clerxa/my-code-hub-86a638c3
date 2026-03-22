@@ -149,11 +149,15 @@ export default function PanoramaPage() {
 
   // Financial data
   const fp = financialProfile as any;
-  const revenuNet = fp?.revenu_mensuel_net != null ? fp.revenu_mensuel_net / 12 : null;
+  const revenuBrutAnnuel = (fp?.revenu_annuel_brut ?? 0) + (fp?.revenu_annuel_brut_conjoint ?? 0);
+  const revenuNetMensuel = revenuBrutAnnuel > 0 ? Math.round(revenuBrutAnnuel * 0.77 / 12) : (fp?.revenu_mensuel_net != null ? fp.revenu_mensuel_net / 12 : null);
+  const revenusFonciersMensuel = fp?.revenus_locatifs ? Math.round(fp.revenus_locatifs / 12) : 0;
+  const autresRevenusMensuel = fp?.autres_revenus_mensuels ?? 0;
+  const totalRevenusMensuel = revenuNetMensuel != null ? revenuNetMensuel + revenusFonciersMensuel + autresRevenusMensuel : null;
   const chargesFixes = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0) + (fp?.charges_fixes_mensuelles ?? 0);
   const pasEstime = fp?.prelevement_source_mensuel ?? null;
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
-  const resteAVivre = revenuNet != null ? revenuNet - chargesFixes - (pasEstime ?? 0) - (capaciteEpargne ?? 0) : null;
+  const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - chargesFixes - (pasEstime ?? 0) - (capaciteEpargne ?? 0) : null;
   const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
 
   // Patrimoine breakdown (immo net already in patrimoine_total now)
