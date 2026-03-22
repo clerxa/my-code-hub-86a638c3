@@ -310,8 +310,8 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
           source: "Énergie du profil financier",
         },
         credit: {
-          value: (data.chargesDetailees.credit_consommation || 0) + (data.chargesDetailees.lld_loa_auto || 0),
-          source: "Crédits consommation + LOA/LLD auto du profil",
+          value: (data.chargesDetailees.credit_consommation || 0),
+          source: "Crédits consommation du profil",
         },
         credit_immo_locatif: {
           value: (data.chargesDetailees.credit_immobilier || 0) + 
@@ -320,17 +320,37 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
             ? `Crédits immobilier du profil + ${realEstateProperties.length} bien(s) locatif(s)`
             : "Crédits immobilier du profil financier",
         },
+        charges_immo_locatif: {
+          value: realEstateProperties.reduce((sum, p) => sum + Number(p.charges_mensuelles || 0), 0),
+          source: `Charges de ${realEstateProperties.length} bien(s) locatif(s)`,
+        },
         transport: {
           value: data.chargesDetailees.transport_commun || 0,
           source: "Transport en commun du profil",
         },
-        assurances: {
-          value: (data.chargesDetailees.assurance_habitation || 0) + (data.chargesDetailees.assurance_auto || 0),
-          source: "Assurance habitation + auto du profil",
+        lld_loa_auto: {
+          value: data.chargesDetailees.lld_loa_auto || 0,
+          source: "LOA / LLD auto du profil",
+        },
+        assurance_habitation: {
+          value: data.chargesDetailees.assurance_habitation || 0,
+          source: "Assurance habitation du profil",
+        },
+        assurance_auto: {
+          value: data.chargesDetailees.assurance_auto || 0,
+          source: "Assurance auto du profil",
+        },
+        internet: {
+          value: data.chargesDetailees.internet || 0,
+          source: "Internet du profil",
+        },
+        mobile: {
+          value: data.chargesDetailees.mobile || 0,
+          source: "Mobile du profil",
         },
         abonnements: {
-          value: (data.chargesDetailees.abonnements || 0) + (data.chargesDetailees.internet || 0) + (data.chargesDetailees.mobile || 0),
-          source: "Abonnements + internet + mobile du profil",
+          value: data.chargesDetailees.abonnements || 0,
+          source: "Abonnements du profil",
         },
         pension_alimentaire: {
           value: data.chargesDetailees.pension_alimentaire || 0,
@@ -339,6 +359,10 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
         frais_scolarite: {
           value: data.chargesDetailees.frais_scolarite || 0,
           source: "Frais de scolarité du profil financier",
+        },
+        charges_autres: {
+          value: data.chargesDetailees.autres || 0,
+          source: "Autres charges du profil financier",
         },
       };
 
