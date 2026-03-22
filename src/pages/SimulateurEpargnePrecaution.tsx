@@ -2,10 +2,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { UserCircle, Euro, Shield, Briefcase, Target, PiggyBank, Home, Car, Smartphone, Users2, Wallet, CreditCard, Sparkles, ArrowLeft, Loader2 } from "lucide-react";
+import { UserCircle, Euro, Shield, Briefcase, Target, PiggyBank, Home, Car, Smartphone, Users2, Wallet, CreditCard, Sparkles, ArrowLeft, Loader2, Building2, Receipt } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useEpargnePrecautionCalculations } from "@/hooks/useEpargnePrecautionCalculations";
 import { useFinancialProfilePrefill } from "@/hooks/useFinancialProfilePrefill";
+import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/AuthProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useSimulationTracking } from "@/hooks/useSimulationTracking";
@@ -43,6 +46,8 @@ const SimulateurEpargnePrecaution = () => {
   const queryClient = useQueryClient();
   const { calculerSimulation, getCoefficientContrat } = useEpargnePrecautionCalculations();
   const { getPrefillData, hasProfile, isLoading: isProfileLoading } = useFinancialProfilePrefill();
+  const { totals: realEstateTotals } = useUserRealEstateProperties();
+  const { user } = useAuth();
 
   // État du wizard
   const [currentStep, setCurrentStep] = useState(0);
@@ -60,7 +65,6 @@ const SimulateurEpargnePrecaution = () => {
   // Fonction pour restaurer les données
   const restoreSimulationData = (simData: Record<string, unknown>) => {
     if (simData.charges_fixes_mensuelles !== undefined) {
-      // Try to restore detailed charges
       setChargesDetailees({
         loyer: (simData.charges_loyer_credit as number) || 0,
         credit_immobilier: 0,
@@ -76,6 +80,9 @@ const SimulateurEpargnePrecaution = () => {
         frais_scolarite: (simData.charges_frais_scolarite as number) || 0,
         pension_alimentaire: 0,
         credit_consommation: 0,
+        investissement_locatif_credits: (simData.investissement_locatif_credits as number) || 0,
+        investissement_locatif_charges: (simData.investissement_locatif_charges as number) || 0,
+        impots: (simData.impots as number) || 0,
         autres: (simData.charges_autres as number) || 0,
       });
     }
@@ -130,12 +137,19 @@ const SimulateurEpargnePrecaution = () => {
       const data = getPrefillData();
       
       if (data.chargesDetailees) {
-        // Utiliser directement les charges détaillées du profil
-        setChargesDetailees(data.chargesDetailees);
+        const charges = { ...data.chargesDetailees };
+        
+        // Injecter les investissements locatifs depuis le portefeuille immobilier
+        if (realEstateTotals) {
+          charges.investissement_locatif_credits = realEstateTotals.mensualitesTotal ?? 0;
+          charges.investissement_locatif_charges = realEstateTotals.chargesTotal ?? 0;
+        }
+        
+        setChargesDetailees(charges);
         
         // Tracker les champs pré-remplis (ceux > 0)
         const filledFields = new Set<string>();
-        Object.entries(data.chargesDetailees).forEach(([key, value]) => {
+        Object.entries(charges).forEach(([key, value]) => {
           if (value > 0) filledFields.add(key);
         });
         if (data.epargneActuelle > 0) filledFields.add('epargne_actuelle');
@@ -158,16 +172,39 @@ const SimulateurEpargnePrecaution = () => {
         setTypeContrat(contratMapping[data.typeContrat]);
       }
       
+      // Récupérer les impôts depuis ATLAS
+      if (user?.id) {
+        supabase
+          .from("ocr_avis_imposition_analyses" as any)
+          .select("impot_net_total")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+          .then(({ data: atlasResult }) => {
+            const atlasRecord = atlasResult as any;
+            if (atlasRecord?.impot_net_total) {
+              const impotMensuel = Math.round(atlasRecord.impot_net_total / 12);
+              setChargesDetailees(prev => ({ ...prev, impots: impotMensuel }));
+              setPrefilledFields(prev => {
+                const next = new Set(prev);
+                if (impotMensuel > 0) next.add('impots');
+                return next;
+              });
+            }
+          });
+      }
+      
       setProfileApplied(true);
     }
-  }, [isProfileLoading, hasProfile, profileApplied, getPrefillData, location.state]);
+  }, [isProfileLoading, hasProfile, profileApplied, getPrefillData, location.state, realEstateTotals, user?.id]);
 
   // Charger une simulation existante
   useEffect(() => {
     const simulation = location.state?.simulation;
     if (simulation) {
       setChargesDetailees({
-        loyer: simulation.charges_loyer_credit || 0, // Backward compat: map old loyer_credit to loyer
+        loyer: simulation.charges_loyer_credit || 0,
         credit_immobilier: 0,
         copropriete_taxes: simulation.charges_copropriete_taxes || 0,
         energie: simulation.charges_energie || 0,
@@ -181,6 +218,9 @@ const SimulateurEpargnePrecaution = () => {
         frais_scolarite: simulation.charges_frais_scolarite || 0,
         pension_alimentaire: simulation.charges_pension_alimentaire || 0,
         credit_consommation: 0,
+        investissement_locatif_credits: simulation.investissement_locatif_credits || 0,
+        investissement_locatif_charges: simulation.investissement_locatif_charges || 0,
+        impots: simulation.impots || 0,
         autres: simulation.charges_autres || 0,
       });
       setEpargneActuelle(simulation.epargne_actuelle);
@@ -509,6 +549,8 @@ const SimulateurEpargnePrecaution = () => {
       content: (
         <div className="space-y-4">
           <ChargesCategoryCard categoryKey="credit" category={CHARGES_CATEGORIES.credit} />
+          <ChargesCategoryCard categoryKey="investissement_locatif" category={CHARGES_CATEGORIES.investissement_locatif} />
+          <ChargesCategoryCard categoryKey="impots" category={CHARGES_CATEGORIES.impots} />
           <ChargesCategoryCard categoryKey="autres" category={CHARGES_CATEGORIES.autres} />
           
           {/* Récapitulatif des charges */}
@@ -719,6 +761,18 @@ const SimulateurEpargnePrecaution = () => {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">💰 Crédit conso</span>
                 <span className="font-medium">{formatCurrency(chargesDetailees.credit_consommation)}</span>
+              </div>
+            )}
+            {(chargesDetailees.investissement_locatif_credits + chargesDetailees.investissement_locatif_charges) > 0 && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">🏢 Invest. locatifs</span>
+                <span className="font-medium">{formatCurrency(chargesDetailees.investissement_locatif_credits + chargesDetailees.investissement_locatif_charges)}</span>
+              </div>
+            )}
+            {chargesDetailees.impots > 0 && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">🧾 Impôts</span>
+                <span className="font-medium">{formatCurrency(chargesDetailees.impots)}</span>
               </div>
             )}
             {chargesDetailees.autres > 0 && (

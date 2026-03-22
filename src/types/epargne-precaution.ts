@@ -21,6 +21,11 @@ export interface ChargesDetailees {
   pension_alimentaire: number;
   // 💰 Crédit consommation
   credit_consommation: number;
+  // 🏢 Investissements locatifs
+  investissement_locatif_credits: number;
+  investissement_locatif_charges: number;
+  // 🧾 Impôts
+  impots: number;
   // Autres
   autres: number;
 }
@@ -163,6 +168,21 @@ export const CHARGES_CATEGORIES = {
       { key: 'credit_consommation', label: 'Mensualité crédit consommation', placeholder: 'Ex: 200' },
     ],
   },
+  investissement_locatif: {
+    icon: '🏢',
+    label: 'Investissements locatifs',
+    fields: [
+      { key: 'investissement_locatif_credits', label: 'Crédits immobiliers locatifs (mensualités)', placeholder: 'Ex: 800' },
+      { key: 'investissement_locatif_charges', label: 'Charges d\'exploitation (copro, taxes, assurance...)', placeholder: 'Ex: 200' },
+    ],
+  },
+  impots: {
+    icon: '🧾',
+    label: 'Impôts',
+    fields: [
+      { key: 'impots', label: 'Impôt sur le revenu (mensuel)', placeholder: 'Ex: 500' },
+    ],
+  },
   autres: {
     icon: '💳',
     label: 'Autres charges mensuelles',
@@ -187,6 +207,9 @@ export const getEmptyChargesDetailees = (): ChargesDetailees => ({
   frais_scolarite: 0,
   pension_alimentaire: 0,
   credit_consommation: 0,
+  investissement_locatif_credits: 0,
+  investissement_locatif_charges: 0,
+  impots: 0,
   autres: 0,
 });
 
