@@ -55,8 +55,16 @@ const simBadgeColors: Record<string, string> = {
 
 export default function PanoramaPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [hasAtlasAnalysis, setHasAtlasAnalysis] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (searchParams.get("welcome") === "true") {
+      toast.success("🎉 Bienvenue sur MyFinCare ! Votre tableau de bord est prêt.");
+      window.history.replaceState({}, "", "/panorama");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!user?.id) { setHasAtlasAnalysis(false); return; }
