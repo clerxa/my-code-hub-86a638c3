@@ -278,48 +278,71 @@ export default function PanoramaPage() {
           </div>
         </section>
 
-        {/* ═══ SECTION 2 — MODULE GRID (asymmetric) ═══ */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {/* VEGA — large card spanning 2 cols */}
-          <div
-            className="md:col-span-2 md:row-span-3 rounded-lg border border-border bg-card p-5 cursor-pointer hover:shadow-md transition-shadow group"
-            onClick={() => navigate("/employee/vega")}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-violet-500" />
-                <h3 className={cn("text-sm font-bold uppercase tracking-wide", moduleTitleColors.vega)}>VEGA</h3>
-                <span className="text-xs text-muted-foreground">Actionnariat salarié</span>
-              </div>
-              {imminentVesting && (
-                <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/30 text-[10px]">
-                  Vesting dans {imminentVesting.daysUntil}j
-                </Badge>
+        {/* ═══ SECTION 2 — SYNTHÈSE FINANCIÈRE (main area) ═══ */}
+        {financialProfile && (
+          <section className="rounded-lg border border-border bg-card p-5">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Synthèse financière du foyer</h3>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm">
+              {revenuNet != null && (
+                <MetricChip label="Revenus nets" value={`${formatEuros(revenuNet)}/mois`} />
+              )}
+              {chargesFixes > 0 && (
+                <>
+                  <span className="text-muted-foreground font-medium">−</span>
+                  <MetricChip label="Charges fixes" value={`${formatEuros(chargesFixes)}/mois`} />
+                </>
+              )}
+              {capaciteEpargne != null && capaciteEpargne > 0 && (
+                <>
+                  <span className="text-muted-foreground font-medium">−</span>
+                  <MetricChip label="Capacité d'épargne" value={`${formatEuros(capaciteEpargne)}/mois`} />
+                </>
+              )}
+              {resteAVivre != null && (
+                <>
+                  <span className="text-muted-foreground font-bold">=</span>
+                  <MetricChip label="Reste à vivre" value={`${formatEuros(resteAVivre)}/mois`} highlight />
+                </>
               )}
             </div>
+            <div className="mt-4 pt-4 border-t border-border flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
+              <span>Financier <strong className="text-foreground">{formatEuros(patrimoineFinancier)}</strong></span>
+              <span className="text-border">|</span>
+              <span>Immobilier <strong className="text-foreground">{formatEuros(patrimoineImmo)}</strong></span>
+              <span className="text-border">|</span>
+              <span>Actionnariat <strong className="text-foreground">{formatEuros(patrimoineActions)}</strong></span>
+              <span className="text-border">|</span>
+              <span>Total net <strong className="text-foreground font-semibold">{formatEuros(patrimoine_panorama_total)}</strong></span>
+            </div>
+          </section>
+        )}
+
+        {/* ═══ SECTION 3 — MODULE GRID (4 cols equal) ═══ */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {/* VEGA */}
+          <div
+            className="rounded-lg border border-border bg-card p-4 cursor-pointer hover:shadow-md transition-shadow group"
+            onClick={() => navigate("/employee/vega")}
+          >
+            <div className="flex items-center gap-1.5 mb-2">
+              <TrendingUp className="h-4 w-4 text-violet-500" />
+              <span className={cn("text-xs font-bold uppercase tracking-wide", moduleTitleColors.vega)}>VEGA</span>
+            </div>
             {vegaPortfolio.hasPlans ? (
-              <div className="space-y-2">
-                <p className="text-4xl font-bold">{formatEuros(vegaPortfolio.totalValueEur)}</p>
-                <p className="text-sm text-muted-foreground">{vegaPortfolio.totalShares} actions vestées</p>
-                {vegaPortfolio.plans && vegaPortfolio.plans.length > 0 && (
-                  <div className="mt-4 space-y-1.5">
-                    {vegaPortfolio.plans.slice(0, 3).map((plan, i) => (
-                      <div key={i} className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 rounded px-3 py-1.5">
-                        <span className="font-medium text-foreground">{plan.label}</span>
-                        <span>{plan.nbActions} actions • {formatEuros(plan.prixAcquisitionEur)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <>
+                <p className="text-xl font-bold">{formatEuros(vegaPortfolio.totalValueEur)}</p>
+                <p className="text-xs text-muted-foreground">{vegaPortfolio.totalShares} actions</p>
+              </>
             ) : (
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Non configuré</p>
-                <span className="text-xs text-primary hover:underline">Configurer →</span>
-              </div>
+              <p className="text-sm text-muted-foreground">Non configuré</p>
             )}
-            <div className="mt-4 flex items-center text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-              Voir le détail <ChevronRight className="h-3 w-3 ml-0.5" />
+            {imminentVesting && (
+              <Badge variant="outline" className="mt-2 bg-orange-500/10 text-orange-600 border-orange-500/30 text-[10px]">
+                Vesting {imminentVesting.daysUntil}j
+              </Badge>
+            )}
+            <div className="mt-2 flex items-center text-[11px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+              Voir <ChevronRight className="h-3 w-3 ml-0.5" />
             </div>
           </div>
 
@@ -327,7 +350,7 @@ export default function PanoramaPage() {
           <ModuleCard
             icon={<FileText className="h-4 w-4 text-blue-500" />}
             title="ATLAS"
-            subtitle="Situation fiscale"
+            subtitle="Fiscalité"
             colorClass={moduleTitleColors.atlas}
             onClick={() => navigate("/employee/atlas")}
           >
@@ -379,53 +402,6 @@ export default function PanoramaPage() {
             )}
           </ModuleCard>
         </section>
-
-        {/* ═══ SECTION 3 — SYNTHÈSE FINANCIÈRE (compact line) ═══ */}
-        {financialProfile && (
-          <section className="rounded-lg border border-border bg-card p-4">
-            {/* Flow line */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-              {revenuNet != null && (
-                <MetricChip label="Revenus nets" value={`${formatEuros(revenuNet)}/mois`} />
-              )}
-              {chargesFixes > 0 && (
-                <>
-                  <span className="text-muted-foreground">−</span>
-                  <MetricChip label="Charges fixes" value={`${formatEuros(chargesFixes)}/mois`} />
-                </>
-              )}
-              {pasEstime != null && pasEstime > 0 && (
-                <>
-                  <span className="text-muted-foreground">−</span>
-                  <MetricChip label="PAS estimé" value={`${formatEuros(pasEstime)}/mois`} />
-                </>
-              )}
-              {capaciteEpargne != null && capaciteEpargne > 0 && (
-                <>
-                  <span className="text-muted-foreground">−</span>
-                  <MetricChip label="Capacité d'épargne" value={`${formatEuros(capaciteEpargne)}/mois`} />
-                </>
-              )}
-              {resteAVivre != null && (
-                <>
-                  <span className="text-muted-foreground font-bold">=</span>
-                  <MetricChip label="Reste à vivre" value={`${formatEuros(resteAVivre)}/mois`} highlight />
-                </>
-              )}
-            </div>
-
-            {/* Patrimoine breakdown line */}
-            <div className="mt-3 pt-3 border-t border-border flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
-              <span>Financier <strong className="text-foreground">{formatEuros(patrimoineFinancier)}</strong></span>
-              <span className="text-border">|</span>
-              <span>Immobilier <strong className="text-foreground">{formatEuros(patrimoineImmo)}</strong></span>
-              <span className="text-border">|</span>
-              <span>Actionnariat <strong className="text-foreground">{formatEuros(patrimoineActions)}</strong></span>
-              <span className="text-border">|</span>
-              <span>Total net <strong className="text-foreground font-semibold">{formatEuros(patrimoine_panorama_total)}</strong></span>
-            </div>
-          </section>
-        )}
 
         {/* ═══ SECTION 4 — TIMELINE (badges horizontaux) ═══ */}
         {timeline.length > 0 && (
