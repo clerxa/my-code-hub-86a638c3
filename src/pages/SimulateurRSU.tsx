@@ -12,6 +12,7 @@ import { SimulatorDisclaimer } from '@/components/simulators/SimulatorDisclaimer
 import { SimulationValidationOverlay } from '@/components/simulators/SimulationValidationOverlay';
 import type { ValidationStep } from '@/components/simulators/SimulationValidationOverlay';
 import { RSUPlansDashboard, RSUPlanEditor, RSUCessionParams, RSUResults, RSUIntroScreen } from '@/components/simulators/rsu';
+import { useVegaPortfolio } from '@/hooks/useVegaPortfolio';
 import { RSUSavedSimulations } from '@/components/simulators/rsu/RSUSavedSimulations';
 import { calculateRSUSimulation } from '@/utils/rsuCalculations';
 import { useSimulationDefaults } from '@/contexts/GlobalSettingsContext';
