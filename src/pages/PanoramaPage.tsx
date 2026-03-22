@@ -369,6 +369,25 @@ export default function PanoramaPage() {
                       <p className="text-sm font-semibold">{formatEuros(fp.credits_auto)}</p>
                     </div>
                   )}
+                  {creditsImmoLocatif > 0 && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="rounded-md bg-muted/40 px-3 py-2 cursor-help">
+                            <p className="text-[10px] text-muted-foreground">Crédits immo locatif</p>
+                            <p className="text-sm font-semibold">{formatEuros(creditsImmoLocatif)}</p>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          <div className="space-y-1 text-xs">
+                            <p className="font-semibold mb-1.5">Détail immobilier locatif</p>
+                            {(realEstateTotals?.mensualitesTotal ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Mensualités crédits</span><span>{formatEuros(realEstateTotals.mensualitesTotal)}</span></div>}
+                            {(realEstateTotals?.chargesTotal ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Charges locatives</span><span>{formatEuros(realEstateTotals.chargesTotal)}</span></div>}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
                   {(fp?.pensions_alimentaires ?? 0) > 0 && (
                     <div className="rounded-md bg-muted/40 px-3 py-2">
                       <p className="text-[10px] text-muted-foreground">Pensions</p>
