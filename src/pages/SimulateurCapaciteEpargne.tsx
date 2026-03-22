@@ -75,6 +75,7 @@ const SimulateurCapaciteEpargne = () => {
   const { tax_brackets } = useFiscalRules();
   const simulationDefaults = useSimulationDefaults();
   const { getPrefillData, hasProfile } = useFinancialProfilePrefill();
+  const { totals: realEstateTotals } = useUserRealEstateProperties();
   const { validateSimulation } = useSimulationTracking();
 
   // showIntro → step 0-1 input → validating → results
