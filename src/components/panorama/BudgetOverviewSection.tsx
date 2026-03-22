@@ -145,8 +145,9 @@ export function BudgetOverviewSection({
             </div>
             <div className="space-y-2 flex-1 min-w-0">
               {ruleData.map((item, i) => {
+                const isNonAlloue = item.ideal === 0 && item.name === "Non alloué";
                 const diff = item.pct - item.ideal;
-                const status = Math.abs(diff) <= 5 ? "ok" : diff > 0 ? "over" : "under";
+                const status = isNonAlloue ? "neutral" : Math.abs(diff) <= 5 ? "ok" : diff > 0 ? "over" : "under";
                 return (
                   <div key={i} className="space-y-0.5">
                     <div className="flex items-center justify-between gap-2">
@@ -156,32 +157,36 @@ export function BudgetOverviewSection({
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <span className="text-xs font-bold">{item.pct}%</span>
-                        <span className="text-[10px] text-muted-foreground">/ {item.ideal}%</span>
-                        {status === "ok" ? (
-                          <Minus className="h-3 w-3 text-emerald-500" />
-                        ) : status === "over" ? (
-                          <TrendingUp className="h-3 w-3 text-red-500" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-amber-500" />
+                        {!isNonAlloue && (
+                          <>
+                            <span className="text-[10px] text-muted-foreground">/ {item.ideal}%</span>
+                            {status === "ok" ? (
+                              <Minus className="h-3 w-3 text-emerald-500" />
+                            ) : status === "over" ? (
+                              <TrendingUp className="h-3 w-3 text-red-500" />
+                            ) : (
+                              <TrendingDown className="h-3 w-3 text-amber-500" />
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
-                    {/* Progress bar comparing actual vs ideal */}
-                    <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="absolute h-full rounded-full transition-all"
-                        style={{
-                          width: `${Math.min(100, item.pct)}%`,
-                          backgroundColor: item.color,
-                          opacity: 0.8,
-                        }}
-                      />
-                      {/* Ideal marker */}
-                      <div
-                        className="absolute top-0 h-full w-px bg-foreground/40"
-                        style={{ left: `${item.ideal}%` }}
-                      />
-                    </div>
+                    {!isNonAlloue && (
+                      <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="absolute h-full rounded-full transition-all"
+                          style={{
+                            width: `${Math.min(100, item.pct)}%`,
+                            backgroundColor: item.color,
+                            opacity: 0.8,
+                          }}
+                        />
+                        <div
+                          className="absolute top-0 h-full w-px bg-foreground/40"
+                          style={{ left: `${item.ideal}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
                 );
               })}
