@@ -164,11 +164,10 @@ export default function PanoramaPage() {
   // Vesting imminent
   const imminentVesting = timeline.find(e => e.type === "vesting" && e.daysUntil <= 60);
 
-  // Onboarding unlock check
-  const panoramaUnlocked =
+  // Profile completeness nudge (non-blocking)
+  const profileComplete =
     onboardingStatus?.atlas_completed &&
-    onboardingStatus?.audit_panorama_completed &&
-    onboardingStatus?.risk_profile_completed;
+    onboardingStatus?.audit_panorama_completed;
 
   const stepsRemaining = [
     !onboardingStatus?.atlas_completed,
