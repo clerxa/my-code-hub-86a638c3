@@ -29,7 +29,7 @@ interface FinancialProfileWizardProps {
   isSaving: boolean;
   situationFamiliale: string | null;
   hasEquityBenefits: boolean;
-  onInviteSpouse?: () => void;
+  
   requiredFieldKeys?: string[];
   initialStepId?: string | null;
 }
