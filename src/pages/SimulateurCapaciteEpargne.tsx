@@ -159,7 +159,7 @@ const SimulateurCapaciteEpargne = () => {
     setPrefilledKeys(new Set(Object.keys(newValues)));
     setValues(newValues);
     setPrefilled(true);
-  }, [getPrefillData, prefilled, simulationDefaults.brut_net_ratio]);
+  }, [getPrefillData, prefilled, simulationDefaults.brut_net_ratio, realEstateTotals.mensualitesTotal, realEstateTotals.chargesTotal]);
 
   // Apply atlas impot once loaded
   useEffect(() => {
