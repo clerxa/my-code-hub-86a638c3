@@ -530,9 +530,8 @@ export default function PanoramaPage() {
                 { label: "Autres charges fixes", value: fp?.charges_autres ?? 0, category: "fixes" as const },
               ].filter(i => i.value > 0);
               // Ensure total matches charges_fixes_mensuelles + immo locatif
-              const depCourantes = ((fp as any)?.charges_courses_alimentaires ?? 0) + ((fp as any)?.charges_loisirs ?? 0) + ((fp as any)?.charges_shopping ?? 0) + ((fp as any)?.charges_variables_autres ?? 0);
               const totalItems = items.reduce((s, i) => s + i.value, 0);
-              const totalFixesAttendu = chargesFixesTotal - depCourantes;
+              const totalFixesAttendu = chargesFixesPures;
               const ecart = totalFixesAttendu - totalItems;
               if (ecart > 50) {
                 items.push({ label: "Autres charges", value: ecart, category: "fixes" as const });
