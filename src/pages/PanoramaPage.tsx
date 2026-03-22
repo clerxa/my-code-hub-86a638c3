@@ -84,6 +84,7 @@ export default function PanoramaPage() {
   const {
     profile: financialProfile,
     isLoading: financialLoading,
+    completeness: financialCompleteness,
   } = useUserFinancialProfile();
 
   if (hasAtlasAnalysis === false) {
