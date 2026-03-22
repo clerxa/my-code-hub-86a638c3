@@ -34,12 +34,6 @@ export function SimulationValidationOverlay({
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // CSAT trigger
-  const { showCSAT, closeCSAT, triggerCSAT, contentType, contentId, contentName } = useCSATTrigger({
-    contentType: 'simulator',
-    contentId: simulatorId,
-    contentName: simulatorName,
-  });
 
   useEffect(() => {
     if (!isValidating) {
