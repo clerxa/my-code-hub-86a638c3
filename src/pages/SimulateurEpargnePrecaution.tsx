@@ -181,9 +181,10 @@ const SimulateurEpargnePrecaution = () => {
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle()
-          .then(({ data: atlasData }) => {
-            if (atlasData?.impot_net_total) {
-              const impotMensuel = Math.round(atlasData.impot_net_total / 12);
+          .then(({ data: atlasResult }) => {
+            const atlasRecord = atlasResult as any;
+            if (atlasRecord?.impot_net_total) {
+              const impotMensuel = Math.round(atlasRecord.impot_net_total / 12);
               setChargesDetailees(prev => ({ ...prev, impots: impotMensuel }));
               setPrefilledFields(prev => {
                 const next = new Set(prev);
