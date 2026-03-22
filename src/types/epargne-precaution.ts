@@ -207,6 +207,9 @@ export const getEmptyChargesDetailees = (): ChargesDetailees => ({
   frais_scolarite: 0,
   pension_alimentaire: 0,
   credit_consommation: 0,
+  investissement_locatif_credits: 0,
+  investissement_locatif_charges: 0,
+  impots: 0,
   autres: 0,
 });
 
