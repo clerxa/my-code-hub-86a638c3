@@ -9,8 +9,6 @@ import {
 import confetti from "canvas-confetti";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCSATTrigger } from "@/hooks/useCSATTrigger";
-import { CSATPanel } from "@/components/csat";
 
 interface CelebrationSettings {
   video_url: string;
