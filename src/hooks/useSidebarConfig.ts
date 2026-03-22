@@ -240,7 +240,9 @@ export const useSidebarConfig = (sidebarType: "employee" | "company") => {
       .sort((a, b) => a.order - b.order)
       .map((category) => ({
         category,
-        items: visibleItems.filter((item) => item.categoryId === category.id),
+        items: visibleItems
+          .filter((item) => item.categoryId === category.id)
+          .sort((a, b) => a.order - b.order),
       }))
       .filter((group) => group.items.length > 0);
 
