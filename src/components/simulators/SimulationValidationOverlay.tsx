@@ -59,8 +59,6 @@ export function SimulationValidationOverlay({
     // Show success state
     const successTimer = setTimeout(() => {
       setShowSuccess(true);
-      // Trigger CSAT after success
-      triggerCSAT();
     }, totalElapsed);
     timers.push(successTimer);
 
