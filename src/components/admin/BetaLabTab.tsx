@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Save, FlaskConical, Eye, MessageSquare, Palette, Mail, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { CSATAdminTab } from './CSATAdminTab';
+
 
 interface BetaBadgeSettings {
   enabled: boolean;
