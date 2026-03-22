@@ -549,6 +549,8 @@ const SimulateurEpargnePrecaution = () => {
       content: (
         <div className="space-y-4">
           <ChargesCategoryCard categoryKey="credit" category={CHARGES_CATEGORIES.credit} />
+          <ChargesCategoryCard categoryKey="investissement_locatif" category={CHARGES_CATEGORIES.investissement_locatif} />
+          <ChargesCategoryCard categoryKey="impots" category={CHARGES_CATEGORIES.impots} />
           <ChargesCategoryCard categoryKey="autres" category={CHARGES_CATEGORIES.autres} />
           
           {/* Récapitulatif des charges */}
