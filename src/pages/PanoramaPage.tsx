@@ -1,20 +1,21 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePanorama } from "@/hooks/usePanorama";
 import { EmployeeLayout } from "@/components/employee/EmployeeLayout";
-import { FinancialDashboard } from "@/components/employee/FinancialDashboard";
 import { useUserFinancialProfile } from "@/hooks/useUserFinancialProfile";
-import { useLatestEpargnePrecaution } from "@/hooks/useLatestEpargnePrecaution";
-import { AUDIT_FIELD_TO_TAB } from "@/pages/PanoramaAuditPage";
 import { PanoramaAtlasGate } from "@/components/panorama/PanoramaAtlasGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
-import { AlertTriangle, ArrowRight, TrendingUp, FileText, Compass, UserCheck, Calendar, RefreshCw } from "lucide-react";
+import {
+  ArrowRight, TrendingUp, FileText, Compass, UserCheck,
+  RefreshCw, ChevronRight, Info
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const formatEuros = (val: number | null | undefined): string => {
   if (val == null) return "—";
@@ -29,10 +30,26 @@ const formatDate = (dateStr: string): string => {
   }
 };
 
-const timelineColors: Record<string, string> = {
+const timelineDotColors: Record<string, string> = {
   vesting: "bg-violet-500",
   fiscal: "bg-blue-500",
   epargne: "bg-amber-500",
+};
+
+const moduleTitleColors: Record<string, string> = {
+  vega: "text-violet-600 dark:text-violet-400",
+  atlas: "text-blue-600 dark:text-blue-400",
+  horizon: "text-amber-600 dark:text-amber-400",
+  risque: "text-emerald-600 dark:text-emerald-400",
+};
+
+const simBadgeColors: Record<string, string> = {
+  rsu: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300",
+  optimisation_fiscale: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  per: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+  budget: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+  interets_composes: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300",
+  default: "bg-muted text-muted-foreground",
 };
 
 export default function PanoramaPage() {
@@ -40,12 +57,8 @@ export default function PanoramaPage() {
   const { user } = useAuth();
   const [hasAtlasAnalysis, setHasAtlasAnalysis] = useState<boolean | null>(null);
 
-  // Check if user has at least one ATLAS analysis
   useEffect(() => {
-    if (!user?.id) {
-      setHasAtlasAnalysis(false);
-      return;
-    }
+    if (!user?.id) { setHasAtlasAnalysis(false); return; }
     const check = async () => {
       const { count } = await supabase
         .from("ocr_avis_imposition_analyses" as any)
@@ -68,25 +81,11 @@ export default function PanoramaPage() {
     error,
   } = usePanorama();
 
-  // Financial profile data for the synthesis cards
   const {
     profile: financialProfile,
     isLoading: financialLoading,
-    completeness: financialCompleteness,
-    missingFields,
-    missingFieldsDetailed,
   } = useUserFinancialProfile();
 
-  const { data: epargnePrecautionData } = useLatestEpargnePrecaution();
-
-  // Build formData from financialProfile for FinancialDashboard
-  const formData = financialProfile ?? {};
-
-  const handleNavigateToTab = (tab: string) => {
-    navigate(`/panorama/audit?tab=${tab}`);
-  };
-
-  // Show ATLAS gate if no analysis exists
   if (hasAtlasAnalysis === false) {
     return (
       <EmployeeLayout activeSection="panorama">
@@ -113,283 +112,382 @@ export default function PanoramaPage() {
   if (isLoading) {
     return (
       <EmployeeLayout activeSection="panorama">
-        <div className="max-w-5xl mx-auto p-6 space-y-6">
-          <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-6 w-48" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-40 w-full" />)}
+        <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-4">
+          <Skeleton className="h-24 w-full" />
+          <div className="grid grid-cols-3 gap-3">
+            <Skeleton className="h-40 col-span-2" />
+            <div className="space-y-3">
+              <Skeleton className="h-[4.25rem]" />
+              <Skeleton className="h-[4.25rem]" />
+              <Skeleton className="h-[4.25rem]" />
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-48 w-full" />)}
-          </div>
-          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
         </div>
       </EmployeeLayout>
     );
   }
 
-  const optiFisc = synthesis?.simulations?.find(s => s.type === "optimisation_fiscale");
-  const hasOptiFiscEconomie = optiFisc && (parseFloat(String(optiFisc.key_values["Économie totale"] ?? 0)) > 0);
+  // Financial data
+  const fp = financialProfile as any;
+  const revenuNet = fp?.revenu_mensuel_net ?? null;
+  const chargesFixes = (fp?.charges_loyer_credit ?? 0) + (fp?.charges_transport ?? 0) + (fp?.charges_alimentation ?? 0) + (fp?.charges_abonnements ?? 0) + (fp?.charges_autres ?? 0);
+  const pasEstime = fp?.prelevement_source_mensuel ?? null;
+  const epargneMensuelle = fp?.capacite_epargne_mensuelle ?? null;
+  const resteAVivre = revenuNet != null ? revenuNet - chargesFixes - (pasEstime ?? 0) - (epargneMensuelle ?? 0) : null;
+  const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
 
-  // Vesting imminent (within 60 days)
+  // Patrimoine breakdown
+  const patrimoineFinancier = synthesis?.financialProfile?.patrimoine_total ?? 0;
+  const patrimoineImmo = (fp?.patrimoine_immo_valeur ?? 0) - (fp?.patrimoine_immo_credit_restant ?? 0);
+  const patrimoineActions = vegaPortfolio.totalValueEur ?? 0;
+
+  // Vesting imminent
   const imminentVesting = timeline.find(e => e.type === "vesting" && e.daysUntil <= 60);
 
   return (
     <EmployeeLayout activeSection="panorama">
-    <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-8">
-      {/* Section 1 — Hero */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold tracking-tight">PANORAMA</h1>
-          <Badge className="bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/30">BETA</Badge>
-        </div>
+      <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-4">
 
-        <div className="space-y-1">
-          <p className="text-muted-foreground text-sm">Patrimoine estimé</p>
-          <p className="text-4xl font-bold">{formatEuros(patrimoine_panorama_total)}</p>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Profil complété à {completeness_score}%</span>
-            <span className="font-medium">{completeness_score}/100</span>
-          </div>
-          <Progress value={completeness_score} className="h-2" />
-          {completeness_score < 100 && (
-            <Button size="sm" variant="outline" className="gap-1 mt-2" onClick={() => navigate("/panorama/audit")}>
-              Compléter mon audit patrimonial <ArrowRight className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
-
-        {documents_manquants.length > 0 && (
-          <div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
-            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-sm text-amber-800 dark:text-amber-300">
-              Ajoutez : <strong>{documents_manquants.join(", ")}</strong> pour affiner votre tableau de bord
-            </p>
-          </div>
-        )}
-
-        {delta_laisse_table > 0 && (
-          <Card className="border-red-500/30 bg-red-500/5">
-            <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5">
-              <p className="text-sm font-medium text-red-700 dark:text-red-400">
-                Vous laissez potentiellement <strong>{formatEuros(delta_laisse_table)}</strong> sur la table cette année
-              </p>
-              <Button size="sm" variant="destructive" className="gap-1 shrink-0" onClick={() => navigate("/employee/simulations")}>
-                Voir les optimisations <ArrowRight className="h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </section>
-
-      {/* Section 2 — Module grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* VEGA */}
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                VEGA — Actionnariat salarié
-              </CardTitle>
-              {imminentVesting && (
-                <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/30 text-xs">
-                  Vesting imminent
-                </Badge>
-              )}
+        {/* ═══ SECTION 1 — HERO BAND ═══ */}
+        <section className="rounded-lg border border-border bg-card p-4 md:p-5">
+          {/* Top row: title + progress */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold tracking-tight">PANORAMA</h1>
+              <Badge className="bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30 text-[10px] px-1.5 py-0">BETA</Badge>
             </div>
-          </CardHeader>
-          <CardContent>
-            {vegaPortfolio.hasPlans ? (
-              <div className="space-y-2">
-                <p className="text-2xl font-bold">{formatEuros(vegaPortfolio.totalValueEur)}</p>
-                <p className="text-xs text-muted-foreground">{vegaPortfolio.totalShares} actions</p>
+            <TooltipProvider>
+              <div className="flex items-center gap-2 min-w-0 md:w-72">
+                <span className="text-xs text-muted-foreground whitespace-nowrap">Profil {completeness_score}%</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex-1 cursor-help" onClick={() => completeness_score < 100 && navigate("/panorama/audit")}>
+                      <Progress value={completeness_score} className="h-1.5" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    {documents_manquants.length > 0 ? (
+                      <p className="text-xs">Manquant : {documents_manquants.join(", ")}</p>
+                    ) : (
+                      <p className="text-xs">Profil complet ✓</p>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+                {completeness_score < 100 && (
+                  <button
+                    onClick={() => navigate("/panorama/audit")}
+                    className="text-xs text-primary hover:underline whitespace-nowrap"
+                  >
+                    Compléter
+                  </button>
+                )}
               </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">Non configuré</p>
-                <Button size="sm" variant="outline" className="gap-1" onClick={() => navigate("/employee/vega")}>
-                  Configurer <ArrowRight className="h-3 w-3" />
-                </Button>
+            </TooltipProvider>
+          </div>
+
+          {/* KPI row */}
+          <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-8">
+            {/* Main KPI */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">Patrimoine estimé</p>
+              <p className="text-5xl font-bold tracking-tight leading-none">{formatEuros(patrimoine_panorama_total)}</p>
+            </div>
+
+            {/* Divider */}
+            <div className="hidden md:block w-px h-12 bg-border" />
+
+            {/* Reste à vivre */}
+            {resteAVivre != null && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-0.5">Reste à vivre</p>
+                <p className="text-2xl font-semibold">{formatEuros(resteAVivre)}<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
               </div>
             )}
-          </CardContent>
-        </Card>
 
-        {/* ATLAS */}
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <FileText className="h-4 w-4 text-primary" />
-                ATLAS — Situation fiscale
-              </CardTitle>
-              {hasOptiFiscEconomie && (
-                <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30 text-xs">
-                  Optimisation disponible
+            {/* Divider */}
+            {tmi != null && <div className="hidden md:block w-px h-12 bg-border" />}
+
+            {/* TMI */}
+            {tmi != null && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-0.5">TMI</p>
+                <p className="text-2xl font-semibold">{tmi}%</p>
+              </div>
+            )}
+
+            {/* Delta laissé sur la table */}
+            {delta_laisse_table > 0 && (
+              <>
+                <div className="hidden md:block w-px h-12 bg-border" />
+                <div
+                  className="cursor-pointer group/delta"
+                  onClick={() => navigate("/employee/simulations")}
+                >
+                  <p className="text-xs text-red-500 mb-0.5">Laissé sur la table</p>
+                  <p className="text-2xl font-semibold text-red-600 dark:text-red-400 group-hover/delta:underline">
+                    {formatEuros(delta_laisse_table)}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+
+        {/* ═══ SECTION 2 — MODULE GRID (asymmetric) ═══ */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {/* VEGA — large card spanning 2 cols */}
+          <div
+            className="md:col-span-2 md:row-span-3 rounded-lg border border-border bg-card p-5 cursor-pointer hover:shadow-md transition-shadow group"
+            onClick={() => navigate("/employee/vega")}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-violet-500" />
+                <h3 className={cn("text-sm font-bold uppercase tracking-wide", moduleTitleColors.vega)}>VEGA</h3>
+                <span className="text-xs text-muted-foreground">Actionnariat salarié</span>
+              </div>
+              {imminentVesting && (
+                <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/30 text-[10px]">
+                  Vesting dans {imminentVesting.daysUntil}j
                 </Badge>
               )}
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              <p className="text-2xl font-bold">
-                {synthesis?.financialProfile?.tmi != null ? `${synthesis.financialProfile.tmi}%` : "Non renseigné"}
-              </p>
-              {synthesis?.financialProfile?.revenu_fiscal_annuel != null && (
-                <p className="text-xs text-muted-foreground">
-                  Revenu fiscal : {formatEuros(synthesis.financialProfile.revenu_fiscal_annuel)}
-                </p>
-              )}
-            </div>
-            <Button size="sm" variant="outline" className="gap-1 mt-3" onClick={() => navigate("/employee/atlas")}>
-              Analyser <ArrowRight className="h-3 w-3" />
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* HORIZON */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Compass className="h-4 w-4 text-primary" />
-              HORIZON — Épargne & Projets
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              <p className="text-2xl font-bold">
-                {synthesis?.horizon?.total_initial_capital != null
-                  ? formatEuros(synthesis.horizon.total_initial_capital)
-                  : synthesis?.financialProfile?.epargne_actuelle != null
-                    ? formatEuros(synthesis.financialProfile.epargne_actuelle)
-                    : "Non renseigné"}
-              </p>
-              {synthesis?.horizon?.projects_count != null && synthesis.horizon.projects_count > 0 && (
-                <p className="text-xs text-muted-foreground">{synthesis.horizon.projects_count} projets en cours</p>
-              )}
-            </div>
-            <Button size="sm" variant="outline" className="gap-1 mt-3" onClick={() => navigate("/employee/horizon")}>
-              Voir <ArrowRight className="h-3 w-3" />
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* PROFIL DE RISQUE */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <UserCheck className="h-4 w-4 text-primary" />
-              Profil de risque
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {synthesis?.riskProfile ? (
-              <div className="space-y-1">
-                <p className="text-2xl font-bold">{synthesis.riskProfile.profile_type ?? "Évalué"}</p>
-                {synthesis.riskProfile.total_weighted_score != null && (
-                  <p className="text-xs text-muted-foreground">Score {synthesis.riskProfile.total_weighted_score}</p>
+            {vegaPortfolio.hasPlans ? (
+              <div className="space-y-2">
+                <p className="text-4xl font-bold">{formatEuros(vegaPortfolio.totalValueEur)}</p>
+                <p className="text-sm text-muted-foreground">{vegaPortfolio.totalShares} actions vestées</p>
+                {vegaPortfolio.plans && vegaPortfolio.plans.length > 0 && (
+                  <div className="mt-4 space-y-1.5">
+                    {vegaPortfolio.plans.slice(0, 3).map((plan, i) => (
+                      <div key={i} className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 rounded px-3 py-1.5">
+                        <span className="font-medium text-foreground">{plan.label}</span>
+                        <span>{plan.nbActions} actions • {formatEuros(plan.prixAcquisitionEur)}</span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">Non évalué</p>
-                <Button size="sm" variant="outline" className="gap-1" onClick={() => navigate("/risk-profile")}>
-                  Évaluer <ArrowRight className="h-3 w-3" />
-                </Button>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Non configuré</p>
+                <span className="text-xs text-primary hover:underline">Configurer →</span>
               </div>
             )}
-          </CardContent>
-        </Card>
-      </section>
+            <div className="mt-4 flex items-center text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+              Voir le détail <ChevronRight className="h-3 w-3 ml-0.5" />
+            </div>
+          </div>
 
-      {/* Section 3 — Synthèse financière (from FinancialDashboard) */}
-      {financialProfile && (
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">Ma synthèse financière</h2>
-          <FinancialDashboard
-            formData={formData}
-            completeness={financialCompleteness}
-            missingFields={missingFields}
-            missingFieldsDetailed={missingFieldsDetailed}
-            fieldToTabMapping={AUDIT_FIELD_TO_TAB}
-            onNavigateToTab={handleNavigateToTab}
-            epargnePrecautionData={epargnePrecautionData}
-          />
+          {/* ATLAS */}
+          <ModuleCard
+            icon={<FileText className="h-4 w-4 text-blue-500" />}
+            title="ATLAS"
+            subtitle="Situation fiscale"
+            colorClass={moduleTitleColors.atlas}
+            onClick={() => navigate("/employee/atlas")}
+          >
+            <p className="text-xl font-bold">
+              {tmi != null ? `TMI ${tmi}%` : "Non renseigné"}
+            </p>
+            {synthesis?.financialProfile?.revenu_fiscal_annuel != null && (
+              <p className="text-xs text-muted-foreground">{formatEuros(synthesis.financialProfile.revenu_fiscal_annuel)}</p>
+            )}
+          </ModuleCard>
+
+          {/* HORIZON */}
+          <ModuleCard
+            icon={<Compass className="h-4 w-4 text-amber-500" />}
+            title="HORIZON"
+            subtitle="Épargne & Projets"
+            colorClass={moduleTitleColors.horizon}
+            onClick={() => navigate("/employee/horizon")}
+          >
+            <p className="text-xl font-bold">
+              {synthesis?.horizon?.total_initial_capital != null
+                ? formatEuros(synthesis.horizon.total_initial_capital)
+                : synthesis?.financialProfile?.epargne_actuelle != null
+                  ? formatEuros(synthesis.financialProfile.epargne_actuelle)
+                  : "Non renseigné"}
+            </p>
+            {synthesis?.horizon?.projects_count != null && synthesis.horizon.projects_count > 0 && (
+              <p className="text-xs text-muted-foreground">{synthesis.horizon.projects_count} projets</p>
+            )}
+          </ModuleCard>
+
+          {/* PROFIL RISQUE */}
+          <ModuleCard
+            icon={<UserCheck className="h-4 w-4 text-emerald-500" />}
+            title="Risque"
+            subtitle="Profil investisseur"
+            colorClass={moduleTitleColors.risque}
+            onClick={() => navigate("/risk-profile")}
+          >
+            {synthesis?.riskProfile ? (
+              <>
+                <p className="text-xl font-bold">{synthesis.riskProfile.profile_type ?? "Évalué"}</p>
+                {synthesis.riskProfile.total_weighted_score != null && (
+                  <p className="text-xs text-muted-foreground">Score {synthesis.riskProfile.total_weighted_score}</p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Non évalué</p>
+            )}
+          </ModuleCard>
         </section>
-      )}
 
-      {/* Section 4 — Timeline */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Vos prochains événements patrimoniaux</h2>
-        {timeline.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Complétez votre profil VEGA pour voir vos prochaines échéances
-          </p>
-        ) : (
-          <div className="flex flex-col md:flex-row gap-3">
+        {/* ═══ SECTION 3 — SYNTHÈSE FINANCIÈRE (compact line) ═══ */}
+        {financialProfile && (
+          <section className="rounded-lg border border-border bg-card p-4">
+            {/* Flow line */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+              {revenuNet != null && (
+                <MetricChip label="Revenus nets" value={`${formatEuros(revenuNet)}/mois`} />
+              )}
+              {chargesFixes > 0 && (
+                <>
+                  <span className="text-muted-foreground">−</span>
+                  <MetricChip label="Charges fixes" value={`${formatEuros(chargesFixes)}/mois`} />
+                </>
+              )}
+              {pasEstime != null && pasEstime > 0 && (
+                <>
+                  <span className="text-muted-foreground">−</span>
+                  <MetricChip label="PAS estimé" value={`${formatEuros(pasEstime)}/mois`} />
+                </>
+              )}
+              {epargneMensuelle != null && epargneMensuelle > 0 && (
+                <>
+                  <span className="text-muted-foreground">−</span>
+                  <MetricChip label="Épargne mensuelle" value={`${formatEuros(epargneMensuelle)}/mois`} />
+                </>
+              )}
+              {resteAVivre != null && (
+                <>
+                  <span className="text-muted-foreground font-bold">=</span>
+                  <MetricChip label="Reste à vivre" value={`${formatEuros(resteAVivre)}/mois`} highlight />
+                </>
+              )}
+            </div>
+
+            {/* Patrimoine breakdown line */}
+            <div className="mt-3 pt-3 border-t border-border flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
+              <span>Financier <strong className="text-foreground">{formatEuros(patrimoineFinancier)}</strong></span>
+              <span className="text-border">|</span>
+              <span>Immobilier <strong className="text-foreground">{formatEuros(patrimoineImmo)}</strong></span>
+              <span className="text-border">|</span>
+              <span>Actionnariat <strong className="text-foreground">{formatEuros(patrimoineActions)}</strong></span>
+              <span className="text-border">|</span>
+              <span>Total net <strong className="text-foreground font-semibold">{formatEuros(patrimoine_panorama_total)}</strong></span>
+            </div>
+          </section>
+        )}
+
+        {/* ═══ SECTION 4 — TIMELINE (badges horizontaux) ═══ */}
+        {timeline.length > 0 && (
+          <section className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
             {timeline.map((event, i) => (
-              <Card key={i} className="flex-1 min-w-0">
-                <CardContent className="p-4 flex items-start gap-3">
-                  <div className={`w-3 h-3 rounded-full mt-1 shrink-0 ${timelineColors[event.type] || "bg-muted"}`} />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{event.label}</p>
-                    <p className="text-xs text-muted-foreground">{formatDate(event.date)}</p>
-                    <p className="text-xs text-muted-foreground">dans {event.daysUntil} jours</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <div
+                key={i}
+                className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 whitespace-nowrap text-xs shrink-0"
+              >
+                <div className={cn("w-2 h-2 rounded-full shrink-0", timelineDotColors[event.type] || "bg-muted")} />
+                <span className="font-medium">{event.label}</span>
+                <span className="text-muted-foreground">— {formatDate(event.date)}</span>
+                <span className="text-muted-foreground">(dans {event.daysUntil}j)</span>
+              </div>
             ))}
-          </div>
+          </section>
         )}
-      </section>
 
-      {/* Section 5 — Simulations récentes */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Vos dernières simulations</h2>
-        {!synthesis?.simulations || synthesis.simulations.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center space-y-3">
-              <p className="text-sm text-muted-foreground">Aucune simulation pour le moment</p>
-              <Button variant="outline" className="gap-1" onClick={() => navigate("/employee/simulations")}>
-                Lancer une simulation <ArrowRight className="h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {synthesis.simulations.slice(0, 3).map(sim => {
-              const kvEntries = Object.entries(sim.key_values).filter(([, v]) => v != null).slice(0, 2);
-              return (
-                <Card key={sim.id}>
-                  <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-xs shrink-0">{sim.label}</Badge>
-                        <span className="text-sm font-medium truncate">{sim.nom_simulation}</span>
-                      </div>
-                      <div className="flex gap-4 text-xs text-muted-foreground">
-                        <span>{formatDate(sim.created_at)}</span>
-                        {kvEntries.map(([k, v]) => (
-                          <span key={k}>{k}: <strong>{String(v)}</strong></span>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-            <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate("/employee/simulations")}>
-              Voir toutes <ArrowRight className="h-3 w-3" />
-            </Button>
-          </div>
+        {/* ═══ SECTION 5 — DERNIÈRES SIMULATIONS (compact list) ═══ */}
+        {synthesis?.simulations && synthesis.simulations.length > 0 && (
+          <section>
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">Dernières simulations</h2>
+            <div className="rounded-lg border border-border bg-card divide-y divide-border">
+              {synthesis.simulations.slice(0, 4).map(sim => {
+                const kvEntries = Object.entries(sim.key_values ?? {})
+                  .filter(([, v]) => v != null && typeof v !== "object")
+                  .slice(0, 3);
+
+                const badgeColor = simBadgeColors[sim.type] || simBadgeColors.default;
+
+                return (
+                  <div
+                    key={sim.id}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 cursor-pointer transition-colors group"
+                    onClick={() => navigate("/employee/simulations")}
+                  >
+                    <Badge className={cn("text-[10px] shrink-0 border-0", badgeColor)}>
+                      {sim.label}
+                    </Badge>
+                    <span className="text-sm font-medium truncate min-w-0">{sim.nom_simulation}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">{formatDate(sim.created_at)}</span>
+                    <div className="flex-1" />
+                    {kvEntries.map(([k, v]) => (
+                      <span key={k} className="text-xs text-muted-foreground hidden sm:inline shrink-0">
+                        {k} : <strong className="text-foreground">{String(v)}</strong>
+                      </span>
+                    ))}
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => navigate("/employee/simulations")}
+              className="text-xs text-primary hover:underline mt-1.5 ml-1"
+            >
+              Voir toutes les simulations →
+            </button>
+          </section>
         )}
-      </section>
-    </div>
+      </div>
     </EmployeeLayout>
+  );
+}
+
+/* ═══ Sub-components ═══ */
+
+function ModuleCard({
+  icon,
+  title,
+  subtitle,
+  colorClass,
+  onClick,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  colorClass: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="rounded-lg border border-border bg-card p-4 cursor-pointer hover:shadow-md transition-shadow group"
+      onClick={onClick}
+    >
+      <div className="flex items-center gap-1.5 mb-2">
+        {icon}
+        <span className={cn("text-xs font-bold uppercase tracking-wide", colorClass)}>{title}</span>
+        <span className="text-[10px] text-muted-foreground ml-1">{subtitle}</span>
+      </div>
+      {children}
+      <div className="mt-2 flex items-center text-[11px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+        Voir <ChevronRight className="h-3 w-3 ml-0.5" />
+      </div>
+    </div>
+  );
+}
+
+function MetricChip({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-muted-foreground text-xs">{label}</span>
+      <span className={cn("font-semibold", highlight ? "text-primary text-sm" : "text-foreground text-sm")}>{value}</span>
+    </div>
   );
 }
