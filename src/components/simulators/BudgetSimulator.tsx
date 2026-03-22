@@ -61,30 +61,61 @@ const STEPS_CONFIG = [
   },
 ];
 
-const EXPENSE_ITEMS = {
+// Grouped expense items with section headers for better readability
+const EXPENSE_SECTIONS = {
   incompressibles: [
-    { key: "logement", label: "Loyer / crédit résidence", emoji: "🏠", defaultVal: 800, max: 10000, tooltip: "Loyer ou mensualité de crédit de votre résidence principale" },
-    { key: "copropriete_taxes", label: "Copropriété & taxes", emoji: "🏢", defaultVal: 0, max: 5000, tooltip: "Charges de copropriété, taxe foncière… (mensuel)" },
-    { key: "energie", label: "Énergie", emoji: "⚡", defaultVal: 0, max: 2000, tooltip: "Électricité, gaz, chauffage… (mensuel)" },
-    { key: "impots", label: "Impôts & prélèvements", emoji: "📋", defaultVal: 200, max: 5000, tooltip: "Impôts non prélevés à la source… (mensuel)" },
-    { key: "credit", label: "Crédits conso & auto", emoji: "💳", defaultVal: 150, max: 5000, tooltip: "Crédits consommation, auto, étudiant… (mensuel)" },
-    { key: "credit_immo_locatif", label: "Crédits immobilier locatif", emoji: "🏘️", defaultVal: 0, max: 10000, tooltip: "Mensualités de crédit de vos biens locatifs (mensuel)" },
-    { key: "transport", label: "Transport", emoji: "🚌", defaultVal: 150, max: 3000, tooltip: "Transport en commun, essence, leasing auto… (mensuel)" },
-    { key: "assurances", label: "Assurances", emoji: "🛡️", defaultVal: 100, max: 3000, tooltip: "Habitation, auto, santé complémentaire… (mensuel)" },
-    { key: "abonnements", label: "Abonnements & télécom", emoji: "📱", defaultVal: 100, max: 2000, tooltip: "Téléphone, internet, streaming… (mensuel)" },
-    { key: "pension_alimentaire", label: "Pension alimentaire", emoji: "👨‍👧", defaultVal: 0, max: 5000, tooltip: "Pension alimentaire versée (mensuel)" },
-    { key: "frais_scolarite", label: "Frais de scolarité", emoji: "🎓", defaultVal: 0, max: 5000, tooltip: "Scolarité, crèche, garde d'enfants… (mensuel)" },
+    { type: "header" as const, label: "🏠 Logement" },
+    { type: "item" as const, key: "logement", label: "Loyer / crédit résidence principale", emoji: "🏠", defaultVal: 800, max: 10000, tooltip: "Loyer ou mensualité de crédit de votre résidence principale" },
+    { type: "item" as const, key: "copropriete_taxes", label: "Copropriété & taxes foncières", emoji: "🏢", defaultVal: 0, max: 5000, tooltip: "Charges de copropriété, taxe foncière, taxe d'habitation… (mensuel)" },
+    { type: "item" as const, key: "energie", label: "Énergie (électricité, gaz)", emoji: "⚡", defaultVal: 0, max: 2000, tooltip: "Électricité, gaz, chauffage… (mensuel)" },
+
+    { type: "header" as const, label: "🏘️ Immobilier locatif" },
+    { type: "item" as const, key: "credit_immo_locatif", label: "Crédits immobilier locatif", emoji: "🏘️", defaultVal: 0, max: 10000, tooltip: "Mensualités de crédit de vos biens locatifs (mensuel)" },
+    { type: "item" as const, key: "charges_immo_locatif", label: "Charges biens locatifs", emoji: "🔧", defaultVal: 0, max: 5000, tooltip: "Charges de copropriété, entretien, gestion… de vos biens locatifs (mensuel)" },
+
+    { type: "header" as const, label: "💳 Crédits & dettes" },
+    { type: "item" as const, key: "credit", label: "Crédits conso & auto", emoji: "💳", defaultVal: 150, max: 5000, tooltip: "Crédits consommation, auto, étudiant… (mensuel)" },
+
+    { type: "header" as const, label: "📋 Fiscalité" },
+    { type: "item" as const, key: "impots", label: "Impôts & prélèvements", emoji: "📋", defaultVal: 200, max: 5000, tooltip: "Impôts non prélevés à la source, prélèvements sociaux… (mensuel)" },
+
+    { type: "header" as const, label: "🚌 Transport" },
+    { type: "item" as const, key: "transport", label: "Transport en commun", emoji: "🚌", defaultVal: 0, max: 3000, tooltip: "Abonnement transports en commun (mensuel)" },
+    { type: "item" as const, key: "lld_loa_auto", label: "LOA / LLD / leasing auto", emoji: "🚗", defaultVal: 0, max: 3000, tooltip: "Location longue durée, leasing voiture… (mensuel)" },
+
+    { type: "header" as const, label: "🛡️ Assurances" },
+    { type: "item" as const, key: "assurance_habitation", label: "Assurance habitation", emoji: "🏠", defaultVal: 0, max: 1000, tooltip: "Assurance habitation résidence principale (mensuel)" },
+    { type: "item" as const, key: "assurance_auto", label: "Assurance auto", emoji: "🚗", defaultVal: 0, max: 1000, tooltip: "Assurance véhicule (mensuel)" },
+
+    { type: "header" as const, label: "📱 Télécom & abonnements" },
+    { type: "item" as const, key: "internet", label: "Internet / box", emoji: "📡", defaultVal: 0, max: 500, tooltip: "Abonnement internet fixe (mensuel)" },
+    { type: "item" as const, key: "mobile", label: "Téléphone mobile", emoji: "📱", defaultVal: 0, max: 500, tooltip: "Forfait mobile (mensuel)" },
+    { type: "item" as const, key: "abonnements", label: "Autres abonnements", emoji: "📺", defaultVal: 0, max: 2000, tooltip: "Streaming, presse, salle de sport… (mensuel)" },
+
+    { type: "header" as const, label: "👨‍👧 Famille" },
+    { type: "item" as const, key: "pension_alimentaire", label: "Pension alimentaire", emoji: "👨‍👧", defaultVal: 0, max: 5000, tooltip: "Pension alimentaire versée (mensuel)" },
+    { type: "item" as const, key: "frais_scolarite", label: "Frais de scolarité / garde", emoji: "🎓", defaultVal: 0, max: 5000, tooltip: "Scolarité, crèche, garde d'enfants… (mensuel)" },
+
+    { type: "header" as const, label: "📦 Autres charges fixes" },
+    { type: "item" as const, key: "charges_autres", label: "Autres charges fixes", emoji: "📦", defaultVal: 0, max: 5000, tooltip: "Toute autre charge fixe non listée ci-dessus (mensuel)" },
   ],
   compressibles: [
-    { key: "alimentation", label: "Alimentation", emoji: "🛒", defaultVal: 400, max: 5000, tooltip: "Courses, cantine, livraisons… (mensuel)" },
-    { key: "loisirs", label: "Loisirs & sorties", emoji: "🎭", defaultVal: 200, max: 5000, tooltip: "Restaurants, cinéma, sport, voyages… (mensuel)" },
-    { key: "shopping", label: "Shopping", emoji: "👜", defaultVal: 150, max: 5000, tooltip: "Vêtements, équipement, déco… (mensuel)" },
-    { key: "divers", label: "Divers", emoji: "📦", defaultVal: 100, max: 3000, tooltip: "Cadeaux, imprévus… (mensuel)" },
-    { key: "sante", label: "Santé", emoji: "💊", defaultVal: 50, max: 3000, tooltip: "Pharmacie, consultations non remboursées… (mensuel)" },
+    { type: "item" as const, key: "alimentation", label: "Alimentation", emoji: "🛒", defaultVal: 400, max: 5000, tooltip: "Courses, cantine, livraisons… (mensuel)" },
+    { type: "item" as const, key: "loisirs", label: "Loisirs & sorties", emoji: "🎭", defaultVal: 200, max: 5000, tooltip: "Restaurants, cinéma, sport, voyages… (mensuel)" },
+    { type: "item" as const, key: "shopping", label: "Shopping", emoji: "👜", defaultVal: 150, max: 5000, tooltip: "Vêtements, équipement, déco… (mensuel)" },
+    { type: "item" as const, key: "divers", label: "Divers", emoji: "📦", defaultVal: 100, max: 3000, tooltip: "Cadeaux, imprévus… (mensuel)" },
+    { type: "item" as const, key: "sante", label: "Santé", emoji: "💊", defaultVal: 50, max: 3000, tooltip: "Pharmacie, consultations non remboursées… (mensuel)" },
   ],
   epargne: [
-    { key: "epargne_totale", label: "Épargne mensuelle totale", emoji: "🏦", defaultVal: 600, max: 30000, tooltip: "Tout ce que vous mettez de côté chaque mois : livrets, projets, investissements…" },
+    { type: "item" as const, key: "epargne_totale", label: "Épargne mensuelle totale", emoji: "🏦", defaultVal: 600, max: 30000, tooltip: "Tout ce que vous mettez de côté chaque mois : livrets, projets, investissements…" },
   ],
+};
+
+// Flatten for calculation compatibility
+const EXPENSE_ITEMS = {
+  incompressibles: EXPENSE_SECTIONS.incompressibles.filter((i): i is typeof i & { type: "item" } => i.type === "item"),
+  compressibles: EXPENSE_SECTIONS.compressibles.filter((i): i is typeof i & { type: "item" } => i.type === "item"),
+  epargne: EXPENSE_SECTIONS.epargne.filter((i): i is typeof i & { type: "item" } => i.type === "item"),
 };
 
 type StepKey = "revenus" | "incompressibles" | "compressibles" | "epargne";
@@ -279,8 +310,8 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
           source: "Énergie du profil financier",
         },
         credit: {
-          value: (data.chargesDetailees.credit_consommation || 0) + (data.chargesDetailees.lld_loa_auto || 0),
-          source: "Crédits consommation + LOA/LLD auto du profil",
+          value: (data.chargesDetailees.credit_consommation || 0),
+          source: "Crédits consommation du profil",
         },
         credit_immo_locatif: {
           value: (data.chargesDetailees.credit_immobilier || 0) + 
@@ -289,17 +320,37 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
             ? `Crédits immobilier du profil + ${realEstateProperties.length} bien(s) locatif(s)`
             : "Crédits immobilier du profil financier",
         },
+        charges_immo_locatif: {
+          value: realEstateProperties.reduce((sum, p) => sum + Number(p.charges_mensuelles || 0), 0),
+          source: `Charges de ${realEstateProperties.length} bien(s) locatif(s)`,
+        },
         transport: {
           value: data.chargesDetailees.transport_commun || 0,
           source: "Transport en commun du profil",
         },
-        assurances: {
-          value: (data.chargesDetailees.assurance_habitation || 0) + (data.chargesDetailees.assurance_auto || 0),
-          source: "Assurance habitation + auto du profil",
+        lld_loa_auto: {
+          value: data.chargesDetailees.lld_loa_auto || 0,
+          source: "LOA / LLD auto du profil",
+        },
+        assurance_habitation: {
+          value: data.chargesDetailees.assurance_habitation || 0,
+          source: "Assurance habitation du profil",
+        },
+        assurance_auto: {
+          value: data.chargesDetailees.assurance_auto || 0,
+          source: "Assurance auto du profil",
+        },
+        internet: {
+          value: data.chargesDetailees.internet || 0,
+          source: "Internet du profil",
+        },
+        mobile: {
+          value: data.chargesDetailees.mobile || 0,
+          source: "Mobile du profil",
         },
         abonnements: {
-          value: (data.chargesDetailees.abonnements || 0) + (data.chargesDetailees.internet || 0) + (data.chargesDetailees.mobile || 0),
-          source: "Abonnements + internet + mobile du profil",
+          value: data.chargesDetailees.abonnements || 0,
+          source: "Abonnements du profil",
         },
         pension_alimentaire: {
           value: data.chargesDetailees.pension_alimentaire || 0,
@@ -308,6 +359,10 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
         frais_scolarite: {
           value: data.chargesDetailees.frais_scolarite || 0,
           source: "Frais de scolarité du profil financier",
+        },
+        charges_autres: {
+          value: data.chargesDetailees.autres || 0,
+          source: "Autres charges du profil financier",
         },
       };
 
@@ -512,23 +567,34 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
           </div>
         </div>
 
-        {/* Items */}
+        {/* Items with section headers */}
         <div className="space-y-2">
-          {items.map((item) => (
-            <BudgetSliderItem
-              key={item.key}
-              emoji={item.emoji}
-              label={item.label}
-              tooltip={item.tooltip}
-              value={values[item.key] ?? 0}
-              max={item.max}
-              step={10}
-              colorClass={colorClass}
-              onChange={(v) => updateValue(item.key, v)}
-              fromProfile={profileFields.has(item.key)}
-              profileSource={profileFields.get(item.key)}
-            />
-          ))}
+          {EXPENSE_SECTIONS[catKey].map((entry, idx) => {
+            if (entry.type === "header") {
+              return (
+                <div key={`header-${idx}`} className="pt-4 pb-1 first:pt-0">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    {entry.label}
+                  </p>
+                </div>
+              );
+            }
+            return (
+              <BudgetSliderItem
+                key={entry.key}
+                emoji={entry.emoji}
+                label={entry.label}
+                tooltip={entry.tooltip}
+                value={values[entry.key] ?? 0}
+                max={entry.max}
+                step={10}
+                colorClass={colorClass}
+                onChange={(v) => updateValue(entry.key, v)}
+                fromProfile={profileFields.has(entry.key)}
+                profileSource={profileFields.get(entry.key)}
+              />
+            );
+          })}
         </div>
       </div>
     );
