@@ -212,7 +212,7 @@ export default function PanoramaPage() {
                   Plus vous renseignez votre profil, plus vos analyses seront précises
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Complétez votre audit patrimonial pour obtenir des recommandations personnalisées
+                  Complétez votre situation financière pour obtenir des recommandations personnalisées
                 </p>
               </div>
             </div>
