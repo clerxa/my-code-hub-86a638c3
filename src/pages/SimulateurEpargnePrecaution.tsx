@@ -763,6 +763,18 @@ const SimulateurEpargnePrecaution = () => {
                 <span className="font-medium">{formatCurrency(chargesDetailees.credit_consommation)}</span>
               </div>
             )}
+            {(chargesDetailees.investissement_locatif_credits + chargesDetailees.investissement_locatif_charges) > 0 && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">🏢 Invest. locatifs</span>
+                <span className="font-medium">{formatCurrency(chargesDetailees.investissement_locatif_credits + chargesDetailees.investissement_locatif_charges)}</span>
+              </div>
+            )}
+            {chargesDetailees.impots > 0 && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">🧾 Impôts</span>
+                <span className="font-medium">{formatCurrency(chargesDetailees.impots)}</span>
+              </div>
+            )}
             {chargesDetailees.autres > 0 && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">💳 Autres</span>
