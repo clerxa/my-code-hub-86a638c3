@@ -59,6 +59,8 @@ export function BudgetOverviewSection({
     const pctFixes = Math.round((totalFixes / totalRevenus) * 100);
     const pctCourantes = Math.round((totalCourantes / totalRevenus) * 100);
     const pctEpargne = Math.round((totalEpargne / totalRevenus) * 100);
+    const nonAlloue = Math.max(0, totalRevenus - totalFixes - totalCourantes - totalEpargne);
+    const pctNonAlloue = Math.max(0, 100 - pctFixes - pctCourantes - pctEpargne);
 
     // Detailed charges for breakdown pie
     const detailItems: { name: string; value: number }[] = [];
@@ -66,15 +68,21 @@ export function BudgetOverviewSection({
     if (impotMensuel > 0) detailItems.push({ name: "Impôts", value: impotMensuel });
     depensesCourantesItems.forEach(i => { if (i.value > 0) detailItems.push({ name: i.label, value: i.value }); });
     if (totalEpargne > 0) detailItems.push({ name: "Épargne", value: totalEpargne });
+    if (nonAlloue > 0) detailItems.push({ name: "Non alloué", value: nonAlloue });
+
+    const ruleData: { name: string; value: number; color: string; pct: number; ideal: number }[] = [
+      { name: "Charges fixes & impôts", value: totalFixes, color: RULE_COLORS.fixes, pct: pctFixes, ideal: 50 },
+      { name: "Dépenses courantes", value: totalCourantes, color: RULE_COLORS.courantes, pct: pctCourantes, ideal: 30 },
+      { name: "Épargne", value: totalEpargne, color: RULE_COLORS.epargne, pct: pctEpargne, ideal: 20 },
+    ];
+    if (pctNonAlloue > 0) {
+      ruleData.push({ name: "Non alloué", value: nonAlloue, color: "hsl(var(--muted-foreground) / 0.3)", pct: pctNonAlloue, ideal: 0 });
+    }
 
     return {
       totalFixes, totalCourantes, totalEpargne,
-      pctFixes, pctCourantes, pctEpargne,
-      ruleData: [
-        { name: "Charges fixes & impôts", value: totalFixes, color: RULE_COLORS.fixes, pct: pctFixes, ideal: 50 },
-        { name: "Dépenses courantes", value: totalCourantes, color: RULE_COLORS.courantes, pct: pctCourantes, ideal: 30 },
-        { name: "Épargne", value: totalEpargne, color: RULE_COLORS.epargne, pct: pctEpargne, ideal: 20 },
-      ],
+      pctFixes, pctCourantes, pctEpargne, pctNonAlloue,
+      ruleData,
       detailItems,
     };
   }, [totalRevenus, chargesFixesItems, depensesCourantesItems, impotMensuel, epargne]);
