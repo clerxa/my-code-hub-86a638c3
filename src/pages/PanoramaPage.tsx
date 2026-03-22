@@ -125,7 +125,7 @@ export default function PanoramaPage() {
     );
   }
 
-  const isLoading = loading || financialLoading || hasAtlasAnalysis === null;
+  const isLoading = loading || financialLoading;
 
   if (isLoading) {
     return (
