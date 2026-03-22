@@ -483,7 +483,7 @@ export default function PanoramaAuditPage() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="w-full grid grid-cols-5 h-auto p-1 bg-card border shadow-sm">
+            <TabsList className="w-full grid grid-cols-6 h-auto p-1 bg-card border shadow-sm">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
