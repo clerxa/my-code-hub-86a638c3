@@ -466,8 +466,11 @@ export default function PanoramaPage() {
             <p className="text-xl font-bold">
               {tmi != null ? `TMI ${tmi}%` : "Non renseigné"}
             </p>
-            {synthesis?.financialProfile?.revenu_fiscal_annuel != null && (
-              <p className="text-xs text-muted-foreground">{formatEuros(synthesis.financialProfile.revenu_fiscal_annuel)}</p>
+            {tauxMoyenAtlas != null && (
+              <p className="text-xs text-muted-foreground">Taux moyen {tauxMoyenAtlas}%</p>
+            )}
+            {impotMensuel != null && impotMensuel > 0 && (
+              <p className="text-xs text-muted-foreground">{formatEuros(impotMensuel)}/mois</p>
             )}
           </ModuleCard>
 
