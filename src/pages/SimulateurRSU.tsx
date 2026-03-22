@@ -234,7 +234,14 @@ const SimulateurRSU = () => {
               onDeletePlan={handleDeletePlan}
               onSimulate={() => setScreen('cession')}
               onSimulatePlan={(id) => { setSimulatingPlanId(id); setScreen('cession'); }}
-              onDeclareCessionPlan={(id) => { setSimulatingPlanId(id); setScreen('cession'); }}
+              onDeclareCession={async (planId, nbActions) => {
+                // Find the matching portfolio plan to get simulationId
+                const portfolioPlan = portfolio.plans.find(p => p.id.endsWith(planId));
+                if (portfolioPlan) {
+                  await portfolio.declareCession(portfolioPlan.id, portfolioPlan.simulationId, nbActions);
+                }
+              }}
+              isDeclaring={portfolio.isDeclaring}
               onViewSavedSimulations={() => setScreen('saved')}
             />
           )}
