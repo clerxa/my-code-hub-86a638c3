@@ -162,7 +162,7 @@ export function StepSituationPro({ onNext, onSkip }: StepSituationProProps) {
             <div>
               <CardTitle className="text-lg">Rémunération en actions</CardTitle>
               <CardDescription>
-                Cochez les dispositifs dont vous bénéficiez et estimez leur valeur actuelle.
+                Ces dispositifs représentent souvent une part significative de votre patrimoine. Les identifier nous permet de calculer votre patrimoine total et d'anticiper les impacts fiscaux lors de la cession.
               </CardDescription>
             </div>
           </div>
