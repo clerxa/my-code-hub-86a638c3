@@ -172,7 +172,7 @@ const SimulateurEpargnePrecaution = () => {
     const simulation = location.state?.simulation;
     if (simulation) {
       setChargesDetailees({
-        loyer: simulation.charges_loyer_credit || 0, // Backward compat: map old loyer_credit to loyer
+        loyer: simulation.charges_loyer_credit || 0,
         credit_immobilier: 0,
         copropriete_taxes: simulation.charges_copropriete_taxes || 0,
         energie: simulation.charges_energie || 0,
@@ -186,6 +186,9 @@ const SimulateurEpargnePrecaution = () => {
         frais_scolarite: simulation.charges_frais_scolarite || 0,
         pension_alimentaire: simulation.charges_pension_alimentaire || 0,
         credit_consommation: 0,
+        investissement_locatif_credits: simulation.investissement_locatif_credits || 0,
+        investissement_locatif_charges: simulation.investissement_locatif_charges || 0,
+        impots: simulation.impots || 0,
         autres: simulation.charges_autres || 0,
       });
       setEpargneActuelle(simulation.epargne_actuelle);
