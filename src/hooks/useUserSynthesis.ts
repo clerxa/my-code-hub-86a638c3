@@ -134,7 +134,7 @@ export function useUserSynthesis(userId: string | null) {
             .single(),
           supabase
             .from("user_financial_profiles")
-            .select("revenu_mensuel_net, revenu_fiscal_annuel, situation_familiale, nb_enfants, capacite_epargne_mensuelle, epargne_actuelle, apport_disponible, tmi, parts_fiscales, is_complete, epargne_livrets, patrimoine_per, patrimoine_assurance_vie, patrimoine_scpi, patrimoine_pea, patrimoine_autres, patrimoine_immo_valeur")
+            .select("revenu_mensuel_net, revenu_fiscal_annuel, situation_familiale, nb_enfants, capacite_epargne_mensuelle, epargne_actuelle, apport_disponible, tmi, parts_fiscales, is_complete, epargne_livrets, patrimoine_per, patrimoine_assurance_vie, patrimoine_scpi, patrimoine_pea, patrimoine_autres, patrimoine_immo_valeur, patrimoine_immo_credit_restant")
             .eq("user_id", userId)
             .maybeSingle(),
           supabase
@@ -211,7 +211,7 @@ export function useUserSynthesis(userId: string | null) {
         const fp = financialRes.data;
         const profileRevenue = fp?.revenu_mensuel_net ?? null;
 
-        // Build patrimoine_total
+        // Build patrimoine_total (immo net = valeur - crédit restant)
         let patrimoine_total: number | null = null;
         if (fp) {
           patrimoine_total =
@@ -221,7 +221,7 @@ export function useUserSynthesis(userId: string | null) {
             (fp.patrimoine_scpi || 0) +
             (fp.patrimoine_pea || 0) +
             (fp.patrimoine_autres || 0) +
-            (fp.patrimoine_immo_valeur || 0);
+            ((fp.patrimoine_immo_valeur || 0) - (fp.patrimoine_immo_credit_restant || 0));
         }
 
         // Select most coherent simulation per type
