@@ -778,17 +778,20 @@ const SimulateurEpargnePrecaution = () => {
         </CardContent>
       </Card>
 
-      {resultats.epargne_manquante > 0 && resultats.temps_pour_objectif && (
+      {resultats.epargne_manquante > 0 && resultats.epargne_mensuelle_optimale && (
         <div className="mt-6 p-4 rounded-lg bg-muted/30">
           <h3 className="font-medium mb-3">Plan d'action</h3>
+          <p className="text-xs text-muted-foreground mb-3">
+            Objectif : combler l'épargne manquante en 12 mois
+          </p>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span>Épargne mensuelle optimale</span>
-              <span className="font-medium">{formatCurrency(resultats.epargne_mensuelle_optimale || 0)}</span>
+              <span>Épargne mensuelle recommandée</span>
+              <span className="font-medium">{formatCurrency(resultats.epargne_mensuelle_optimale)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Temps pour atteindre l'objectif</span>
-              <span className="font-medium">{resultats.temps_pour_objectif} mois</span>
+              <span>Durée du plan</span>
+              <span className="font-medium">12 mois</span>
             </div>
           </div>
         </div>
