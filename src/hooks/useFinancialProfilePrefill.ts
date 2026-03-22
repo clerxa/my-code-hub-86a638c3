@@ -32,6 +32,9 @@ export interface PrefillData {
     frais_scolarite: number;
     pension_alimentaire: number;
     credit_consommation: number;
+    investissement_locatif_credits: number;
+    investissement_locatif_charges: number;
+    impots: number;
     autres: number;
   };
   
