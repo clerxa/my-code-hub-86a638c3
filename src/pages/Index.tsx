@@ -43,6 +43,17 @@ const Index = () => {
         .maybeSingle();
       if (roleData?.role === "admin") {
         navigate("/admin");
+        return;
+      }
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("first_login_onboarding_completed")
+        .eq("id", session.user.id)
+        .single();
+
+      if (!(profileData as any)?.first_login_onboarding_completed) {
+        navigate("/employee/first-login");
       } else {
         navigate("/employee");
       }

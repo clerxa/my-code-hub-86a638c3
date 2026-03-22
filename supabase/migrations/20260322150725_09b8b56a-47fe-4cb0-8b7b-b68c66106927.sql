@@ -1,0 +1,1 @@
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS first_login_onboarding_completed boolean DEFAULT false;

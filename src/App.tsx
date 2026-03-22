@@ -82,6 +82,7 @@ import Partnership from "./pages/Partnership";
 import EmployeePartnership from "./pages/EmployeePartnership";
 import RiskProfile from "./pages/RiskProfile";
 import ExpertBookingLanding from "./pages/ExpertBookingLanding";
+import FirstLoginOnboarding from "./pages/FirstLoginOnboarding";
 import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
@@ -259,6 +260,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <DynamicOnboarding />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/first-login"
+              element={
+                <ProtectedRoute>
+                  <FirstLoginOnboarding />
                 </ProtectedRoute>
               }
             />
