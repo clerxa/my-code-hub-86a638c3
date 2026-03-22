@@ -63,7 +63,6 @@ const SimulateurEpargnePrecaution = () => {
   // Fonction pour restaurer les données
   const restoreSimulationData = (simData: Record<string, unknown>) => {
     if (simData.charges_fixes_mensuelles !== undefined) {
-      // Try to restore detailed charges
       setChargesDetailees({
         loyer: (simData.charges_loyer_credit as number) || 0,
         credit_immobilier: 0,
@@ -79,6 +78,9 @@ const SimulateurEpargnePrecaution = () => {
         frais_scolarite: (simData.charges_frais_scolarite as number) || 0,
         pension_alimentaire: 0,
         credit_consommation: 0,
+        investissement_locatif_credits: (simData.investissement_locatif_credits as number) || 0,
+        investissement_locatif_charges: (simData.investissement_locatif_charges as number) || 0,
+        impots: (simData.impots as number) || 0,
         autres: (simData.charges_autres as number) || 0,
       });
     }
