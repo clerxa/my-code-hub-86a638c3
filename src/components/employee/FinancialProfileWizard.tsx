@@ -856,6 +856,65 @@ export function FinancialProfileWizard({
           </div>
         );
 
+      case "charges-variables":
+        const variablesSubtotal = (formData.charges_courses_alimentaires || 0) + (formData.charges_loisirs || 0) + (formData.charges_shopping || 0) + (formData.charges_variables_autres || 0);
+        return (
+          <div className="space-y-6">
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-muted-foreground">
+                    Ces dépenses varient chaque mois. Estimez une <strong>moyenne mensuelle</strong> pour chaque catégorie.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>🛒 Courses alimentaires (€/mois)</Label>
+                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_courses_alimentaires)} onChange={(e) => handleNumericInput("charges_courses_alimentaires", e.target.value)} placeholder="Ex: 500" />
+              </div>
+              <div className="space-y-2">
+                <Label>🎭 Loisirs & sorties (€/mois)</Label>
+                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_loisirs)} onChange={(e) => handleNumericInput("charges_loisirs", e.target.value)} placeholder="Ex: 200" />
+              </div>
+              <div className="space-y-2">
+                <Label>🛍️ Shopping & divers (€/mois)</Label>
+                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_shopping)} onChange={(e) => handleNumericInput("charges_shopping", e.target.value)} placeholder="Ex: 150" />
+              </div>
+              <div className="space-y-2">
+                <Label>📦 Autres dépenses courantes (€/mois)</Label>
+                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_variables_autres)} onChange={(e) => handleNumericInput("charges_variables_autres", e.target.value)} placeholder="Ex: 100" />
+                <p className="text-xs text-muted-foreground">Santé non remboursée, cadeaux, coiffeur, etc.</p>
+              </div>
+            </div>
+
+            {variablesSubtotal > 0 && (
+              <div className="p-4 rounded-lg bg-muted/50 border">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Total dépenses courantes</span>
+                  <span className="font-semibold text-primary">{variablesSubtotal.toLocaleString('fr-FR')} €/mois</span>
+                </div>
+              </div>
+            )}
+
+            {/* Total all charges */}
+            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Wallet className="h-5 w-5 text-primary" />
+                  <span className="font-medium">Total toutes charges</span>
+                </div>
+                <span className="text-xl font-bold text-primary">
+                  {calculateTotalCharges().toLocaleString('fr-FR')} €
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
