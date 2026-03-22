@@ -884,6 +884,14 @@ export default function PanoramaAuditPage() {
 
             {/* Tab: Financial - Wizard */}
             <TabsContent value="financial" className="space-y-6 mt-6">
+              {/* Note contextuelle foyer fiscal */}
+              <div className="flex items-start gap-3 rounded-lg border border-blue-500/20 bg-blue-500/5 p-4 mb-4">
+                <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-800 dark:text-blue-300">
+                  Ces informations concernent <strong>votre foyer fiscal</strong>. 
+                  Si vous vivez en couple, incluez les revenus et charges de votre conjoint(e).
+                </p>
+              </div>
               <FinancialProfileWizard
                 formData={formData}
                 updateField={updateFinancialField}
