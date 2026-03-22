@@ -226,19 +226,88 @@ export function useVegaPortfolio(): PortfolioSummary {
   const { ticker: companyTicker, loading: tickerLoading } = useCompanyTicker();
   const queryClient = useQueryClient();
 
-  // 1. Fetch all equity simulations
+  // 1. Fetch all equity simulations (skip legacy RSU if workspace exists)
   const { data: simulations, isLoading: simsLoading } = useQuery({
     queryKey: ['vega-portfolio-sims', user?.id],
     queryFn: async () => {
       if (!user) return [];
+
+      // Check if user has a workspace in rsu_plans (new tables)
+      const { data: workspace } = await supabase
+        .from('rsu_simulations')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('nom', '__workspace__')
+        .maybeSingle();
+
+      const hasWorkspace = !!workspace;
+
+      // If workspace exists, only fetch espp + bspce from legacy; RSU comes from new tables
+      const types = hasWorkspace ? ['espp', 'bspce'] : ['rsu', 'espp', 'bspce'];
+
       const { data, error } = await supabase
         .from('simulations')
         .select('id, name, type, data, created_at')
         .eq('user_id', user.id)
-        .in('type', ['rsu', 'espp', 'bspce'])
+        .in('type', types)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data || [];
+
+      const results = data || [];
+
+      // If workspace exists, synthesize RSU entries from new rsu_plans tables
+      if (hasWorkspace) {
+        const { data: dbPlans } = await supabase
+          .from('rsu_plans')
+          .select('*')
+          .eq('simulation_id', workspace.id);
+
+        if (dbPlans && dbPlans.length > 0) {
+          const planIds = dbPlans.map(p => p.id);
+          const { data: dbVestings } = await supabase
+            .from('rsu_vestings')
+            .select('*')
+            .in('plan_id', planIds);
+
+          const vestingsByPlan = new Map<string, any[]>();
+          for (const v of (dbVestings || [])) {
+            const list = vestingsByPlan.get(v.plan_id) || [];
+            list.push({
+              id: v.id,
+              date: v.date,
+              nb_rsu: Number(v.nb_rsu),
+              cours: Number(v.cours),
+              taux_change: Number(v.taux_change),
+              gain_eur: Number(v.gain_eur),
+            });
+            vestingsByPlan.set(v.plan_id, list);
+          }
+
+          const syntheticPlans = dbPlans.map(p => ({
+            id: p.id,
+            nom: p.nom,
+            ticker: p.ticker,
+            entreprise_nom: p.entreprise_nom,
+            annee_attribution: p.annee_attribution,
+            regime: p.regime,
+            devise: p.devise,
+            date_fin_conservation: p.date_fin_conservation,
+            vestings: vestingsByPlan.get(p.id) || [],
+            gain_acquisition_total: Number(p.gain_acquisition_total),
+          }));
+
+          // Add as a synthetic "simulation" entry
+          results.push({
+            id: workspace.id,
+            name: 'RSU',
+            type: 'rsu',
+            data: { plans: syntheticPlans } as any,
+            created_at: new Date().toISOString(),
+          });
+        }
+      }
+
+      return results;
     },
     enabled: !!user,
   });
