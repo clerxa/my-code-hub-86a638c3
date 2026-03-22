@@ -211,7 +211,7 @@ export function useUserSynthesis(userId: string | null) {
         const fp = financialRes.data;
         const profileRevenue = fp?.revenu_mensuel_net ?? null;
 
-        // Build patrimoine_total
+        // Build patrimoine_total (immo net = valeur - crédit restant)
         let patrimoine_total: number | null = null;
         if (fp) {
           patrimoine_total =
@@ -221,7 +221,7 @@ export function useUserSynthesis(userId: string | null) {
             (fp.patrimoine_scpi || 0) +
             (fp.patrimoine_pea || 0) +
             (fp.patrimoine_autres || 0) +
-            (fp.patrimoine_immo_valeur || 0);
+            ((fp.patrimoine_immo_valeur || 0) - (fp.patrimoine_immo_credit_restant || 0));
         }
 
         // Select most coherent simulation per type
