@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import {
   ArrowRight, TrendingUp, FileText, Compass, UserCheck,
-  RefreshCw, ChevronRight, Info, Sparkles
+  RefreshCw, ChevronRight, Info, Sparkles, Calculator
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -179,6 +179,7 @@ export default function PanoramaPage() {
   const tauxMoyenAtlas = atlasData?.taux_moyen_pct ?? null;
   const totalChargesAvecImpots = chargesFixes + creditsImmoLocatif + (impotMensuel ?? 0);
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
+  const capaciteEpargneCalculee = totalRevenusMensuel != null ? Math.max(0, totalRevenusMensuel - totalChargesAvecImpots) : null;
   const resteAVivre = totalRevenusMensuel != null ? totalRevenusMensuel - totalChargesAvecImpots - (capaciteEpargne ?? 0) : null;
   const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
 
@@ -453,12 +454,30 @@ export default function PanoramaPage() {
                   <MetricChip label="Charges + impôts" value={`${formatEuros(totalChargesAvecImpots)}/mois`} />
                 </>
               )}
-              {capaciteEpargne != null && capaciteEpargne > 0 && (
+              {capaciteEpargne != null && capaciteEpargne > 0 ? (
                 <>
                   <span className="text-muted-foreground font-medium">−</span>
                   <MetricChip label="Épargne" value={`${formatEuros(capaciteEpargne)}/mois`} />
                 </>
-              )}
+              ) : capaciteEpargneCalculee != null && capaciteEpargneCalculee > 0 && totalRevenusMensuel != null && totalRevenusMensuel > 0 ? (
+                <>
+                  <span className="text-muted-foreground font-medium">−</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/50 border border-dashed border-primary/30 cursor-help">
+                          <Calculator className="h-3 w-3 text-primary" />
+                          <span className="text-[10px] text-muted-foreground">Épargne estimée</span>
+                          <span className="text-sm font-semibold text-primary">{formatEuros(capaciteEpargneCalculee)}/mois</span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-xs">
+                        <p className="text-xs">Calculé automatiquement : Revenus − Charges − Impôts. Affinez cette valeur dans votre audit patrimonial.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </>
+              ) : null}
               {resteAVivre != null && (
                 <>
                   <span className="text-muted-foreground font-bold">=</span>
