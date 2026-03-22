@@ -4720,6 +4720,8 @@ export type Database = {
         Row: {
           a_invite_collegue: boolean | null
           a_pris_rdv: boolean | null
+          atlas_completed: boolean | null
+          audit_panorama_completed: boolean | null
           avatar_url: string | null
           beta_disclaimer_accepted_at: string | null
           birth_date: string | null
@@ -4740,6 +4742,7 @@ export type Database = {
           forum_contribution_score: number | null
           forum_posts_count: number | null
           forum_pseudo: string | null
+          horizon_completed: boolean | null
           household_taxable_income: number | null
           id: string
           is_active: boolean | null
@@ -4749,15 +4752,21 @@ export type Database = {
           marital_status: string | null
           net_taxable_income: number | null
           objectives: string[] | null
+          onboarding_completed: boolean | null
+          onboarding_step: number | null
           personal_email: string | null
           phone_number: string | null
           receive_on_personal_email: boolean | null
+          risk_profile_completed: boolean | null
           theme_preference: string
           total_points: number
+          vega_skipped: boolean | null
         }
         Insert: {
           a_invite_collegue?: boolean | null
           a_pris_rdv?: boolean | null
+          atlas_completed?: boolean | null
+          audit_panorama_completed?: boolean | null
           avatar_url?: string | null
           beta_disclaimer_accepted_at?: string | null
           birth_date?: string | null
@@ -4778,6 +4787,7 @@ export type Database = {
           forum_contribution_score?: number | null
           forum_posts_count?: number | null
           forum_pseudo?: string | null
+          horizon_completed?: boolean | null
           household_taxable_income?: number | null
           id: string
           is_active?: boolean | null
@@ -4787,15 +4797,21 @@ export type Database = {
           marital_status?: string | null
           net_taxable_income?: number | null
           objectives?: string[] | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
           personal_email?: string | null
           phone_number?: string | null
           receive_on_personal_email?: boolean | null
+          risk_profile_completed?: boolean | null
           theme_preference?: string
           total_points?: number
+          vega_skipped?: boolean | null
         }
         Update: {
           a_invite_collegue?: boolean | null
           a_pris_rdv?: boolean | null
+          atlas_completed?: boolean | null
+          audit_panorama_completed?: boolean | null
           avatar_url?: string | null
           beta_disclaimer_accepted_at?: string | null
           birth_date?: string | null
@@ -4816,6 +4832,7 @@ export type Database = {
           forum_contribution_score?: number | null
           forum_posts_count?: number | null
           forum_pseudo?: string | null
+          horizon_completed?: boolean | null
           household_taxable_income?: number | null
           id?: string
           is_active?: boolean | null
@@ -4825,11 +4842,15 @@ export type Database = {
           marital_status?: string | null
           net_taxable_income?: number | null
           objectives?: string[] | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
           personal_email?: string | null
           phone_number?: string | null
           receive_on_personal_email?: boolean | null
+          risk_profile_completed?: boolean | null
           theme_preference?: string
           total_points?: number
+          vega_skipped?: boolean | null
         }
         Relationships: [
           {
