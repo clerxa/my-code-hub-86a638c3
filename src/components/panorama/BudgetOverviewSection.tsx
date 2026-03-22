@@ -36,6 +36,7 @@ interface ChargeItem {
 
 interface BudgetOverviewSectionProps {
   totalRevenus: number;
+  totalChargesFixesImpots: number; // source of truth from Panorama
   chargesFixesItems: ChargeItem[];
   depensesCourantesItems: ChargeItem[];
   impotMensuel: number;
@@ -44,6 +45,7 @@ interface BudgetOverviewSectionProps {
 
 export function BudgetOverviewSection({
   totalRevenus,
+  totalChargesFixesImpots,
   chargesFixesItems,
   depensesCourantesItems,
   impotMensuel,
@@ -51,9 +53,8 @@ export function BudgetOverviewSection({
 }: BudgetOverviewSectionProps) {
   const analysis = useMemo(() => {
     if (totalRevenus <= 0) return null;
-    console.log('[Budget 50/30/20] totalRevenus:', totalRevenus, 'chargesFixesItems:', chargesFixesItems, 'depensesCourantesItems:', depensesCourantesItems, 'impotMensuel:', impotMensuel, 'epargne:', epargne);
 
-    const totalFixes = chargesFixesItems.reduce((s, i) => s + i.value, 0) + impotMensuel;
+    const totalFixes = totalChargesFixesImpots;
     const totalCourantes = depensesCourantesItems.reduce((s, i) => s + i.value, 0);
     const totalEpargne = epargne;
 
