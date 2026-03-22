@@ -209,8 +209,6 @@ export function FinancialProfileWizard({
   const handleFinish = () => {
     onSave();
     toast.success("Profil financier enregistré avec succès !");
-    // Trigger CSAT after profile completion
-    triggerCSAT();
   };
 
   const renderStepIndicator = () => (
