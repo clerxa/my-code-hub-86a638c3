@@ -139,7 +139,7 @@ export default function RiskProfilePage() {
         totalWeightedScore += normalizedScore;
 
         // Save response
-        await supabase
+        const { error: responseError } = await supabase
           .from('user_risk_responses')
           .upsert({
             user_id: user.id,
@@ -149,6 +149,10 @@ export default function RiskProfilePage() {
           }, {
             onConflict: 'user_id,question_id'
           });
+        if (responseError) {
+          console.error('Error saving response:', responseError);
+          throw responseError;
+        }
       }
 
       // Determine profile type based on thresholds
@@ -165,7 +169,7 @@ export default function RiskProfilePage() {
       }
 
       // Save profile
-      await supabase
+      const { error: profileError } = await supabase
         .from('risk_profile')
         .upsert({
           user_id: user.id,
@@ -175,6 +179,16 @@ export default function RiskProfilePage() {
         }, {
           onConflict: 'user_id'
         });
+      if (profileError) {
+        console.error('Error saving risk profile:', profileError);
+        throw profileError;
+      }
+
+      // Mark risk profile as completed on user profile
+      await supabase
+        .from('profiles')
+        .update({ risk_profile_completed: true })
+        .eq('id', user.id);
 
       const newProfile: RiskProfile = {
         user_id: user.id,

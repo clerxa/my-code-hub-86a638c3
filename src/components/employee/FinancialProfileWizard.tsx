@@ -293,7 +293,7 @@ export function FinancialProfileWizard({
               <strong>Faciliter vos simulations :</strong> Ces données pré-rempliront automatiquement les simulateurs fiscaux et patrimoniaux.
             </p>
             <p className="text-sm">
-              <strong>Votre audit patrimonial :</strong> Avoir une vision claire de votre situation financière est la première étape vers une gestion optimisée.
+              <strong>Votre situation financière :</strong> Avoir une vision claire de votre situation financière est la première étape vers une gestion optimisée.
             </p>
           </CardContent>
         </Card>
