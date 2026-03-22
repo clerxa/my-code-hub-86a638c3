@@ -63,12 +63,17 @@ const STEPS_CONFIG = [
 
 const EXPENSE_ITEMS = {
   incompressibles: [
-    { key: "logement", label: "Logement", emoji: "🏠", defaultVal: 800, max: 10000, tooltip: "Loyer ou mensualité de crédit immobilier (mensuel)" },
-    { key: "impots", label: "Impôts & prélèvements", emoji: "📋", defaultVal: 200, max: 5000, tooltip: "Impôts non prélevés à la source, taxe foncière… (mensuel)" },
-    { key: "credit", label: "Remboursement crédit", emoji: "💳", defaultVal: 150, max: 5000, tooltip: "Crédits conso, auto, étudiant… (mensuel)" },
-    { key: "transport", label: "Transport fixe", emoji: "🚌", defaultVal: 150, max: 3000, tooltip: "Abonnement transport, essence, leasing… (mensuel)" },
+    { key: "logement", label: "Loyer / crédit résidence", emoji: "🏠", defaultVal: 800, max: 10000, tooltip: "Loyer ou mensualité de crédit de votre résidence principale" },
+    { key: "copropriete_taxes", label: "Copropriété & taxes", emoji: "🏢", defaultVal: 0, max: 5000, tooltip: "Charges de copropriété, taxe foncière… (mensuel)" },
+    { key: "energie", label: "Énergie", emoji: "⚡", defaultVal: 0, max: 2000, tooltip: "Électricité, gaz, chauffage… (mensuel)" },
+    { key: "impots", label: "Impôts & prélèvements", emoji: "📋", defaultVal: 200, max: 5000, tooltip: "Impôts non prélevés à la source… (mensuel)" },
+    { key: "credit", label: "Crédits conso & auto", emoji: "💳", defaultVal: 150, max: 5000, tooltip: "Crédits consommation, auto, étudiant… (mensuel)" },
+    { key: "credit_immo_locatif", label: "Crédits immobilier locatif", emoji: "🏘️", defaultVal: 0, max: 10000, tooltip: "Mensualités de crédit de vos biens locatifs (mensuel)" },
+    { key: "transport", label: "Transport", emoji: "🚌", defaultVal: 150, max: 3000, tooltip: "Transport en commun, essence, leasing auto… (mensuel)" },
     { key: "assurances", label: "Assurances", emoji: "🛡️", defaultVal: 100, max: 3000, tooltip: "Habitation, auto, santé complémentaire… (mensuel)" },
-    { key: "abonnements", label: "Abonnements", emoji: "📱", defaultVal: 100, max: 2000, tooltip: "Téléphone, internet, streaming… (mensuel)" },
+    { key: "abonnements", label: "Abonnements & télécom", emoji: "📱", defaultVal: 100, max: 2000, tooltip: "Téléphone, internet, streaming… (mensuel)" },
+    { key: "pension_alimentaire", label: "Pension alimentaire", emoji: "👨‍👧", defaultVal: 0, max: 5000, tooltip: "Pension alimentaire versée (mensuel)" },
+    { key: "frais_scolarite", label: "Frais de scolarité", emoji: "🎓", defaultVal: 0, max: 5000, tooltip: "Scolarité, crèche, garde d'enfants… (mensuel)" },
   ],
   compressibles: [
     { key: "alimentation", label: "Alimentation", emoji: "🛒", defaultVal: 400, max: 5000, tooltip: "Courses, cantine, livraisons… (mensuel)" },
