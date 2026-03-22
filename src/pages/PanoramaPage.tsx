@@ -487,7 +487,45 @@ export default function PanoramaPage() {
               {resteAVivre != null && (
                 <>
                   <span className="text-muted-foreground font-bold">=</span>
-                  <MetricChip label="Reste à vivre" value={`${formatEuros(resteAVivre)}/mois`} highlight />
+                  <div className="flex items-center gap-2">
+                    <MetricChip label="Reste à vivre" value={`${formatEuros(resteAVivre)}/mois`} highlight />
+                    {resteAVivre > 0 && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => {
+                                const newEpargne = (capaciteEpargne ?? 0) + resteAVivre;
+                                if (user?.id) {
+                                  supabase
+                                    .from("financial_profiles")
+                                    .update({ capacite_epargne_mensuelle: newEpargne })
+                                    .eq("user_id", user.id)
+                                    .then(({ error }) => {
+                                      if (!error) {
+                                        toast.success("Capacité d'épargne mise à jour", {
+                                          description: `Nouvelle épargne : ${formatEuros(newEpargne)}/mois`,
+                                        });
+                                        window.location.reload();
+                                      } else {
+                                        toast.error("Erreur lors de la mise à jour");
+                                      }
+                                    });
+                                }
+                              }}
+                              className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors cursor-pointer"
+                            >
+                              <Sparkles className="h-3 w-3" />
+                              <span>Allouer à l'épargne</span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="max-w-xs">
+                            <p className="text-xs">Ajuster votre capacité d'épargne à {formatEuros((capaciteEpargne ?? 0) + resteAVivre)}/mois pour optimiser votre budget.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
                 </>
               )}
             </div>
