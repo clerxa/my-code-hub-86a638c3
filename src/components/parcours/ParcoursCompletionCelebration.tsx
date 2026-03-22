@@ -48,20 +48,6 @@ export const ParcoursCompletionCelebration = ({
   const [showContent, setShowContent] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // CSAT trigger
-  const { showCSAT, closeCSAT, triggerCSAT, contentType, contentId, contentName } = useCSATTrigger({
-    contentType: 'parcours',
-    contentId: parcoursId || parcoursTitle,
-    contentName: parcoursTitle,
-    parcoursId,
-  });
-
-  // Trigger CSAT when celebration opens
-  useEffect(() => {
-    if (isOpen) {
-      triggerCSAT();
-    }
-  }, [isOpen, triggerCSAT]);
 
   // Fetch settings
   useEffect(() => {
