@@ -205,7 +205,7 @@ export function StepChargesEpargne({ onNext, onSkip }: StepChargesEpargneProps) 
       <Card className="border-border/50 shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">💶 Fiscalité</CardTitle>
-          <CardDescription>Si vous ne connaissez pas votre TMI, passez — il sera calculé automatiquement à l'étape suivante.</CardDescription>
+          <CardDescription>Votre tranche marginale d'imposition (TMI) détermine l'impact réel de chaque décision financière : épargne PER, cession d'actions, investissement locatif. Si vous ne la connaissez pas, elle pourra être calculée à l'étape suivante via votre avis d'imposition.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
