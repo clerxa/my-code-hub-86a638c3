@@ -176,14 +176,12 @@ export default function PanoramaPage() {
                     )}
                   </TooltipContent>
                 </Tooltip>
-                {financialCompleteness < 100 && (
-                  <button
-                    onClick={() => navigate("/panorama/audit")}
-                    className="text-xs text-primary hover:underline whitespace-nowrap"
-                  >
-                    Compléter
-                  </button>
-                )}
+                <button
+                  onClick={() => navigate("/panorama/audit")}
+                  className="text-xs text-primary hover:underline whitespace-nowrap"
+                >
+                  {financialCompleteness < 100 ? "Compléter" : "Modifier"}
+                </button>
               </div>
             </TooltipProvider>
           </div>
