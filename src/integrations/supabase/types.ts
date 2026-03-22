@@ -4732,6 +4732,7 @@ export type Database = {
           deleted_at: string | null
           email: string
           employee_onboarding_completed: boolean | null
+          first_login_onboarding_completed: boolean | null
           first_name: string | null
           forum_anonymous_mode: boolean | null
           forum_avatar_url: string | null
@@ -4769,6 +4770,7 @@ export type Database = {
           deleted_at?: string | null
           email: string
           employee_onboarding_completed?: boolean | null
+          first_login_onboarding_completed?: boolean | null
           first_name?: string | null
           forum_anonymous_mode?: boolean | null
           forum_avatar_url?: string | null
@@ -4806,6 +4808,7 @@ export type Database = {
           deleted_at?: string | null
           email?: string
           employee_onboarding_completed?: boolean | null
+          first_login_onboarding_completed?: boolean | null
           first_name?: string | null
           forum_anonymous_mode?: boolean | null
           forum_avatar_url?: string | null
