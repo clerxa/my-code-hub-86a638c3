@@ -332,7 +332,7 @@ export default function PanoramaPage() {
             </div>
 
             {/* Charges detail */}
-            {chargesFixes > 0 && (
+            {(chargesFixes > 0 || impotMensuel != null) && (
               <div className="space-y-2 mb-4">
                 <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Charges mensuelles</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -372,9 +372,17 @@ export default function PanoramaPage() {
                       <p className="text-sm font-semibold">{formatEuros(fp.charges_fixes_mensuelles)}</p>
                     </div>
                   )}
+                  {impotMensuel != null && impotMensuel > 0 && (
+                    <div className="rounded-md bg-blue-500/5 border border-blue-500/10 px-3 py-2">
+                      <p className="text-[10px] text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                        Impôts <span className="text-[8px] bg-blue-500/10 px-1 rounded">ATLAS</span>
+                      </p>
+                      <p className="text-sm font-semibold">{formatEuros(impotMensuel)}</p>
+                    </div>
+                  )}
                   <div className="rounded-md bg-destructive/5 border border-destructive/10 px-3 py-2">
                     <p className="text-[10px] text-destructive">Total charges</p>
-                    <p className="text-sm font-bold text-destructive">{formatEuros(chargesFixes)}<span className="text-[10px] font-normal">/mois</span></p>
+                    <p className="text-sm font-bold text-destructive">{formatEuros(totalChargesAvecImpots)}<span className="text-[10px] font-normal">/mois</span></p>
                   </div>
                 </div>
               </div>
