@@ -32,7 +32,7 @@ export interface SidebarConfig {
 }
 
 const defaultEmployeeItems: SidebarMenuItem[] = [
-  { id: "panorama", label: "PANORAMA", icon: "LayoutDashboard", order: 4, visible: true, categoryId: "programme-fincare" },
+  { id: "panorama", label: "PANORAMA", icon: "LayoutDashboard", order: 0, visible: true, categoryId: "programme-fincare" },
   { id: "dashboard", label: "Mon tableau de bord", icon: "User", order: 0, visible: true },
   { id: "profile", label: "Mon profil", icon: "UserCircle", order: 1, visible: true, categoryId: "mon-espace" },
   { id: "progression", label: "La quête Fincare", icon: "TrendingUp", order: 2, visible: true, categoryId: "mon-espace" },
@@ -240,7 +240,9 @@ export const useSidebarConfig = (sidebarType: "employee" | "company") => {
       .sort((a, b) => a.order - b.order)
       .map((category) => ({
         category,
-        items: visibleItems.filter((item) => item.categoryId === category.id),
+        items: visibleItems
+          .filter((item) => item.categoryId === category.id)
+          .sort((a, b) => a.order - b.order),
       }))
       .filter((group) => group.items.length > 0);
 
