@@ -267,15 +267,27 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
       const chargesMap: Record<string, { value: number; source: string }> = {
         logement: {
           value: data.chargesDetailees.loyer || data.loyerActuel || 0,
-          source: "Loyer / crédit immobilier du profil financier",
+          source: "Loyer / crédit résidence du profil financier",
+        },
+        copropriete_taxes: {
+          value: data.chargesDetailees.copropriete_taxes || 0,
+          source: "Copropriété & taxes du profil financier",
+        },
+        energie: {
+          value: data.chargesDetailees.energie || 0,
+          source: "Énergie du profil financier",
         },
         credit: {
-          value: (data.chargesDetailees.credit_immobilier || 0) + (data.chargesDetailees.credit_consommation || 0),
-          source: "Crédits immobilier + consommation du profil",
+          value: (data.chargesDetailees.credit_consommation || 0) + (data.chargesDetailees.lld_loa_auto || 0),
+          source: "Crédits consommation + LOA/LLD auto du profil",
+        },
+        credit_immo_locatif: {
+          value: data.chargesDetailees.credit_immobilier || 0,
+          source: "Crédits immobilier du profil financier",
         },
         transport: {
-          value: (data.chargesDetailees.transport_commun || 0) + (data.chargesDetailees.lld_loa_auto || 0),
-          source: "Transport en commun + LOA/LLD auto du profil",
+          value: data.chargesDetailees.transport_commun || 0,
+          source: "Transport en commun du profil",
         },
         assurances: {
           value: (data.chargesDetailees.assurance_habitation || 0) + (data.chargesDetailees.assurance_auto || 0),
@@ -285,9 +297,13 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
           value: (data.chargesDetailees.abonnements || 0) + (data.chargesDetailees.internet || 0) + (data.chargesDetailees.mobile || 0),
           source: "Abonnements + internet + mobile du profil",
         },
-        divers: {
-          value: data.chargesDetailees.autres || 0,
-          source: "Autres charges du profil financier",
+        pension_alimentaire: {
+          value: data.chargesDetailees.pension_alimentaire || 0,
+          source: "Pension alimentaire du profil financier",
+        },
+        frais_scolarite: {
+          value: data.chargesDetailees.frais_scolarite || 0,
+          source: "Frais de scolarité du profil financier",
         },
       };
 
