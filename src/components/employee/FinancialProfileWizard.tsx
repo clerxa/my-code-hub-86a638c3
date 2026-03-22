@@ -368,7 +368,7 @@ export function FinancialProfileWizard({
                     inputMode="numeric"
                     value={getNumericDisplayValue(formData.revenu_fiscal_annuel)}
                     onChange={(e) => handleNumericInput("revenu_fiscal_annuel", e.target.value)}
-                    placeholder="Ex: 50 000"
+                    placeholder="Montant total déclaré aux impôts — vous + conjoint(e)"
                   />
                 </div>
               </div>
