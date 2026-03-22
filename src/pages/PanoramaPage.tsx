@@ -367,10 +367,32 @@ export default function PanoramaPage() {
                     </div>
                   )}
                   {(fp?.charges_fixes_mensuelles ?? 0) > 0 && (
-                    <div className="rounded-md bg-muted/40 px-3 py-2">
-                      <p className="text-[10px] text-muted-foreground">Autres charges</p>
-                      <p className="text-sm font-semibold">{formatEuros(fp.charges_fixes_mensuelles)}</p>
-                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="rounded-md bg-muted/40 px-3 py-2 cursor-help">
+                            <p className="text-[10px] text-muted-foreground">Autres charges</p>
+                            <p className="text-sm font-semibold">{formatEuros(fp.charges_fixes_mensuelles)}</p>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          <div className="space-y-1 text-xs">
+                            <p className="font-semibold mb-1.5">Détail des charges</p>
+                            {(fp?.charges_energie ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Énergie</span><span>{formatEuros(fp.charges_energie)}</span></div>}
+                            {(fp?.charges_copropriete_taxes ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Copropriété / Taxes</span><span>{formatEuros(fp.charges_copropriete_taxes)}</span></div>}
+                            {(fp?.charges_assurance_habitation ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Assurance habitation</span><span>{formatEuros(fp.charges_assurance_habitation)}</span></div>}
+                            {(fp?.charges_transport_commun ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Transport</span><span>{formatEuros(fp.charges_transport_commun)}</span></div>}
+                            {(fp?.charges_assurance_auto ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Assurance auto</span><span>{formatEuros(fp.charges_assurance_auto)}</span></div>}
+                            {(fp?.charges_lld_loa_auto ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">LLD / LOA auto</span><span>{formatEuros(fp.charges_lld_loa_auto)}</span></div>}
+                            {(fp?.charges_internet ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Internet</span><span>{formatEuros(fp.charges_internet)}</span></div>}
+                            {(fp?.charges_mobile ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Mobile</span><span>{formatEuros(fp.charges_mobile)}</span></div>}
+                            {(fp?.charges_abonnements ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Abonnements</span><span>{formatEuros(fp.charges_abonnements)}</span></div>}
+                            {(fp?.charges_frais_scolarite ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Frais scolarité</span><span>{formatEuros(fp.charges_frais_scolarite)}</span></div>}
+                            {(fp?.charges_autres ?? 0) > 0 && <div className="flex justify-between gap-4"><span className="text-muted-foreground">Autres</span><span>{formatEuros(fp.charges_autres)}</span></div>}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                   {impotMensuel != null && impotMensuel > 0 && (
                     <div className="rounded-md bg-blue-500/5 border border-blue-500/10 px-3 py-2">
