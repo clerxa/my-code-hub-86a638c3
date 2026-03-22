@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, ExternalLink, Mail, Video, PlayCircle, CheckCircle2, UserCheck, UserX, XCircle } from "lucide-react";
+import { AddToCalendarButton } from "@/components/webinar/AddToCalendarButton";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
