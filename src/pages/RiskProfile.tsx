@@ -184,6 +184,12 @@ export default function RiskProfilePage() {
         throw profileError;
       }
 
+      // Mark risk profile as completed on user profile
+      await supabase
+        .from('profiles')
+        .update({ risk_profile_completed: true })
+        .eq('id', user.id);
+
       const newProfile: RiskProfile = {
         user_id: user.id,
         total_weighted_score: totalWeightedScore,
