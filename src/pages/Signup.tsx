@@ -134,8 +134,10 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      // Get onboarding session ID from sessionStorage
-      const onboardingSessionId = sessionStorage.getItem(ONBOARDING_SESSION_KEY);
+      // Get onboarding session ID from sessionStorage (only if valid UUID)
+      const rawSessionId = sessionStorage.getItem(ONBOARDING_SESSION_KEY);
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const onboardingSessionId = rawSessionId && uuidRegex.test(rawSessionId) ? rawSessionId : null;
       
       // Call auto-signup edge function
       const response = await supabase.functions.invoke('auto-signup', {
