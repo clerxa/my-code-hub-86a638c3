@@ -108,6 +108,9 @@ export const useFinancialProfilePrefill = () => {
         frais_scolarite: profile.charges_frais_scolarite || 0,
         pension_alimentaire: profile.pensions_alimentaires || 0,
         credit_consommation: profile.credits_consommation || 0,
+        investissement_locatif_credits: 0, // Filled separately from real estate hook
+        investissement_locatif_charges: 0, // Filled separately from real estate hook
+        impots: 0, // Filled separately from ATLAS
         autres: profile.charges_autres || 0,
       },
       
