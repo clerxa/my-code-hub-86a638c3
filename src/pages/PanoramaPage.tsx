@@ -165,7 +165,12 @@ export default function PanoramaPage() {
   const revenusFonciersMensuel = fp?.revenus_locatifs ? Math.round(fp.revenus_locatifs / 12) : 0;
   const autresRevenusMensuel = fp?.autres_revenus_mensuels ?? 0;
   const totalRevenusMensuel = revenuNetMensuel != null ? revenuNetMensuel + revenusFonciersMensuel + autresRevenusMensuel : null;
-  const chargesFixes = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0) + (fp?.charges_fixes_mensuelles ?? 0);
+  // charges_fixes_mensuelles is already the TOTAL of all charges (including loyer, crédits, pensions, immo locatif, etc.)
+  // We use it as the single source of truth and compute "autres" as the remainder
+  const chargesFixesTotal = fp?.charges_fixes_mensuelles ?? 0;
+  const chargesDejaAffichees = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0);
+  const autresChargesCalculees = Math.max(0, chargesFixesTotal - chargesDejaAffichees);
+  const chargesFixes = chargesFixesTotal;
   const impotMensuel = atlasData?.impot_net_total != null ? Math.round(atlasData.impot_net_total / 12) : null;
   const tauxMoyenAtlas = atlasData?.taux_moyen_pct ?? null;
   const totalChargesAvecImpots = chargesFixes + (impotMensuel ?? 0);
@@ -366,13 +371,13 @@ export default function PanoramaPage() {
                       <p className="text-sm font-semibold">{formatEuros(fp.pensions_alimentaires)}</p>
                     </div>
                   )}
-                  {(fp?.charges_fixes_mensuelles ?? 0) > 0 && (
+                  {autresChargesCalculees > 0 && (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div className="rounded-md bg-muted/40 px-3 py-2 cursor-help">
                             <p className="text-[10px] text-muted-foreground">Autres charges</p>
-                            <p className="text-sm font-semibold">{formatEuros(fp.charges_fixes_mensuelles)}</p>
+                            <p className="text-sm font-semibold">{formatEuros(autresChargesCalculees)}</p>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-xs">
@@ -524,14 +529,38 @@ export default function PanoramaPage() {
             colorClass={moduleTitleColors.risque}
             onClick={() => navigate("/risk-profile")}
           >
-            {synthesis?.riskProfile ? (
-              <>
-                <p className="text-xl font-bold">{synthesis.riskProfile.profile_type ?? "Évalué"}</p>
-                {synthesis.riskProfile.total_weighted_score != null && (
-                  <p className="text-xs text-muted-foreground">Score {synthesis.riskProfile.total_weighted_score}</p>
-                )}
-              </>
-            ) : (
+            {synthesis?.riskProfile ? (() => {
+              const profileType = synthesis.riskProfile.profile_type ?? "Évalué";
+              const score = synthesis.riskProfile.total_weighted_score;
+              const profileColorMap: Record<string, string> = {
+                'Prudent': 'text-blue-600',
+                'Équilibré': 'text-emerald-600',
+                'Dynamique': 'text-orange-600',
+                'Audacieux': 'text-red-600',
+              };
+              const profileDescMap: Record<string, string> = {
+                'Prudent': 'Sécurité et préservation du capital',
+                'Équilibré': 'Équilibre sécurité / performance',
+                'Dynamique': 'Croissance et tolérance aux fluctuations',
+                'Audacieux': 'Performance maximale, forte volatilité',
+              };
+              const color = profileColorMap[profileType] || 'text-foreground';
+              const desc = profileDescMap[profileType];
+              return (
+                <div className="space-y-1">
+                  <p className={cn("text-xl font-bold", color)}>{profileType}</p>
+                  {score != null && (
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${Math.min(100, score)}%` }} />
+                      </div>
+                      <span className="text-[10px] text-muted-foreground font-medium">{score}/100</span>
+                    </div>
+                  )}
+                  {desc && <p className="text-[10px] text-muted-foreground leading-tight">{desc}</p>}
+                </div>
+              );
+            })() : (
               <p className="text-sm text-muted-foreground">Non évalué</p>
             )}
           </ModuleCard>
