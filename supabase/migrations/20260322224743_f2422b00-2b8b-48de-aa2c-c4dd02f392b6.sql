@@ -1,0 +1,1 @@
+UPDATE horizon_project_categories SET is_active = false WHERE id = '486b0fa5-717c-4093-a438-786dc45c5c5b';
