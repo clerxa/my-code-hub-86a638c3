@@ -46,6 +46,8 @@ const SimulateurEpargnePrecaution = () => {
   const queryClient = useQueryClient();
   const { calculerSimulation, getCoefficientContrat } = useEpargnePrecautionCalculations();
   const { getPrefillData, hasProfile, isLoading: isProfileLoading } = useFinancialProfilePrefill();
+  const { totals: realEstateTotals } = useUserRealEstateProperties();
+  const { user } = useAuth();
 
   // État du wizard
   const [currentStep, setCurrentStep] = useState(0);
