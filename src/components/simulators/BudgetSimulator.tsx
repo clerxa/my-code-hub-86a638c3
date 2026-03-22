@@ -233,7 +233,8 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
     }
   }, [savedData, savedLoaded]);
 
-  // Financial profile prefill
+  // Financial profile prefill + real estate properties
+  const { properties: realEstateProperties } = useUserRealEstateProperties();
   const { getPrefillData, hasProfile, isLoading: isProfileLoading } = useFinancialProfilePrefill();
   const [profileApplied, setProfileApplied] = useState(false);
 
