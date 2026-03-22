@@ -514,7 +514,7 @@ export default function PanoramaPage() {
                 { label: "Crédit immobilier", value: fp?.credits_immobilier ?? 0, category: "fixes" as const },
                 { label: "Crédit conso", value: fp?.credits_consommation ?? 0, category: "fixes" as const },
                 { label: "Crédit auto", value: fp?.credits_auto ?? 0, category: "fixes" as const },
-                { label: "Investissements locatifs", value: Math.max(creditsImmoLocatif, revenusFonciersMensuel), category: "fixes" as const },
+                { label: "Investissements locatifs", value: creditsImmoLocatif, category: "fixes" as const },
                 { label: "Pensions alimentaires", value: fp?.pensions_alimentaires ?? 0, category: "fixes" as const },
                 { label: "Énergie", value: fp?.charges_energie ?? 0, category: "fixes" as const },
                 { label: "Copropriété / Taxes", value: fp?.charges_copropriete_taxes ?? 0, category: "fixes" as const },
