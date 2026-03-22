@@ -58,6 +58,7 @@ export default function PanoramaPage() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [hasAtlasAnalysis, setHasAtlasAnalysis] = useState<boolean | null>(null);
+  const [atlasData, setAtlasData] = useState<{ taux_moyen_pct: number | null; impot_net_total: number | null } | null>(null);
   const [onboardingStatus, setOnboardingStatus] = useState<{
     atlas_completed: boolean;
     audit_panorama_completed: boolean;
