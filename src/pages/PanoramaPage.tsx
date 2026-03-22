@@ -426,7 +426,6 @@ export default function PanoramaPage() {
             </div>
           </section>
         )}
-        </div>
 
         {/* ═══ SECTION 4 — TIMELINE (badges horizontaux) ═══ */}
         <div className="relative">
