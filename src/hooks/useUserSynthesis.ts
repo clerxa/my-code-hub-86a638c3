@@ -221,6 +221,8 @@ export function useUserSynthesis(userId: string | null) {
             (fp.patrimoine_scpi || 0) +
             (fp.patrimoine_pea || 0) +
             (fp.patrimoine_autres || 0) +
+            (fp.valeur_pee || 0) +
+            (fp.valeur_perco || 0) +
             ((fp.patrimoine_immo_valeur || 0) - (fp.patrimoine_immo_credit_restant || 0));
         }
 

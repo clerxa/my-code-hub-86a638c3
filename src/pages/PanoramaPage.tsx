@@ -191,7 +191,8 @@ export default function PanoramaPage() {
   const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
 
   // Patrimoine breakdown (immo net already in patrimoine_total now)
-  const patrimoineFinancier = (synthesis?.financialProfile?.patrimoine_total ?? 0) - ((fp?.patrimoine_immo_valeur ?? 0) - (fp?.patrimoine_immo_credit_restant ?? 0));
+  const epargneSalariale = (fp?.valeur_pee ?? 0) + (fp?.valeur_perco ?? 0);
+  const patrimoineFinancier = (synthesis?.financialProfile?.patrimoine_total ?? 0) - ((fp?.patrimoine_immo_valeur ?? 0) - (fp?.patrimoine_immo_credit_restant ?? 0)) - epargneSalariale;
   const patrimoineImmo = (fp?.patrimoine_immo_valeur ?? 0) - (fp?.patrimoine_immo_credit_restant ?? 0);
   const patrimoineActions = vegaPortfolio.totalValueEur ?? 0;
 
