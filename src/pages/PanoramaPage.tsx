@@ -725,7 +725,7 @@ export default function PanoramaPage() {
                       <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
                         <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${Math.min(100, score)}%` }} />
                       </div>
-                      <span className="text-[10px] text-muted-foreground font-medium">{score}/100</span>
+                      <span className="text-[10px] text-muted-foreground font-medium">{Math.round(score)}/100</span>
                     </div>
                   )}
                   {desc && <p className="text-[10px] text-muted-foreground leading-tight">{desc}</p>}
