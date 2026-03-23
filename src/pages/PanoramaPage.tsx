@@ -191,7 +191,8 @@ export default function PanoramaPage() {
   const tmi = synthesis?.financialProfile?.tmi ?? fp?.tmi ?? null;
 
   // Patrimoine breakdown (immo net already in patrimoine_total now)
-  const patrimoineFinancier = (synthesis?.financialProfile?.patrimoine_total ?? 0) - ((fp?.patrimoine_immo_valeur ?? 0) - (fp?.patrimoine_immo_credit_restant ?? 0));
+  const epargneSalariale = (fp?.valeur_pee ?? 0) + (fp?.valeur_perco ?? 0);
+  const patrimoineFinancier = (synthesis?.financialProfile?.patrimoine_total ?? 0) - ((fp?.patrimoine_immo_valeur ?? 0) - (fp?.patrimoine_immo_credit_restant ?? 0)) - epargneSalariale;
   const patrimoineImmo = (fp?.patrimoine_immo_valeur ?? 0) - (fp?.patrimoine_immo_credit_restant ?? 0);
   const patrimoineActions = vegaPortfolio.totalValueEur ?? 0;
 
@@ -569,6 +570,12 @@ export default function PanoramaPage() {
               <span>Immobilier <strong className="text-foreground">{formatEuros(patrimoineImmo)}</strong></span>
               <span className="text-border">|</span>
               <span>Actionnariat <strong className="text-foreground">{formatEuros(patrimoineActions)}</strong></span>
+              {epargneSalariale > 0 && (
+                <>
+                  <span className="text-border">|</span>
+                  <span>Épargne salariale <strong className="text-foreground">{formatEuros(epargneSalariale)}</strong></span>
+                </>
+              )}
               <span className="text-border">|</span>
               <span>Total net <strong className="text-foreground font-semibold">{formatEuros(patrimoine_panorama_total)}</strong></span>
             </div>
