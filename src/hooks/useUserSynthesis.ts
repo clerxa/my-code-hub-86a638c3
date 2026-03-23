@@ -134,7 +134,7 @@ export function useUserSynthesis(userId: string | null) {
             .single(),
           supabase
             .from("user_financial_profiles")
-            .select("revenu_mensuel_net, revenu_fiscal_annuel, situation_familiale, nb_enfants, capacite_epargne_mensuelle, epargne_actuelle, apport_disponible, tmi, parts_fiscales, is_complete, epargne_livrets, patrimoine_per, patrimoine_assurance_vie, patrimoine_scpi, patrimoine_pea, patrimoine_autres, patrimoine_immo_valeur, patrimoine_immo_credit_restant, revenus_locatifs, autres_revenus_mensuels, loyer_actuel, credits_immobilier, credits_consommation, credits_auto, pensions_alimentaires, charges_fixes_mensuelles, revenu_annuel_brut, revenu_annuel_brut_conjoint")
+            .select("revenu_mensuel_net, revenu_fiscal_annuel, situation_familiale, nb_enfants, capacite_epargne_mensuelle, epargne_actuelle, apport_disponible, tmi, parts_fiscales, is_complete, epargne_livrets, patrimoine_per, patrimoine_assurance_vie, patrimoine_scpi, patrimoine_pea, patrimoine_autres, patrimoine_immo_valeur, patrimoine_immo_credit_restant, revenus_locatifs, autres_revenus_mensuels, loyer_actuel, credits_immobilier, credits_consommation, credits_auto, pensions_alimentaires, charges_fixes_mensuelles, revenu_annuel_brut, revenu_annuel_brut_conjoint, valeur_pee, valeur_perco")
             .eq("user_id", userId)
             .maybeSingle(),
           supabase
