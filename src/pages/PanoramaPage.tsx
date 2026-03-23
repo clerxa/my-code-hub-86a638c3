@@ -559,12 +559,6 @@ export default function PanoramaPage() {
                 </Tooltip>
               </TooltipProvider>
               <span className="text-border">|</span>
-              {((fp?.valeur_pee ?? 0) + (fp?.valeur_perco ?? 0)) > 0 && (
-                <>
-                  <span>Épargne collective <strong className="text-foreground">{formatEuros((fp?.valeur_pee ?? 0) + (fp?.valeur_perco ?? 0))}</strong></span>
-                  <span className="text-border">|</span>
-                </>
-              )}
               <span>Financier <strong className="text-foreground">{formatEuros(patrimoineFinancier)}</strong></span>
               <span className="text-border">|</span>
               <span>Immobilier <strong className="text-foreground">{formatEuros(patrimoineImmo)}</strong></span>
