@@ -128,27 +128,6 @@ export default function PanoramaPage() {
   const { totals: realEstateTotals } = useUserRealEstateProperties();
   const creditsImmoLocatif = (realEstateTotals?.mensualitesTotal ?? 0) + (realEstateTotals?.chargesTotal ?? 0);
 
-            {/* Divider */}
-            {fp?.epargne_livrets != null && fp.epargne_livrets > 0 && <div className="hidden md:block w-px h-12 bg-border" />}
-
-            {/* Épargne de précaution */}
-            {fp?.epargne_livrets != null && fp.epargne_livrets > 0 && (
-              <div>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1 cursor-help">
-                      Épargne de précaution
-                      <Info className="h-3 w-3" />
-                    </p>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <p className="text-xs">Correspond au montant disponible sur vos livrets (Livret A, LDDS, LEP…). C'est votre épargne liquide mobilisable immédiatement en cas d'imprévu.</p>
-                  </TooltipContent>
-                </Tooltip>
-                <p className="text-2xl font-semibold">{formatEuros(fp.epargne_livrets)}</p>
-              </div>
-            )}
-
 
   if (error) {
     return (
