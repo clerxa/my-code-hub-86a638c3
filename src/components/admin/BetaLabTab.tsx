@@ -155,7 +155,6 @@ export const BetaLabTab: React.FC = () => {
 
         if (personalEmailsError) throw personalEmailsError;
       } else {
-        // Create the setting if it doesn't exist
         const { error: insertError } = await supabase
           .from("global_settings")
           .insert({
@@ -165,10 +164,29 @@ export const BetaLabTab: React.FC = () => {
             value: (betaSettings.allowPersonalEmails ? "true" : "false") as unknown as any,
             value_type: "boolean",
           });
-
         if (insertError) throw insertError;
-        
-        // Refetch to get the new ID
+        await fetchSettings();
+      }
+
+      // Update require partner domain setting
+      if (settingIds.requirePartnerDomain) {
+        const { error: partnerDomainError } = await supabase
+          .from("global_settings")
+          .update({ value: betaSettings.requirePartnerDomain ? "true" : "false", updated_at: new Date().toISOString() })
+          .eq("id", settingIds.requirePartnerDomain);
+
+        if (partnerDomainError) throw partnerDomainError;
+      } else {
+        const { error: insertError } = await supabase
+          .from("global_settings")
+          .insert({
+            category: "beta",
+            key: "require_partner_domain",
+            label: "Restreindre aux domaines partenaires",
+            value: (betaSettings.requirePartnerDomain ? "true" : "false") as unknown as any,
+            value_type: "boolean",
+          });
+        if (insertError) throw insertError;
         await fetchSettings();
       }
 
