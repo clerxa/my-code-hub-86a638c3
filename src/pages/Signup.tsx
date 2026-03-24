@@ -287,11 +287,11 @@ const Signup = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email professionnel</Label>
+                <Label htmlFor="email">{allowPersonalEmails ? "Email" : "Email professionnel"}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="jean.dupont@entreprise.com"
+                  placeholder={allowPersonalEmails ? "votre@email.com" : "jean.dupont@entreprise.com"}
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   required
