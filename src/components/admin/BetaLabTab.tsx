@@ -45,11 +45,13 @@ export const BetaLabTab: React.FC = () => {
     text: string | null; 
     color: string | null;
     allowPersonalEmails: string | null;
+    requirePartnerDomain: string | null;
   }>({ 
     enabled: null, 
     text: null, 
     color: null,
-    allowPersonalEmails: null
+    allowPersonalEmails: null,
+    requirePartnerDomain: null
   });
 
   useEffect(() => {
