@@ -54,11 +54,28 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [allowPersonalEmails, setAllowPersonalEmails] = useState(false);
+
+  // Fetch beta setting
+  useEffect(() => {
+    const fetchBetaSetting = async () => {
+      const { data } = await supabase
+        .from("global_settings")
+        .select("value")
+        .eq("category", "beta")
+        .eq("key", "allow_personal_emails")
+        .maybeSingle();
+      if (data) {
+        setAllowPersonalEmails(data.value === true || data.value === "true");
+      }
+    };
+    fetchBetaSetting();
+  }, []);
 
   // Vérifier si l'email est personnel en temps réel
   const handleEmailChange = (value: string) => {
     setEmail(value);
-    if (value && value.includes('@') && isPersonalEmail(value) && !isWhitelistedEmail(value)) {
+    if (!allowPersonalEmails && value && value.includes('@') && isPersonalEmail(value) && !isWhitelistedEmail(value)) {
       setEmailError("Veuillez utiliser votre adresse email professionnelle pour vous inscrire.");
     } else {
       setEmailError(null);
@@ -112,7 +129,7 @@ const Signup = () => {
     e.preventDefault();
 
     // Vérification côté client des emails personnels
-    if (isPersonalEmail(email.trim()) && !isWhitelistedEmail(email.trim())) {
+    if (!allowPersonalEmails && isPersonalEmail(email.trim()) && !isWhitelistedEmail(email.trim())) {
       toast.error("Email professionnel requis", {
         description: "Veuillez utiliser votre adresse email professionnelle pour vous inscrire."
       });
@@ -270,11 +287,11 @@ const Signup = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email professionnel</Label>
+                <Label htmlFor="email">{allowPersonalEmails ? "Email" : "Email professionnel"}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="jean.dupont@entreprise.com"
+                  placeholder={allowPersonalEmails ? "votre@email.com" : "jean.dupont@entreprise.com"}
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   required
@@ -290,6 +307,7 @@ const Signup = () => {
               </div>
 
               {/* Info box expliquant pourquoi email pro */}
+              {!allowPersonalEmails && (
               <Alert className="bg-primary/5 border-primary/20">
                 <Building2 className="h-4 w-4 text-primary" />
                 <AlertDescription className="text-sm text-muted-foreground">
@@ -304,6 +322,7 @@ const Signup = () => {
                   </p>
                 </AlertDescription>
               </Alert>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="password">Mot de passe</Label>
