@@ -54,6 +54,23 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [allowPersonalEmails, setAllowPersonalEmails] = useState(false);
+
+  // Fetch beta setting
+  useEffect(() => {
+    const fetchBetaSetting = async () => {
+      const { data } = await supabase
+        .from("global_settings")
+        .select("value")
+        .eq("category", "beta")
+        .eq("key", "allow_personal_emails")
+        .maybeSingle();
+      if (data) {
+        setAllowPersonalEmails(data.value === true || data.value === "true");
+      }
+    };
+    fetchBetaSetting();
+  }, []);
 
   // Vérifier si l'email est personnel en temps réel
   const handleEmailChange = (value: string) => {
