@@ -27,8 +27,22 @@ export function StepSituationPersonnelle({ onNext, onSkip, onBack }: StepSituati
     statut_residence: profile?.statut_residence || null,
   });
 
+  const computeFoyerCount = (situation: string | null | undefined, enfants: number) => {
+    const adults = (situation === "marie" || situation === "pacse") ? 2 : 1;
+    return adults + enfants;
+  };
+
   const updateField = <K extends keyof FinancialProfileInput>(field: K, value: FinancialProfileInput[K]) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const next = { ...prev, [field]: value };
+      // Auto-compute nb_personnes_foyer
+      if (field === "situation_familiale" || field === "nb_enfants") {
+        const sit = field === "situation_familiale" ? (value as string) : next.situation_familiale;
+        const enf = field === "nb_enfants" ? (value as number) : (next.nb_enfants ?? 0);
+        next.nb_personnes_foyer = computeFoyerCount(sit, enf);
+      }
+      return next;
+    });
   };
 
   const handleSubmit = async () => {
