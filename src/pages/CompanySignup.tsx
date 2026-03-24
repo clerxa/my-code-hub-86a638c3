@@ -55,6 +55,7 @@ const CompanySignup = () => {
   const [company, setCompany] = useState<CompanyInfo | null>(null);
   const [loadingCompany, setLoadingCompany] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [allowPersonalEmails, setAllowPersonalEmails] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
