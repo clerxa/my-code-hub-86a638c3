@@ -45,7 +45,6 @@ interface CompanyInfo {
   logo_url: string | null;
   partnership_type: string | null;
   email_domains: string[] | null;
-  is_beta: boolean;
 }
 
 const CompanySignup = () => {
