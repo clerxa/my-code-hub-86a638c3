@@ -75,7 +75,7 @@ export const BetaLabTab: React.FC = () => {
         .from("global_settings")
         .select("id, key, value")
         .eq("category", "beta")
-        .in("key", ["allow_personal_emails"]);
+        .in("key", ["allow_personal_emails", "require_partner_domain"]);
 
       if (betaError) throw betaError;
 
