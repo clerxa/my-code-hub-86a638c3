@@ -322,6 +322,7 @@ const Signup = () => {
                   </p>
                 </AlertDescription>
               </Alert>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="password">Mot de passe</Label>
