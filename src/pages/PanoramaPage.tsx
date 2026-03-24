@@ -148,6 +148,17 @@ export default function PanoramaPage() {
   const creditsImmoLocatif = (realEstateTotals?.mensualitesTotal ?? 0) + (realEstateTotals?.chargesTotal ?? 0);
 
 
+  if (checkingOnboarding) {
+    return (
+      <EmployeeLayout activeSection="panorama">
+        <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </EmployeeLayout>
+    );
+  }
+
   if (error) {
     return (
       <EmployeeLayout activeSection="panorama">
