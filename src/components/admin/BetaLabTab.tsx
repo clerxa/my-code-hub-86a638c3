@@ -91,15 +91,18 @@ export const BetaLabTab: React.FC = () => {
         });
 
         const allowPersonalEmailsSetting = betaData?.find(s => s.key === "allow_personal_emails");
+        const requirePartnerDomainSetting = betaData?.find(s => s.key === "require_partner_domain");
         setBetaSettings({
-          allowPersonalEmails: allowPersonalEmailsSetting?.value === true || allowPersonalEmailsSetting?.value === "true"
+          allowPersonalEmails: allowPersonalEmailsSetting?.value === true || allowPersonalEmailsSetting?.value === "true",
+          requirePartnerDomain: requirePartnerDomainSetting?.value === true || requirePartnerDomainSetting?.value === "true"
         });
 
         setSettingIds({
           enabled: enabledSetting?.id || null,
           text: textSetting?.id || null,
           color: colorSetting?.id || null,
-          allowPersonalEmails: allowPersonalEmailsSetting?.id || null
+          allowPersonalEmails: allowPersonalEmailsSetting?.id || null,
+          requirePartnerDomain: requirePartnerDomainSetting?.id || null
         });
       }
     } catch (error) {
