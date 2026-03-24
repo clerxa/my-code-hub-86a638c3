@@ -49,7 +49,7 @@ export default function OnboardingFlow() {
     await supabase.from("profiles").update(updates).eq("id", user!.id);
 
     if (nextStep > STEPS.length) {
-      navigate("/panorama?welcome=true");
+      navigate("/panorama/audit?welcome=true");
     } else {
       setCurrentStep(nextStep);
       window.scrollTo({ top: 0, behavior: "smooth" });
