@@ -28,7 +28,7 @@ export function StepAtlas({ onNext, onSkip, onBack }: StepAtlasProps) {
             <div>
               <CardTitle className="text-lg">Importez votre avis d'imposition</CardTitle>
               <CardDescription>
-                Votre avis d'imposition contient votre revenu fiscal de référence et votre TMI — deux données essentielles pour calibrer toutes vos simulations fiscales et patrimoniales.
+                Votre avis d'imposition contient votre revenu fiscal de référence et votre TMI — deux données essentielles pour calibrer toutes vos simulations fiscales et patrimoniales. Vous retrouverez l'analyse détaillée de votre avis dans le module <strong>ATLAS</strong> de l'application.
               </CardDescription>
             </div>
           </div>
