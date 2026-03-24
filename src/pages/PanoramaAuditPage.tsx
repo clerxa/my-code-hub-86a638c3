@@ -453,12 +453,40 @@ export default function PanoramaAuditPage() {
               </p>
             </div>
 
-            {/* Completeness bar */}
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <Progress value={completeness} className="h-2" />
+            {/* Completeness banner */}
+            <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4">
+              {/* Animated glow orb */}
+              <div className="absolute -top-6 -right-6 w-24 h-24 bg-primary/20 rounded-full blur-2xl animate-pulse pointer-events-none" />
+              <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-primary/10 rounded-full blur-xl animate-pulse pointer-events-none" style={{ animationDelay: '1s' }} />
+              
+              <div className="relative z-10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <span className="text-sm">📊</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Précision de votre Panorama</p>
+                      <p className="text-xs text-muted-foreground">Plus vos données sont complètes, plus vos analyses seront pertinentes</p>
+                    </div>
+                  </div>
+                  <span className="text-lg font-bold text-primary">{completeness}%</span>
+                </div>
+                
+                {/* Custom glow progress bar */}
+                <div className="relative h-3 w-full rounded-full bg-muted/30 overflow-hidden">
+                  <div 
+                    className="h-full rounded-full bg-gradient-to-r from-primary via-primary to-primary/80 transition-all duration-700 ease-out"
+                    style={{ width: `${completeness}%` }}
+                  />
+                  {completeness < 100 && (
+                    <div 
+                      className="absolute top-0 h-full w-8 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse rounded-full"
+                      style={{ left: `${Math.max(0, completeness - 5)}%` }}
+                    />
+                  )}
+                </div>
               </div>
-              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">{completeness}% complété</span>
             </div>
 
             {/* Missing fields chips */}
