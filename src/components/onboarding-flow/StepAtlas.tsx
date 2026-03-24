@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FileText } from "lucide-react";
 import OcrAvisImposition from "@/components/OcrAvisImposition";
 import { motion } from "framer-motion";
 import { OnboardingNavButtons } from "./OnboardingNavButtons";
@@ -13,40 +11,35 @@ interface StepAtlasProps {
 
 export function StepAtlas({ onNext, onSkip, onBack }: StepAtlasProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="space-y-6"
-    >
-      <Card className="border-border/50 shadow-sm">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-[image:var(--gradient-hero)] shadow-md">
-              <FileText className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">Importez votre avis d'imposition</CardTitle>
-              <CardDescription>
-                Votre avis d'imposition contient votre revenu fiscal de référence et votre TMI — deux données essentielles pour calibrer toutes vos simulations fiscales et patrimoniales. Vous retrouverez l'analyse détaillée de votre avis dans le module <strong>ATLAS</strong> de l'application.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <OcrAvisImposition importOnly />
-          <p className="text-sm text-muted-foreground flex items-center gap-1.5 pt-2">
-            🔒 Votre document est analysé de manière sécurisée et n'est jamais stocké.
-          </p>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <span className="text-4xl">📊</span>
+        <h2 className="text-2xl font-bold text-white">Votre fiscalité</h2>
+        <p className="text-white/40 text-sm max-w-md mx-auto">
+          Importez votre avis d'imposition pour calibrer vos simulations. Vous retrouverez l'analyse détaillée dans le module <strong className="text-primary/70">ATLAS</strong> de l'application.
+        </p>
+      </div>
+
+      {/* Upload card */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-md p-6 space-y-4"
+      >
+        <OcrAvisImposition importOnly />
+        <div className="flex items-center gap-2 pt-2">
+          <span className="text-xs text-white/30">🔒 Votre document est analysé de manière sécurisée et n'est jamais stocké.</span>
+        </div>
+      </motion.div>
 
       <OnboardingNavButtons
         onNext={onNext}
         onSkip={onSkip}
         onBack={onBack}
-        nextLabel="Terminer et accéder à mon tableau de bord"
+        nextLabel="Terminer et découvrir mon panorama"
       />
-    </motion.div>
+    </div>
   );
 }

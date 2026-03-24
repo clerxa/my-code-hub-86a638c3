@@ -2,18 +2,19 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
-import { Loader2, Shield } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { OnboardingStepBar } from "@/components/onboarding-flow/OnboardingStepBar";
 import { StepBienvenue } from "@/components/onboarding-flow/StepBienvenue";
 import { StepSituationPersonnelle } from "@/components/onboarding-flow/StepSituationPersonnelle";
 import { StepSituationPro } from "@/components/onboarding-flow/StepSituationPro";
 import { StepAtlas } from "@/components/onboarding-flow/StepAtlas";
+import { motion, AnimatePresence } from "framer-motion";
 
 const STEPS = [
-  { id: 1, label: "Bienvenue", key: "bienvenue" },
-  { id: 2, label: "Situation", key: "situation" },
-  { id: 3, label: "Emploi", key: "professionnel" },
-  { id: 4, label: "Fiscalité", key: "atlas" },
+  { id: 1, label: "Bienvenue", key: "bienvenue", emoji: "👋" },
+  { id: 2, label: "Situation", key: "situation", emoji: "👤" },
+  { id: 3, label: "Emploi", key: "professionnel", emoji: "💼" },
+  { id: 4, label: "Fiscalité", key: "atlas", emoji: "📊" },
 ];
 
 export default function OnboardingFlow() {
@@ -65,40 +66,95 @@ export default function OnboardingFlow() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-[hsl(220,25%,10%)]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
+  const currentStepData = STEPS.find(s => s.id === currentStep);
+
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center p-4 pt-8 md:pt-12">
-      <div className="mb-6">
-        <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          MyFinCare
-        </span>
+    <div className="min-h-screen relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(220 25% 8%) 0%, hsl(230 30% 14%) 50%, hsl(250 25% 12%) 100%)" }}>
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Glowing orbs */}
+        <div className="absolute top-20 left-[10%] w-72 h-72 rounded-full opacity-15" style={{ background: "radial-gradient(circle, hsl(217 91% 60%) 0%, transparent 70%)" }} />
+        <div className="absolute bottom-20 right-[10%] w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, hsl(271 81% 56%) 0%, transparent 70%)" }} />
+        <div className="absolute top-[40%] right-[25%] w-48 h-48 rounded-full opacity-10" style={{ background: "radial-gradient(circle, hsl(38 92% 50%) 0%, transparent 70%)" }} />
+        
+        {/* Grid pattern */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(hsl(217 91% 60%) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+        
+        {/* Decorative sparkles */}
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute top-16 left-[15%] text-primary/20 text-4xl"
+        >✦</motion.div>
+        <motion.div
+          animate={{ rotate: -360 }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute top-32 right-[20%] text-secondary/20 text-3xl"
+        >✦</motion.div>
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], opacity: [0.15, 0.3, 0.15] }}
+          transition={{ duration: 4, repeat: Infinity }}
+          className="absolute bottom-[30%] left-[8%] text-accent/20 text-2xl"
+        >✧</motion.div>
       </div>
 
-      <OnboardingStepBar steps={STEPS} currentStep={currentStep} />
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center p-4 pt-8 md:pt-12">
+        {/* Logo */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <span className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+            MyFinCare
+          </span>
+        </motion.div>
 
-      <div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground">
-        <Shield className="h-3.5 w-3.5" />
-        <span>Vos données sont chiffrées et confidentielles</span>
-      </div>
+        {/* Step bar */}
+        <OnboardingStepBar steps={STEPS} currentStep={currentStep} />
 
-      <div className="w-full max-w-2xl mt-6 pb-16">
-        {currentStep === 1 && (
-          <StepBienvenue onNext={() => advanceStep(2)} onSkip={() => advanceStep(2)} />
-        )}
-        {currentStep === 2 && (
-          <StepSituationPersonnelle onNext={() => advanceStep(3)} onSkip={() => advanceStep(3)} onBack={goBack} />
-        )}
-        {currentStep === 3 && (
-          <StepSituationPro onNext={() => advanceStep(4)} onSkip={() => advanceStep(4)} onBack={goBack} />
-        )}
-        {currentStep === 4 && (
-          <StepAtlas onNext={() => advanceStep(5, "atlas_completed")} onSkip={() => advanceStep(5)} onBack={goBack} />
-        )}
+        {/* Security badge */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="flex items-center gap-2 mt-5 px-4 py-2 rounded-full border border-primary/10 bg-primary/5 backdrop-blur-sm"
+        >
+          <span className="text-xs text-primary/70">🔒 Vos données sont chiffrées et confidentielles</span>
+        </motion.div>
+
+        {/* Step content */}
+        <div className="w-full max-w-2xl mt-8 pb-16">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -40 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+            >
+              {currentStep === 1 && (
+                <StepBienvenue onNext={() => advanceStep(2)} onSkip={() => advanceStep(2)} />
+              )}
+              {currentStep === 2 && (
+                <StepSituationPersonnelle onNext={() => advanceStep(3)} onSkip={() => advanceStep(3)} onBack={goBack} />
+              )}
+              {currentStep === 3 && (
+                <StepSituationPro onNext={() => advanceStep(4)} onSkip={() => advanceStep(4)} onBack={goBack} />
+              )}
+              {currentStep === 4 && (
+                <StepAtlas onNext={() => advanceStep(5, "atlas_completed")} onSkip={() => advanceStep(5)} onBack={goBack} />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
