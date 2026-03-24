@@ -258,6 +258,30 @@ export const BetaLabTab: React.FC = () => {
                 </Alert>
               )}
 
+              {/* Require partner domain toggle */}
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div className="space-y-0.5">
+                  <Label htmlFor="require-partner-domain">Restreindre aux domaines partenaires</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Si activé, seuls les emails dont le domaine est enregistré dans une entreprise partenaire peuvent s'inscrire.
+                  </p>
+                </div>
+                <Switch
+                  id="require-partner-domain"
+                  checked={betaSettings.requirePartnerDomain}
+                  onCheckedChange={(checked) => setBetaSettings(prev => ({ ...prev, requirePartnerDomain: checked }))}
+                />
+              </div>
+
+              {betaSettings.requirePartnerDomain && (
+                <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
+                  <Building2 className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800 dark:text-blue-300">
+                    <strong>Restriction active :</strong> Seuls les utilisateurs dont le domaine email correspond à une entreprise enregistrée dans le CMS pourront s'inscrire. Les autres verront un message d'erreur.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <Button onClick={handleSave} disabled={isSaving} size="sm" className="gap-2">
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 Enregistrer
