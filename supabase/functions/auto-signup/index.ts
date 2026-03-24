@@ -328,17 +328,21 @@ serve(async (req) => {
       console.log('Using provided company:', company.name);
     } else {
       // Original flow: check personal email and find/create company by domain
+      
+      // Fetch beta settings
+      const { data: betaSettings } = await supabaseAdmin
+        .from('global_settings')
+        .select('key, value')
+        .eq('category', 'beta')
+        .in('key', ['allow_personal_emails', 'require_partner_domain']);
+      
+      const allowPersonalEmails = betaSettings?.find(s => s.key === 'allow_personal_emails');
+      const requirePartnerDomain = betaSettings?.find(s => s.key === 'require_partner_domain');
+      const isPersonalEmailAllowed = allowPersonalEmails?.value === true || allowPersonalEmails?.value === 'true';
+      const isPartnerDomainRequired = requirePartnerDomain?.value === true || requirePartnerDomain?.value === 'true';
+      
       if (PERSONAL_DOMAINS.includes(domain) && !WHITELISTED_EMAILS.includes(email.toLowerCase().trim())) {
-        const { data: betaSetting } = await supabaseAdmin
-          .from('global_settings')
-          .select('value')
-          .eq('category', 'beta')
-          .eq('key', 'allow_personal_emails')
-          .single();
-
-        const allowPersonalEmails = betaSetting?.value === true || betaSetting?.value === 'true';
-        
-        if (!allowPersonalEmails) {
+        if (!isPersonalEmailAllowed) {
           return new Response(
             JSON.stringify({ 
               success: false,
@@ -350,6 +354,36 @@ serve(async (req) => {
         }
         
         console.log('Personal email allowed in beta mode:', email);
+      }
+
+      // Check if domain must match a registered partner company
+      if (isPartnerDomainRequired && !PERSONAL_DOMAINS.includes(domain)) {
+        // Check if domain exists in any company's email_domains
+        const { data: allCompanies } = await supabaseAdmin
+          .from('companies')
+          .select('email_domains');
+        
+        let domainFound = false;
+        if (allCompanies) {
+          for (const c of allCompanies) {
+            const emailDomains = c.email_domains || [];
+            if (emailDomains.includes(domain) || emailDomains.includes(`@${domain}`)) {
+              domainFound = true;
+              break;
+            }
+          }
+        }
+        
+        if (!domainFound) {
+          return new Response(
+            JSON.stringify({ 
+              success: false,
+              error: 'domain_not_partner',
+              message: 'Votre entreprise n\'est pas partenaire de MyFinCare. Impossible de créer un compte.'
+            }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
       }
 
       // Find or create company
