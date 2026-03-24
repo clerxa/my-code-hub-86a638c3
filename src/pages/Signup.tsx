@@ -189,6 +189,11 @@ const Signup = () => {
         if (responseData.error === 'personal_email') {
           toast.error(responseData.message || "Votre email doit être un email professionnel. Les adresses personnelles ne sont pas autorisées.");
           return;
+        } else if (responseData.error === 'domain_not_partner') {
+          toast.error("Entreprise non partenaire", {
+            description: responseData.message || "Votre entreprise n'est pas partenaire de MyFinCare. Impossible de créer un compte."
+          });
+          return;
         } else if (responseData.error === 'already_exists') {
           toast.error("Cet email est déjà utilisé");
           return;
