@@ -36,7 +36,8 @@ export default function OnboardingFlow() {
         navigate("/employee", { replace: true });
         return;
       }
-      setCurrentStep((data as any)?.onboarding_step || 1);
+      const savedStep = (data as any)?.onboarding_step || 1;
+      setCurrentStep(savedStep > STEPS.length ? 1 : savedStep);
       setLoading(false);
     };
     loadProgress();
