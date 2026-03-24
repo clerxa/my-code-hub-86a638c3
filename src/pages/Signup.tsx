@@ -129,7 +129,7 @@ const Signup = () => {
     e.preventDefault();
 
     // Vérification côté client des emails personnels
-    if (isPersonalEmail(email.trim()) && !isWhitelistedEmail(email.trim())) {
+    if (!allowPersonalEmails && isPersonalEmail(email.trim()) && !isWhitelistedEmail(email.trim())) {
       toast.error("Email professionnel requis", {
         description: "Veuillez utiliser votre adresse email professionnelle pour vous inscrire."
       });
