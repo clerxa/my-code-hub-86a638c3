@@ -307,6 +307,7 @@ const Signup = () => {
               </div>
 
               {/* Info box expliquant pourquoi email pro */}
+              {!allowPersonalEmails && (
               <Alert className="bg-primary/5 border-primary/20">
                 <Building2 className="h-4 w-4 text-primary" />
                 <AlertDescription className="text-sm text-muted-foreground">
