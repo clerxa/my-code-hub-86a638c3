@@ -329,12 +329,12 @@ const CompanySignup = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="email">
-                  {company?.is_beta ? "Email" : "Email professionnel"}
+                  {allowPersonalEmails ? "Email" : "Email professionnel"}
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder={company?.is_beta ? "votre@email.com" : "jean.dupont@entreprise.com"}
+                  placeholder={allowPersonalEmails ? "votre@email.com" : "jean.dupont@entreprise.com"}
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   required
