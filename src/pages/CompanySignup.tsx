@@ -80,17 +80,29 @@ const CompanySignup = () => {
         return;
       }
 
-      const { data, error } = await supabase
-        .from("companies")
-        .select("id, name, logo_url, partnership_type, email_domains, is_beta")
-        .eq("signup_slug", slug)
-        .maybeSingle();
+      const [companyResult, betaResult] = await Promise.all([
+        supabase
+          .from("companies")
+          .select("id, name, logo_url, partnership_type, email_domains")
+          .eq("signup_slug", slug)
+          .maybeSingle(),
+        supabase
+          .from("global_settings")
+          .select("value")
+          .eq("category", "beta")
+          .eq("key", "allow_personal_emails")
+          .maybeSingle(),
+      ]);
 
-      if (error || !data) {
+      if (companyResult.error || !companyResult.data) {
         setNotFound(true);
       } else {
-        setCompany(data as CompanyInfo);
+        setCompany(companyResult.data as CompanyInfo);
       }
+
+      const betaVal = betaResult.data?.value;
+      setAllowPersonalEmails(betaVal === true || betaVal === "true");
+
       setLoadingCompany(false);
     };
 
