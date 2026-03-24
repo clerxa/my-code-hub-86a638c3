@@ -75,7 +75,7 @@ const Signup = () => {
   // Vérifier si l'email est personnel en temps réel
   const handleEmailChange = (value: string) => {
     setEmail(value);
-    if (value && value.includes('@') && isPersonalEmail(value) && !isWhitelistedEmail(value)) {
+    if (!allowPersonalEmails && value && value.includes('@') && isPersonalEmail(value) && !isWhitelistedEmail(value)) {
       setEmailError("Veuillez utiliser votre adresse email professionnelle pour vous inscrire.");
     } else {
       setEmailError(null);
