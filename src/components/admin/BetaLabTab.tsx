@@ -37,7 +37,7 @@ const colorPresets = [
 
 export const BetaLabTab: React.FC = () => {
   const [betaBadge, setBetaBadge] = useState<BetaBadgeSettings>({ enabled: true, text: 'Beta', color: '#f59e0b' });
-  const [betaSettings, setBetaSettings] = useState<BetaSettings>({ allowPersonalEmails: false });
+  const [betaSettings, setBetaSettings] = useState<BetaSettings>({ allowPersonalEmails: false, requirePartnerDomain: false });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [settingIds, setSettingIds] = useState<{ 
