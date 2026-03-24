@@ -154,24 +154,53 @@ Deno.serve(async (req) => {
         // VEGA plans
         await supabaseAdmin.from('vega_rsu_plans').delete().eq('user_id', userId);
 
-        // ── Reset profile to blank (keep first_name, last_name, email, company_id, id) ──
+        // Real estate
+        await supabaseAdmin.from('user_real_estate_properties').delete().eq('user_id', userId);
+
+        // ── Reset profile to blank (keep ONLY id and email) ──
         const { error: profileError } = await supabaseAdmin
           .from('profiles')
           .update({
+            first_name: null,
+            last_name: null,
+            company_id: null,
             total_points: 0,
             completed_modules: [],
-            employee_onboarding_completed: false,
-            last_login: null,
+            current_module: null,
             current_session_start: null,
+            last_login: null,
+            phone_number: null,
+            birth_date: null,
+            net_taxable_income: null,
+            marital_status: null,
+            children_count: null,
+            avatar_url: null,
+            job_title: null,
+            personal_email: null,
+            receive_on_personal_email: null,
+            household_taxable_income: null,
+            objectives: null,
             a_pris_rdv: false,
             a_invite_collegue: false,
-            avatar_url: null,
+            employee_onboarding_completed: false,
+            first_login_onboarding_completed: false,
+            onboarding_completed: false,
+            onboarding_step: null,
+            atlas_completed: false,
+            audit_panorama_completed: false,
+            risk_profile_completed: false,
+            horizon_completed: false,
+            vega_skipped: false,
+            beta_disclaimer_accepted_at: null,
             forum_anonymous_mode: false,
             forum_pseudo: null,
             forum_avatar_url: null,
             forum_posts_count: 0,
             forum_comments_count: 0,
             forum_contribution_score: 0,
+            theme_preference: 'villains',
+            is_active: true,
+            deleted_at: null,
           })
           .eq('id', userId);
 
