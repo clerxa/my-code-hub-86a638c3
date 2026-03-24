@@ -45,7 +45,6 @@ interface CompanyInfo {
   logo_url: string | null;
   partnership_type: string | null;
   email_domains: string[] | null;
-  is_beta: boolean;
 }
 
 const CompanySignup = () => {
@@ -56,6 +55,7 @@ const CompanySignup = () => {
   const [company, setCompany] = useState<CompanyInfo | null>(null);
   const [loadingCompany, setLoadingCompany] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [allowPersonalEmails, setAllowPersonalEmails] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -80,17 +80,29 @@ const CompanySignup = () => {
         return;
       }
 
-      const { data, error } = await supabase
-        .from("companies")
-        .select("id, name, logo_url, partnership_type, email_domains, is_beta")
-        .eq("signup_slug", slug)
-        .maybeSingle();
+      const [companyResult, betaResult] = await Promise.all([
+        supabase
+          .from("companies")
+          .select("id, name, logo_url, partnership_type, email_domains")
+          .eq("signup_slug", slug)
+          .maybeSingle(),
+        supabase
+          .from("global_settings")
+          .select("value")
+          .eq("category", "beta")
+          .eq("key", "allow_personal_emails")
+          .maybeSingle(),
+      ]);
 
-      if (error || !data) {
+      if (companyResult.error || !companyResult.data) {
         setNotFound(true);
       } else {
-        setCompany(data as CompanyInfo);
+        setCompany(companyResult.data as CompanyInfo);
       }
+
+      const betaVal = betaResult.data?.value;
+      setAllowPersonalEmails(betaVal === true || betaVal === "true");
+
       setLoadingCompany(false);
     };
 
@@ -105,8 +117,8 @@ const CompanySignup = () => {
     const domain = value.toLowerCase().split("@")[1];
     const personal = isPersonalEmail(value);
 
-    if (company.is_beta) {
-      // Beta companies: all emails accepted
+    if (allowPersonalEmails) {
+      // Beta mode: all emails accepted
       return null;
     }
 
@@ -317,12 +329,12 @@ const CompanySignup = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="email">
-                  {company?.is_beta ? "Email" : "Email professionnel"}
+                  {allowPersonalEmails ? "Email" : "Email professionnel"}
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder={company?.is_beta ? "votre@email.com" : "jean.dupont@entreprise.com"}
+                  placeholder={allowPersonalEmails ? "votre@email.com" : "jean.dupont@entreprise.com"}
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
                   required
