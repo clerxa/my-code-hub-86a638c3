@@ -55,21 +55,24 @@ const Signup = () => {
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [allowPersonalEmails, setAllowPersonalEmails] = useState(false);
+  const [requirePartnerDomain, setRequirePartnerDomain] = useState(false);
 
-  // Fetch beta setting
+  // Fetch beta settings
   useEffect(() => {
-    const fetchBetaSetting = async () => {
+    const fetchBetaSettings = async () => {
       const { data } = await supabase
         .from("global_settings")
-        .select("value")
+        .select("key, value")
         .eq("category", "beta")
-        .eq("key", "allow_personal_emails")
-        .maybeSingle();
+        .in("key", ["allow_personal_emails", "require_partner_domain"]);
       if (data) {
-        setAllowPersonalEmails(data.value === true || data.value === "true");
+        const allowSetting = data.find(s => s.key === "allow_personal_emails");
+        const requireSetting = data.find(s => s.key === "require_partner_domain");
+        setAllowPersonalEmails(allowSetting?.value === true || allowSetting?.value === "true");
+        setRequirePartnerDomain(requireSetting?.value === true || requireSetting?.value === "true");
       }
     };
-    fetchBetaSetting();
+    fetchBetaSettings();
   }, []);
 
   // Vérifier si l'email est personnel en temps réel
@@ -185,6 +188,11 @@ const Signup = () => {
       if (responseData?.success === false || responseData?.error) {
         if (responseData.error === 'personal_email') {
           toast.error(responseData.message || "Votre email doit être un email professionnel. Les adresses personnelles ne sont pas autorisées.");
+          return;
+        } else if (responseData.error === 'domain_not_partner') {
+          toast.error("Entreprise non partenaire", {
+            description: responseData.message || "Votre entreprise n'est pas partenaire de MyFinCare. Impossible de créer un compte."
+          });
           return;
         } else if (responseData.error === 'already_exists') {
           toast.error("Cet email est déjà utilisé");

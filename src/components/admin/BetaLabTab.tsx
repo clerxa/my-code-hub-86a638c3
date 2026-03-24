@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 
-import { Loader2, Save, FlaskConical, Eye, Palette, Mail, AlertTriangle } from 'lucide-react';
+import { Loader2, Save, FlaskConical, Eye, Palette, Mail, AlertTriangle, Building2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 
@@ -20,6 +20,7 @@ interface BetaBadgeSettings {
 
 interface BetaSettings {
   allowPersonalEmails: boolean;
+  requirePartnerDomain: boolean;
 }
 
 // Predefined colors for quick selection
@@ -36,7 +37,7 @@ const colorPresets = [
 
 export const BetaLabTab: React.FC = () => {
   const [betaBadge, setBetaBadge] = useState<BetaBadgeSettings>({ enabled: true, text: 'Beta', color: '#f59e0b' });
-  const [betaSettings, setBetaSettings] = useState<BetaSettings>({ allowPersonalEmails: false });
+  const [betaSettings, setBetaSettings] = useState<BetaSettings>({ allowPersonalEmails: false, requirePartnerDomain: false });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [settingIds, setSettingIds] = useState<{ 
@@ -44,11 +45,13 @@ export const BetaLabTab: React.FC = () => {
     text: string | null; 
     color: string | null;
     allowPersonalEmails: string | null;
+    requirePartnerDomain: string | null;
   }>({ 
     enabled: null, 
     text: null, 
     color: null,
-    allowPersonalEmails: null
+    allowPersonalEmails: null,
+    requirePartnerDomain: null
   });
 
   useEffect(() => {
@@ -72,7 +75,7 @@ export const BetaLabTab: React.FC = () => {
         .from("global_settings")
         .select("id, key, value")
         .eq("category", "beta")
-        .in("key", ["allow_personal_emails"]);
+        .in("key", ["allow_personal_emails", "require_partner_domain"]);
 
       if (betaError) throw betaError;
 
@@ -88,15 +91,18 @@ export const BetaLabTab: React.FC = () => {
         });
 
         const allowPersonalEmailsSetting = betaData?.find(s => s.key === "allow_personal_emails");
+        const requirePartnerDomainSetting = betaData?.find(s => s.key === "require_partner_domain");
         setBetaSettings({
-          allowPersonalEmails: allowPersonalEmailsSetting?.value === true || allowPersonalEmailsSetting?.value === "true"
+          allowPersonalEmails: allowPersonalEmailsSetting?.value === true || allowPersonalEmailsSetting?.value === "true",
+          requirePartnerDomain: requirePartnerDomainSetting?.value === true || requirePartnerDomainSetting?.value === "true"
         });
 
         setSettingIds({
           enabled: enabledSetting?.id || null,
           text: textSetting?.id || null,
           color: colorSetting?.id || null,
-          allowPersonalEmails: allowPersonalEmailsSetting?.id || null
+          allowPersonalEmails: allowPersonalEmailsSetting?.id || null,
+          requirePartnerDomain: requirePartnerDomainSetting?.id || null
         });
       }
     } catch (error) {
@@ -149,7 +155,6 @@ export const BetaLabTab: React.FC = () => {
 
         if (personalEmailsError) throw personalEmailsError;
       } else {
-        // Create the setting if it doesn't exist
         const { error: insertError } = await supabase
           .from("global_settings")
           .insert({
@@ -159,10 +164,29 @@ export const BetaLabTab: React.FC = () => {
             value: (betaSettings.allowPersonalEmails ? "true" : "false") as unknown as any,
             value_type: "boolean",
           });
-
         if (insertError) throw insertError;
-        
-        // Refetch to get the new ID
+        await fetchSettings();
+      }
+
+      // Update require partner domain setting
+      if (settingIds.requirePartnerDomain) {
+        const { error: partnerDomainError } = await supabase
+          .from("global_settings")
+          .update({ value: betaSettings.requirePartnerDomain ? "true" : "false", updated_at: new Date().toISOString() })
+          .eq("id", settingIds.requirePartnerDomain);
+
+        if (partnerDomainError) throw partnerDomainError;
+      } else {
+        const { error: insertError } = await supabase
+          .from("global_settings")
+          .insert({
+            category: "beta",
+            key: "require_partner_domain",
+            label: "Restreindre aux domaines partenaires",
+            value: (betaSettings.requirePartnerDomain ? "true" : "false") as unknown as any,
+            value_type: "boolean",
+          });
+        if (insertError) throw insertError;
         await fetchSettings();
       }
 
@@ -230,6 +254,30 @@ export const BetaLabTab: React.FC = () => {
                   <AlertDescription className="text-amber-800 dark:text-amber-300">
                     <strong>Attention :</strong> Les emails personnels sont autorisés. 
                     Pensez à désactiver cette option avant le lancement en production pour garantir que seuls les emails professionnels sont acceptés.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Require partner domain toggle */}
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div className="space-y-0.5">
+                  <Label htmlFor="require-partner-domain">Restreindre aux domaines partenaires</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Si activé, seuls les emails dont le domaine est enregistré dans une entreprise partenaire peuvent s'inscrire.
+                  </p>
+                </div>
+                <Switch
+                  id="require-partner-domain"
+                  checked={betaSettings.requirePartnerDomain}
+                  onCheckedChange={(checked) => setBetaSettings(prev => ({ ...prev, requirePartnerDomain: checked }))}
+                />
+              </div>
+
+              {betaSettings.requirePartnerDomain && (
+                <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
+                  <Building2 className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800 dark:text-blue-300">
+                    <strong>Restriction active :</strong> Seuls les utilisateurs dont le domaine email correspond à une entreprise enregistrée dans le CMS pourront s'inscrire. Les autres verront un message d'erreur.
                   </AlertDescription>
                 </Alert>
               )}
