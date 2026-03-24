@@ -20,6 +20,7 @@ interface BetaBadgeSettings {
 
 interface BetaSettings {
   allowPersonalEmails: boolean;
+  requirePartnerDomain: boolean;
 }
 
 // Predefined colors for quick selection
