@@ -238,61 +238,101 @@ export default function PanoramaPage() {
     <EmployeeLayout activeSection="panorama">
       <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-4">
 
-        {/* ═══ EDUCATIONAL NUDGE BANNER ═══ */}
-        {!profileComplete && onboardingStatus && (
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-lg border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent px-4 py-3">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Sparkles className="h-4 w-4 text-primary" />
+        {/* ═══ PROFILE COMPLETION CARD ═══ */}
+        {financialCompleteness < 100 && (
+          <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/[0.08] via-secondary/[0.04] to-transparent p-5 md:p-6">
+            {/* Decorative background */}
+            <div className="absolute top-0 right-0 w-48 h-48 opacity-10 pointer-events-none" style={{ background: "radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)" }} />
+            
+            <div className="relative flex flex-col md:flex-row md:items-center gap-4">
+              {/* Left: Icon + text */}
+              <div className="flex-1 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "var(--gradient-hero)" }}>
+                    <Sparkles className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">
+                      Votre panorama est à {financialCompleteness}%
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Plus vos données sont précises, plus vos analyses seront pertinentes
+                    </p>
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="space-y-1.5">
+                  <div className="relative h-3 w-full rounded-full bg-muted/50 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700 ease-out"
+                      style={{
+                        width: `${financialCompleteness}%`,
+                        background: "var(--gradient-hero)",
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-muted-foreground">
+                      {documents_manquants.length > 0
+                        ? `${documents_manquants.length} section${documents_manquants.length > 1 ? "s" : ""} à compléter`
+                        : "Presque terminé !"}
+                    </span>
+                    <span className="font-medium text-primary">{financialCompleteness}%</span>
+                  </div>
+                </div>
+
+                {/* Missing items pills */}
+                {documents_manquants.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {documents_manquants.slice(0, 4).map((doc, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border border-border bg-background text-muted-foreground">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                        {doc}
+                      </span>
+                    ))}
+                    {documents_manquants.length > 4 && (
+                      <span className="text-[10px] px-2 py-1 text-muted-foreground">
+                        +{documents_manquants.length - 4} autres
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  Plus vous renseignez votre profil, plus vos analyses seront précises
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Complétez votre situation financière pour obtenir des recommandations personnalisées
-                </p>
+
+              {/* Right: CTA */}
+              <div className="shrink-0">
+                <Button
+                  onClick={() => navigate("/panorama/audit")}
+                  size="lg"
+                  className="gap-2 shadow-lg shadow-primary/20 font-semibold w-full md:w-auto"
+                  style={{ background: "var(--gradient-hero)" }}
+                >
+                  Compléter mon profil
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
               </div>
             </div>
-            <Button size="sm" onClick={() => navigate("/panorama/audit")} className="shrink-0 gap-1.5">
-              Compléter mon profil <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
           </div>
         )}
 
         {/* ═══ SECTION 1 — HERO BAND ═══ */}
         <section className="rounded-lg border border-border bg-card p-4 md:p-5">
-          {/* Top row: title + progress */}
+          {/* Top row: title */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold tracking-tight">PANORAMA</h1>
               <Badge className="bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30 text-[10px] px-1.5 py-0">BETA</Badge>
             </div>
-            <TooltipProvider>
-              <div className="flex items-center gap-2 min-w-0 md:w-72">
-                <span className="text-xs text-muted-foreground whitespace-nowrap">Profil {financialCompleteness}%</span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex-1 cursor-help" onClick={() => financialCompleteness < 100 && navigate("/panorama/audit")}>
-                      <Progress value={financialCompleteness} className="h-1.5" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    {documents_manquants.length > 0 ? (
-                      <p className="text-xs">Manquant : {documents_manquants.join(", ")}</p>
-                    ) : (
-                      <p className="text-xs">Profil complet ✓</p>
-                    )}
-                  </TooltipContent>
-                </Tooltip>
-                <button
-                  onClick={() => navigate("/panorama/audit")}
-                  className="text-xs text-primary hover:underline whitespace-nowrap"
-                >
-                  {financialCompleteness < 100 ? "Compléter" : "Modifier"}
-                </button>
-              </div>
-            </TooltipProvider>
+            {financialCompleteness >= 100 && (
+              <button
+                onClick={() => navigate("/panorama/audit")}
+                className="text-xs text-primary hover:underline flex items-center gap-1"
+              >
+                <UserCheck className="h-3.5 w-3.5" />
+                Modifier mon profil
+              </button>
+            )}
           </div>
 
           {/* KPI row */}
