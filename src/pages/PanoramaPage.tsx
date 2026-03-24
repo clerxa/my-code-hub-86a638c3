@@ -66,6 +66,25 @@ export default function PanoramaPage() {
     audit_panorama_completed: boolean;
     risk_profile_completed: boolean;
   } | null>(null);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
+
+  // Check if user has completed the onboarding flow — redirect if not
+  useEffect(() => {
+    if (!user?.id) { setCheckingOnboarding(false); return; }
+    const checkOnboardingFlow = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("id", user.id)
+        .single();
+      if (!(data as any)?.onboarding_completed) {
+        navigate("/employee/onboarding-flow", { replace: true });
+        return;
+      }
+      setCheckingOnboarding(false);
+    };
+    checkOnboardingFlow();
+  }, [user, navigate]);
 
   useEffect(() => {
     if (searchParams.get("welcome") === "true") {
@@ -75,7 +94,7 @@ export default function PanoramaPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!user?.id) { setHasAtlasAnalysis(false); return; }
+    if (!user?.id || checkingOnboarding) { setHasAtlasAnalysis(false); return; }
     const check = async () => {
       const [atlasRes, profileRes, atlasDetailRes] = await Promise.all([
         supabase
