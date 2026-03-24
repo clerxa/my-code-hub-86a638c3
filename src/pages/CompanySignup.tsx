@@ -117,8 +117,8 @@ const CompanySignup = () => {
     const domain = value.toLowerCase().split("@")[1];
     const personal = isPersonalEmail(value);
 
-    if (company.is_beta) {
-      // Beta companies: all emails accepted
+    if (allowPersonalEmails) {
+      // Beta mode: all emails accepted
       return null;
     }
 
