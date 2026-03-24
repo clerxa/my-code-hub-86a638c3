@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 
-import { Loader2, Save, FlaskConical, Eye, Palette, Mail, AlertTriangle } from 'lucide-react';
+import { Loader2, Save, FlaskConical, Eye, Palette, Mail, AlertTriangle, Building2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 
