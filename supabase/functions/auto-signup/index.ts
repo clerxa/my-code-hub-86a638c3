@@ -288,7 +288,7 @@ serve(async (req) => {
       // Fetch the specified company
       const { data: companyData, error: companyError } = await supabaseAdmin
         .from('companies')
-        .select('id, name, partnership_type, is_beta')
+        .select('id, name, partnership_type')
         .eq('id', companyId)
         .single();
       
@@ -299,9 +299,18 @@ serve(async (req) => {
         );
       }
       
-      // For beta companies, skip personal email check
-      if (!companyData.is_beta && PERSONAL_DOMAINS.includes(domain) && !WHITELISTED_EMAILS.includes(email.toLowerCase().trim())) {
-        // Non-beta company with personal email: check partnership
+      // Check beta mode from global_settings
+      const { data: betaSetting } = await supabaseAdmin
+        .from('global_settings')
+        .select('value')
+        .eq('category', 'beta')
+        .eq('key', 'allow_personal_emails')
+        .maybeSingle();
+      
+      const allowPersonalEmails = betaSetting?.value === true || betaSetting?.value === 'true';
+      
+      // If beta mode is off, block personal emails
+      if (!allowPersonalEmails && PERSONAL_DOMAINS.includes(domain) && !WHITELISTED_EMAILS.includes(email.toLowerCase().trim())) {
         const hasPartnership = companyData.partnership_type && companyData.partnership_type.toLowerCase() !== 'aucun';
         if (!hasPartnership) {
           return new Response(
