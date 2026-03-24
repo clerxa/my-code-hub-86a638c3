@@ -128,9 +128,10 @@ export function StepSituationPersonnelle({ onNext, onSkip, onBack }: StepSituati
                 type="number"
                 min={1}
                 value={formData.nb_personnes_foyer ?? 1}
-                onChange={(e) => updateField("nb_personnes_foyer", parseInt(e.target.value) || 1)}
+                readOnly
+                className="bg-muted/50"
               />
-              <p className="text-xs text-muted-foreground">Vous inclus(e)</p>
+              <p className="text-xs text-muted-foreground">Calculé automatiquement (vous inclus·e)</p>
             </div>
           </div>
 
