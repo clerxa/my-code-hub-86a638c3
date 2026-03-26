@@ -259,6 +259,14 @@ export function ExpertBookingTab() {
         if (rdvKeys[setting.key] && setting.value) {
           try { rdvKeys[setting.key](JSON.parse(setting.value)); } catch { rdvKeys[setting.key](setting.value); }
         }
+        // Matrix config
+        if (setting.key === "rdv_assignment_matrix" && setting.value) {
+          try { setAssignmentMatrix(JSON.parse(setting.value)); } catch { /* keep default */ }
+        }
+        if (setting.key === "rdv_advisor_urls" && setting.value) {
+          try { setAdvisorUrls(prev => ({ ...prev, ...JSON.parse(setting.value) })); } catch { /* keep default */ }
+        }
+        }
       });
 
       // Fetch landing page settings
