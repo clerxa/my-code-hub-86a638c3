@@ -7,12 +7,14 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
   requireCompanyContact?: boolean;
+  requireAdvisor?: boolean;
 }
 
-const ProtectedRoute = ({ children, requireAdmin = false, requireCompanyContact = false }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, requireAdmin = false, requireCompanyContact = false, requireAdvisor = false }: ProtectedRouteProps) => {
   const { user, session } = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [isCompanyContact, setIsCompanyContact] = useState<boolean | null>(null);
+  const [isAdvisor, setIsAdvisor] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,9 +27,10 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireCompanyContact 
       return;
     }
 
-    if (!requireAdmin && !requireCompanyContact) {
+    if (!requireAdmin && !requireCompanyContact && !requireAdvisor) {
       setIsAdmin(true);
       setIsCompanyContact(true);
+      setIsAdvisor(true);
       setLoading(false);
       return;
     }
@@ -43,15 +46,18 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireCompanyContact 
         console.error("Error checking user role:", error);
         setIsAdmin(false);
         setIsCompanyContact(false);
+        setIsAdvisor(false);
       } else {
         const userRole = data?.role;
         setIsAdmin(userRole === "admin");
         setIsCompanyContact(userRole === "contact_entreprise" || userRole === "admin");
+        setIsAdvisor(userRole === "conseiller" || userRole === "admin");
       }
     } catch (error) {
       console.error("Error in checkAdminStatus:", error);
       setIsAdmin(false);
       setIsCompanyContact(false);
+      setIsAdvisor(false);
     } finally {
       setLoading(false);
     }
@@ -76,6 +82,10 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireCompanyContact 
   }
 
   if (requireCompanyContact && !isCompanyContact) {
+    return <Navigate to="/employee" replace />;
+  }
+
+  if (requireAdvisor && !isAdvisor) {
     return <Navigate to="/employee" replace />;
   }
 
