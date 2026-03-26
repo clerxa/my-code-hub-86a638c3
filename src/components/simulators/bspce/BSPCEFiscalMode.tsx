@@ -28,6 +28,13 @@ export function BSPCEFiscalMode() {
   const { user } = useAuth();
   const { rdvUrl: bookingUrl } = useRdvLink();
 
+  const [nbBspce, setNbBspce] = useState<number>(0);
+  const [prixExercice, setPrixExercice] = useState<number>(0);
+  const [prixCession, setPrixCession] = useState<number>(0);
+  const [dateEntree, setDateEntree] = useState('');
+  const [dateCession, setDateCession] = useState('');
+  const [tmi, setTmi] = useState('30');
+
   const canCalculate = nbBspce > 0 && prixExercice > 0 && prixCession > 0 && dateEntree && dateCession && prixCession > prixExercice;
 
   const result: BSPCEFiscalResult | null = useMemo(() => {
