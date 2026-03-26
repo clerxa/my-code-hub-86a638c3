@@ -240,11 +240,6 @@ export const CompanyInfoSection = ({ company, primaryColor }: CompanyInfoSection
                 <Badge key={device} variant="secondary" className="text-sm py-1 px-3">{device}</Badge>
               ))}
             </div>
-            {compensationDevices?.variable_compensation && (
-              <p className="mt-3 text-sm text-muted-foreground">
-                Rémunération variable : {compensationDevices.variable_compensation}
-              </p>
-            )}
           </CardContent>
         </Card>
       )}
