@@ -12,10 +12,19 @@ export interface SymbolSearchResult {
   country: string;
 }
 
-async function callStockData(body: Record<string, unknown>) {
-  const { data, error } = await supabase.functions.invoke('stock-data', { body });
-  if (error) throw error;
-  return data;
+async function callStockData(body: Record<string, unknown>, retries = 2): Promise<any> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const { data, error } = await supabase.functions.invoke('stock-data', { body });
+    if (error) {
+      // Retry on 500/503 (concurrency limits)
+      if (attempt < retries && (error.message?.includes('500') || error.message?.includes('503') || error.message?.includes('BOOT_ERROR'))) {
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+        continue;
+      }
+      throw error;
+    }
+    return data;
+  }
 }
 
 export async function searchSymbols(query: string): Promise<SymbolSearchResult[]> {
