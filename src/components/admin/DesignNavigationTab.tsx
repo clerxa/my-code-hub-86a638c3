@@ -10,7 +10,6 @@ import { SidebarConfigurationTab } from "./SidebarConfigurationTab";
 import { AdminSidebarConfigurationTab } from "./AdminSidebarConfigurationTab";
 import { HeaderConfigurationTab } from "./HeaderConfigurationTab";
 import { FooterTab } from "./FooterTab";
-import { BannerTab } from "./BannerTab";
 
 interface SectionCardProps {
   icon: React.ElementType;
@@ -56,12 +55,6 @@ const sections = [
     description: "Gérez les boutons, liens et éléments affichés dans le header de l'application",
   },
   {
-    id: "banner",
-    icon: Image,
-    title: "Bannière",
-    description: "Définissez la bannière par défaut affichée sur les dashboards entreprise",
-  },
-  {
     id: "sidebars",
     icon: PanelLeft,
     title: "Menus latéraux",
@@ -90,8 +83,6 @@ export function DesignNavigationTab() {
         return <LayoutCustomizationTab />;
       case "header":
         return <HeaderConfigurationTab />;
-      case "banner":
-        return <BannerTab />;
       case "sidebars":
         return <SidebarConfigurationTab />;
       case "admin-sidebar":

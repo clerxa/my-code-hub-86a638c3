@@ -48,7 +48,6 @@ interface Parcours {
 }
 interface CompanyWithPartnership extends CompanyType {
   cover_url?: string;
-  banner_url?: string | null;
 }
 const Company = () => {
   const {
@@ -109,7 +108,7 @@ const Company = () => {
         return <Shield className="h-5 w-5 mr-2 inline-block" />;
     }
   };
-  // Banner is now handled by useResponsiveBanner hook
+  
 
 
 
