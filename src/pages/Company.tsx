@@ -35,6 +35,7 @@ import { MobileCompanyNav } from "@/components/company/MobileCompanyNav";
 import { CompanyLeaderboard } from "@/components/company/CompanyLeaderboard";
 import { CompanyFAQSection } from "@/components/company/CompanyFAQSection";
 import { CompanyExpertAdviceSection } from "@/components/company/CompanyExpertAdviceSection";
+import { CompanyBanner } from "@/components/company/CompanyBanner";
 import type { Company as CompanyType } from "@/types/database";
 import { ParcoursFilter, filterParcours } from "@/components/parcours/ParcoursFilter";
 interface Parcours {
