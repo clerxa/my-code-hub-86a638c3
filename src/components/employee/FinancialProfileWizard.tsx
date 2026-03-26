@@ -80,6 +80,7 @@ export function FinancialProfileWizard({
   };
   const [currentStep, setCurrentStep] = useState(getStepIndex(initialStepId));
   const [showWhyInfo, setShowWhyInfo] = useState(false);
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
   const bufferPercent = (formData as any).buffer_depenses_imprevues_pct || 0;
   const setBufferPercent = (val: number) => {
     updateField('buffer_depenses_imprevues_pct' as any, val);
@@ -208,17 +209,24 @@ export function FinancialProfileWizard({
     field: K, 
     value: string
   ) => {
+    // Mark field as touched so we display 0 explicitly
+    setTouchedFields(prev => new Set(prev).add(field as string));
     // Only allow digits
     const cleanValue = value.replace(/[^0-9]/g, '');
-    // Convert to number only on blur or when there's content
-    // During typing, store as number (0 if empty, otherwise parsed value)
     const numValue = cleanValue === '' ? 0 : parseInt(cleanValue, 10);
     updateField(field, numValue as FinancialProfileInput[K]);
   };
 
-  // Get display value for numeric inputs with thousands separator (show empty string for 0)
-  const getNumericDisplayValue = (value: number | undefined | null): string => {
-    if (value === undefined || value === null || value === 0) return '';
+  // Get display value for numeric inputs with thousands separator
+  // Show "0" if field was explicitly touched or has a non-zero saved value
+  // Show empty string only for untouched fields with value 0 (so placeholder shows)
+  const getNumericDisplayValue = (value: number | undefined | null, fieldKey?: string): string => {
+    if (value === undefined || value === null) return '';
+    if (value === 0) {
+      // Show "0" if the user explicitly typed in this field or if the value was loaded from DB as 0
+      if (fieldKey && touchedFields.has(fieldKey)) return '0';
+      return '';
+    }
     return value.toLocaleString('fr-FR');
   };
 
