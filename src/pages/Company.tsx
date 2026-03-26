@@ -31,7 +31,7 @@ import { InviteColleagueBlock } from "@/components/company/InviteColleagueBlock"
 import { CompanyInfoSection } from "@/components/company/CompanyInfoSection";
 import { CompanySidebar } from "@/components/company/CompanySidebar";
 import { MobileCompanyNav } from "@/components/company/MobileCompanyNav";
-import { DedicatedAdvisors } from "@/components/company/DedicatedAdvisors";
+
 import { CompanyLeaderboard } from "@/components/company/CompanyLeaderboard";
 import type { Company as CompanyType } from "@/types/database";
 import { ParcoursFilter, filterParcours } from "@/components/parcours/ParcoursFilter";
@@ -1138,28 +1138,6 @@ const Company = () => {
             })()}
             {activeSection === "parcours" && renderBlock("parcours")}
             {activeSection === "leaderboard" && renderBlock("leaderboard")}
-            {activeSection === "advisors" && (
-              <div className="space-y-6">
-                {/* Section réservation rendez-vous */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" style={{ color: company.primary_color }} />
-                      Prendre rendez-vous
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      Prenez rendez-vous avec nos experts pour un accompagnement personnalisé
-                    </p>
-                    <HubSpotMeetingWidget redirectToLanding triggerText="Prendre rendez-vous" primaryColor={company.primary_color} utmCampaign="page_entreprise_conseillers" />
-                  </CardContent>
-                </Card>
-                
-                {/* Section conseillers dédiés */}
-                <DedicatedAdvisors companyRank={company.rang} />
-              </div>
-            )}
             {activeSection === "communication-kit" && isCompanyContact && (
               <CommunicationKitTab preselectedCompanyId={id} />
             )}
