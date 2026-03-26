@@ -973,3 +973,41 @@ function MetricChip({ label, value, highlight }: { label: string; value: string;
   );
 }
 
+function BetaModuleCard({
+  icon,
+  title,
+  subtitle,
+  colorClass,
+  description,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  colorClass: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <div
+      className="rounded-lg border border-border bg-card p-4 cursor-pointer hover:shadow-md transition-shadow group relative overflow-hidden"
+      onClick={onClick}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-muted/50 to-transparent pointer-events-none" />
+      <div className="relative">
+        <div className="flex items-center gap-1.5 mb-2">
+          <Lock className="h-4 w-4 text-muted-foreground" />
+          <span className={cn("text-xs font-bold uppercase tracking-wide", colorClass)}>{title}</span>
+          <Badge variant="outline" className="text-[8px] px-1 py-0 h-3.5 bg-amber-500/10 text-amber-600 border-amber-500/30 ml-auto">
+            Bientôt
+          </Badge>
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">{description}</p>
+        <div className="flex items-center text-[11px] text-primary gap-1">
+          <Bell className="h-3 w-3" />
+          Être notifié(e)
+        </div>
+      </div>
+    </div>
+  );
+}

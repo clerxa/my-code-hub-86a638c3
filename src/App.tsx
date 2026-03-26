@@ -243,7 +243,7 @@ const App = () => (
               path="/employee/vega"
               element={
                 <ProtectedRoute>
-                  <VegaPage />
+                  <BetaGate moduleKey="vega"><VegaPage /></BetaGate>
                 </ProtectedRoute>
               }
             />
@@ -251,7 +251,7 @@ const App = () => (
               path="/employee/vega/recap"
               element={
                 <ProtectedRoute>
-                  <VegaRecapPage />
+                  <BetaGate moduleKey="vega"><VegaRecapPage /></BetaGate>
                 </ProtectedRoute>
               }
             />
