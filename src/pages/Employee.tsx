@@ -89,8 +89,9 @@ export default function Employee() {
     updateBlockOrder
   } = useBlockLayoutConfig("employee");
   
-  // Use the hook with profile's company_id (will be null initially, then updated)
-  const { embedCode: expertBookingEmbed, fallbackUrl: expertBookingFallback } = useExpertBookingUrl(profile?.company_id || null);
+  // Use the new rang×revenue hook for booking URL
+  const { rdvUrl: expertBookingFallback } = useRdvLink();
+  const expertBookingEmbed: string | null = null; // Embeds replaced by URL-only system
   
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);

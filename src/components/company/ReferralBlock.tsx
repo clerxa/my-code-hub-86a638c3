@@ -37,7 +37,8 @@ export const ReferralBlock = ({
   blockConfig 
 }: ReferralBlockProps) => {
   const { user } = useAuth();
-  const { embedCode: expertBookingEmbed, fallbackUrl: expertBookingFallback } = useExpertBookingUrl(companyId);
+  const { rdvUrl: expertBookingFallback } = useRdvLink();
+  const expertBookingEmbed: string | null = null;
   const [config, setConfig] = useState<ReferralConfig | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);

@@ -53,8 +53,10 @@ export function DiagnosticResults({ config, sectionScores, scorePercent, totalSc
       .then(({ data }) => setCompanyId(data?.company_id || null));
   }, [user]);
 
-  // Get expert booking URL respecting rank logic
-  const { embedCode, fallbackUrl, bookingUrl } = useExpertBookingUrl(companyId);
+  // Get expert booking URL respecting rang×revenue logic
+  const { rdvUrl: bookingUrl } = useRdvLink();
+  const embedCode: string | null = null;
+  const fallbackUrl = bookingUrl;
 
   const result = useMemo(() => {
     return config.results.find((r) => scorePercent >= r.min && scorePercent <= r.max) || config.results[0];

@@ -108,7 +108,8 @@ export function CompanyCommunicationTab({ companyId }: CompanyCommunicationTabPr
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [visualResources, setVisualResources] = useState<VisualResource[]>([]);
   const [faqs, setFaqs] = useState<CompanyFAQ[]>([]);
-  const { embedCode, fallbackUrl, isLoading: isLoadingBooking } = useExpertBookingUrl(companyId);
+  const { rdvUrl: fallbackUrl, isLoading: isLoadingBooking } = useRdvLink();
+  const embedCode: string | null = null;
 
   useEffect(() => {
     const fetchData = async () => {

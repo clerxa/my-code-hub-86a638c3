@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Target, TrendingUp, Shield, Star, CheckCircle, ArrowRight, Quote, Clock, Users, Award, Zap, Heart, Lightbulb, Gift, Trophy, ThumbsUp, MessageCircle, Calendar, Briefcase, Rocket, Smile, Eye, ArrowLeft, Euro, Home, Calculator, Compass, BookOpen, Landmark, PiggyBank, Scale, FileText, HandCoins, Building, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
 import { useAuth } from "@/components/AuthProvider";
 import { useBookingReferrer, getStoredUtmCampaignFull } from "@/hooks/useBookingReferrer";
@@ -57,7 +57,9 @@ export default function ExpertBookingLanding() {
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [prefillData, setPrefillData] = useState<{ firstName?: string; lastName?: string; email?: string; company?: string; phone?: string }>({});
   const { user } = useAuth();
-  const { embedCode, fallbackUrl, isLoading: bookingLoading } = useExpertBookingUrl(companyId);
+  const { rdvUrl, isLoading: bookingLoading } = useRdvLink();
+  const embedCode: string | null = null; // Embeds replaced by URL-only system
+  const fallbackUrl = rdvUrl;
   
   // Track referrer when user arrives on this page
   useBookingReferrer();
