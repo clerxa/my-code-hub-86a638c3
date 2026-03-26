@@ -66,7 +66,7 @@ const defaultCompanyItems = [
   { id: "webinars", label: "Webinars", icon: "Video", categoryId: null, dataCoach: "" },
   { id: "parcours", label: "Parcours de formation", icon: "GraduationCap", categoryId: null, dataCoach: "" },
   { id: "leaderboard", label: "Classement", icon: "Trophy", categoryId: null, dataCoach: "" },
-  { id: "advisors", label: "Vos conseillers", icon: "UserCheck", categoryId: null, dataCoach: "experts" },
+  
   { id: "configuration", label: "Configuration", icon: "Settings", categoryId: null, dataCoach: "" },
   { id: "communication-kit", label: "Kit de communication", icon: "MessageSquareText", categoryId: null, dataCoach: "" },
 ];

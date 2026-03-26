@@ -21,7 +21,7 @@ export { CompaniesTab } from './CompaniesTab';
 export { CompanyRankingTab } from './CompanyRankingTab';
 export { UsersAndEmployeesTab } from './UsersAndEmployeesTab';
 export { EmployeesImportTab } from './EmployeesImportTab';
-export { AdvisorsTab } from './AdvisorsTab';
+
 export { CommunicationTemplatesEditor } from './CommunicationTemplatesEditor';
 export { SidebarConfigurationTab } from './SidebarConfigurationTab';
 

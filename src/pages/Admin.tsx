@@ -127,7 +127,7 @@ const Admin = () => {
     simulators: "Simulateurs",
     "simulation-logs": "Simulations réalisées",
     "non-partner-welcome": "Paramètres Non-Partenaires",
-    advisors: "Conseillers",
+    
     "financial-profile-settings": "Page Profil Financier",
     "workflow-hub": "Workflow Hub",
     "celebration": "Célébration Parcours",
@@ -367,7 +367,7 @@ const Admin = () => {
                 <Route path="companies/:companyId" element={<AdminCompanyEditPage />} />
                 <Route path="company-ranking" element={<CompanyRankingTab />} />
                 <Route path="users" element={<UsersAndEmployeesTab profiles={profiles} companies={companies} onRefresh={fetchData} />} />
-                <Route path="advisors" element={<AdvisorsTab />} />
+                
                 
                 {/* Content */}
                 <Route path="modules" element={<ModulesTab modules={modules} onRefresh={fetchData} />} />
