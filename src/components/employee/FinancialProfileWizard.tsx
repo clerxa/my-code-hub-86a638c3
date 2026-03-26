@@ -540,7 +540,7 @@ export function FinancialProfileWizard({
                     <Input
                       type="text"
                       inputMode="numeric"
-                      value={getNumericDisplayValue(formData.equity_income_amount)}
+                      value={getNumericDisplayValue(formData.equity_income_amount, "equity_income_amount")}
                       onChange={(e) => handleNumericInput("equity_income_amount", e.target.value)}
                       placeholder="Ex: 15 000"
                     />
@@ -583,7 +583,7 @@ export function FinancialProfileWizard({
                 <Input
                   type="text"
                   inputMode="numeric"
-                  value={getNumericDisplayValue(formData.revenus_dividendes)}
+                  value={getNumericDisplayValue(formData.revenus_dividendes, "revenus_dividendes")}
                   onChange={(e) => handleNumericInput("revenus_dividendes", e.target.value)}
                   placeholder="Ex: 2 000"
                 />
@@ -606,7 +606,7 @@ export function FinancialProfileWizard({
                 <Input
                   type="text"
                   inputMode="numeric"
-                  value={getNumericDisplayValue(formData.revenus_ventes_actions)}
+                  value={getNumericDisplayValue(formData.revenus_ventes_actions, "revenus_ventes_actions")}
                   onChange={(e) => handleNumericInput("revenus_ventes_actions", e.target.value)}
                   placeholder="Ex: 5 000"
                 />
@@ -617,7 +617,7 @@ export function FinancialProfileWizard({
                 <Input
                   type="text"
                   inputMode="numeric"
-                  value={getNumericDisplayValue(formData.revenus_capital_autres)}
+                  value={getNumericDisplayValue(formData.revenus_capital_autres, "revenus_capital_autres")}
                   onChange={(e) => handleNumericInput("revenus_capital_autres", e.target.value)}
                   placeholder="Ex: 1 000"
                 />
@@ -725,7 +725,7 @@ export function FinancialProfileWizard({
                       <p className="text-xs font-medium text-primary">🏠 Locataire</p>
                       <div className="space-y-2">
                         <Label>Loyer charges comprises (€/mois)</Label>
-                        <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.loyer_actuel)} onChange={(e) => handleNumericInput("loyer_actuel", e.target.value)} placeholder="0 si aucun" />
+                        <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.loyer_actuel, "loyer_actuel")} onChange={(e) => handleNumericInput("loyer_actuel", e.target.value)} placeholder="0 si aucun" />
                       </div>
                     </div>
                   )}
@@ -735,11 +735,11 @@ export function FinancialProfileWizard({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div className="space-y-2">
                           <Label>Mensualité crédit immobilier (€/mois)</Label>
-                          <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.credits_immobilier)} onChange={(e) => handleNumericInput("credits_immobilier", e.target.value)} placeholder="0 si aucun" />
+                          <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.credits_immobilier, "credits_immobilier")} onChange={(e) => handleNumericInput("credits_immobilier", e.target.value)} placeholder="0 si aucun" />
                         </div>
                         <div className="space-y-2">
                           <Label>Charges copropriété / taxes foncières (€/mois)</Label>
-                          <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_copropriete_taxes)} onChange={(e) => handleNumericInput("charges_copropriete_taxes", e.target.value)} placeholder="0 si aucun" />
+                          <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_copropriete_taxes, "charges_copropriete_taxes")} onChange={(e) => handleNumericInput("charges_copropriete_taxes", e.target.value)} placeholder="0 si aucun" />
                         </div>
                       </div>
                     </div>
@@ -754,11 +754,11 @@ export function FinancialProfileWizard({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Électricité, gaz, eau (€/mois)</Label>
-                        <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_energie)} onChange={(e) => handleNumericInput("charges_energie", e.target.value)} placeholder="0 si aucun" />
+                        <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_energie, "charges_energie")} onChange={(e) => handleNumericInput("charges_energie", e.target.value)} placeholder="0 si aucun" />
                       </div>
                       <div className="space-y-2">
                         <Label>Assurance habitation (€/mois)</Label>
-                        <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_assurance_habitation)} onChange={(e) => handleNumericInput("charges_assurance_habitation", e.target.value)} placeholder="0 si aucun" />
+                        <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_assurance_habitation, "charges_assurance_habitation")} onChange={(e) => handleNumericInput("charges_assurance_habitation", e.target.value)} placeholder="0 si aucun" />
                       </div>
                     </div>
                   )}
@@ -809,15 +809,15 @@ export function FinancialProfileWizard({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Transports en commun (€/mois)</Label>
-                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_transport_commun)} onChange={(e) => handleNumericInput("charges_transport_commun", e.target.value)} placeholder="0 si aucun" />
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_transport_commun, "charges_transport_commun")} onChange={(e) => handleNumericInput("charges_transport_commun", e.target.value)} placeholder="0 si aucun" />
                     </div>
                     <div className="space-y-2">
                       <Label>Assurance automobile (€/mois)</Label>
-                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_assurance_auto)} onChange={(e) => handleNumericInput("charges_assurance_auto", e.target.value)} placeholder="0 si aucun" />
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_assurance_auto, "charges_assurance_auto")} onChange={(e) => handleNumericInput("charges_assurance_auto", e.target.value)} placeholder="0 si aucun" />
                     </div>
                     <div className="space-y-2">
                       <Label>LLD/LOA ou crédit auto (€/mois)</Label>
-                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_lld_loa_auto || formData.credits_auto)} onChange={(e) => handleNumericInput("charges_lld_loa_auto", e.target.value)} placeholder="0 si aucun" />
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_lld_loa_auto || formData.credits_auto, "charges_lld_loa_auto")} onChange={(e) => handleNumericInput("charges_lld_loa_auto", e.target.value)} placeholder="0 si aucun" />
                     </div>
                   </div>
                 </AccordionContent>
@@ -833,15 +833,15 @@ export function FinancialProfileWizard({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Internet (Box) (€/mois)</Label>
-                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_internet)} onChange={(e) => handleNumericInput("charges_internet", e.target.value)} placeholder="0 si aucun" />
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_internet, "charges_internet")} onChange={(e) => handleNumericInput("charges_internet", e.target.value)} placeholder="0 si aucun" />
                     </div>
                     <div className="space-y-2">
                       <Label>Forfait mobile (€/mois)</Label>
-                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_mobile)} onChange={(e) => handleNumericInput("charges_mobile", e.target.value)} placeholder="0 si aucun" />
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_mobile, "charges_mobile")} onChange={(e) => handleNumericInput("charges_mobile", e.target.value)} placeholder="0 si aucun" />
                     </div>
                     <div className="space-y-2 md:col-span-2">
                       <Label>Streaming, sport, presse (€/mois)</Label>
-                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_abonnements)} onChange={(e) => handleNumericInput("charges_abonnements", e.target.value)} placeholder="0 si aucun" />
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_abonnements, "charges_abonnements")} onChange={(e) => handleNumericInput("charges_abonnements", e.target.value)} placeholder="0 si aucun" />
                     </div>
                   </div>
                 </AccordionContent>
@@ -857,11 +857,11 @@ export function FinancialProfileWizard({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Scolarité, crèche, garde d'enfants (€/mois)</Label>
-                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_frais_scolarite)} onChange={(e) => handleNumericInput("charges_frais_scolarite", e.target.value)} placeholder="0 si aucun" />
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_frais_scolarite, "charges_frais_scolarite")} onChange={(e) => handleNumericInput("charges_frais_scolarite", e.target.value)} placeholder="0 si aucun" />
                     </div>
                     <div className="space-y-2">
                       <Label>Pension alimentaire (€/mois)</Label>
-                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.pensions_alimentaires)} onChange={(e) => handleNumericInput("pensions_alimentaires", e.target.value)} placeholder="0 si aucun" />
+                      <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.pensions_alimentaires, "pensions_alimentaires")} onChange={(e) => handleNumericInput("pensions_alimentaires", e.target.value)} placeholder="0 si aucun" />
                     </div>
                   </div>
                 </AccordionContent>
@@ -876,7 +876,7 @@ export function FinancialProfileWizard({
                 <AccordionContent className="pb-4">
                   <div className="space-y-2">
                     <Label>Mensualité crédit consommation (€/mois)</Label>
-                    <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.credits_consommation)} onChange={(e) => handleNumericInput("credits_consommation", e.target.value)} placeholder="0 si aucun" />
+                    <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.credits_consommation, "credits_consommation")} onChange={(e) => handleNumericInput("credits_consommation", e.target.value)} placeholder="0 si aucun" />
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -890,7 +890,7 @@ export function FinancialProfileWizard({
                 <AccordionContent className="pb-4">
                   <div className="space-y-2">
                     <Label>Autres charges fixes (mutuelle, prévoyance...) (€/mois)</Label>
-                    <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_autres)} onChange={(e) => handleNumericInput("charges_autres", e.target.value)} placeholder="0 si aucun" />
+                    <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_autres, "charges_autres")} onChange={(e) => handleNumericInput("charges_autres", e.target.value)} placeholder="0 si aucun" />
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -907,7 +907,7 @@ export function FinancialProfileWizard({
                     <Input 
                       type="text" 
                       inputMode="numeric" 
-                      value={getNumericDisplayValue(formData.charges_impot_mensuel)} 
+                      value={getNumericDisplayValue(formData.charges_impot_mensuel, "charges_impot_mensuel")} 
                       onChange={(e) => handleNumericInput("charges_impot_mensuel", e.target.value)} 
                       placeholder="Ex: 350" 
                     />
@@ -996,19 +996,19 @@ export function FinancialProfileWizard({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>🛒 Courses alimentaires (€/mois)</Label>
-                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_courses_alimentaires)} onChange={(e) => handleNumericInput("charges_courses_alimentaires", e.target.value)} placeholder="0 si aucun" />
+                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_courses_alimentaires, "charges_courses_alimentaires")} onChange={(e) => handleNumericInput("charges_courses_alimentaires", e.target.value)} placeholder="0 si aucun" />
               </div>
               <div className="space-y-2">
                 <Label>🎭 Loisirs & sorties (€/mois)</Label>
-                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_loisirs)} onChange={(e) => handleNumericInput("charges_loisirs", e.target.value)} placeholder="0 si aucun" />
+                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_loisirs, "charges_loisirs")} onChange={(e) => handleNumericInput("charges_loisirs", e.target.value)} placeholder="0 si aucun" />
               </div>
               <div className="space-y-2">
                 <Label>🛍️ Shopping & divers (€/mois)</Label>
-                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_shopping)} onChange={(e) => handleNumericInput("charges_shopping", e.target.value)} placeholder="0 si aucun" />
+                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_shopping, "charges_shopping")} onChange={(e) => handleNumericInput("charges_shopping", e.target.value)} placeholder="0 si aucun" />
               </div>
               <div className="space-y-2">
                 <Label>📦 Autres dépenses courantes (€/mois)</Label>
-                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_variables_autres)} onChange={(e) => handleNumericInput("charges_variables_autres", e.target.value)} placeholder="0 si aucun" />
+                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_variables_autres, "charges_variables_autres")} onChange={(e) => handleNumericInput("charges_variables_autres", e.target.value)} placeholder="0 si aucun" />
                 <p className="text-xs text-muted-foreground">Santé non remboursée, cadeaux, coiffeur, etc.</p>
               </div>
             </div>
