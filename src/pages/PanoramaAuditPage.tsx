@@ -104,6 +104,7 @@ const FIELD_TO_WIZARD_STEP: Record<string, string> = {
   charges_loisirs: "charges",
   charges_shopping: "charges",
   charges_variables_autres: "charges",
+  buffer_depenses_imprevues_pct: "charges",
 };
 
 interface ProfileData {
