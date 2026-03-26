@@ -1079,7 +1079,7 @@ export function FinancialProfileWizard({
       </Card>
 
       {/* Navigation */}
-      <div className="flex justify-between items-center pt-4">
+      <div className="flex justify-between items-center pt-4 pb-20">
         <Button
           variant="outline"
           onClick={handlePrevious}
@@ -1094,12 +1094,7 @@ export function FinancialProfileWizard({
             Suivant
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
-        ) : (
-          <Button onClick={handleFinish} disabled={isSaving}>
-            {isSaving ? "Enregistrement..." : "Terminer"}
-            <Check className="h-4 w-4 ml-2" />
-          </Button>
-        )}
+        ) : null}
       </div>
 
     </div>
