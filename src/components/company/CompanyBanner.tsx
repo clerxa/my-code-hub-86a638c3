@@ -98,13 +98,13 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
             fontSize: 'clamp(24px, 2.8vw, 36px)',
             fontWeight: 800,
             lineHeight: 1.15,
-            display: 'inline-block',
-            width: '100%',
-            background: 'linear-gradient(90deg, #4f7cf7 0%, #8b5cf6 25%, #d946a8 55%, #f97316 100%)',
-            backgroundSize: '100% 100%',
+            display: 'inline',
+            background: 'linear-gradient(90deg, #4f7cf7 0%, #7c6cf9 20%, #8b5cf6 35%, #b44fca 55%, #d946a8 70%, #e97a5f 85%, #f97316 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
+            boxDecorationBreak: 'clone' as any,
+            WebkitBoxDecorationBreak: 'clone',
           }}>
             MyFinCare,<br />l'application qui redonne aux salariés<br />le pouvoir sur leurs finances.
           </h1>
