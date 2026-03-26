@@ -12,13 +12,13 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
       style={{
         backgroundColor: "#0f0f14",
         borderRadius: 16,
-        height: undefined,
       }}
     >
-      {/* Desktop fixed height, mobile auto with min */}
       <style>{`
-        .hero-banner-root { height: 240px; }
+        .hero-banner-root { height: 240px; min-height: 240px; }
         @media (max-width: 639px) { .hero-banner-root { height: auto; min-height: 320px; } }
+        .hero-title { font-size: clamp(28px, 3.8vw, 44px); }
+        @media (max-width: 639px) { .hero-title { font-size: clamp(24px, 6vw, 32px); } }
       `}</style>
 
       {/* Glow 1 */}
@@ -87,11 +87,10 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
 
         {/* Content column */}
         <div
-          className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left"
+          className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left w-full min-w-0"
           style={{ gap: 12 }}
         >
-          {/* Responsive padding */}
-          <div className="flex flex-col gap-3 px-6 py-5 sm:py-8 sm:pl-7 sm:pr-12">
+          <div className="flex flex-col gap-3 px-6 py-5 sm:py-8 sm:pl-7 sm:pr-12 w-full">
             {/* Badge */}
             <div className="flex sm:justify-start justify-center">
               <span
@@ -122,9 +121,9 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
               </span>
             </div>
 
-            {/* Title */}
-            <h2
-              className="m-0"
+            {/* Title — gradient applied directly on h1 */}
+            <h1
+              className="hero-title m-0 w-full"
               style={{
                 fontWeight: 800,
                 lineHeight: 1.15,
@@ -132,20 +131,15 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
+                maxWidth: "none",
               }}
             >
-              <style>{`
-                .hero-title { font-size: clamp(28px, 3.8vw, 44px); }
-                @media (max-width: 639px) { .hero-title { font-size: clamp(24px, 6vw, 32px); } }
-              `}</style>
-              <span className="hero-title" style={{ fontSize: "inherit" }}>
-                MyFinCare, l'application
-                <br />
-                qui redonne aux salariés
-                <br />
-                le pouvoir sur leurs finances.
-              </span>
-            </h2>
+              MyFinCare, l'application
+              <br />
+              qui redonne aux salariés
+              <br />
+              le pouvoir sur leurs finances.
+            </h1>
           </div>
         </div>
       </div>
