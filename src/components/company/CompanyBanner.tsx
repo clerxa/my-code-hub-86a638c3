@@ -8,19 +8,18 @@ interface CompanyBannerProps {
 export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerProps) {
   return (
     <div
-      className="w-full relative overflow-hidden"
+      className="w-full overflow-hidden"
       style={{
         backgroundColor: "#0f0f14",
         borderRadius: 16,
         position: "relative",
-        zIndex: 0,
+        zIndex: 1,
+        isolation: "isolate",
       }}
     >
       <style>{`
         .hero-banner-root { height: 240px; min-height: 240px; }
         @media (max-width: 639px) { .hero-banner-root { height: auto; min-height: 320px; } }
-        .hero-title { font-size: clamp(28px, 3.8vw, 44px); }
-        @media (max-width: 639px) { .hero-title { font-size: clamp(24px, 6vw, 32px); } }
       `}</style>
 
       {/* Glow 1 */}
@@ -49,21 +48,18 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
       >
         {/* Mascotte column */}
         <div className="sm:flex-[0_0_220px] sm:h-full relative overflow-visible flex items-end justify-center sm:block">
-          {/* Desktop mascotte */}
           <img
             src={mascotte}
             alt="FinCare mascotte"
             className="hidden sm:block absolute w-auto"
             style={{ height: "110%", bottom: 0, left: "50%", transform: "translateX(-50%)" }}
           />
-          {/* Mobile mascotte */}
           <img
             src={mascotte}
             alt="FinCare mascotte"
             className="sm:hidden w-auto mx-auto pt-4"
             style={{ height: 160 }}
           />
-          {/* Shadow under mascotte */}
           <div
             className="absolute left-1/2 -translate-x-1/2"
             style={{
@@ -89,10 +85,10 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
 
         {/* Content column */}
         <div
-          className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left w-full min-w-0"
-          style={{ gap: 12 }}
+          className="flex flex-col items-center sm:items-start justify-center text-center sm:text-left"
+          style={{ flex: "1 1 auto", minWidth: 0 }}
         >
-          <div className="flex flex-col gap-3 px-6 py-5 sm:py-8 sm:pl-7 sm:pr-12 w-full">
+          <div className="flex flex-col gap-3 px-6 py-5 sm:py-0 sm:pl-7 sm:pr-12 w-full">
             {/* Badge */}
             <div className="flex sm:justify-start justify-center">
               <span
@@ -123,25 +119,20 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
               </span>
             </div>
 
-            {/* Title — gradient applied directly on h1 */}
-            <h1
-              style={{
-                fontSize: "clamp(28px, 3.8vw, 44px)",
-                fontWeight: 800,
-                lineHeight: 1.15,
-                margin: 0,
-                background: "linear-gradient(135deg, #e8e0ff 0%, #c4a8f8 35%, #f0a0d0 70%, #ffd0a0 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                display: "inline-block",
-              }}
-            >
-              MyFinCare, l'application
-              <br />
-              qui redonne aux salariés
-              <br />
-              le pouvoir sur leurs finances.
+            {/* Title */}
+            <h1 style={{
+              fontSize: 'clamp(28px, 3.8vw, 44px)',
+              fontWeight: 800,
+              lineHeight: 1.15,
+              margin: 0,
+              background: 'linear-gradient(135deg, #e8e0ff 0%, #c4a8f8 35%, #f0a0d0 70%, #ffd0a0 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              display: 'inline-block',
+              width: '100%',
+            }}>
+              MyFinCare, l'application qui redonne aux salariés le pouvoir sur leurs finances.
             </h1>
           </div>
         </div>
