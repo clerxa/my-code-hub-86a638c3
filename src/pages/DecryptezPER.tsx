@@ -97,16 +97,8 @@ export default function DecryptezPER() {
   const [loading, setLoading] = useState(true);
   const { rdvUrl: bookingUrl } = useRdvLink();
 
-  useEffect(() => {
-    if (user) {
-      supabase
-        .from("profiles")
-        .select("company_id")
-        .eq("id", user.id)
-        .maybeSingle()
-        .then(({ data }) => setCompanyId(data?.company_id || null));
-    }
-  }, [user]);
+
+
 
   useEffect(() => {
     if (user) fetchPreviousResult();
