@@ -206,7 +206,8 @@ export default function PanoramaPage() {
   // We must exclude them for the "fixed charges" bucket in the 50/30/20 rule
   const depensesCourantes = ((fp as any)?.charges_courses_alimentaires ?? 0) + ((fp as any)?.charges_loisirs ?? 0) + ((fp as any)?.charges_shopping ?? 0) + ((fp as any)?.charges_variables_autres ?? 0);
   const chargesFixesPures = chargesFixesTotal - depensesCourantes;
-  const totalChargesAvecImpots = chargesFixesPures + (impotMensuel ?? 0);
+  // impotMensuel is already included in charges_fixes_mensuelles via charges_impot_mensuel
+  const totalChargesAvecImpots = chargesFixesPures;
   const totalDepensesMensuelles = totalChargesAvecImpots + depensesCourantes;
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
   const capaciteEpargneCalculee = totalRevenusMensuel != null ? Math.max(0, totalRevenusMensuel - totalDepensesMensuelles) : null;
