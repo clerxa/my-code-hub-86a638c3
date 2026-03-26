@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, Users, Building2, Briefcase,
   Euro, Save, X, Lock, Wallet, PiggyBank,
-  Target, Info, type LucideIcon, Calendar
+  Target, Info, type LucideIcon, Calendar, Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserFinancialProfile, type FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
