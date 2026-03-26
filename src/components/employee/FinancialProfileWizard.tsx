@@ -89,6 +89,7 @@ export function FinancialProfileWizard({
 
   // Fetch real estate properties for auto-sync
   const { totals: realEstateTotals } = useUserRealEstateProperties();
+  const fiscalRules = useFiscalRules();
 
   // Progress calculation
   const progress = ((currentStep + 1) / STEPS.length) * 100;
