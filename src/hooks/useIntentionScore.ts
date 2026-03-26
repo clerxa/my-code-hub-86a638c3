@@ -43,7 +43,7 @@ export function useIntentionScore(userId: string | null): IntentionScoreResult {
   async function computeScore(uid: string) {
     try {
       // Fetch config and all data sources in parallel
-      const [configRes, loginsRes, simLogsRes, modulesRes, profileRes, diagnosticRes, horizonRes, eventsRes] =
+      const [configRes, loginsRes, simLogsRes, modulesRes, profileRes, diagnosticRes, horizonRes, eventsRes, appointmentsRes, fpRes, riskRes, realEstateRes, prepRes] =
         await Promise.all([
           supabase.from("intention_score_config").select("*").eq("is_active", true).order("display_order"),
           supabase.from("daily_logins").select("id").eq("user_id", uid),
@@ -53,6 +53,11 @@ export function useIntentionScore(userId: string | null): IntentionScoreResult {
           supabase.from("diagnostic_results").select("status").eq("user_id", uid).eq("status", "completed").maybeSingle(),
           supabase.from("horizon_projects").select("id").eq("user_id", uid).limit(1),
           supabase.from("user_events").select("event_type, event_name").eq("user_id", uid),
+          supabase.from("appointments").select("id").eq("user_id", uid).limit(1),
+          supabase.from("user_financial_profiles").select("is_complete").eq("user_id", uid).maybeSingle(),
+          (supabase as any).from("risk_profile").select("id").eq("user_id", uid).limit(1),
+          (supabase as any).from("user_real_estate_properties").select("id").eq("user_id", uid),
+          supabase.from("appointment_preparation").select("id").eq("user_id", uid).limit(1),
         ]);
 
       const configs = configRes.data || [];
@@ -84,6 +89,13 @@ export function useIntentionScore(userId: string | null): IntentionScoreResult {
       // CTA RDV from simulators
       const simCtaClicks = simLogsRes.data?.filter((s) => s.appointment_cta_clicked === true).length || 0;
       rawCounts["rdv_cta_click_from_simulator"] = simCtaClicks;
+
+      // New signals
+      rawCounts["appointment_booked"] = (appointmentsRes.data?.length || 0) > 0 ? 1 : 0;
+      rawCounts["financial_profile_complete"] = fpRes.data?.is_complete ? 1 : 0;
+      rawCounts["risk_profile_completed"] = (riskRes.data?.length || 0) > 0 ? 1 : 0;
+      rawCounts["real_estate_added"] = realEstateRes.data?.length || 0;
+      rawCounts["appointment_preparation_done"] = (prepRes.data?.length || 0) > 0 ? 1 : 0;
 
       // Calculate scores
       const signals: ScoreSignal[] = [];
