@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Users, Shield, Building2, Handshake, UserPlus, FlaskConical, Lock, UserSearch } from "lucide-react";
+import { LogOut, Users, Shield, Building2, Handshake, UserPlus, FlaskConical, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
@@ -43,7 +43,7 @@ export const Header = () => {
   const [company, setCompany] = useState<Company | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCompanyContact, setIsCompanyContact] = useState(false);
-  const [isAdvisor, setIsAdvisor] = useState(false);
+  
   const [contactCompanyId, setContactCompanyId] = useState<string | null>(null);
   const [showPartnershipDialog, setShowPartnershipDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
@@ -121,9 +121,8 @@ export const Header = () => {
     if (!error && data?.role === "admin") {
       setIsAdmin(true);
     }
-    if (!error && (data?.role === "conseiller" || data?.role === "admin")) {
-      setIsAdvisor(true);
-    }
+
+
     // Also check if user has contact_entreprise role in user_roles
     if (!error && data?.role === "contact_entreprise") {
       setIsCompanyContact(true);
@@ -233,10 +232,8 @@ export const Header = () => {
               <span className="hidden lg:inline">Accès Backoffice</span>
             </Button>}
 
-          {isAdvisor && <Button size="sm" onClick={() => navigate("/advisor")} className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3" variant="default">
-              <UserSearch className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="hidden lg:inline">Espace Conseiller</span>
-            </Button>}
+
+
 
           {isCompanyContact && !isAdmin && contactCompanyId && <Button size="sm" onClick={() => navigate(`/company/${contactCompanyId}/dashboard`)} className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3" variant="default">
               <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
