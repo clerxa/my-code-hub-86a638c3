@@ -988,19 +988,19 @@ export function FinancialProfileWizard({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>🛒 Courses alimentaires (€/mois)</Label>
-                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_courses_alimentaires)} onChange={(e) => handleNumericInput("charges_courses_alimentaires", e.target.value)} placeholder="Ex: 500" />
+                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_courses_alimentaires)} onChange={(e) => handleNumericInput("charges_courses_alimentaires", e.target.value)} placeholder="0 si aucun" />
               </div>
               <div className="space-y-2">
                 <Label>🎭 Loisirs & sorties (€/mois)</Label>
-                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_loisirs)} onChange={(e) => handleNumericInput("charges_loisirs", e.target.value)} placeholder="Ex: 200" />
+                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_loisirs)} onChange={(e) => handleNumericInput("charges_loisirs", e.target.value)} placeholder="0 si aucun" />
               </div>
               <div className="space-y-2">
                 <Label>🛍️ Shopping & divers (€/mois)</Label>
-                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_shopping)} onChange={(e) => handleNumericInput("charges_shopping", e.target.value)} placeholder="Ex: 150" />
+                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_shopping)} onChange={(e) => handleNumericInput("charges_shopping", e.target.value)} placeholder="0 si aucun" />
               </div>
               <div className="space-y-2">
                 <Label>📦 Autres dépenses courantes (€/mois)</Label>
-                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_variables_autres)} onChange={(e) => handleNumericInput("charges_variables_autres", e.target.value)} placeholder="Ex: 100" />
+                <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_variables_autres)} onChange={(e) => handleNumericInput("charges_variables_autres", e.target.value)} placeholder="0 si aucun" />
                 <p className="text-xs text-muted-foreground">Santé non remboursée, cadeaux, coiffeur, etc.</p>
               </div>
             </div>
