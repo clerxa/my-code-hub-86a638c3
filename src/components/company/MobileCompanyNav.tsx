@@ -40,7 +40,7 @@ export const MobileCompanyNav = ({
   const rankingItems = ["leaderboard"];
   
   // Items that should be hidden on company pages (already in dashboard or removed)
-  const hiddenItems = ["communication-kit", "help"];
+  const hiddenItems = ["communication-kit", "help", "advisors"];
 
   const handleItemClick = (itemId: string) => {
     switch (itemId) {
