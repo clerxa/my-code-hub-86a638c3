@@ -616,6 +616,7 @@ const AdvisorLookup = () => {
             )}
 
             {financialData && (
+              <>
                 {/* Personal */}
                 <Card>
                   <CardHeader className="pb-3">
