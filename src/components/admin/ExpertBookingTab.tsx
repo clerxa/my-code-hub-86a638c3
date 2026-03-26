@@ -20,7 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { RdvAssignmentMatrix, DEFAULT_MATRIX, ADVISOR_TYPES, type MatrixConfig, type AdvisorUrls, type AdvisorTypeKey } from "./RdvAssignmentMatrix";
+import { RdvAssignmentMatrix, DEFAULT_MATRIX, type MatrixConfig, type CategoryUrls, type AdvisorCategoryKey } from "./RdvAssignmentMatrix";
 import {
   AlertDialog,
   AlertDialogAction,
