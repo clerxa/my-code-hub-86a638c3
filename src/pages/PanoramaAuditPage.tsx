@@ -1105,6 +1105,8 @@ export default function PanoramaAuditPage() {
               </Button>
             )}
           </div>
+        </div>
+      </div>
     </EmployeeLayout>
   );
 }
