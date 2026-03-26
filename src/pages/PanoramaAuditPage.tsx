@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, Users, Building2, Briefcase,
   Euro, Save, X, Lock, Wallet, PiggyBank,
-  Target, Info, type LucideIcon, Calendar
+  Target, Info, type LucideIcon, Calendar, Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserFinancialProfile, type FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
@@ -1059,6 +1059,56 @@ export default function PanoramaAuditPage() {
             </TabsContent>
           </Tabs>
 
+          {/* Tab-level navigation: Précédent / Suivant / Terminer */}
+          <div className="flex justify-between items-center pt-6 pb-24">
+            <Button
+              variant="outline"
+              onClick={() => {
+                const currentIndex = tabs.findIndex(t => t.id === activeTab);
+                if (currentIndex > 0) {
+                  handleTabChange(tabs[currentIndex - 1].id);
+                } else {
+                  navigate("/panorama");
+                }
+              }}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {tabs.findIndex(t => t.id === activeTab) === 0 ? "Retour" : "Précédent"}
+            </Button>
+
+            {activeTab !== tabs[tabs.length - 1].id ? (
+              <Button
+                onClick={() => {
+                  const currentIndex = tabs.findIndex(t => t.id === activeTab);
+                  if (currentIndex < tabs.length - 1) {
+                    if (hasChanges) {
+                      handleSave();
+                    }
+                    handleTabChange(tabs[currentIndex + 1].id);
+                  }
+                }}
+                className="gap-2"
+              >
+                Suivant
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  if (hasChanges) {
+                    handleSave();
+                  }
+                  toast.success("Profil enregistré avec succès !");
+                  navigate("/panorama");
+                }}
+                className="gap-2"
+              >
+                Terminer
+                <Check className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
