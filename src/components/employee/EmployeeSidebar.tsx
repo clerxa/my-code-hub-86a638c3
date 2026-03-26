@@ -11,6 +11,8 @@ import { useAuth } from "@/components/AuthProvider";
 import { useSidebarConfig, getIconComponent } from "@/hooks/useSidebarConfig";
 import { SimulationQuotaBanner } from "@/components/SimulationQuotaBanner";
 import { useOfferViewTracking } from "@/hooks/useOffers";
+import { useBetaMode } from "@/hooks/useBetaMode";
+import { Badge } from "@/components/ui/badge";
 
 interface EmployeeSidebarProps {
   activeSection: string;
@@ -42,6 +44,7 @@ export const EmployeeSidebar = ({
   const [isAdmin, setIsAdmin] = useState(false);
   const { config, loading, getItemsByCategory } = useSidebarConfig("employee");
   const { hasNewOffers } = useOfferViewTracking();
+  const { isModuleLocked: isBetaLocked } = useBetaMode();
 
   useEffect(() => {
     if (user) {
@@ -86,7 +89,27 @@ export const EmployeeSidebar = ({
   const [showCommunityLockedDialog, setShowCommunityLockedDialog] = useState(false);
   const [showHorizonComingSoon, setShowHorizonComingSoon] = useState(false);
 
+  // Map sidebar item ids to beta module keys
+  const sidebarToBetaKey: Record<string, string> = {
+    vega: "vega",
+    atlas: "atlas",
+    horizon: "horizon",
+    budget: "zenith",
+  };
+
   const handleItemClick = (itemId: string) => {
+    // Beta-locked modules → navigate to the teasing page
+    const betaKey = sidebarToBetaKey[itemId];
+    if (betaKey && isBetaLocked(betaKey)) {
+      // Navigate to the module route — BetaGate will show teasing
+      switch (itemId) {
+        case "vega": navigate("/employee/vega"); return;
+        case "atlas": navigate("/employee/atlas"); return;
+        case "horizon": navigate("/employee/horizon"); return;
+        case "budget": navigate("/employee/budget"); return;
+      }
+    }
+
     const isLocked = lockedItems.includes(itemId) && !hasPartnership;
 
     // Special handling for company - show dialog instead of redirecting
@@ -199,7 +222,9 @@ export const EmployeeSidebar = ({
 
   const renderMenuItem = (item: { id: string; label: string; icon: string; dataCoach?: string }) => {
     const Icon = getIconComponent(item.icon);
-    const isLocked = lockedItems.includes(item.id) && !hasPartnership;
+    const betaKey = sidebarToBetaKey[item.id];
+    const isBetaLockedItem = betaKey ? isBetaLocked(betaKey) : false;
+    const isLocked = !isBetaLockedItem && lockedItems.includes(item.id) && !hasPartnership;
     const badge = getBadge(item.id);
     const isActive = isItemActive(item.id);
 
@@ -237,7 +262,16 @@ export const EmployeeSidebar = ({
             </span>
           )}
         </div>
-        {!collapsed && <span className="truncate">{item.label}</span>}
+        {!collapsed && (
+          <span className="truncate flex items-center gap-1.5">
+            {item.label}
+            {isBetaLockedItem && (
+              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-amber-500/10 text-amber-600 border-amber-500/30 font-medium">
+                Bientôt
+              </Badge>
+            )}
+          </span>
+        )}
         {isLocked && collapsed && <Lock className="h-3 w-3 absolute bottom-1 right-1 text-muted-foreground" />}
       </Button>
     );

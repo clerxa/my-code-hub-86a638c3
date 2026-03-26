@@ -97,6 +97,7 @@ import DecryptezPER from "./pages/DecryptezPER";
 import ProspectPresentation from "./pages/ProspectPresentation";
 import WebinarCatalogDetail from "./pages/WebinarCatalogDetail";
 import { Navigate } from "react-router-dom";
+import { BetaGate } from "@/components/beta/BetaGate";
 
 /**
  * 🔹 Instance de QueryClient pour React Query
@@ -243,7 +244,7 @@ const App = () => (
               path="/employee/vega"
               element={
                 <ProtectedRoute>
-                  <VegaPage />
+                  <BetaGate moduleKey="vega"><VegaPage /></BetaGate>
                 </ProtectedRoute>
               }
             />
@@ -251,7 +252,7 @@ const App = () => (
               path="/employee/vega/recap"
               element={
                 <ProtectedRoute>
-                  <VegaRecapPage />
+                  <BetaGate moduleKey="vega"><VegaRecapPage /></BetaGate>
                 </ProtectedRoute>
               }
             />
@@ -287,7 +288,7 @@ const App = () => (
               path="/employee/horizon"
               element={
                 <PartnershipRoute featureType="company">
-                  <Horizon />
+                  <BetaGate moduleKey="horizon"><Horizon /></BetaGate>
                 </PartnershipRoute>
               }
             />
@@ -311,7 +312,7 @@ const App = () => (
               path="/employee/budget"
               element={
                 <ProtectedRoute>
-                  <BudgetPage />
+                  <BetaGate moduleKey="zenith"><BudgetPage /></BetaGate>
                 </ProtectedRoute>
               }
             />
@@ -319,7 +320,7 @@ const App = () => (
               path="/employee/atlas"
               element={
                 <PartnershipRoute featureType="company">
-                  <AtlasPage />
+                  <BetaGate moduleKey="atlas"><AtlasPage /></BetaGate>
                 </PartnershipRoute>
               }
             />

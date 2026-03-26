@@ -303,6 +303,30 @@ export type Database = {
           },
         ]
       }
+      beta_module_interests: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          module_key: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          module_key: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          module_key?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       block_orders: {
         Row: {
           block_order: Json

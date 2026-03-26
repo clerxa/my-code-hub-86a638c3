@@ -14,9 +14,10 @@ import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties
 import { supabase } from "@/integrations/supabase/client";
 import { BudgetOverviewSection } from "@/components/panorama/BudgetOverviewSection";
 import { useAuth } from "@/components/AuthProvider";
+import { useBetaMode } from "@/hooks/useBetaMode";
 import {
   ArrowRight, TrendingUp, FileText, Compass, UserCheck,
-  RefreshCw, ChevronRight, Info, Sparkles, Calculator
+  RefreshCw, ChevronRight, Info, Sparkles, Calculator, Lock, Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -135,6 +136,7 @@ export default function PanoramaPage() {
 
   const { totals: realEstateTotals } = useUserRealEstateProperties();
   const creditsImmoLocatif = (realEstateTotals?.mensualitesTotal ?? 0) + (realEstateTotals?.chargesTotal ?? 0);
+  const { isModuleLocked } = useBetaMode();
 
 
   if (checkingOnboarding) {
@@ -688,101 +690,134 @@ export default function PanoramaPage() {
         {/* ═══ SECTION 3 — MODULE GRID (4 cols equal) ═══ */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {/* VEGA */}
-          <div
-            className="rounded-lg border border-border bg-card p-4 cursor-pointer hover:shadow-md transition-shadow group"
-            onClick={() => navigate("/employee/vega")}
-          >
-            <div className="flex items-center gap-1.5 mb-2">
-              <TrendingUp className="h-4 w-4 text-violet-500" />
-              <span className={cn("text-xs font-bold uppercase tracking-wide", moduleTitleColors.vega)}>VEGA</span>
+          {isModuleLocked("vega") ? (
+            <BetaModuleCard
+              icon={<TrendingUp className="h-4 w-4 text-violet-500" />}
+              title="VEGA"
+              subtitle="Actionnariat salarié"
+              colorClass={moduleTitleColors.vega}
+              description="Simulez votre gain net sur vos RSU, ESPP et stock-options."
+              onClick={() => navigate("/employee/vega")}
+            />
+          ) : (
+            <div
+              className="rounded-lg border border-border bg-card p-4 cursor-pointer hover:shadow-md transition-shadow group"
+              onClick={() => navigate("/employee/vega")}
+            >
+              <div className="flex items-center gap-1.5 mb-2">
+                <TrendingUp className="h-4 w-4 text-violet-500" />
+                <span className={cn("text-xs font-bold uppercase tracking-wide", moduleTitleColors.vega)}>VEGA</span>
+              </div>
+              {vegaPortfolio.hasPlans ? (
+                <>
+                  <p className="text-xl font-bold">{formatEuros(vegaPortfolio.totalValueEur)}</p>
+                  <p className="text-xs text-muted-foreground">{vegaPortfolio.totalShares} actions</p>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Non configuré</p>
+              )}
+              {imminentVesting && (
+                <Badge variant="outline" className="mt-2 bg-orange-500/10 text-orange-600 border-orange-500/30 text-[10px]">
+                  Vesting {imminentVesting.daysUntil}j
+                </Badge>
+              )}
+              <div className="mt-2 flex items-center text-[11px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                Voir <ChevronRight className="h-3 w-3 ml-0.5" />
+              </div>
             </div>
-            {vegaPortfolio.hasPlans ? (
-              <>
-                <p className="text-xl font-bold">{formatEuros(vegaPortfolio.totalValueEur)}</p>
-                <p className="text-xs text-muted-foreground">{vegaPortfolio.totalShares} actions</p>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">Non configuré</p>
-            )}
-            {imminentVesting && (
-              <Badge variant="outline" className="mt-2 bg-orange-500/10 text-orange-600 border-orange-500/30 text-[10px]">
-                Vesting {imminentVesting.daysUntil}j
-              </Badge>
-            )}
-            <div className="mt-2 flex items-center text-[11px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-              Voir <ChevronRight className="h-3 w-3 ml-0.5" />
-            </div>
-          </div>
+          )}
 
           {/* ATLAS */}
-          <ModuleCard
-            icon={<FileText className="h-4 w-4 text-blue-500" />}
-            title="ATLAS"
-            subtitle="Fiscalité"
-            colorClass={moduleTitleColors.atlas}
-            onClick={() => navigate("/employee/atlas")}
-          >
-            <p className="text-xl font-bold">
-              {tmi != null ? `TMI ${tmi}%` : "Non renseigné"}
-            </p>
-            {tauxMoyenEstime != null && (
-              <p className="text-xs text-muted-foreground">Taux moyen {tauxMoyenEstime}%</p>
-            )}
-            {impotMensuel != null && impotMensuel > 0 && (
-              <p className="text-xs text-muted-foreground">{formatEuros(impotMensuel)}/mois</p>
-            )}
-          </ModuleCard>
+          {isModuleLocked("atlas") ? (
+            <BetaModuleCard
+              icon={<FileText className="h-4 w-4 text-blue-500" />}
+              title="ATLAS"
+              subtitle="Situation fiscale"
+              colorClass={moduleTitleColors.atlas}
+              description="Analysez votre avis d'imposition et comprenez votre situation fiscale."
+              onClick={() => navigate("/employee/atlas")}
+            />
+          ) : (
+            <ModuleCard
+              icon={<FileText className="h-4 w-4 text-blue-500" />}
+              title="ATLAS"
+              subtitle="Fiscalité"
+              colorClass={moduleTitleColors.atlas}
+              onClick={() => navigate("/employee/atlas")}
+            >
+              <p className="text-xl font-bold">
+                {tmi != null ? `TMI ${tmi}%` : "Non renseigné"}
+              </p>
+              {tauxMoyenEstime != null && (
+                <p className="text-xs text-muted-foreground">Taux moyen {tauxMoyenEstime}%</p>
+              )}
+              {impotMensuel != null && impotMensuel > 0 && (
+                <p className="text-xs text-muted-foreground">{formatEuros(impotMensuel)}/mois</p>
+              )}
+            </ModuleCard>
+          )}
 
           {/* HORIZON */}
-          <ModuleCard
-            icon={<Compass className="h-4 w-4 text-amber-500" />}
-            title="HORIZON"
-            subtitle="Épargne & Projets"
-            colorClass={moduleTitleColors.horizon}
-            onClick={() => navigate("/employee/horizon")}
-          >
-            {(() => {
-              const epargneTotal = capaciteEpargne ?? capaciteEpargneCalculee ?? 0;
-              const epargneMensuelleAllouee = synthesis?.horizon?.projects?.reduce((s, p) => s + (p.monthly_allocation ?? 0), 0) ?? 0;
-              const epargneRestante = Math.max(0, epargneTotal - epargneMensuelleAllouee);
-              const hasHorizon = synthesis?.horizon?.projects_count != null && synthesis.horizon.projects_count > 0;
+          {isModuleLocked("horizon") ? (
+            <BetaModuleCard
+              icon={<Compass className="h-4 w-4 text-amber-500" />}
+              title="HORIZON"
+              subtitle="Épargne & Projets"
+              colorClass={moduleTitleColors.horizon}
+              description="Planifiez vos projets de vie et suivez votre trajectoire d'épargne."
+              onClick={() => navigate("/employee/horizon")}
+            />
+          ) : (
+            <ModuleCard
+              icon={<Compass className="h-4 w-4 text-amber-500" />}
+              title="HORIZON"
+              subtitle="Épargne & Projets"
+              colorClass={moduleTitleColors.horizon}
+              onClick={() => navigate("/employee/horizon")}
+            >
+              {(() => {
+                const epargneTotal = capaciteEpargne ?? capaciteEpargneCalculee ?? 0;
+                const epargneMensuelleAllouee = synthesis?.horizon?.projects?.reduce((s, p) => s + (p.monthly_allocation ?? 0), 0) ?? 0;
+                const epargneRestante = Math.max(0, epargneTotal - epargneMensuelleAllouee);
+                const hasHorizon = synthesis?.horizon?.projects_count != null && synthesis.horizon.projects_count > 0;
 
-              return (
-                <>
-                  {hasHorizon ? (
-                    <>
-                      <p className="text-xl font-bold">{synthesis!.horizon!.projects_count} projets</p>
-                      <div className="mt-1.5 space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Allouée</span>
-                          <span className="font-semibold text-amber-600 dark:text-amber-400">{formatEuros(epargneMensuelleAllouee)}/m</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Disponible</span>
-                          <span className={cn("font-semibold", epargneRestante > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground")}>{formatEuros(epargneRestante)}/m</span>
-                        </div>
-                        {epargneTotal > 0 && (
-                          <div className="relative h-1.5 bg-muted rounded-full overflow-hidden mt-1">
-                            <div
-                              className="absolute h-full rounded-full bg-amber-500/80"
-                              style={{ width: `${Math.min(100, (epargneMensuelleAllouee / epargneTotal) * 100)}%` }}
-                            />
+                return (
+                  <>
+                    {hasHorizon ? (
+                      <>
+                        <p className="text-xl font-bold">{synthesis!.horizon!.projects_count} projets</p>
+                        <div className="mt-1.5 space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Allouée</span>
+                            <span className="font-semibold text-amber-600 dark:text-amber-400">{formatEuros(epargneMensuelleAllouee)}/m</span>
                           </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Disponible</span>
+                            <span className={cn("font-semibold", epargneRestante > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground")}>{formatEuros(epargneRestante)}/m</span>
+                          </div>
+                          {epargneTotal > 0 && (
+                            <div className="relative h-1.5 bg-muted rounded-full overflow-hidden mt-1">
+                              <div
+                                className="absolute h-full rounded-full bg-amber-500/80"
+                                style={{ width: `${Math.min(100, (epargneMensuelleAllouee / epargneTotal) * 100)}%` }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-muted-foreground">Aucun projet</p>
+                        {epargneTotal > 0 && (
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">{formatEuros(epargneTotal)}/m disponible</p>
                         )}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-sm text-muted-foreground">Aucun projet</p>
-                      {epargneTotal > 0 && (
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">{formatEuros(epargneTotal)}/m disponible</p>
-                      )}
-                    </>
-                  )}
-                </>
-              );
-            })()}
-          </ModuleCard>
+                      </>
+                    )}
+                  </>
+                );
+              })()}
+            </ModuleCard>
+          )}
 
           {/* PROFIL RISQUE */}
           <ModuleCard
@@ -938,3 +973,41 @@ function MetricChip({ label, value, highlight }: { label: string; value: string;
   );
 }
 
+function BetaModuleCard({
+  icon,
+  title,
+  subtitle,
+  colorClass,
+  description,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  colorClass: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <div
+      className="rounded-lg border border-border bg-card p-4 cursor-pointer hover:shadow-md transition-shadow group relative overflow-hidden"
+      onClick={onClick}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-muted/50 to-transparent pointer-events-none" />
+      <div className="relative">
+        <div className="flex items-center gap-1.5 mb-2">
+          <Lock className="h-4 w-4 text-muted-foreground" />
+          <span className={cn("text-xs font-bold uppercase tracking-wide", colorClass)}>{title}</span>
+          <Badge variant="outline" className="text-[8px] px-1 py-0 h-3.5 bg-amber-500/10 text-amber-600 border-amber-500/30 ml-auto">
+            Bientôt
+          </Badge>
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">{description}</p>
+        <div className="flex items-center text-[11px] text-primary gap-1">
+          <Bell className="h-3 w-3" />
+          Être notifié(e)
+        </div>
+      </div>
+    </div>
+  );
+}
