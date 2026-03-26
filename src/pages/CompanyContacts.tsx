@@ -60,6 +60,7 @@ interface CompanyContact {
   email: string;
   telephone: string | null;
   role_contact: string | null;
+  photo_url: string | null;
 }
 
 interface Company {
@@ -399,12 +400,20 @@ const CompanyContacts = () => {
                             <CardHeader className="pb-3">
                               <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
-                                  <div
-                                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-md"
-                                    style={{ background: primaryColor }}
-                                  >
-                                    {contact.nom.charAt(0).toUpperCase()}
-                                  </div>
+                                  {contact.photo_url ? (
+                                    <img
+                                      src={contact.photo_url}
+                                      alt={contact.nom}
+                                      className="w-12 h-12 rounded-full object-cover shadow-md"
+                                    />
+                                  ) : (
+                                    <div
+                                      className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-md"
+                                      style={{ background: primaryColor }}
+                                    >
+                                      {contact.nom.charAt(0).toUpperCase()}
+                                    </div>
+                                  )}
                                   <div>
                                     <CardTitle className="text-lg">{contact.nom}</CardTitle>
                                     {contact.role_contact && (
