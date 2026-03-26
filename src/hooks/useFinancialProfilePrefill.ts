@@ -110,7 +110,7 @@ export const useFinancialProfilePrefill = () => {
         credit_consommation: profile.credits_consommation || 0,
         investissement_locatif_credits: 0, // Filled separately from real estate hook
         investissement_locatif_charges: 0, // Filled separately from real estate hook
-        impots: 0, // Filled separately from ATLAS
+        impots: (profile as any).charges_impot_mensuel || 0,
         autres: profile.charges_autres || 0,
       },
       

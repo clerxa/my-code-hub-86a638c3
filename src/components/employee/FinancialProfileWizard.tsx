@@ -460,14 +460,14 @@ export function FinancialProfileWizard({
             <div className="space-y-2 pt-4 border-t">
               <div className="flex items-center gap-2">
                 <Label>Revenu fiscal de référence du foyer (€){requiredMark("revenu_fiscal_annuel")}</Label>
-                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary/10 text-primary">importé par ATLAS</span>
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground">facultatif — visible sur l'avis d'imposition</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p className="text-xs max-w-xs">Ce montant est importé automatiquement depuis votre avis d'imposition (module ATLAS). Vous pouvez aussi le saisir manuellement.</p>
+                      <p className="text-xs max-w-xs">Montant indiqué sur votre avis d'imposition, ligne « Revenu fiscal de référence ». Permet un calcul d'impôt plus précis.</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
