@@ -59,6 +59,7 @@ import { FinancialProductsTab } from "@/components/admin/FinancialProductsTab";
 import { ProductObjectiveMatrixTab } from "@/components/admin/ProductObjectiveMatrixTab";
 import { CommunityManagementTab } from "@/components/admin/CommunityManagementTab";
 import { EmailConfigTab } from "@/components/admin/EmailConfigTab";
+import { WebinarReminderConfig } from "@/components/admin/WebinarReminderConfig";
 import { NotFoundConfigTab } from "@/components/admin/NotFoundConfigTab";
 
 import { TaxHelpAdminTab } from "@/components/admin/TaxHelpAdminTab";
@@ -414,6 +415,7 @@ const Admin = () => {
                 
                 {/* Configuration Email */}
                 <Route path="email-config" element={<EmailConfigTab />} />
+                <Route path="webinar-reminders" element={<WebinarReminderConfig />} />
                 
                 {/* Configuration Page 404 */}
                 <Route path="not-found-config" element={<NotFoundConfigTab />} />

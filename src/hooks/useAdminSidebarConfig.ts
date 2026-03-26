@@ -148,6 +148,7 @@ const defaultAdminItems: AdminMenuItem[] = [
   // Technique
   { id: "global-settings", label: "Paramètres Globaux", url: "/admin/global-settings", icon: "Settings", order: 2, visible: true, categoryId: "technical" },
   { id: "email-config", label: "Configuration Email", url: "/admin/email-config", icon: "Mail", order: 3, visible: true, categoryId: "technical" },
+  { id: "webinar-reminders", label: "Rappels Webinar", url: "/admin/webinar-reminders", icon: "Bell", order: 3.5, visible: true, categoryId: "technical" },
   { id: "beta-lab", label: "Beta Lab", url: "/admin/beta-lab", icon: "FlaskConical", order: 4, visible: true, categoryId: "technical" },
   { id: "risk-profile", label: "Risk Profile", url: "/admin/risk-profile", icon: "Target", order: 5, visible: true, categoryId: "technical" },
   { id: "tax-help", label: "Aide Fiscale", url: "/admin/tax-help", icon: "Receipt", order: 6, visible: true, categoryId: "technical" },
