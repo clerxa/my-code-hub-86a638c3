@@ -137,6 +137,7 @@ export const HubSpotMeetingWidget = ({
   utmCampaign,
   dialogTitle,
   dialogDescription,
+  prefillData,
 }: HubSpotMeetingWidgetProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
