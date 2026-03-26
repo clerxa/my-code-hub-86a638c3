@@ -15,12 +15,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { 
   ArrowLeft, ArrowRight, Check, Euro, Users, Briefcase, 
-  Building, PiggyBank, Info, HelpCircle, ChevronDown, ChevronUp, Wallet
+  Building, PiggyBank, Info, HelpCircle, ChevronDown, ChevronUp, Wallet, Calculator
 } from "lucide-react";
 import { RealEstatePropertiesManager } from "./profile/RealEstatePropertiesManager";
 import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
 import { cn } from "@/lib/utils";
 import { type FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
+import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
+import { calculateImpotAnnuel, calculatePartsFiscales } from "@/utils/taxCalculations";
 
 interface FinancialProfileWizardProps {
   formData: FinancialProfileInput;
@@ -120,6 +122,8 @@ export function FinancialProfileWizard({
       formData.pensions_alimentaires || 0,
       formData.credits_consommation || 0,
       formData.charges_autres || 0,
+      // Fiscalité
+      (formData as any).charges_impot_mensuel || 0,
       // Variable charges
       formData.charges_courses_alimentaires || 0,
       formData.charges_loisirs || 0,
