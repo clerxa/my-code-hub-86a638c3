@@ -5941,6 +5941,7 @@ export type Database = {
           budget_investissement_locatif: number | null
           budget_residence_principale: number | null
           budget_residence_secondaire: number | null
+          buffer_depenses_imprevues_pct: number
           capacite_epargne_mensuelle: number | null
           charges_abonnements: number | null
           charges_assurance_auto: number | null
@@ -6034,6 +6035,7 @@ export type Database = {
           budget_investissement_locatif?: number | null
           budget_residence_principale?: number | null
           budget_residence_secondaire?: number | null
+          buffer_depenses_imprevues_pct?: number
           capacite_epargne_mensuelle?: number | null
           charges_abonnements?: number | null
           charges_assurance_auto?: number | null
@@ -6127,6 +6129,7 @@ export type Database = {
           budget_investissement_locatif?: number | null
           budget_residence_principale?: number | null
           budget_residence_secondaire?: number | null
+          buffer_depenses_imprevues_pct?: number
           capacite_epargne_mensuelle?: number | null
           charges_abonnements?: number | null
           charges_assurance_auto?: number | null

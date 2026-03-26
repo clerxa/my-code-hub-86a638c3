@@ -112,6 +112,8 @@ export interface UserFinancialProfile {
   // Valeurs estimées épargne salariale
   valeur_pee: number;
   valeur_perco: number;
+  // Buffer dépenses imprévues
+  buffer_depenses_imprevues_pct: number;
   // Summary
   financial_summary: string | null;
   financial_summary_generated_at: string | null;

@@ -80,7 +80,10 @@ export function FinancialProfileWizard({
   };
   const [currentStep, setCurrentStep] = useState(getStepIndex(initialStepId));
   const [showWhyInfo, setShowWhyInfo] = useState(false);
-  const [bufferPercent, setBufferPercent] = useState(0);
+  const bufferPercent = (formData as any).buffer_depenses_imprevues_pct || 0;
+  const setBufferPercent = (val: number) => {
+    updateField('buffer_depenses_imprevues_pct' as any, val);
+  };
   
 
   // React to external step navigation requests
@@ -139,7 +142,11 @@ export function FinancialProfileWizard({
       realEstateTotals.mensualitesTotal,
       realEstateTotals.chargesTotal,
     ];
-    return charges.reduce((sum, charge) => sum + charge, 0);
+    const subtotal = charges.reduce((sum, charge) => sum + charge, 0);
+    // Add buffer for unforeseen expenses
+    const variableBase = (formData.charges_courses_alimentaires || 0) + (formData.charges_loisirs || 0) + (formData.charges_shopping || 0) + (formData.charges_variables_autres || 0);
+    const buffer = Math.round(variableBase * bufferPercent / 100);
+    return subtotal + buffer;
   };
 
   // Auto-update charges_fixes_mensuelles when any charge changes OR residence status changes
@@ -172,6 +179,7 @@ export function FinancialProfileWizard({
     formData.charges_variables_autres,
     realEstateTotals.mensualitesTotal,
     realEstateTotals.chargesTotal,
+    bufferPercent,
   ]);
 
   // Auto-sync real estate totals to financial profile fields
@@ -1047,7 +1055,7 @@ export function FinancialProfileWizard({
                   <span className="font-medium">Total toutes charges</span>
                 </div>
                 <span className="text-xl font-bold text-primary">
-                  {(calculateTotalCharges() + bufferAmount).toLocaleString('fr-FR')} €
+                  {calculateTotalCharges().toLocaleString('fr-FR')} €
                 </span>
               </div>
             </div>
