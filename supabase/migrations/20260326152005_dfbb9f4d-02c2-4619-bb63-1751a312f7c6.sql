@@ -1,0 +1,1 @@
+UPDATE intention_score_config SET is_active = false WHERE signal_key = 'appointment_preparation_done';
