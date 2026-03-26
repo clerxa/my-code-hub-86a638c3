@@ -20,6 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { RdvAssignmentMatrix, DEFAULT_MATRIX, ADVISOR_TYPES, type MatrixConfig, type AdvisorUrls, type AdvisorTypeKey } from "./RdvAssignmentMatrix";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -101,11 +102,17 @@ export function ExpertBookingTab() {
   const [expertBookingUrlRang4, setExpertBookingUrlRang4] = useState("");
   const [expertBookingEmbedRang4, setExpertBookingEmbedRang4] = useState("");
   
-  // New rang×revenue URL fields
+  // New rang×revenue URL fields (legacy, kept for reading)
   const [rdvExpertUrl, setRdvExpertUrl] = useState("");
   const [rdvSeniorUrl, setRdvSeniorUrl] = useState("");
   const [rdvJuniorUrl, setRdvJuniorUrl] = useState("");
   const [rdvAllUrl, setRdvAllUrl] = useState("");
+
+  // Matrix config
+  const [assignmentMatrix, setAssignmentMatrix] = useState<MatrixConfig>(DEFAULT_MATRIX);
+  const [advisorUrls, setAdvisorUrls] = useState<AdvisorUrls>({
+    managers: "", experts: "", seniors_plus: "", seniors: "", intermediaires: "", juniors: "",
+  });
   
   // Landing page settings
   const [landingSettings, setLandingSettings] = useState<LandingSettings>({
@@ -164,7 +171,9 @@ export function ExpertBookingTab() {
           "rdv_expert_url",
           "rdv_senior_url",
           "rdv_junior_url",
-          "rdv_all_url"
+          "rdv_all_url",
+          "rdv_assignment_matrix",
+          "rdv_advisor_urls"
         ]);
 
       if (urlError) throw urlError;
