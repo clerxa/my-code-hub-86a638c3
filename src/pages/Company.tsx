@@ -816,7 +816,7 @@ const Company = () => {
         {/* Cover Image and Company Info Section */}
         <div className="relative">
           {/* Unified responsive banner */}
-          <CompanyBanner />
+          <CompanyBanner primaryColor={company.primary_color} secondaryColor={company.secondary_color} />
           
           {/* Company Info Overlay */}
           <div className="container mx-auto px-4">

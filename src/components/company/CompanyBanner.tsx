@@ -1,6 +1,11 @@
 import mascotte from "@/assets/mascotte-fincare.png";
 
-export function CompanyBanner() {
+interface CompanyBannerProps {
+  primaryColor?: string | null;
+  secondaryColor?: string | null;
+}
+
+export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerProps) {
   return (
     <div
       className="w-full overflow-hidden relative rounded-2xl"
@@ -10,10 +15,20 @@ export function CompanyBanner() {
       }}
     >
       <div
-        className="w-full flex items-center justify-center px-4 sm:px-8 md:px-12 py-6 sm:py-8 md:py-10 rounded-2xl"
+        className="w-full relative flex items-center justify-center px-4 sm:px-8 md:px-12 py-6 sm:py-8 md:py-10 rounded-2xl"
         style={{ backgroundColor: "#101218" }}
       >
-        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 md:gap-12 max-w-5xl w-full">
+        {/* Company color overlay */}
+        {(primaryColor || secondaryColor) && (
+          <div
+            className="absolute inset-0 opacity-20 rounded-2xl pointer-events-none"
+            style={{
+              background: `linear-gradient(to right, ${primaryColor || "transparent"}, transparent, ${secondaryColor || "transparent"})`,
+            }}
+          />
+        )}
+
+        <div className="relative flex flex-col sm:flex-row items-center gap-4 sm:gap-8 md:gap-12 max-w-5xl w-full">
           {/* Mascot */}
           <img
             src={mascotte}
