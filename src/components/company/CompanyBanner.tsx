@@ -13,7 +13,7 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
         backgroundColor: "#0f0f14",
         borderRadius: 16,
         position: "relative",
-        zIndex: 1,
+        zIndex: 10,
         isolation: "isolate",
       }}
     >
@@ -125,14 +125,15 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
               fontWeight: 800,
               lineHeight: 1.15,
               margin: 0,
-              background: 'linear-gradient(135deg, #e8e0ff 0%, #c4a8f8 35%, #f0a0d0 70%, #ffd0a0 100%)',
+              background: 'linear-gradient(135deg, #d4c5ff 0%, #a87ef5 30%, #e060b0 65%, #ffaa60 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
               display: 'inline-block',
-              width: '100%',
+              maxWidth: 520,
+              whiteSpace: 'pre-line' as const,
             }}>
-              MyFinCare, l'application qui redonne aux salariés le pouvoir sur leurs finances.
+              {`MyFinCare, l'application\nqui redonne aux salariés\nle pouvoir sur leurs finances.`}
             </h1>
           </div>
         </div>
