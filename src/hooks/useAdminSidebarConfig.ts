@@ -325,7 +325,8 @@ export const useAdminSidebarConfig = () => {
     if (!config) return { uncategorized: [], categories: [] };
 
     const visibleItems = getVisibleItems();
-    const uncategorized = visibleItems.filter((item) => !item.categoryId);
+    const categoryIds = new Set(config.categories.map((category) => category.id));
+    const uncategorized = visibleItems.filter((item) => !item.categoryId || !categoryIds.has(item.categoryId));
 
     const categorizedItems = config.categories
       .sort((a, b) => a.order - b.order)

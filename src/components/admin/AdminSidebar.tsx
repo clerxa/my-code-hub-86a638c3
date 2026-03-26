@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -25,7 +26,18 @@ import { useAdminSidebarConfig, getAdminIconComponent } from "@/hooks/useAdminSi
 export function AdminSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
-  const { config, loading, getItemsByCategory } = useAdminSidebarConfig();
+  const { config, loading, getItemsByCategory, refetch } = useAdminSidebarConfig();
+
+  useEffect(() => {
+    const handleConfigUpdated = () => {
+      void refetch();
+    };
+
+    window.addEventListener("admin-sidebar-config-updated", handleConfigUpdated);
+    return () => {
+      window.removeEventListener("admin-sidebar-config-updated", handleConfigUpdated);
+    };
+  }, []);
 
   if (loading) {
     return (
