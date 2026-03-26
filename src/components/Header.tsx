@@ -116,12 +116,36 @@ export const Header = () => {
   };
   const checkAdminStatus = async () => {
     if (!user) return;
-    const {
-      data,
-      error
-    } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+    const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
     if (!error && data?.role === "admin") {
       setIsAdmin(true);
+    }
+    // Also check if user has contact_entreprise role in user_roles
+    if (!error && data?.role === "contact_entreprise") {
+      setIsCompanyContact(true);
+      // Try to find their company_id from company_contacts or profile
+      await resolveContactCompanyId();
+    }
+  };
+  const resolveContactCompanyId = async () => {
+    if (!user?.email) return;
+    // First try company_contacts table
+    const { data: contactData } = await supabase
+      .from("company_contacts")
+      .select("company_id")
+      .eq("email", user.email);
+    if (contactData && contactData.length > 0) {
+      setContactCompanyId(contactData[0].company_id);
+      return;
+    }
+    // Fallback to profile's company_id
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("id", user.id)
+      .single();
+    if (profileData?.company_id) {
+      setContactCompanyId(profileData.company_id);
     }
   };
   const checkCompanyContactStatus = async () => {
