@@ -263,13 +263,11 @@ export const EmployeeSidebar = ({
           )}
         </div>
         {!collapsed && (
-          <span className="truncate flex items-center gap-1.5">
-            {item.label}
-            {isBetaLockedItem && (
-              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-amber-500/10 text-amber-600 border-amber-500/30 font-medium">
-                Bientôt
-              </Badge>
-            )}
+          <span className="truncate">{item.label}</span>
+        )}
+        {!collapsed && isBetaLockedItem && (
+          <span className="ml-auto shrink-0 inline-flex items-center rounded-full bg-amber-500/15 text-amber-600 text-[8px] font-semibold px-1.5 py-0 h-4 leading-none border border-amber-500/25">
+            SOON
           </span>
         )}
         {isLocked && collapsed && <Lock className="h-3 w-3 absolute bottom-1 right-1 text-muted-foreground" />}
