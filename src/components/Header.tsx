@@ -202,11 +202,12 @@ export const Header = () => {
             </div>
             {betaBadge.enabled && (
               <div 
-                className="absolute -bottom-1 -right-1 flex items-center justify-center rounded-full p-0.5 shadow-md"
+                className="absolute -bottom-1.5 -right-1 flex items-center gap-0.5 rounded-full px-1.5 py-0.5 shadow-md"
                 style={{ backgroundColor: betaBadge.color }}
                 title={betaBadge.text}
               >
-                <FlaskConical className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
+                <FlaskConical className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
+                <span className="text-[8px] sm:text-[9px] font-bold text-white leading-none">{betaBadge.text}</span>
               </div>
             )}
           </div>
