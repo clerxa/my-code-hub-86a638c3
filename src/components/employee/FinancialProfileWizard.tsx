@@ -662,7 +662,7 @@ export function FinancialProfileWizard({
             ? formData.parts_fiscales
             : calculatePartsFiscales(situation, nbEnfants);
           
-          const impotAnnuel = calculateImpotAnnuel(revenuImposable, parts, tax_brackets);
+          const impotAnnuel = calculateImpotAnnuel(revenuImposable, parts, fiscalRules.tax_brackets);
           const impotMensuel = Math.round(impotAnnuel / 12);
           
           updateField('charges_impot_mensuel' as any, impotMensuel);
