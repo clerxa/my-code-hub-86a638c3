@@ -132,7 +132,7 @@ export function FinancialProfileWizard({
       formData.credits_consommation || 0,
       formData.charges_autres || 0,
       // Fiscalité
-      (formData as any).charges_impot_mensuel || 0,
+      formData.charges_impot_mensuel || 0,
       // Variable charges
       formData.charges_courses_alimentaires || 0,
       formData.charges_loisirs || 0,
@@ -172,7 +172,7 @@ export function FinancialProfileWizard({
     formData.pensions_alimentaires,
     formData.credits_consommation,
     formData.charges_autres,
-    (formData as any).charges_impot_mensuel,
+    formData.charges_impot_mensuel,
     formData.charges_courses_alimentaires,
     formData.charges_loisirs,
     formData.charges_shopping,
@@ -654,7 +654,7 @@ export function FinancialProfileWizard({
         const familleSubtotal = (formData.charges_frais_scolarite || 0) + (formData.pensions_alimentaires || 0);
         const creditSubtotal = (formData.credits_consommation || 0);
         const autresSubtotal = (formData.charges_autres || 0);
-        const fiscaliteSubtotal = ((formData as any).charges_impot_mensuel || 0);
+        const fiscaliteSubtotal = (formData.charges_impot_mensuel || 0);
 
         // Auto-calculate tax estimation
         const handleAutoCalculateTax = () => {
@@ -678,7 +678,7 @@ export function FinancialProfileWizard({
           const impotAnnuel = calculateImpotAnnuel(revenuImposable, parts, fiscalRules.tax_brackets);
           const impotMensuel = Math.round(impotAnnuel / 12);
           
-          updateField('charges_impot_mensuel' as any, impotMensuel);
+          updateField('charges_impot_mensuel', impotMensuel);
           // Also update TMI and parts
           updateField('parts_fiscales', parts);
           
