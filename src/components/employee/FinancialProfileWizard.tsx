@@ -179,6 +179,7 @@ export function FinancialProfileWizard({
     formData.charges_variables_autres,
     realEstateTotals.mensualitesTotal,
     realEstateTotals.chargesTotal,
+    bufferPercent,
   ]);
 
   // Auto-sync real estate totals to financial profile fields
