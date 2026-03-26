@@ -8,7 +8,7 @@ import { DiagnosticConfig } from "@/data/diagnostic-config";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthProvider";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
 import { supabase } from "@/integrations/supabase/client";
 

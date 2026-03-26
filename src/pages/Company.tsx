@@ -23,7 +23,7 @@ import { PartnershipRequestDialog } from "@/components/PartnershipRequestDialog"
 import { useBlockLayoutConfig } from "@/hooks/useBlockLayoutConfig";
 import { UpcomingWebinars } from "@/components/UpcomingWebinars";
 import { useAuth } from "@/components/AuthProvider";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 
 import { setBookingReferrer } from "@/hooks/useBookingReferrer";
 

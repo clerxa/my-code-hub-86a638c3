@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { RiskProfile } from "@/types/risk-profile";
 import { supabase } from "@/integrations/supabase/client";
 import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { appendUtmParams } from "@/hooks/useBookingReferrer";
 
 interface RiskProfileResultsProps {

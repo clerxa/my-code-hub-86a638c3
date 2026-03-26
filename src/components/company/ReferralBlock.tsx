@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { toast } from "sonner";
 import { Users, Calendar, Send, CheckCircle } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 
 interface ReferralConfig {
   enabled: boolean;

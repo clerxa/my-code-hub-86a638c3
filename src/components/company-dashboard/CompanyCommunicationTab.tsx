@@ -5,7 +5,7 @@ import { CompanyDocumentsTab } from "./CompanyDocumentsTab";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FileText, Megaphone, Link2, Copy, Check, Calendar, Users, Image as ImageIcon, HelpCircle, Download, ChevronDown, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";

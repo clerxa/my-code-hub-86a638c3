@@ -19,6 +19,7 @@ import { Footer } from "@/components/Footer";
 import { DraggableSection } from "@/components/DraggableSection";
 
 import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { PartnershipRequestDialog } from "@/components/PartnershipRequestDialog";
 import { SimulationsTable } from "@/components/SimulationsTable";
 import { UpcomingWebinars } from "@/components/UpcomingWebinars";
