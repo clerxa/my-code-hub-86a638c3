@@ -640,6 +640,36 @@ export function FinancialProfileWizard({
         const familleSubtotal = (formData.charges_frais_scolarite || 0) + (formData.pensions_alimentaires || 0);
         const creditSubtotal = (formData.credits_consommation || 0);
         const autresSubtotal = (formData.charges_autres || 0);
+        const fiscaliteSubtotal = ((formData as any).charges_impot_mensuel || 0);
+
+        // Auto-calculate tax estimation
+        const handleAutoCalculateTax = () => {
+          // Need revenu fiscal annuel or revenu brut + parts fiscales
+          const revenuFiscal = formData.revenu_fiscal_annuel || 0;
+          const revenuBrut = (formData.revenu_annuel_brut || 0) + (formData.revenu_annuel_brut_conjoint || 0);
+          // Use revenu fiscal if available, else estimate from brut (net imposable ≈ brut * 0.9 after abattement 10%)
+          const revenuImposable = revenuFiscal > 0 ? revenuFiscal : (revenuBrut > 0 ? Math.round(revenuBrut * 0.77 * 0.9) : 0);
+          
+          if (revenuImposable <= 0) {
+            toast.error("Impossible d'estimer l'impôt : renseignez d'abord vos revenus dans l'onglet Situation.");
+            return;
+          }
+
+          const situation = situationFamiliale || 'celibataire';
+          const nbEnfants = formData.nb_enfants ?? 0;
+          const parts = formData.parts_fiscales && formData.parts_fiscales > 0
+            ? formData.parts_fiscales
+            : calculatePartsFiscales(situation, nbEnfants);
+          
+          const impotAnnuel = calculateImpotAnnuel(revenuImposable, parts, tax_brackets);
+          const impotMensuel = Math.round(impotAnnuel / 12);
+          
+          updateField('charges_impot_mensuel' as any, impotMensuel);
+          // Also update TMI and parts
+          updateField('parts_fiscales', parts);
+          
+          toast.success(`Impôt estimé : ${impotMensuel.toLocaleString('fr-FR')} €/mois (${impotAnnuel.toLocaleString('fr-FR')} €/an)`);
+        };
 
         const SubtotalBadge = ({ amount }: { amount: number }) => (
           <span className={cn(
