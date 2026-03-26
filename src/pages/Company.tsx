@@ -24,7 +24,7 @@ import { useBlockLayoutConfig } from "@/hooks/useBlockLayoutConfig";
 import { UpcomingWebinars } from "@/components/UpcomingWebinars";
 import { useAuth } from "@/components/AuthProvider";
 import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
-import { useResponsiveBanner } from "@/hooks/useResponsiveBanner";
+
 import { setBookingReferrer } from "@/hooks/useBookingReferrer";
 
 import { InviteColleagueBlock } from "@/components/company/InviteColleagueBlock";
@@ -35,6 +35,7 @@ import { MobileCompanyNav } from "@/components/company/MobileCompanyNav";
 import { CompanyLeaderboard } from "@/components/company/CompanyLeaderboard";
 import { CompanyFAQSection } from "@/components/company/CompanyFAQSection";
 import { CompanyExpertAdviceSection } from "@/components/company/CompanyExpertAdviceSection";
+import { CompanyBanner } from "@/components/company/CompanyBanner";
 import type { Company as CompanyType } from "@/types/database";
 import { ParcoursFilter, filterParcours } from "@/components/parcours/ParcoursFilter";
 interface Parcours {
@@ -76,7 +77,7 @@ const Company = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [completedModules, setCompletedModules] = useState<number[]>([]);
   const [parcoursFilter, setParcoursFilter] = useState<import("@/components/parcours/ParcoursFilter").ParcoursFilterValue>("all");
-  const { currentBanner: defaultBannerUrl } = useResponsiveBanner();
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { blocks, layoutConfig, loading: configLoading, updateBlockOrder } = useBlockLayoutConfig("company");
@@ -814,75 +815,8 @@ const Company = () => {
         
         {/* Cover Image and Company Info Section */}
         <div className="relative">
-          {/* Cover Image with company colors */}
-          {(() => {
-            const coverUrl = company.banner_url || company.cover_url || defaultBannerUrl;
-            return (
-              <div 
-                className="h-64 w-full overflow-hidden relative"
-                style={{
-                  background: coverUrl 
-                    ? undefined 
-                    : `linear-gradient(135deg, ${company.primary_color || 'hsl(var(--primary))'} 0%, color-mix(in srgb, ${company.primary_color || 'hsl(var(--primary))'} 40%, ${company.secondary_color || 'hsl(var(--secondary))'}) 50%, ${company.secondary_color || 'hsl(var(--secondary))'} 100%)`
-                }}
-              >
-                {coverUrl ? (
-                  <>
-                    <img 
-                      src={coverUrl} 
-                      alt={`${company.name} cover`} 
-                      className="h-full w-full object-cover"
-                    />
-                    {/* Gradient overlay with company colors */}
-                    <div 
-                      className="absolute inset-0 opacity-30"
-                      style={{
-                        background: `linear-gradient(to right, ${company.primary_color || 'transparent'}, transparent, ${company.secondary_color || 'transparent'})`
-                      }}
-                    />
-                  </>
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <Building2 className="h-20 w-20 text-white/30" />
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-          
-          {/* Modify Cover Button */}
-          {(isAdmin || isCompanyContact) && (
-            <div className="absolute top-4 right-4">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingCover}
-                      className="gap-2 bg-background/90 hover:bg-background backdrop-blur-sm"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                      {uploadingCover ? "Upload..." : "Modifier le cover"}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <p className="font-medium">Format recommandé</p>
-                    <p className="text-xs text-muted-foreground">1920 × 256 px (ratio 7.5:1)</p>
-                    <p className="text-xs text-muted-foreground">Taille max : 10 MB</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleCoverUpload}
-                className="hidden"
-              />
-            </div>
-          )}
+          {/* Unified responsive banner */}
+          <CompanyBanner />
           
           {/* Company Info Overlay */}
           <div className="container mx-auto px-4">
