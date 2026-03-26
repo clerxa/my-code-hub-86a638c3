@@ -19,7 +19,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { RSUPlan, RSURegime, RSUDevise, VestingLine } from '@/types/rsu';
 import { REGIME_LABELS, REGIME_SHORT_LABELS, inferRegimeFromYear, regimeNeedsConservationDate, isQualifiedRegime, migrateOldRegime } from '@/types/rsu';
-import { searchSymbols, fetchStockPricesBatch, fetchFxRate, fetchStockSummary, type SymbolSearchResult } from '@/hooks/useStockData';
+import { searchSymbols, fetchStockPricesBatch, fetchFxRatesBatch, fetchStockSummary, type SymbolSearchResult } from '@/hooks/useStockData';
 import { useCompanyTicker } from '@/hooks/useCompanyTicker';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -605,9 +605,9 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
 
     // 1 single API call for all stock prices (batch)
     const dates = vestingsWithDates.map(v => v.date);
-    const [priceResults, ...fxResults] = await Promise.all([
+    const [priceResults, fxResults] = await Promise.all([
       fetchStockPricesBatch(ticker, dates),
-      ...(devise === 'USD' ? vestingsWithDates.map(v => fetchFxRate(v.date)) : []),
+      devise === 'USD' ? fetchFxRatesBatch(dates) : Promise.resolve(null),
     ]);
 
     // Map results back to each row
@@ -625,8 +625,8 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
         }
       }
 
-      if (devise === 'USD') {
-        const fxResult = fxResults[i] as { rate: number | null; isBusinessDay: boolean; error?: string };
+      if (devise === 'USD' && fxResults) {
+        const fxResult = fxResults[v.date];
         if (!fxResult || fxResult.error || fxResult.rate === null) {
           status.fxError = fxResult?.error || 'Taux non disponible — saisie manuelle requise';
         } else {

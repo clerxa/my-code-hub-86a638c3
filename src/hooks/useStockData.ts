@@ -100,3 +100,20 @@ export async function fetchFxRate(
     return { rate: null, isBusinessDay: true, error: 'Network error' };
   }
 }
+
+/**
+ * Batch fetch: 1 single API call for all FX rates across multiple dates
+ */
+export async function fetchFxRatesBatch(
+  dates: string[]
+): Promise<Record<string, { rate: number | null; isBusinessDay: boolean; error?: string }>> {
+  if (!dates.length) return {};
+  try {
+    const data = await callStockData({ action: 'fx_rates_batch', dates });
+    return data.results || {};
+  } catch {
+    const fallback: Record<string, { rate: number | null; isBusinessDay: boolean; error?: string }> = {};
+    for (const d of dates) fallback[d] = { rate: null, isBusinessDay: true, error: 'Network error' };
+    return fallback;
+  }
+}
