@@ -100,7 +100,7 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
             lineHeight: 1.15,
             display: 'inline-block',
             width: '100%',
-            background: 'linear-gradient(90deg, #4f7cf7 0%, #8b5cf6 40%, #d946a8 70%, #f97316 100%)',
+            background: 'linear-gradient(135deg, #4f7cf7 0%, #8b5cf6 25%, #d946a8 55%, #f97316 85%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
