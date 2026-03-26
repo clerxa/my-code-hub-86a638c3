@@ -79,7 +79,7 @@ export function IntentionScoringTab() {
       const companyMap = Object.fromEntries(companyList.map((c) => [c.id, c.name]));
 
       // Batch fetch all signal sources
-      const [loginsRes, simLogsRes, modulesRes, diagnosticRes, horizonRes, eventsRes, appointmentsRes, fpRes, riskRes, realEstateRes, prepRes] = await Promise.all([
+      const [loginsRes, simLogsRes, modulesRes, diagnosticRes, horizonRes, eventsRes, appointmentsRes, fpRes, riskRes, realEstateRes] = await Promise.all([
         supabase.from("daily_logins").select("user_id"),
         supabase.from("simulation_logs").select("user_id, appointment_cta_clicked"),
         supabase.from("module_validations").select("user_id"),
@@ -150,7 +150,7 @@ export function IntentionScoringTab() {
           financial_profile_complete: fpCompleteUsers.has(uid) ? 1 : 0,
           risk_profile_completed: riskUsers.has(uid) ? 1 : 0,
           real_estate_added: realEstateCounts[uid] || 0,
-          appointment_preparation_done: prepUsers.has(uid) ? 1 : 0,
+          
         };
 
         const signals: ScoreSignal[] = [];
