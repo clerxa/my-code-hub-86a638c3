@@ -40,7 +40,7 @@ import { StatsDashboard } from "@/components/employee/StatsDashboard";
 import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
 import { PersonalInfoSection } from "@/components/employee/PersonalInfoSection";
 import { MyAppointmentsBlock } from "@/components/employee/MyAppointmentsBlock";
-import { UpcomingAppointmentBanner } from "@/components/employee/UpcomingAppointmentBanner";
+
 import { MyWebinarsBlock } from "@/components/employee/MyWebinarsBlock";
 import { FinancialProfileProgress } from "@/components/employee/FinancialProfileProgress";
 import { CompanyLeaderboard } from "@/components/company/CompanyLeaderboard";
@@ -763,7 +763,7 @@ export default function Employee() {
           </DraggableSection>
         );
       case "upcomingAppointmentBanner":
-        return <UpcomingAppointmentBanner key="upcomingAppointmentBanner" />;
+        return null;
       case "taxDeclaration":
         return (
           <DraggableSection key="taxDeclaration" id="taxDeclaration" isAdmin={isAdmin}>

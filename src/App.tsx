@@ -82,6 +82,7 @@ import Partnership from "./pages/Partnership";
 import EmployeePartnership from "./pages/EmployeePartnership";
 import RiskProfile from "./pages/RiskProfile";
 import ExpertBookingLanding from "./pages/ExpertBookingLanding";
+import MesRendezVous from "./pages/MesRendezVous";
 import OnboardingFlow from "./pages/OnboardingFlow";
 import AdvisorLookup from "./pages/AdvisorLookup";
 import NotFound from "./pages/NotFound";
@@ -230,6 +231,7 @@ const App = () => (
 
             {/* Routes employé - Accessibles aux utilisateurs authentifiés */}
             <Route path="/employee" element={<ProtectedRoute><Employee /></ProtectedRoute>} />
+            <Route path="/mes-rendez-vous" element={<ProtectedRoute><MesRendezVous /></ProtectedRoute>} />
             <Route
               path="/employee/profile"
               element={
