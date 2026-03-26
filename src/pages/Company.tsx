@@ -47,6 +47,7 @@ interface Parcours {
 }
 interface CompanyWithPartnership extends CompanyType {
   cover_url?: string;
+  banner_url?: string | null;
 }
 const Company = () => {
   const {
@@ -815,7 +816,7 @@ const Company = () => {
         <div className="relative">
           {/* Cover Image with company colors */}
           {(() => {
-            const coverUrl = company.cover_url || defaultBannerUrl;
+            const coverUrl = company.banner_url || company.cover_url || defaultBannerUrl;
             return (
               <div 
                 className="h-64 w-full overflow-hidden relative"
