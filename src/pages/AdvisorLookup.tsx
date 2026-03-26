@@ -193,6 +193,16 @@ const AdvisorLookup = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
+  // Intention score for selected user
+  const intentionScore = useIntentionScore(lookedUpUser?.id ?? null);
+
+  const LEVEL_CONFIG = {
+    brûlant: { color: "bg-red-500 text-white", icon: Flame, label: "🔥 Brûlant" },
+    chaud: { color: "bg-orange-500 text-white", icon: Flame, label: "🟠 Chaud" },
+    tiède: { color: "bg-yellow-500 text-black", icon: Thermometer, label: "🟡 Tiède" },
+    froid: { color: "bg-blue-200 text-blue-800", icon: Snowflake, label: "🔵 Froid" },
+  } as const;
+
   // Close suggestions on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
