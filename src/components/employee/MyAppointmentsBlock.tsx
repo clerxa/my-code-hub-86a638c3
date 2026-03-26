@@ -6,23 +6,9 @@ import { useAuth } from "@/components/AuthProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Video, RefreshCw, User, Mail, Sparkles, CheckCircle2, Shield, Award, ArrowRight } from "lucide-react";
+import { Calendar, Clock, Video, User, Sparkles, CheckCircle2, Shield, Award, ArrowRight } from "lucide-react";
 import { format, isPast, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
-import { useQuery } from "@tanstack/react-query";
-
-interface LegacyAppointment {
-  id: string;
-  user_full_name: string | null;
-  event_start_time: string;
-  event_end_time: string;
-  timezone: string;
-  event_url: string | null;
-  reschedule_url: string | null;
-  status: string;
-  scheduled_with_name: string | null;
-  appointment_forms?: { name: string; icon: string; color: string } | null;
-}
 
 interface HubspotAppointment {
   id: string;
@@ -35,58 +21,39 @@ interface HubspotAppointment {
   created_at: string;
 }
 
-// Dedupe HubSpot appointments: keep only one per (booking_source + meeting_start_time)
-const dedupeHubspotAppointments = (rows: HubspotAppointment[]): HubspotAppointment[] => {
+const dedupeAppointments = (rows: HubspotAppointment[]): HubspotAppointment[] => {
   const map = new Map<string, HubspotAppointment>();
   for (const apt of rows) {
     const key = `${apt.booking_source ?? "unknown"}|${apt.meeting_start_time ?? apt.created_at}`;
     const existing = map.get(key);
-    if (!existing) {
-      map.set(key, apt);
-      continue;
-    }
-    // Keep the most recent ingestion
-    if (new Date(apt.created_at).getTime() > new Date(existing.created_at).getTime()) {
+    if (!existing || new Date(apt.created_at) > new Date(existing.created_at)) {
       map.set(key, apt);
     }
   }
   return Array.from(map.values());
 };
 
-interface UnifiedAppointment {
-  id: string;
-  title: string;
-  startTime: string;
-  endTime: string | null;
-  videoLink: string | null;
-  hostName: string | null;
-  status: "upcoming" | "past" | "today";
-  source: "hubspot" | "legacy";
-  sourceLabel: string;
-  rescheduleUrl?: string | null;
-}
+const getMeetingTitle = (apt: HubspotAppointment) => {
+  const source = apt.booking_source;
+  if (source === "tax_declaration_help") return "Aide à la déclaration des revenus";
+  if (source?.startsWith("expert_booking")) return "Consultation Expert Financier";
+  if (apt.meeting_title && !apt.meeting_title.includes("/") && !apt.meeting_title.includes("http")) {
+    return apt.meeting_title;
+  }
+  return "Rendez-vous Expert";
+};
 
+const getSourceLabel = (source: string | null) => {
+  if (source === "tax_declaration_help") return "Aide fiscale";
+  if (source?.startsWith("expert_booking")) return "Expert Financier";
+  return "Rendez-vous";
+};
 
 export function MyAppointmentsBlock() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [appointments, setAppointments] = useState<UnifiedAppointment[]>([]);
+  const [appointments, setAppointments] = useState<HubspotAppointment[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Fetch user profile to get company_id
-  const { data: profile } = useQuery({
-    queryKey: ['user-profile-for-appointments', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data } = await supabase
-        .from('profiles')
-        .select('company_id')
-        .eq('id', user.id)
-        .single();
-      return data;
-    },
-    enabled: !!user,
-  });
 
   const handleBookAppointment = () => {
     setBookingReferrer('/employee');
@@ -97,113 +64,23 @@ export function MyAppointmentsBlock() {
     if (user) fetchData();
   }, [user]);
 
-  const getSourceLabel = (source: string | null) => {
-    if (!source) return "Rendez-vous";
-    if (source === "tax_declaration_help") return "Aide à la déclaration des revenus";
-    if (source?.startsWith("expert_booking")) return "Expert Financier";
-    return "Rendez-vous";
-  };
-
-  const getMeetingTitle = (apt: HubspotAppointment) => {
-    const source = apt.booking_source;
-    if (source === "tax_declaration_help") return "Aide à la déclaration des revenus";
-    if (source?.startsWith("expert_booking")) return "Consultation Expert Financier";
-    // Fallback: use meeting_title only if it doesn't look like a URL/link
-    if (apt.meeting_title && !apt.meeting_title.includes("/") && !apt.meeting_title.includes("http")) {
-      return apt.meeting_title;
-    }
-    return "Rendez-vous Expert";
-  };
-
   const fetchData = async () => {
     setLoading(true);
-    const [hubspotRes, legacyRes] = await Promise.all([
-      supabase
-        .from("hubspot_appointments")
-        .select("id, meeting_title, meeting_start_time, meeting_end_time, meeting_link, host_name, booking_source, created_at")
-        .eq("user_id", user!.id),
-      supabase
-        .from("appointments")
-        .select(`*, appointment_forms:form_id(name, icon, color)`)
-        .eq("user_id", user!.id),
-    ]);
+    const { data, error } = await supabase
+      .from("hubspot_appointments")
+      .select("id, meeting_title, meeting_start_time, meeting_end_time, meeting_link, host_name, booking_source, created_at")
+      .eq("user_id", user!.id)
+      .order("meeting_start_time", { ascending: true });
 
-    const unified: UnifiedAppointment[] = [];
-
-    // Process HubSpot appointments (deduplicated)
-    if (hubspotRes.data) {
-      const deduped = dedupeHubspotAppointments(hubspotRes.data as HubspotAppointment[]);
-      deduped.forEach((apt: HubspotAppointment) => {
-        const startTime = apt.meeting_start_time || apt.created_at;
-        const startDate = new Date(startTime);
-        let status: "upcoming" | "past" | "today" = "upcoming";
-        
-        if (isToday(startDate)) {
-          status = "today";
-        } else if (isPast(startDate)) {
-          status = "past";
-        }
-
-        unified.push({
-          id: apt.id,
-          title: getMeetingTitle(apt),
-          startTime: startTime,
-          endTime: apt.meeting_end_time,
-          videoLink: apt.meeting_link,
-          hostName: apt.host_name,
-          status,
-          source: "hubspot",
-          sourceLabel: getSourceLabel(apt.booking_source),
-        });
-      });
+    if (!error && data) {
+      setAppointments(dedupeAppointments(data as HubspotAppointment[]));
     }
-
-    // Process legacy appointments
-    if (legacyRes.data) {
-      (legacyRes.data as LegacyAppointment[]).forEach((apt) => {
-        const startDate = new Date(apt.event_start_time);
-        let status: "upcoming" | "past" | "today" = "upcoming";
-        
-        if (apt.status === "completed" || isPast(new Date(apt.event_end_time))) {
-          status = "past";
-        } else if (isToday(startDate)) {
-          status = "today";
-        }
-
-        unified.push({
-          id: apt.id,
-          title: apt.appointment_forms?.name || "Rendez-vous",
-          startTime: apt.event_start_time,
-          endTime: apt.event_end_time,
-          videoLink: apt.event_url,
-          hostName: apt.scheduled_with_name,
-          status,
-          source: "legacy",
-          sourceLabel: "Rendez-vous",
-          rescheduleUrl: apt.reschedule_url,
-        });
-      });
-    }
-
-    // Sort by start time (most recent first for past, soonest first for upcoming)
-    unified.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-
-    setAppointments(unified);
     setLoading(false);
   };
 
-  const upcomingAppointments = appointments.filter((a) => a.status === "upcoming" || a.status === "today");
-  const pastAppointments = appointments.filter((a) => a.status === "past");
-
-  const getStatusBadge = (apt: UnifiedAppointment) => {
-    if (apt.status === "past") {
-      return <Badge variant="secondary">Terminé</Badge>;
-    }
-    if (apt.status === "today") {
-      return <Badge className="bg-green-500 text-white">Aujourd'hui</Badge>;
-    }
-    return <Badge className="bg-blue-500 text-white">À venir</Badge>;
-  };
+  const upcoming = appointments
+    .filter((a) => a.meeting_start_time && !isPast(new Date(a.meeting_start_time)))
+    .sort((a, b) => new Date(a.meeting_start_time!).getTime() - new Date(b.meeting_start_time!).getTime());
 
   if (loading) {
     return (
@@ -226,7 +103,7 @@ export function MyAppointmentsBlock() {
 
   return (
     <div className="space-y-6">
-      {/* Booking CTA Section */}
+      {/* Booking CTA */}
       <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-accent/5 overflow-hidden">
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center">
@@ -237,71 +114,106 @@ export function MyAppointmentsBlock() {
                 </div>
                 <h3 className="text-lg font-semibold">Prenez rendez-vous avec un expert</h3>
               </div>
-              
               <p className="text-muted-foreground">
-                Bénéficiez d'une <span className="font-medium text-foreground">session individualisée gratuite et sans engagement</span> pour 
-                analyser votre situation personnelle avec un expert certifié.
+                Bénéficiez d'une <span className="font-medium text-foreground">session individualisée gratuite et sans engagement</span> avec un expert certifié.
               </p>
-
               <div className="flex flex-wrap gap-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="p-1 bg-green-100 dark:bg-green-900/30 rounded-full">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                {[
+                  { icon: CheckCircle2, label: "100% gratuit", bg: "bg-green-100 dark:bg-green-900/30", fg: "text-green-600 dark:text-green-400" },
+                  { icon: Shield, label: "Sans engagement", bg: "bg-blue-100 dark:bg-blue-900/30", fg: "text-blue-600 dark:text-blue-400" },
+                  { icon: Award, label: "Expert agréé ACPR & AMF", bg: "bg-amber-100 dark:bg-amber-900/30", fg: "text-amber-600 dark:text-amber-400" },
+                ].map(({ icon: Icon, label, bg, fg }) => (
+                  <div key={label} className="flex items-center gap-2 text-sm">
+                    <div className={`p-1 rounded-full ${bg}`}>
+                      <Icon className={`h-3.5 w-3.5 ${fg}`} />
+                    </div>
+                    <span>{label}</span>
                   </div>
-                  <span>100% gratuit</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="p-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                    <Shield className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <span>Sans engagement</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="p-1 bg-amber-100 dark:bg-amber-900/30 rounded-full">
-                    <Award className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <span>Expert agréé ACPR & AMF</span>
-                </div>
+                ))}
               </div>
             </div>
-
-            <div className="shrink-0">
-              <Button 
-                size="lg" 
-                className="gap-2"
-                onClick={handleBookAppointment}
-              >
-                <Calendar className="h-4 w-4" />
-                Prendre rendez-vous
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button size="lg" className="gap-2 shrink-0" onClick={handleBookAppointment}>
+              <Calendar className="h-4 w-4" />
+              Prendre rendez-vous
+              <ArrowRight className="h-4 w-4" />
+            </Button>
           </div>
         </CardContent>
       </Card>
 
+      {/* Upcoming appointments preview */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Mes Rendez-vous
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Mes Rendez-vous
+              {appointments.length > 0 && (
+                <Badge variant="secondary" className="ml-1">{appointments.length}</Badge>
+              )}
+            </CardTitle>
+            <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate("/mes-rendez-vous")}>
+              Tout voir
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
-            <div className="p-3 bg-primary/10 rounded-full">
-              <Calendar className="h-6 w-6 text-primary animate-pulse" />
+          {appointments.length === 0 ? (
+            <div className="py-6 text-center space-y-2">
+              <Calendar className="h-10 w-10 text-muted-foreground mx-auto" />
+              <p className="text-muted-foreground">Aucun rendez-vous planifié</p>
             </div>
-            <div className="space-y-1">
-              <p className="font-medium text-foreground">Section en cours de développement</p>
-              <p className="text-sm text-muted-foreground max-w-sm">
-                Le suivi de vos rendez-vous sera bientôt disponible ici. En attendant, prenez rendez-vous ci-dessus !
-              </p>
+          ) : (
+            <div className="space-y-3">
+              {upcoming.slice(0, 3).map((apt) => {
+                const startTime = apt.meeting_start_time || apt.created_at;
+                return (
+                  <div key={apt.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                    <div className="p-2 rounded-full bg-primary/10">
+                      <Calendar className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium truncate">{getMeetingTitle(apt)}</span>
+                        {isToday(new Date(startTime)) && (
+                          <Badge className="bg-green-500 text-white text-xs">Aujourd'hui</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                        <Clock className="h-3.5 w-3.5" />
+                        <span>
+                          {format(new Date(startTime), "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr })}
+                        </span>
+                      </div>
+                      {apt.host_name && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                          <User className="h-3.5 w-3.5" />
+                          <span>Avec {apt.host_name}</span>
+                        </div>
+                      )}
+                      {apt.meeting_link && (
+                        <a
+                          href={apt.meeting_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-1"
+                        >
+                          <Video className="h-3.5 w-3.5" />
+                          Rejoindre le meeting
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {appointments.length > 3 && (
+                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate("/mes-rendez-vous")}>
+                  Voir tous les rendez-vous ({appointments.length})
+                </Button>
+              )}
             </div>
-            <Badge variant="secondary" className="mt-2">
-              Bientôt disponible
-            </Badge>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>
