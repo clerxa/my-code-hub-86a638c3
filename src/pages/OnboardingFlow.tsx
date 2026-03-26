@@ -7,14 +7,12 @@ import { OnboardingStepBar } from "@/components/onboarding-flow/OnboardingStepBa
 import { StepBienvenue } from "@/components/onboarding-flow/StepBienvenue";
 import { StepSituationPersonnelle } from "@/components/onboarding-flow/StepSituationPersonnelle";
 import { StepSituationPro } from "@/components/onboarding-flow/StepSituationPro";
-import { StepAtlas } from "@/components/onboarding-flow/StepAtlas";
 import { motion, AnimatePresence } from "framer-motion";
 
 const STEPS = [
   { id: 1, label: "Bienvenue", key: "bienvenue", emoji: "👋" },
   { id: 2, label: "Situation", key: "situation", emoji: "👤" },
   { id: 3, label: "Emploi", key: "professionnel", emoji: "💼" },
-  { id: 4, label: "Fiscalité", key: "atlas", emoji: "📊" },
 ];
 
 export default function OnboardingFlow() {
@@ -149,9 +147,6 @@ export default function OnboardingFlow() {
               )}
               {currentStep === 3 && (
                 <StepSituationPro onNext={() => advanceStep(4)} onSkip={() => advanceStep(4)} onBack={goBack} />
-              )}
-              {currentStep === 4 && (
-                <StepAtlas onNext={() => advanceStep(5, "atlas_completed")} onSkip={() => advanceStep(5)} onBack={goBack} />
               )}
             </motion.div>
           </AnimatePresence>

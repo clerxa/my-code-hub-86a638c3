@@ -5951,6 +5951,7 @@ export type Database = {
           charges_energie: number | null
           charges_fixes_mensuelles: number | null
           charges_frais_scolarite: number | null
+          charges_impot_mensuel: number | null
           charges_internet: number | null
           charges_lld_loa_auto: number | null
           charges_loisirs: number | null
@@ -6043,6 +6044,7 @@ export type Database = {
           charges_energie?: number | null
           charges_fixes_mensuelles?: number | null
           charges_frais_scolarite?: number | null
+          charges_impot_mensuel?: number | null
           charges_internet?: number | null
           charges_lld_loa_auto?: number | null
           charges_loisirs?: number | null
@@ -6135,6 +6137,7 @@ export type Database = {
           charges_energie?: number | null
           charges_fixes_mensuelles?: number | null
           charges_frais_scolarite?: number | null
+          charges_impot_mensuel?: number | null
           charges_internet?: number | null
           charges_lld_loa_auto?: number | null
           charges_loisirs?: number | null

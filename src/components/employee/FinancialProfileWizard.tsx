@@ -15,12 +15,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { 
   ArrowLeft, ArrowRight, Check, Euro, Users, Briefcase, 
-  Building, PiggyBank, Info, HelpCircle, ChevronDown, ChevronUp, Wallet
+  Building, PiggyBank, Info, HelpCircle, ChevronDown, ChevronUp, Wallet, Calculator
 } from "lucide-react";
 import { RealEstatePropertiesManager } from "./profile/RealEstatePropertiesManager";
 import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
 import { cn } from "@/lib/utils";
 import { type FinancialProfileInput } from "@/hooks/useUserFinancialProfile";
+import { useFiscalRules } from "@/contexts/GlobalSettingsContext";
+import { calculateImpotAnnuel, calculatePartsFiscales } from "@/utils/taxCalculations";
 
 interface FinancialProfileWizardProps {
   formData: FinancialProfileInput;
@@ -87,6 +89,7 @@ export function FinancialProfileWizard({
 
   // Fetch real estate properties for auto-sync
   const { totals: realEstateTotals } = useUserRealEstateProperties();
+  const fiscalRules = useFiscalRules();
 
   // Progress calculation
   const progress = ((currentStep + 1) / STEPS.length) * 100;
@@ -120,6 +123,8 @@ export function FinancialProfileWizard({
       formData.pensions_alimentaires || 0,
       formData.credits_consommation || 0,
       formData.charges_autres || 0,
+      // Fiscalité
+      (formData as any).charges_impot_mensuel || 0,
       // Variable charges
       formData.charges_courses_alimentaires || 0,
       formData.charges_loisirs || 0,
@@ -155,6 +160,7 @@ export function FinancialProfileWizard({
     formData.pensions_alimentaires,
     formData.credits_consommation,
     formData.charges_autres,
+    (formData as any).charges_impot_mensuel,
     formData.charges_courses_alimentaires,
     formData.charges_loisirs,
     formData.charges_shopping,
@@ -454,14 +460,14 @@ export function FinancialProfileWizard({
             <div className="space-y-2 pt-4 border-t">
               <div className="flex items-center gap-2">
                 <Label>Revenu fiscal de référence du foyer (€){requiredMark("revenu_fiscal_annuel")}</Label>
-                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary/10 text-primary">importé par ATLAS</span>
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground">facultatif — visible sur l'avis d'imposition</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p className="text-xs max-w-xs">Ce montant est importé automatiquement depuis votre avis d'imposition (module ATLAS). Vous pouvez aussi le saisir manuellement.</p>
+                      <p className="text-xs max-w-xs">Montant indiqué sur votre avis d'imposition, ligne « Revenu fiscal de référence ». Permet un calcul d'impôt plus précis.</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -635,6 +641,36 @@ export function FinancialProfileWizard({
         const familleSubtotal = (formData.charges_frais_scolarite || 0) + (formData.pensions_alimentaires || 0);
         const creditSubtotal = (formData.credits_consommation || 0);
         const autresSubtotal = (formData.charges_autres || 0);
+        const fiscaliteSubtotal = ((formData as any).charges_impot_mensuel || 0);
+
+        // Auto-calculate tax estimation
+        const handleAutoCalculateTax = () => {
+          // Need revenu fiscal annuel or revenu brut + parts fiscales
+          const revenuFiscal = formData.revenu_fiscal_annuel || 0;
+          const revenuBrut = (formData.revenu_annuel_brut || 0) + (formData.revenu_annuel_brut_conjoint || 0);
+          // Use revenu fiscal if available, else estimate from brut (net imposable ≈ brut * 0.9 after abattement 10%)
+          const revenuImposable = revenuFiscal > 0 ? revenuFiscal : (revenuBrut > 0 ? Math.round(revenuBrut * 0.77 * 0.9) : 0);
+          
+          if (revenuImposable <= 0) {
+            toast.error("Impossible d'estimer l'impôt : renseignez d'abord vos revenus dans l'onglet Situation.");
+            return;
+          }
+
+          const situation = situationFamiliale || 'celibataire';
+          const nbEnfants = formData.nb_enfants ?? 0;
+          const parts = formData.parts_fiscales && formData.parts_fiscales > 0
+            ? formData.parts_fiscales
+            : calculatePartsFiscales(situation, nbEnfants);
+          
+          const impotAnnuel = calculateImpotAnnuel(revenuImposable, parts, fiscalRules.tax_brackets);
+          const impotMensuel = Math.round(impotAnnuel / 12);
+          
+          updateField('charges_impot_mensuel' as any, impotMensuel);
+          // Also update TMI and parts
+          updateField('parts_fiscales', parts);
+          
+          toast.success(`Impôt estimé : ${impotMensuel.toLocaleString('fr-FR')} €/mois (${impotAnnuel.toLocaleString('fr-FR')} €/an)`);
+        };
 
         const SubtotalBadge = ({ amount }: { amount: number }) => (
           <span className={cn(
@@ -834,6 +870,69 @@ export function FinancialProfileWizard({
                   <div className="space-y-2">
                     <Label>Autres charges fixes (mutuelle, prévoyance...) (€/mois)</Label>
                     <Input type="text" inputMode="numeric" value={getNumericDisplayValue(formData.charges_autres)} onChange={(e) => handleNumericInput("charges_autres", e.target.value)} placeholder="Ex: 100" />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* 🏛️ Fiscalité */}
+              <AccordionItem value="fiscalite" className="border rounded-lg px-4 bg-card">
+                <AccordionTrigger className="hover:no-underline gap-2">
+                  <span className="flex items-center gap-2 text-left">🏛️ Fiscalité</span>
+                  <SubtotalBadge amount={fiscaliteSubtotal} />
+                </AccordionTrigger>
+                <AccordionContent className="pb-4 space-y-4">
+                  <div className="space-y-2">
+                    <Label>Impôt sur le revenu mensualisé (€/mois)</Label>
+                    <Input 
+                      type="text" 
+                      inputMode="numeric" 
+                      value={getNumericDisplayValue((formData as any).charges_impot_mensuel)} 
+                      onChange={(e) => handleNumericInput("charges_impot_mensuel" as any, e.target.value)} 
+                      placeholder="Ex: 350" 
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Montant du prélèvement à la source mensuel (visible sur votre fiche de paie).
+                    </p>
+                  </div>
+
+                  {/* Auto-calculate button */}
+                  <div className="p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 space-y-2">
+                    <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                      <Calculator className="h-4 w-4" />
+                      Estimation automatique
+                    </div>
+                    {(() => {
+                      const revenuFiscal = formData.revenu_fiscal_annuel || 0;
+                      const revenuBrut = (formData.revenu_annuel_brut || 0) + (formData.revenu_annuel_brut_conjoint || 0);
+                      const hasEnoughData = revenuFiscal > 0 || revenuBrut > 0;
+                      
+                      if (!hasEnoughData) {
+                        return (
+                          <p className="text-xs text-amber-600 dark:text-amber-400">
+                            ⚠️ Renseignez d'abord vos revenus (revenu annuel brut ou revenu fiscal de référence) dans l'onglet <strong>Situation</strong> pour activer le calcul automatique.
+                          </p>
+                        );
+                      }
+                      
+                      return (
+                        <div className="space-y-2">
+                          <p className="text-xs text-muted-foreground">
+                            Calcul basé sur {revenuFiscal > 0 ? 'votre revenu fiscal de référence' : 'vos revenus bruts estimés'}, 
+                            votre situation familiale ({situationFamiliale || 'célibataire'}) et {formData.nb_enfants ?? 0} enfant(s).
+                          </p>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm" 
+                            className="gap-2"
+                            onClick={handleAutoCalculateTax}
+                          >
+                            <Calculator className="h-3.5 w-3.5" />
+                            Estimer mon impôt
+                          </Button>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </AccordionContent>
               </AccordionItem>

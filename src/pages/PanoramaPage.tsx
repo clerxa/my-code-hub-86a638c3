@@ -60,7 +60,6 @@ export default function PanoramaPage() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [hasAtlasAnalysis, setHasAtlasAnalysis] = useState<boolean | null>(null);
-  const [atlasData, setAtlasData] = useState<{ taux_moyen_pct: number | null; impot_net_total: number | null } | null>(null);
   const [onboardingStatus, setOnboardingStatus] = useState<{
     atlas_completed: boolean;
     audit_panorama_completed: boolean;
@@ -96,7 +95,7 @@ export default function PanoramaPage() {
   useEffect(() => {
     if (!user?.id || checkingOnboarding) { setHasAtlasAnalysis(false); return; }
     const check = async () => {
-      const [atlasRes, profileRes, atlasDetailRes] = await Promise.all([
+      const [atlasRes, profileRes] = await Promise.all([
         supabase
           .from("ocr_avis_imposition_analyses" as any)
           .select("id", { count: "exact", head: true })
@@ -106,18 +105,8 @@ export default function PanoramaPage() {
           .select("atlas_completed, audit_panorama_completed, risk_profile_completed")
           .eq("id", user.id)
           .single(),
-        supabase
-          .from("ocr_avis_imposition_analyses" as any)
-          .select("taux_moyen_pct, impot_net_total")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
       ]);
       setHasAtlasAnalysis((atlasRes.count ?? 0) > 0);
-      if (atlasDetailRes.data) {
-        setAtlasData(atlasDetailRes.data as any);
-      }
       if (profileRes.data) {
         setOnboardingStatus(profileRes.data as any);
       }
@@ -207,13 +196,18 @@ export default function PanoramaPage() {
   const chargesDejaAffichees = (fp?.loyer_actuel ?? 0) + (fp?.credits_immobilier ?? 0) + (fp?.credits_consommation ?? 0) + (fp?.credits_auto ?? 0) + (fp?.pensions_alimentaires ?? 0) + creditsImmoLocatif;
   const autresChargesCalculees = Math.max(0, chargesFixesTotal - chargesDejaAffichees);
   const chargesFixes = chargesFixesTotal;
-  const impotMensuel = atlasData?.impot_net_total != null ? Math.round(atlasData.impot_net_total / 12) : null;
-  const tauxMoyenAtlas = atlasData?.taux_moyen_pct ?? null;
+  // Impôt mensuel estimé depuis le profil financier (saisi ou calculé automatiquement)
+  const impotMensuel = (fp?.charges_impot_mensuel ?? 0) > 0 ? Math.round(fp.charges_impot_mensuel) : null;
+  // Taux moyen estimé
+  const tauxMoyenEstime = impotMensuel != null && totalRevenusMensuel != null && totalRevenusMensuel > 0
+    ? Math.round((impotMensuel / totalRevenusMensuel) * 100 * 10) / 10
+    : null;
   // charges_fixes_mensuelles includes variable expenses (courses, loisirs, shopping, etc.)
   // We must exclude them for the "fixed charges" bucket in the 50/30/20 rule
   const depensesCourantes = ((fp as any)?.charges_courses_alimentaires ?? 0) + ((fp as any)?.charges_loisirs ?? 0) + ((fp as any)?.charges_shopping ?? 0) + ((fp as any)?.charges_variables_autres ?? 0);
   const chargesFixesPures = chargesFixesTotal - depensesCourantes;
-  const totalChargesAvecImpots = chargesFixesPures + (impotMensuel ?? 0);
+  // impotMensuel is already included in charges_fixes_mensuelles via charges_impot_mensuel
+  const totalChargesAvecImpots = chargesFixesPures;
   const totalDepensesMensuelles = totalChargesAvecImpots + depensesCourantes;
   const capaciteEpargne = fp?.capacite_epargne_mensuelle ?? null;
   const capaciteEpargneCalculee = totalRevenusMensuel != null ? Math.max(0, totalRevenusMensuel - totalDepensesMensuelles) : null;
@@ -529,7 +523,7 @@ export default function PanoramaPage() {
                   {impotMensuel != null && impotMensuel > 0 && (
                     <div className="rounded-md bg-blue-500/5 border border-blue-500/10 px-3 py-2">
                       <p className="text-[10px] text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                        Impôts <span className="text-[8px] bg-blue-500/10 px-1 rounded">ATLAS</span>
+                        Impôts <span className="text-[8px] bg-blue-500/10 px-1 rounded">estimé</span>
                       </p>
                       <p className="text-sm font-semibold">{formatEuros(impotMensuel)}</p>
                     </div>
@@ -731,8 +725,8 @@ export default function PanoramaPage() {
             <p className="text-xl font-bold">
               {tmi != null ? `TMI ${tmi}%` : "Non renseigné"}
             </p>
-            {tauxMoyenAtlas != null && (
-              <p className="text-xs text-muted-foreground">Taux moyen {tauxMoyenAtlas}%</p>
+            {tauxMoyenEstime != null && (
+              <p className="text-xs text-muted-foreground">Taux moyen {tauxMoyenEstime}%</p>
             )}
             {impotMensuel != null && impotMensuel > 0 && (
               <p className="text-xs text-muted-foreground">{formatEuros(impotMensuel)}/mois</p>
