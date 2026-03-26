@@ -160,7 +160,11 @@ export function ExpertBookingTab() {
           "expert_booking_url_rang_3",
           "expert_booking_embed_rang_3",
           "expert_booking_url_rang_4",
-          "expert_booking_embed_rang_4"
+          "expert_booking_embed_rang_4",
+          "rdv_expert_url",
+          "rdv_senior_url",
+          "rdv_junior_url",
+          "rdv_all_url"
         ]);
 
       if (urlError) throw urlError;
