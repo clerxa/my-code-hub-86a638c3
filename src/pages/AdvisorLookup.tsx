@@ -188,18 +188,11 @@ const AdvisorLookup = () => {
       });
 
       // Load financial profile, risk profile, diagnostic in parallel
-      const [fpRes, rpRes, diagRes] = await Promise.all([
+      const [fpRes, diagRes] = await Promise.all([
         supabase
           .from("user_financial_profiles")
           .select("*")
           .eq("user_id", foundUser.id)
-          .maybeSingle(),
-        supabase
-          .from("risk_profiles")
-          .select("profile_type, total_weighted_score")
-          .eq("user_id", foundUser.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
           .maybeSingle(),
         supabase
           .from("diagnostic_results")
@@ -210,6 +203,15 @@ const AdvisorLookup = () => {
           .limit(1)
           .maybeSingle(),
       ]);
+
+      // risk_profile is not in generated types, query separately with type cast
+      const rpRes = await (supabase as any)
+        .from("risk_profile")
+        .select("profile_type, total_weighted_score")
+        .eq("user_id", foundUser.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
       if (fpRes.data) setFinancialData(fpRes.data as unknown as FinancialData);
       if (rpRes.data) setRiskProfile(rpRes.data as RiskProfile);

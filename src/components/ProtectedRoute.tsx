@@ -10,10 +10,11 @@ interface ProtectedRouteProps {
   requireAdvisor?: boolean;
 }
 
-const ProtectedRoute = ({ children, requireAdmin = false, requireCompanyContact = false }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, requireAdmin = false, requireCompanyContact = false, requireAdvisor = false }: ProtectedRouteProps) => {
   const { user, session } = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [isCompanyContact, setIsCompanyContact] = useState<boolean | null>(null);
+  const [isAdvisor, setIsAdvisor] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
