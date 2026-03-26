@@ -557,7 +557,64 @@ const AdvisorLookup = () => {
               </CardContent>
             </Card>
 
-            {financialData && (
+            {/* Intention Score */}
+            {!intentionScore.loading && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Target className="h-5 w-5 text-primary" />
+                    Scoring d'intention RDV
+                    <Badge className={`ml-2 ${LEVEL_CONFIG[intentionScore.level].color}`}>
+                      {LEVEL_CONFIG[intentionScore.level].label}
+                    </Badge>
+                    <span className="ml-auto text-base font-bold">{intentionScore.total_score}/{intentionScore.max_possible} pts ({intentionScore.percentage}%)</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Progress value={intentionScore.percentage} className="h-3" />
+                  
+                  {/* Category breakdown */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {Object.entries(intentionScore.by_category).map(([cat, val]) => {
+                      const catLabels: Record<string, string> = {
+                        engagement: "Engagement",
+                        profile_maturity: "Maturité profil",
+                        intent_rdv: "Intent RDV",
+                      };
+                      const pct = val.max > 0 ? Math.round((val.earned / val.max) * 100) : 0;
+                      return (
+                        <div key={cat} className="p-3 rounded-lg border bg-muted/30 space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">{catLabels[cat] || cat}</span>
+                            <span className="text-muted-foreground">{val.earned}/{val.max}</span>
+                          </div>
+                          <Progress value={pct} className="h-2" />
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Signal details */}
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Détail des signaux</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                      {intentionScore.signals.map((s) => (
+                        <div key={s.signal_key} className="flex justify-between items-center py-1.5 px-2 rounded-md hover:bg-muted/50 text-sm">
+                          <span className="text-muted-foreground">
+                            {s.signal_label}
+                            <span className="text-xs ml-1 opacity-60">({s.raw_count}×{s.points_per_unit}pt)</span>
+                          </span>
+                          <span className={`font-medium ${s.earned_points > 0 ? 'text-primary' : 'text-muted-foreground/50'}`}>
+                            {s.earned_points}{s.max_points ? `/${s.max_points}` : ""}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
               <>
                 {/* Personal */}
                 <Card>
