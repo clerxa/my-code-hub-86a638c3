@@ -248,6 +248,7 @@ export const AdminSidebarConfigurationTab = () => {
         toast.error(`Erreur: ${error.message}`);
       } else {
         toast.success("Configuration sauvegardée");
+        window.dispatchEvent(new CustomEvent("admin-sidebar-config-updated"));
       }
     } catch (err) {
       console.error("Unexpected error:", err);
