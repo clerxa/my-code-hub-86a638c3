@@ -52,6 +52,8 @@ export interface UserFinancialProfile {
   charges_frais_scolarite: number;
   // 💳 Autres
   charges_autres: number;
+  // 💰 Fiscalité
+  charges_impot_mensuel: number;
   // 🛒 Charges variables
   charges_courses_alimentaires: number;
   charges_loisirs: number;
