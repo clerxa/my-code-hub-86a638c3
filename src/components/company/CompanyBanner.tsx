@@ -12,6 +12,8 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
       style={{
         backgroundColor: "#0f0f14",
         borderRadius: 16,
+        position: "relative",
+        zIndex: 0,
       }}
     >
       <style>{`
@@ -123,15 +125,16 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
 
             {/* Title — gradient applied directly on h1 */}
             <h1
-              className="hero-title m-0 w-full"
               style={{
+                fontSize: "clamp(28px, 3.8vw, 44px)",
                 fontWeight: 800,
                 lineHeight: 1.15,
+                margin: 0,
                 background: "linear-gradient(135deg, #e8e0ff 0%, #c4a8f8 35%, #f0a0d0 70%, #ffd0a0 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
-                maxWidth: "none",
+                display: "inline-block",
               }}
             >
               MyFinCare, l'application
