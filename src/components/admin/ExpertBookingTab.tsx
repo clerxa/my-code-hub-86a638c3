@@ -173,7 +173,7 @@ export function ExpertBookingTab() {
           "rdv_junior_url",
           "rdv_all_url",
           "rdv_assignment_matrix",
-          "rdv_advisor_urls"
+          "rdv_category_urls"
         ]);
 
       if (urlError) throw urlError;
