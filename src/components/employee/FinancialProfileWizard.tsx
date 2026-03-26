@@ -957,7 +957,9 @@ export function FinancialProfileWizard({
         );
 
       case "charges-variables":
-        const variablesSubtotal = (formData.charges_courses_alimentaires || 0) + (formData.charges_loisirs || 0) + (formData.charges_shopping || 0) + (formData.charges_variables_autres || 0);
+        const baseVariablesSubtotal = (formData.charges_courses_alimentaires || 0) + (formData.charges_loisirs || 0) + (formData.charges_shopping || 0) + (formData.charges_variables_autres || 0);
+        const bufferAmount = Math.round(baseVariablesSubtotal * bufferPercent / 100);
+        const variablesSubtotal = baseVariablesSubtotal + bufferAmount;
         return (
           <div className="space-y-6">
             <Card className="border-primary/20 bg-primary/5">
@@ -991,10 +993,43 @@ export function FinancialProfileWizard({
               </div>
             </div>
 
+            {/* Buffer dépenses imprévues */}
+            {baseVariablesSubtotal > 0 && (
+              <Card className="border-accent/30 bg-accent/5">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="h-4 w-4 text-accent-foreground" />
+                    <span className="text-sm font-medium">Marge pour dépenses imprévues</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Ajoutez un pourcentage de vos dépenses courantes comme coussin pour les imprévus (réparations, santé, etc.)
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      min={0}
+                      max={20}
+                      step={1}
+                      value={bufferPercent}
+                      onChange={(e) => setBufferPercent(parseInt(e.target.value))}
+                      className="flex-1 accent-primary h-2 cursor-pointer"
+                    />
+                    <span className="text-sm font-semibold text-primary min-w-[40px] text-right">{bufferPercent}%</span>
+                  </div>
+                  {bufferPercent > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">+ Imprévus ({bufferPercent}%)</span>
+                      <span className="font-medium text-primary">+{bufferAmount.toLocaleString('fr-FR')} €/mois</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {variablesSubtotal > 0 && (
               <div className="p-4 rounded-lg bg-muted/50 border">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Total dépenses courantes</span>
+                  <span className="text-sm text-muted-foreground">Total dépenses courantes {bufferPercent > 0 ? '(imprévus inclus)' : ''}</span>
                   <span className="font-semibold text-primary">{variablesSubtotal.toLocaleString('fr-FR')} €/mois</span>
                 </div>
               </div>
@@ -1008,7 +1043,7 @@ export function FinancialProfileWizard({
                   <span className="font-medium">Total toutes charges</span>
                 </div>
                 <span className="text-xl font-bold text-primary">
-                  {calculateTotalCharges().toLocaleString('fr-FR')} €
+                  {(calculateTotalCharges() + bufferAmount).toLocaleString('fr-FR')} €
                 </span>
               </div>
             </div>
