@@ -625,8 +625,8 @@ export function RSUPlanEditor({ plan, onSave, onCancel }: RSUPlanEditorProps) {
         }
       }
 
-      if (devise === 'USD') {
-        const fxResult = fxResults[i] as { rate: number | null; isBusinessDay: boolean; error?: string };
+      if (devise === 'USD' && fxResults) {
+        const fxResult = fxResults[v.date];
         if (!fxResult || fxResult.error || fxResult.rate === null) {
           status.fxError = fxResult?.error || 'Taux non disponible — saisie manuelle requise';
         } else {
