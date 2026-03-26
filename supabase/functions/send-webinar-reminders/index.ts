@@ -195,6 +195,34 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+    // Handle test mode: send a single test email bypassing settings
+    let body: any = {};
+    try { body = await req.json(); } catch { /* empty body is fine */ }
+
+    if (body.testMode) {
+      const { recipientEmail, contactName, companyName, webinarTitle, webinarDate, reminderType, companyId, moduleId } = body;
+      if (!recipientEmail || !webinarTitle) {
+        throw new Error("testMode requires recipientEmail and webinarTitle");
+      }
+      const daysLeft = REMINDER_THRESHOLDS.find(t => t.type === (reminderType || "M-1"))?.days || 30;
+      const webinarPageUrl = `${APP_URL}/company/${companyId || "test"}/dashboard/webinar/${moduleId || "test"}`;
+      const subject = `📅 Rappel : Webinar "${webinarTitle}" dans ${daysLeft} jour${daysLeft > 1 ? "s" : ""}`;
+      const html = buildEmailHtml(
+        contactName || "Test",
+        webinarDate || new Date().toISOString(),
+        daysLeft,
+        companyName || "Test Company",
+        webinarPageUrl,
+        webinarTitle
+      );
+      await sendEmail(recipientEmail, subject, html);
+      console.log(`✅ Test email sent to ${recipientEmail}`);
+      return new Response(JSON.stringify({ success: true, testMode: true, sentTo: recipientEmail }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Check if reminders are enabled in settings
     const { data: settingsData } = await supabase
       .from("settings")
