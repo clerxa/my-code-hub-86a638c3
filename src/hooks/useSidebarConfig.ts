@@ -59,9 +59,8 @@ const defaultEmployeeItems: SidebarMenuItem[] = [
 const defaultCompanyItems: SidebarMenuItem[] = [
   { id: "informations", label: "Informations", icon: "Info", order: 0, visible: true },
   { id: "webinars", label: "Webinars", icon: "Video", order: 1, visible: true },
-  { id: "parcours", label: "Parcours de formation", icon: "GraduationCap", order: 2, visible: true },
+  { id: "faq", label: "FAQ", icon: "HelpCircle", order: 2, visible: true },
   { id: "leaderboard", label: "Classement", icon: "Trophy", order: 3, visible: true },
-  { id: "advisors", label: "Conseillers dédiés", icon: "UserCheck", order: 4, visible: true },
   { id: "company-dashboard", label: "Dashboard entreprise", icon: "Building2", order: 5, visible: true, categoryId: "settings" },
   { id: "contacts", label: "Mes contacts", icon: "Contact", order: 6, visible: true, categoryId: "settings" },
   { id: "communication-kit", label: "Kit de communication", icon: "MessageSquareText", order: 7, visible: true, categoryId: "settings" },
