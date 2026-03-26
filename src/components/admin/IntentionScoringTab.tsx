@@ -90,7 +90,6 @@ export function IntentionScoringTab() {
         supabase.from("user_financial_profiles").select("user_id, is_complete"),
         (supabase as any).from("risk_profile").select("user_id"),
         (supabase as any).from("user_real_estate_properties").select("user_id"),
-        supabase.from("appointment_preparation").select("user_id"),
       ]);
 
       // Build counts per user
@@ -109,7 +108,7 @@ export function IntentionScoringTab() {
       const appointmentUsers = new Set((appointmentsRes.data || []).map((a: any) => a.user_id));
       const fpCompleteUsers = new Set((fpRes.data || []).filter((f: any) => f.is_complete).map((f: any) => f.user_id));
       const riskUsers = new Set((riskRes.data || []).map((r: any) => r.user_id));
-      const prepUsers = new Set((prepRes.data || []).map((p: any) => p.user_id));
+      
 
       // Real estate count per user
       const realEstateCounts: Record<string, number> = {};
