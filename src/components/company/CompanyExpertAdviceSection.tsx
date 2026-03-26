@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, UserCheck } from "lucide-react";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { setBookingReferrer } from "@/hooks/useBookingReferrer";
 
 interface CompanyExpertAdviceSectionProps {
@@ -10,7 +10,7 @@ interface CompanyExpertAdviceSectionProps {
 }
 
 export const CompanyExpertAdviceSection = ({ companyId, primaryColor }: CompanyExpertAdviceSectionProps) => {
-  const { bookingUrl, isLoading } = useExpertBookingUrl(companyId);
+  const { rdvUrl: bookingUrl, isLoading } = useRdvLink();
   const color = primaryColor || 'hsl(var(--primary))';
 
   const handleBooking = () => {

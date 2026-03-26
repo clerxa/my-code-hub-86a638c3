@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { RiskProfile } from "@/types/risk-profile";
 import { supabase } from "@/integrations/supabase/client";
 import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { appendUtmParams } from "@/hooks/useBookingReferrer";
 
 interface RiskProfileResultsProps {
@@ -104,8 +104,9 @@ export const RiskProfileResults = ({ profile, onRetake }: RiskProfileResultsProp
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [primaryColor, setPrimaryColor] = useState<string | null>(null);
   
-  // Use the centralized hook for expert booking
-  const { embedCode: expertBookingEmbed, fallbackUrl: expertBookingFallback } = useExpertBookingUrl(companyId);
+  // Use the new rang×revenue hook for expert booking
+  const { rdvUrl: expertBookingFallback } = useRdvLink();
+  const expertBookingEmbed: string | null = null;
 
   useEffect(() => {
     loadCustomTexts();

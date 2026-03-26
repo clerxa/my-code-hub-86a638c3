@@ -8,7 +8,7 @@ import { CircularProgress } from "@/components/CircularProgress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { Progress } from "@/components/ui/progress";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { EmployeeLayout } from "@/components/employee/EmployeeLayout";
 import {
   ShieldCheck, Clock, ArrowRight, Info, AlertTriangle,
@@ -95,19 +95,10 @@ export default function DecryptezPER() {
   const [customValue, setCustomValue] = useState("");
   const [previousResult, setPreviousResult] = useState<QuizResult | null>(null);
   const [loading, setLoading] = useState(true);
-  const [companyId, setCompanyId] = useState<string | null>(null);
-  const { bookingUrl } = useExpertBookingUrl(companyId);
+  const { rdvUrl: bookingUrl } = useRdvLink();
 
-  useEffect(() => {
-    if (user) {
-      supabase
-        .from("profiles")
-        .select("company_id")
-        .eq("id", user.id)
-        .maybeSingle()
-        .then(({ data }) => setCompanyId(data?.company_id || null));
-    }
-  }, [user]);
+
+
 
   useEffect(() => {
     if (user) fetchPreviousResult();

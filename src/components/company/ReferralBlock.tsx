@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { toast } from "sonner";
 import { Users, Calendar, Send, CheckCircle } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 
 interface ReferralConfig {
   enabled: boolean;
@@ -37,7 +37,8 @@ export const ReferralBlock = ({
   blockConfig 
 }: ReferralBlockProps) => {
   const { user } = useAuth();
-  const { embedCode: expertBookingEmbed, fallbackUrl: expertBookingFallback } = useExpertBookingUrl(companyId);
+  const { rdvUrl: expertBookingFallback } = useRdvLink();
+  const expertBookingEmbed: string | null = null;
   const [config, setConfig] = useState<ReferralConfig | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);

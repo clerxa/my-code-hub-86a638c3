@@ -19,6 +19,7 @@ import { Footer } from "@/components/Footer";
 import { DraggableSection } from "@/components/DraggableSection";
 
 import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { PartnershipRequestDialog } from "@/components/PartnershipRequestDialog";
 import { SimulationsTable } from "@/components/SimulationsTable";
 import { UpcomingWebinars } from "@/components/UpcomingWebinars";
@@ -37,7 +38,7 @@ import { EmployeeSidebar } from "@/components/employee/EmployeeSidebar";
 import { MobileEmployeeNav } from "@/components/employee/MobileEmployeeNav";
 import { StatsDashboard } from "@/components/employee/StatsDashboard";
 
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+
 import { PersonalInfoSection } from "@/components/employee/PersonalInfoSection";
 import { MyAppointmentsBlock } from "@/components/employee/MyAppointmentsBlock";
 
@@ -89,8 +90,9 @@ export default function Employee() {
     updateBlockOrder
   } = useBlockLayoutConfig("employee");
   
-  // Use the hook with profile's company_id (will be null initially, then updated)
-  const { embedCode: expertBookingEmbed, fallbackUrl: expertBookingFallback } = useExpertBookingUrl(profile?.company_id || null);
+  // Use the new rang×revenue hook for booking URL
+  const { rdvUrl: expertBookingFallback } = useRdvLink();
+  const expertBookingEmbed: string | null = null; // Embeds replaced by URL-only system
   
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);

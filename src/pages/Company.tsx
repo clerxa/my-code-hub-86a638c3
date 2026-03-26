@@ -23,7 +23,7 @@ import { PartnershipRequestDialog } from "@/components/PartnershipRequestDialog"
 import { useBlockLayoutConfig } from "@/hooks/useBlockLayoutConfig";
 import { UpcomingWebinars } from "@/components/UpcomingWebinars";
 import { useAuth } from "@/components/AuthProvider";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 
 import { setBookingReferrer } from "@/hooks/useBookingReferrer";
 
@@ -80,7 +80,8 @@ const Company = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { blocks, layoutConfig, loading: configLoading, updateBlockOrder } = useBlockLayoutConfig("company");
-  const { embedCode: expertBookingEmbed, fallbackUrl: expertBookingFallback, isLoading: bookingLoading } = useExpertBookingUrl(id || null);
+  const { rdvUrl: expertBookingFallback, isLoading: bookingLoading } = useRdvLink();
+  const expertBookingEmbed: string | null = null;
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminChecked, setAdminChecked] = useState(false);
 

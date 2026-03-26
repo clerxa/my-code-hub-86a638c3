@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmployeeLayout } from "@/components/employee/EmployeeLayout";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/AuthProvider";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function PensionTracker() {
@@ -15,19 +15,8 @@ export default function PensionTracker() {
   const { user } = useAuth();
   const [activeStep, setActiveStep] = useState<number | null>(null);
   const [showGuide, setShowGuide] = useState(false);
-  const [companyId, setCompanyId] = useState<string | null>(null);
-  const { bookingUrl } = useExpertBookingUrl(companyId);
+  const { rdvUrl: bookingUrl } = useRdvLink();
 
-  useEffect(() => {
-    if (user) {
-      supabase
-        .from("profiles")
-        .select("company_id")
-        .eq("id", user.id)
-        .maybeSingle()
-        .then(({ data }) => setCompanyId(data?.company_id || null));
-    }
-  }, [user]);
 
   const openBooking = () => {
     if (bookingUrl) window.open(bookingUrl, "_blank");

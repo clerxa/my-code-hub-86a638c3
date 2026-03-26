@@ -3,9 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Sparkles, X, TrendingUp, Shield, Target, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthProvider";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { useNavigate } from "react-router-dom";
 
 interface PostSaveExpertPromptProps {
@@ -51,22 +49,7 @@ export function PostSaveExpertPrompt({ open, onClose, simulationType }: PostSave
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Get company ID for booking URL
-  const { data: profile } = useQuery({
-    queryKey: ["profile-company", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data } = await supabase
-        .from("profiles")
-        .select("company_id")
-        .eq("id", user.id)
-        .single();
-      return data;
-    },
-    enabled: !!user?.id,
-  });
-
-  const { bookingUrl } = useExpertBookingUrl(profile?.company_id || null);
+  const { rdvUrl: bookingUrl } = useRdvLink();
 
   // Pick a random message on each open, seeded by timestamp to rotate
   const message = useMemo(() => {
