@@ -65,7 +65,9 @@ export function EmployeeLayout({ children, activeSection }: EmployeeLayoutProps)
       navigate("/employee/atlas");
     } else if (section === "profil-risque") {
       navigate("/risk-profile");
-    } else if (["profile-info", "progression", "leaderboard", "invitations", "contacts", "appointments", "webinars"].includes(section)) {
+    } else if (section === "appointments") {
+      navigate("/mes-rendez-vous");
+    } else if (["profile-info", "progression", "leaderboard", "invitations", "contacts", "webinars"].includes(section)) {
       navigate(`/employee?section=${section}`);
     }
   };
