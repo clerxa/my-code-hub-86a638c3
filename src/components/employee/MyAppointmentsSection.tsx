@@ -10,7 +10,7 @@ import { fr } from "date-fns/locale";
 import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
 import { useQuery } from "@tanstack/react-query";
 import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
-import { AppointmentPreparationSection } from "./AppointmentPreparationSection";
+
 
 interface Appointment {
   id: string;
