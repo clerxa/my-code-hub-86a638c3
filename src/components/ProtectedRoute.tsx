@@ -46,15 +46,18 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireCompanyContact 
         console.error("Error checking user role:", error);
         setIsAdmin(false);
         setIsCompanyContact(false);
+        setIsAdvisor(false);
       } else {
         const userRole = data?.role;
         setIsAdmin(userRole === "admin");
         setIsCompanyContact(userRole === "contact_entreprise" || userRole === "admin");
+        setIsAdvisor(userRole === "conseiller" || userRole === "admin");
       }
     } catch (error) {
       console.error("Error in checkAdminStatus:", error);
       setIsAdmin(false);
       setIsCompanyContact(false);
+      setIsAdvisor(false);
     } finally {
       setLoading(false);
     }
@@ -79,6 +82,10 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireCompanyContact 
   }
 
   if (requireCompanyContact && !isCompanyContact) {
+    return <Navigate to="/employee" replace />;
+  }
+
+  if (requireAdvisor && !isAdvisor) {
     return <Navigate to="/employee" replace />;
   }
 
