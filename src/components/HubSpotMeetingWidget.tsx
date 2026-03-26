@@ -61,6 +61,20 @@ const isAllowedDomain = (urlString: string): boolean => {
 };
 
 /**
+ * Append prefill query params for HubSpot meeting embeds
+ */
+const appendPrefillParams = (url: string, prefill?: PrefillData): string => {
+  if (!prefill) return url;
+  const u = new URL(url);
+  if (prefill.firstName) u.searchParams.set("firstName", prefill.firstName);
+  if (prefill.lastName) u.searchParams.set("lastName", prefill.lastName);
+  if (prefill.email) u.searchParams.set("email", prefill.email);
+  if (prefill.company) u.searchParams.set("company", prefill.company);
+  if (prefill.phone) u.searchParams.set("phone", prefill.phone);
+  return u.toString();
+};
+
+/**
  * Extract and validate data-src from HubSpot embed code
  */
 const extractHubSpotDataSrc = (code: string): string | null => {
