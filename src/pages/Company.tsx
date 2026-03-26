@@ -77,7 +77,7 @@ const Company = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [completedModules, setCompletedModules] = useState<number[]>([]);
   const [parcoursFilter, setParcoursFilter] = useState<import("@/components/parcours/ParcoursFilter").ParcoursFilterValue>("all");
-  const { currentBanner: defaultBannerUrl } = useResponsiveBanner();
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { blocks, layoutConfig, loading: configLoading, updateBlockOrder } = useBlockLayoutConfig("company");
