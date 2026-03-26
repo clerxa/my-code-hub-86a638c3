@@ -67,7 +67,6 @@ export { UserFinancialProfilesTab } from './UserFinancialProfilesTab';
 export { GlobalSettingsTab } from './GlobalSettingsTab';
 export { CelebrationSettingsTab } from './CelebrationSettingsTab';
 
-export { BannerTab } from './BannerTab';
 export { WebinarCompanyAssignment } from './WebinarCompanyAssignment';
 
 // Shared
