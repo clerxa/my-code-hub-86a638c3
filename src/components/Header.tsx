@@ -129,10 +129,10 @@ export const Header = () => {
     const { data, error } = await supabase
       .from("company_contacts")
       .select("id, company_id")
-      .eq("email", user.email)
-      .maybeSingle();
-    if (!error && data) {
+      .eq("email", user.email);
+    if (!error && data && data.length > 0) {
       setIsCompanyContact(true);
+      setContactCompanyId(data[0].company_id);
     }
   };
   const handleSignOut = async () => {
