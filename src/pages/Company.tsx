@@ -818,7 +818,7 @@ const Company = () => {
           <CompanyBanner primaryColor={company.primary_color} secondaryColor={company.secondary_color} />
           
           {/* Company Info Overlay */}
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4" style={{ position: "relative", zIndex: 1 }}>
             <div className="max-w-6xl mx-auto">
               <div className="relative -mt-16 pb-4 sm:pb-6">
                 {/* Mobile: Stack vertically | Desktop: Side by side */}
