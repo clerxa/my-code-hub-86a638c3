@@ -39,7 +39,7 @@ export const CompanySidebar = ({
   const contactOnlyItems = ["company-dashboard"];
   
   // Items that should be hidden on company pages (already in dashboard or removed features)
-  const hiddenItems = ["communication-kit", "help", "advisors"];
+  const hiddenItems = ["communication-kit", "help", "advisors", "parcours"];
   
   // Items that should be hidden when points/ranking is disabled
   const rankingItems = ["leaderboard"];
@@ -49,6 +49,8 @@ export const CompanySidebar = ({
       navigate(`/company/${companyId}/dashboard`);
     } else if (itemId === "contacts" && companyId) {
       navigate(`/company/${companyId}/contacts`);
+    } else if (itemId === "webinars") {
+      navigate("/employee", { state: { section: "webinars" } });
     } else {
       onSectionChange(itemId);
     }
