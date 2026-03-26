@@ -415,6 +415,7 @@ const Admin = () => {
                 
                 {/* Configuration Email */}
                 <Route path="email-config" element={<EmailConfigTab />} />
+                <Route path="webinar-reminders" element={<WebinarReminderConfig />} />
                 
                 {/* Configuration Page 404 */}
                 <Route path="not-found-config" element={<NotFoundConfigTab />} />
