@@ -140,7 +140,7 @@ export function IntentionScoringTab() {
           daily_login: loginCounts[uid] || 0,
           simulation_completed: simCounts[uid] || 0,
           module_completed: moduleCounts[uid] || 0,
-          financial_profile_filled: p.net_taxable_income && p.net_taxable_income > 0 ? 1 : 0,
+          // financial_profile_filled removed (redundant with financial_profile_complete)
           horizon_completed: horizonUsers.has(uid) ? 1 : 0,
           diagnostic_completed: diagnosticUsers.has(uid) ? 1 : 0,
           expert_booking_page_view: eventCounts[uid]?.["page_view:expert_booking_page"] || 0,

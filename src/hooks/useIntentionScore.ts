@@ -43,13 +43,12 @@ export function useIntentionScore(userId: string | null): IntentionScoreResult {
   async function computeScore(uid: string) {
     try {
       // Fetch config and all data sources in parallel
-      const [configRes, loginsRes, simLogsRes, modulesRes, profileRes, diagnosticRes, horizonRes, eventsRes, appointmentsRes, fpRes, riskRes, realEstateRes, prepRes] =
+      const [configRes, loginsRes, simLogsRes, modulesRes, diagnosticRes, horizonRes, eventsRes, appointmentsRes, fpRes, riskRes, realEstateRes, prepRes] =
         await Promise.all([
           supabase.from("intention_score_config").select("*").eq("is_active", true).order("display_order"),
           supabase.from("daily_logins").select("id").eq("user_id", uid),
           supabase.from("simulation_logs").select("id, appointment_cta_clicked, cta_clicked").eq("user_id", uid),
           supabase.from("module_validations").select("id").eq("user_id", uid),
-          supabase.from("profiles").select("net_taxable_income").eq("id", uid).maybeSingle(),
           supabase.from("diagnostic_results").select("status").eq("user_id", uid).eq("status", "completed").maybeSingle(),
           supabase.from("horizon_projects").select("id").eq("user_id", uid).limit(1),
           supabase.from("user_events").select("event_type, event_name").eq("user_id", uid),
@@ -69,8 +68,6 @@ export function useIntentionScore(userId: string | null): IntentionScoreResult {
       rawCounts["module_completed"] = modulesRes.data?.length || 0;
 
       // Profile maturity: boolean signals (0 or 1)
-      const hasProfile = !!(profileRes.data?.net_taxable_income && profileRes.data.net_taxable_income > 0);
-      rawCounts["financial_profile_filled"] = hasProfile ? 1 : 0;
       rawCounts["horizon_completed"] = (horizonRes.data?.length || 0) > 0 ? 1 : 0;
       rawCounts["diagnostic_completed"] = diagnosticRes.data ? 1 : 0;
 
