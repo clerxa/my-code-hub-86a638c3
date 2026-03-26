@@ -240,6 +240,16 @@ export function ExpertBookingTab() {
             setExpertBookingEmbedRang4(setting.value);
           }
         }
+        // New rang×revenue fields
+        const rdvKeys: Record<string, (v: string) => void> = {
+          rdv_expert_url: setRdvExpertUrl,
+          rdv_senior_url: setRdvSeniorUrl,
+          rdv_junior_url: setRdvJuniorUrl,
+          rdv_all_url: setRdvAllUrl,
+        };
+        if (rdvKeys[setting.key] && setting.value) {
+          try { rdvKeys[setting.key](JSON.parse(setting.value)); } catch { rdvKeys[setting.key](setting.value); }
+        }
       });
 
       // Fetch landing page settings
@@ -334,7 +344,11 @@ export function ExpertBookingTab() {
           {
             key: "expert_booking_embed_rang_4",
             value: JSON.stringify(expertBookingEmbedRang4),
-          }
+          },
+          { key: "rdv_expert_url", value: JSON.stringify(rdvExpertUrl) },
+          { key: "rdv_senior_url", value: JSON.stringify(rdvSeniorUrl) },
+          { key: "rdv_junior_url", value: JSON.stringify(rdvJuniorUrl) },
+          { key: "rdv_all_url", value: JSON.stringify(rdvAllUrl) }
         ], {
           onConflict: "key"
         });
