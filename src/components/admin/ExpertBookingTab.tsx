@@ -110,8 +110,8 @@ export function ExpertBookingTab() {
 
   // Matrix config
   const [assignmentMatrix, setAssignmentMatrix] = useState<MatrixConfig>(DEFAULT_MATRIX);
-  const [advisorUrls, setAdvisorUrls] = useState<AdvisorUrls>({
-    managers: "", experts: "", seniors_plus: "", seniors: "", intermediaires: "", juniors: "",
+  const [categoryUrls, setCategoryUrls] = useState<CategoryUrls>({
+    senior_category: "", junior_category: "",
   });
   
   // Landing page settings
@@ -638,8 +638,8 @@ export function ExpertBookingTab() {
             <RdvAssignmentMatrix
               matrix={assignmentMatrix}
               onMatrixChange={setAssignmentMatrix}
-              advisorUrls={advisorUrls}
-              onAdvisorUrlsChange={setAdvisorUrls}
+              categoryUrls={categoryUrls}
+              onCategoryUrlsChange={setCategoryUrls}
             />
           </div>
         </CardContent>
