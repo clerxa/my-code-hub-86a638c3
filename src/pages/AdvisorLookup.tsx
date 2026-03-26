@@ -414,8 +414,8 @@ const AdvisorLookup = () => {
         </div>
 
         {/* Search with autocomplete */}
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="overflow-visible">
+          <CardContent className="pt-6 overflow-visible">
             <div className="flex gap-3">
               <div className="relative flex-1" ref={searchRef}>
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
