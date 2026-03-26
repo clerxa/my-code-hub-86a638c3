@@ -35,8 +35,9 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
 
       {/* Mascotte */}
       <div style={{
-        flexShrink: 0, width: '220px', height: '100%',
+        flexShrink: 0, width: '220px', alignSelf: 'stretch',
         position: 'relative', overflow: 'visible',
+        background: 'rgba(255,255,255,0.05)',
       }}>
         <img
           src={mascotte}
@@ -90,7 +91,7 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
           lineHeight: 1.15,
           display: 'inline-block',
           width: '100%',
-          maxWidth: '520px',
+          maxWidth: '600px',
           background: 'linear-gradient(90deg, #4f7cf7 0%, #8b5cf6 40%, #d946a8 70%, #f97316 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
