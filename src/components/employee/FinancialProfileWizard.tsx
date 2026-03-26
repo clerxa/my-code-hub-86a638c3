@@ -1027,9 +1027,6 @@ export function FinancialProfileWizard({
                       className="flex-1 accent-primary h-2 cursor-pointer"
                     />
                     <span className="text-sm font-semibold text-primary min-w-[40px] text-right">{bufferPercent}%</span>
-                  </div>
-                  {bufferPercent > 0 && (
-                    <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">+ Imprévus ({bufferPercent}%)</span>
                       <span className="font-medium text-primary">+{bufferAmount.toLocaleString('fr-FR')} €/mois</span>
                     </div>
