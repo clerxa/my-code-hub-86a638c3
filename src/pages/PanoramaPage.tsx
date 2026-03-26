@@ -14,9 +14,10 @@ import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties
 import { supabase } from "@/integrations/supabase/client";
 import { BudgetOverviewSection } from "@/components/panorama/BudgetOverviewSection";
 import { useAuth } from "@/components/AuthProvider";
+import { useBetaMode } from "@/hooks/useBetaMode";
 import {
   ArrowRight, TrendingUp, FileText, Compass, UserCheck,
-  RefreshCw, ChevronRight, Info, Sparkles, Calculator
+  RefreshCw, ChevronRight, Info, Sparkles, Calculator, Lock, Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -135,6 +136,7 @@ export default function PanoramaPage() {
 
   const { totals: realEstateTotals } = useUserRealEstateProperties();
   const creditsImmoLocatif = (realEstateTotals?.mensualitesTotal ?? 0) + (realEstateTotals?.chargesTotal ?? 0);
+  const { isModuleLocked } = useBetaMode();
 
 
   if (checkingOnboarding) {
