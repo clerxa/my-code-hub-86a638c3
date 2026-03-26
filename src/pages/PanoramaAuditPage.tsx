@@ -250,6 +250,7 @@ export default function PanoramaAuditPage() {
       charges_abonnements: financialProfile.charges_abonnements,
       charges_frais_scolarite: financialProfile.charges_frais_scolarite,
       charges_autres: financialProfile.charges_autres,
+      charges_impot_mensuel: (financialProfile as any).charges_impot_mensuel ?? 0,
       charges_courses_alimentaires: (financialProfile as any).charges_courses_alimentaires ?? 0,
       charges_loisirs: (financialProfile as any).charges_loisirs ?? 0,
       charges_shopping: (financialProfile as any).charges_shopping ?? 0,
