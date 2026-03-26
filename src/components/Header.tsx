@@ -43,6 +43,7 @@ export const Header = () => {
   const [company, setCompany] = useState<Company | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCompanyContact, setIsCompanyContact] = useState(false);
+  const [contactCompanyId, setContactCompanyId] = useState<string | null>(null);
   const [showPartnershipDialog, setShowPartnershipDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [showCommunityLockedDialog, setShowCommunityLockedDialog] = useState(false);
