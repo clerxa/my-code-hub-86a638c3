@@ -874,6 +874,69 @@ export function FinancialProfileWizard({
                 </AccordionContent>
               </AccordionItem>
 
+              {/* 🏛️ Fiscalité */}
+              <AccordionItem value="fiscalite" className="border rounded-lg px-4 bg-card">
+                <AccordionTrigger className="hover:no-underline gap-2">
+                  <span className="flex items-center gap-2 text-left">🏛️ Fiscalité</span>
+                  <SubtotalBadge amount={fiscaliteSubtotal} />
+                </AccordionTrigger>
+                <AccordionContent className="pb-4 space-y-4">
+                  <div className="space-y-2">
+                    <Label>Impôt sur le revenu mensualisé (€/mois)</Label>
+                    <Input 
+                      type="text" 
+                      inputMode="numeric" 
+                      value={getNumericDisplayValue((formData as any).charges_impot_mensuel)} 
+                      onChange={(e) => handleNumericInput("charges_impot_mensuel" as any, e.target.value)} 
+                      placeholder="Ex: 350" 
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Montant du prélèvement à la source mensuel (visible sur votre fiche de paie).
+                    </p>
+                  </div>
+
+                  {/* Auto-calculate button */}
+                  <div className="p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 space-y-2">
+                    <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                      <Calculator className="h-4 w-4" />
+                      Estimation automatique
+                    </div>
+                    {(() => {
+                      const revenuFiscal = formData.revenu_fiscal_annuel || 0;
+                      const revenuBrut = (formData.revenu_annuel_brut || 0) + (formData.revenu_annuel_brut_conjoint || 0);
+                      const hasEnoughData = revenuFiscal > 0 || revenuBrut > 0;
+                      
+                      if (!hasEnoughData) {
+                        return (
+                          <p className="text-xs text-amber-600 dark:text-amber-400">
+                            ⚠️ Renseignez d'abord vos revenus (revenu annuel brut ou revenu fiscal de référence) dans l'onglet <strong>Situation</strong> pour activer le calcul automatique.
+                          </p>
+                        );
+                      }
+                      
+                      return (
+                        <div className="space-y-2">
+                          <p className="text-xs text-muted-foreground">
+                            Calcul basé sur {revenuFiscal > 0 ? 'votre revenu fiscal de référence' : 'vos revenus bruts estimés'}, 
+                            votre situation familiale ({situationFamiliale || 'célibataire'}) et {formData.nb_enfants ?? 0} enfant(s).
+                          </p>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm" 
+                            className="gap-2"
+                            onClick={handleAutoCalculateTax}
+                          >
+                            <Calculator className="h-3.5 w-3.5" />
+                            Estimer mon impôt
+                          </Button>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
             </Accordion>
 
             {/* 📊 Total charges fixes mensuelles */}
