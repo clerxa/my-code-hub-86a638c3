@@ -255,6 +255,9 @@ serve(async (req) => {
 
       // Check which reminders should be sent today
       for (const threshold of REMINDER_THRESHOLDS) {
+        // Check if this threshold is enabled in config
+        if (reminderConfig.thresholds && reminderConfig.thresholds[threshold.type] === false) continue;
+
         // Allow a 1-day window for each reminder (in case cron runs slightly off)
         if (daysLeft > threshold.days + 1 || daysLeft < threshold.days - 1) continue;
 
