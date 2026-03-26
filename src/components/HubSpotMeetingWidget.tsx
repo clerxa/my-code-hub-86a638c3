@@ -22,6 +22,14 @@ const ALLOWED_EMBED_DOMAINS = [
   'tidycal.com',
 ];
 
+interface PrefillData {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  company?: string;
+  phone?: string;
+}
+
 interface HubSpotMeetingWidgetProps {
   embedCode?: string;
   fallbackUrl?: string;
@@ -34,6 +42,8 @@ interface HubSpotMeetingWidgetProps {
   dialogTitle?: string;
   /** Custom dialog description (shown below title) */
   dialogDescription?: string | null;
+  /** Prefill data for the booking form */
+  prefillData?: PrefillData;
 }
 
 /**
