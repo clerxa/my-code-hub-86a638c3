@@ -899,8 +899,8 @@ export function FinancialProfileWizard({
                     <Input 
                       type="text" 
                       inputMode="numeric" 
-                      value={getNumericDisplayValue((formData as any).charges_impot_mensuel)} 
-                      onChange={(e) => handleNumericInput("charges_impot_mensuel" as any, e.target.value)} 
+                      value={getNumericDisplayValue(formData.charges_impot_mensuel)} 
+                      onChange={(e) => handleNumericInput("charges_impot_mensuel", e.target.value)} 
                       placeholder="Ex: 350" 
                     />
                     <p className="text-xs text-muted-foreground">
