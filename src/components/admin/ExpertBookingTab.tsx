@@ -20,7 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { RdvAssignmentMatrix, DEFAULT_MATRIX, ADVISOR_TYPES, type MatrixConfig, type AdvisorUrls, type AdvisorTypeKey } from "./RdvAssignmentMatrix";
+import { RdvAssignmentMatrix, DEFAULT_MATRIX, type MatrixConfig, type CategoryUrls, type AdvisorCategoryKey } from "./RdvAssignmentMatrix";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -110,8 +110,8 @@ export function ExpertBookingTab() {
 
   // Matrix config
   const [assignmentMatrix, setAssignmentMatrix] = useState<MatrixConfig>(DEFAULT_MATRIX);
-  const [advisorUrls, setAdvisorUrls] = useState<AdvisorUrls>({
-    managers: "", experts: "", seniors_plus: "", seniors: "", intermediaires: "", juniors: "",
+  const [categoryUrls, setCategoryUrls] = useState<CategoryUrls>({
+    senior_category: "", junior_category: "",
   });
   
   // Landing page settings
@@ -173,7 +173,7 @@ export function ExpertBookingTab() {
           "rdv_junior_url",
           "rdv_all_url",
           "rdv_assignment_matrix",
-          "rdv_advisor_urls"
+          "rdv_category_urls"
         ]);
 
       if (urlError) throw urlError;
@@ -263,8 +263,8 @@ export function ExpertBookingTab() {
         if (setting.key === "rdv_assignment_matrix" && setting.value) {
           try { setAssignmentMatrix(JSON.parse(setting.value)); } catch { /* keep default */ }
         }
-        if (setting.key === "rdv_advisor_urls" && setting.value) {
-          try { setAdvisorUrls(prev => ({ ...prev, ...JSON.parse(setting.value) })); } catch { /* keep default */ }
+        if (setting.key === "rdv_category_urls" && setting.value) {
+          try { setCategoryUrls(prev => ({ ...prev, ...JSON.parse(setting.value) })); } catch { /* keep default */ }
         }
       });
 
@@ -366,7 +366,7 @@ export function ExpertBookingTab() {
           { key: "rdv_junior_url", value: JSON.stringify(rdvJuniorUrl) },
           { key: "rdv_all_url", value: JSON.stringify(rdvAllUrl) },
           { key: "rdv_assignment_matrix", value: JSON.stringify(assignmentMatrix) },
-          { key: "rdv_advisor_urls", value: JSON.stringify(advisorUrls) }
+          { key: "rdv_category_urls", value: JSON.stringify(categoryUrls) }
         ], {
           onConflict: "key"
         });
@@ -638,8 +638,8 @@ export function ExpertBookingTab() {
             <RdvAssignmentMatrix
               matrix={assignmentMatrix}
               onMatrixChange={setAssignmentMatrix}
-              advisorUrls={advisorUrls}
-              onAdvisorUrlsChange={setAdvisorUrls}
+              categoryUrls={categoryUrls}
+              onCategoryUrlsChange={setCategoryUrls}
             />
           </div>
         </CardContent>
