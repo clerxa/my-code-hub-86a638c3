@@ -43,6 +43,7 @@ export const Header = () => {
   const [company, setCompany] = useState<Company | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCompanyContact, setIsCompanyContact] = useState(false);
+  const [contactCompanyId, setContactCompanyId] = useState<string | null>(null);
   const [showPartnershipDialog, setShowPartnershipDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [showCommunityLockedDialog, setShowCommunityLockedDialog] = useState(false);
@@ -128,10 +129,10 @@ export const Header = () => {
     const { data, error } = await supabase
       .from("company_contacts")
       .select("id, company_id")
-      .eq("email", user.email)
-      .maybeSingle();
-    if (!error && data) {
+      .eq("email", user.email);
+    if (!error && data && data.length > 0) {
       setIsCompanyContact(true);
+      setContactCompanyId(data[0].company_id);
     }
   };
   const handleSignOut = async () => {
@@ -204,7 +205,7 @@ export const Header = () => {
               <span className="hidden lg:inline">Accès Backoffice</span>
             </Button>}
 
-          {isCompanyContact && !isAdmin && company && <Button size="sm" onClick={() => navigate(`/company/${company.id}/dashboard`)} className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3" variant="default">
+          {isCompanyContact && !isAdmin && contactCompanyId && <Button size="sm" onClick={() => navigate(`/company/${contactCompanyId}/dashboard`)} className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3" variant="default">
               <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden lg:inline">Accès Dashboard</span>
             </Button>}
