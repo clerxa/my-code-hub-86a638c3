@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Layout, PanelLeft, PanelTop, FileText, 
-  Settings2, Menu, ChevronRight, Image
+  Settings2, Menu, ChevronRight
 } from "lucide-react";
 import { LayoutCustomizationTab } from "./LayoutCustomizationTab";
 import { SidebarConfigurationTab } from "./SidebarConfigurationTab";
