@@ -16,23 +16,9 @@ export function TaxDeclarationConfirmation({ formData, permanenceConfig, isUpdat
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Fetch company_id from profile
-  const { data: profile } = useQuery({
-    queryKey: ['profile-company', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data } = await supabase
-        .from('profiles')
-        .select('company_id')
-        .eq('id', user.id)
-        .single();
-      return data;
-    },
-    enabled: !!user?.id,
-  });
-
-  // Get expert booking URL based on company rank
-  const { fallbackUrl: expertBookingUrl } = useExpertBookingUrl(profile?.company_id || null);
+  // Get expert booking URL based on rank × revenue
+  const { rdvUrl: expertBookingUrl } = useRdvLink();
+  
   
   // Find the selected permanence option
   const selectedOption = permanenceConfig?.options?.find(opt => opt.id === formData.type_rdv && opt.enabled);

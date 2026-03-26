@@ -16,11 +16,7 @@ export default function PensionTracker() {
   const [activeStep, setActiveStep] = useState<number | null>(null);
   const [showGuide, setShowGuide] = useState(false);
   const { rdvUrl: bookingUrl } = useRdvLink();
-        .eq("id", user.id)
-        .maybeSingle()
-        .then(({ data }) => setCompanyId(data?.company_id || null));
-    }
-  }, [user]);
+
 
   const openBooking = () => {
     if (bookingUrl) window.open(bookingUrl, "_blank");
