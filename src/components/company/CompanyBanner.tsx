@@ -7,7 +7,7 @@ interface CompanyBannerProps {
 
 export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerProps) {
   return (
-    <div style={{
+    <div className="hidden md:block" style={{
       padding: '1.5px',
       borderRadius: '17px',
       background: 'linear-gradient(90deg, #4f7cf7 0%, #8b5cf6 40%, #d946a8 70%, #f97316 100%)',
