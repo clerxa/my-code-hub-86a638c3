@@ -43,7 +43,7 @@ export function useIntentionScore(userId: string | null): IntentionScoreResult {
   async function computeScore(uid: string) {
     try {
       // Fetch config and all data sources in parallel
-      const [configRes, loginsRes, simLogsRes, modulesRes, diagnosticRes, horizonRes, eventsRes, appointmentsRes, fpRes, riskRes, realEstateRes, prepRes] =
+      const [configRes, loginsRes, simLogsRes, modulesRes, diagnosticRes, horizonRes, eventsRes, appointmentsRes, fpRes, riskRes, realEstateRes] =
         await Promise.all([
           supabase.from("intention_score_config").select("*").eq("is_active", true).order("display_order"),
           supabase.from("daily_logins").select("id").eq("user_id", uid),
