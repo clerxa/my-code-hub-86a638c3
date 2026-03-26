@@ -9,10 +9,10 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
   return (
     <div style={{
       position: 'relative',
-      height: '240px',
+      minHeight: '240px',
       background: '#0f0f14',
       borderRadius: '16px',
-      overflow: 'hidden',
+      overflow: 'visible',
       display: 'flex',
       alignItems: 'center',
       zIndex: 1,
