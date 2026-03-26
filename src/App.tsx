@@ -83,6 +83,7 @@ import EmployeePartnership from "./pages/EmployeePartnership";
 import RiskProfile from "./pages/RiskProfile";
 import ExpertBookingLanding from "./pages/ExpertBookingLanding";
 import OnboardingFlow from "./pages/OnboardingFlow";
+import AdvisorLookup from "./pages/AdvisorLookup";
 import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
 import BlogArticle from "./pages/BlogArticle";
