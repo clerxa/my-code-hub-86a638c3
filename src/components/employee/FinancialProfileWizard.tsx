@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { 
   ArrowLeft, ArrowRight, Check, Euro, Users, Briefcase, 
-  Building, PiggyBank, Info, HelpCircle, ChevronDown, ChevronUp, Wallet, Calculator
+  Building, PiggyBank, Info, HelpCircle, ChevronDown, ChevronUp, Wallet, Calculator, ShieldAlert
 } from "lucide-react";
 import { RealEstatePropertiesManager } from "./profile/RealEstatePropertiesManager";
 import { useUserRealEstateProperties } from "@/hooks/useUserRealEstateProperties";
