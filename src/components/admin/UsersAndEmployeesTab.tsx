@@ -331,11 +331,22 @@ export function UsersAndEmployeesTab({ profiles, companies, onRefresh }: UsersAn
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
     try {
-      const { error } = await supabase
+      // Delete existing roles for this user, then insert the new one
+      // (unique constraint is on user_id+role, not user_id alone)
+      const { error: deleteError } = await supabase
         .from("user_roles")
-        .upsert({ user_id: userId, role: newRole }, { onConflict: "user_id" });
+        .delete()
+        .eq("user_id", userId);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
+
+      if (newRole !== "user") {
+        const { error: insertError } = await supabase
+          .from("user_roles")
+          .insert({ user_id: userId, role: newRole });
+
+        if (insertError) throw insertError;
+      }
 
       setRoles((prev) => ({ ...prev, [userId]: newRole }));
       toast.success("Rôle mis à jour avec succès");
