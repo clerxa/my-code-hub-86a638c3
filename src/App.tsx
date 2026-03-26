@@ -217,6 +217,16 @@ const App = () => (
               }
             />
             
+            {/* Route conseiller - Accessible aux conseillers et admins */}
+            <Route
+              path="/advisor"
+              element={
+                <ProtectedRoute requireAdvisor={true}>
+                  <AdvisorLookup />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Routes employé - Accessibles aux utilisateurs authentifiés */}
             <Route path="/employee" element={<ProtectedRoute><Employee /></ProtectedRoute>} />
             <Route
