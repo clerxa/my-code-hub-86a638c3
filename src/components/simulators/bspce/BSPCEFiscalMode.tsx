@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { calculateBSPCEFiscal, type BSPCEFiscalResult } from '@/utils/bspceCalculations';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
-import { useExpertBookingUrl } from '@/hooks/useExpertBookingUrl';
+import { useRdvLink } from '@/hooks/useRdvLink';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 const TMI_OPTIONS = [
@@ -26,22 +26,7 @@ const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--se
 
 export function BSPCEFiscalMode() {
   const { user } = useAuth();
-  const [companyId, setCompanyId] = useState<string | null>(null);
-  const { bookingUrl } = useExpertBookingUrl(companyId);
-
-  const [nbBspce, setNbBspce] = useState<number>(0);
-  const [prixExercice, setPrixExercice] = useState<number>(0);
-  const [prixCession, setPrixCession] = useState<number>(0);
-  const [dateEntree, setDateEntree] = useState('');
-  const [dateCession, setDateCession] = useState('');
-  const [tmi, setTmi] = useState('30');
-
-  useEffect(() => {
-    if (user) {
-      supabase.from('profiles').select('company_id').eq('id', user.id).maybeSingle()
-        .then(({ data }) => setCompanyId(data?.company_id || null));
-    }
-  }, [user]);
+  const { rdvUrl: bookingUrl } = useRdvLink();
 
   const canCalculate = nbBspce > 0 && prixExercice > 0 && prixCession > 0 && dateEntree && dateCession && prixCession > prixExercice;
 

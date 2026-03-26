@@ -20,7 +20,7 @@ import {
 import { useFinancialProfilePrefill } from "@/hooks/useFinancialProfilePrefill";
 import { SimulationValidationOverlay } from "@/components/simulators/SimulationValidationOverlay";
 import { useAuth } from "@/components/AuthProvider";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -241,15 +241,8 @@ export function BudgetSimulator({ savedData, savedSimId, startInResults, onEdit 
   const [validationComplete, setValidationComplete] = useState(startInResults || false);
 
   // Expert booking
-  const [companyId, setCompanyId] = useState<string | null>(null);
-  const { bookingUrl } = useExpertBookingUrl(companyId);
+  const { rdvUrl: bookingUrl } = useRdvLink();
 
-  useEffect(() => {
-    if (user) {
-      supabase.from("profiles").select("company_id").eq("id", user.id).maybeSingle()
-        .then(({ data }) => { if (data?.company_id) setCompanyId(data.company_id); });
-    }
-  }, [user]);
 
   // Load saved simulation data
   const [savedLoaded, setSavedLoaded] = useState(false);

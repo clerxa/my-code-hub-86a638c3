@@ -5,9 +5,8 @@ import { ExternalLink, Clock, Calendar } from 'lucide-react';
 import { Offer, getCategoryLabel, getCategoryColor } from './types';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useExpertBookingUrl } from '@/hooks/useExpertBookingUrl';
+import { useRdvLink } from '@/hooks/useRdvLink';
 import { useAuth } from '@/components/AuthProvider';
-import { supabase } from '@/integrations/supabase/client';
 import { appendUtmParams } from '@/hooks/useBookingReferrer';
 
 interface OfferCardProps {
@@ -37,24 +36,9 @@ function getTimeRemaining(endDate: Date): string {
 export function OfferCard({ offer }: OfferCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [companyId, setCompanyId] = useState<string | null>(null);
-  const { bookingUrl } = useExpertBookingUrl(companyId);
+  const { rdvUrl: bookingUrl } = useRdvLink();
   const [timeRemaining, setTimeRemaining] = useState('');
   const endDate = new Date(offer.end_date);
-  
-  // Fetch user's company
-  useEffect(() => {
-    const fetchCompany = async () => {
-      if (!user) return;
-      const { data } = await supabase
-        .from('profiles')
-        .select('company_id')
-        .eq('id', user.id)
-        .single();
-      setCompanyId(data?.company_id || null);
-    };
-    fetchCompany();
-  }, [user]);
   
   useEffect(() => {
     const updateTime = () => {
