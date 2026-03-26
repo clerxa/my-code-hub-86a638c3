@@ -91,7 +91,7 @@ const defaultAdminItems: AdminMenuItem[] = [
   { id: "companies", label: "Companies", url: "/admin/companies", icon: "Building2", order: 0, visible: true, categoryId: "companies" },
   { id: "company-ranking", label: "Configuration des rangs", url: "/admin/company-ranking", icon: "Crown", order: 1, visible: true, categoryId: "companies" },
   { id: "users", label: "Utilisateurs", url: "/admin/users", icon: "Users", order: 2, visible: true, categoryId: "companies" },
-  
+  { id: "advisors", label: "Conseillers", url: "/admin/advisors", icon: "UserCheck", order: 3, visible: true, categoryId: "companies" },
   
   // Content
   { id: "modules", label: "Modules", url: "/admin/modules", icon: "BookOpen", order: 0, visible: true, categoryId: "content" },

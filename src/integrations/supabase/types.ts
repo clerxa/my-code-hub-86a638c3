@@ -14,6 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
+      advisor_certifications: {
+        Row: {
+          advisor_id: string
+          certification_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          advisor_id: string
+          certification_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          advisor_id?: string
+          certification_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_certifications_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advisor_certifications_certification_id_fkey"
+            columns: ["certification_id"]
+            isOneToOne: false
+            referencedRelation: "certifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_ranks: {
+        Row: {
+          advisor_id: string
+          created_at: string
+          id: string
+          rank: number
+        }
+        Insert: {
+          advisor_id: string
+          created_at?: string
+          id?: string
+          rank: number
+        }
+        Update: {
+          advisor_id?: string
+          created_at?: string
+          id?: string
+          rank?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_ranks_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisors: {
+        Row: {
+          bio: string | null
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          is_active: boolean
+          last_name: string
+          photo_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          is_active?: boolean
+          last_name: string
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          is_active?: boolean
+          last_name?: string
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       appointment_forms: {
         Row: {
           color: string | null
@@ -600,6 +701,30 @@ export type Database = {
           updated_at?: string
           video_enabled?: boolean | null
           video_url?: string | null
+        }
+        Relationships: []
+      }
+      certifications: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
