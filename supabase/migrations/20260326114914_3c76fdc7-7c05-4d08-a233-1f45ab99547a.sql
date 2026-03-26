@@ -1,0 +1,1 @@
+alter table profiles add column if not exists marketing_consent boolean default false;
