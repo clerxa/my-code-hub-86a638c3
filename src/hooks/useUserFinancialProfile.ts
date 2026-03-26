@@ -202,6 +202,21 @@ export const useUserFinancialProfile = () => {
     mutationFn: async (input: FinancialProfileInput) => {
       if (!user?.id) throw new Error("Utilisateur non connecté");
 
+      // Auto-calculate is_complete based on required fields config
+      if (requiredFieldsConfig?.length) {
+        const merged = { ...profile, ...input } as UserFinancialProfile;
+        const filledCount = requiredFieldsConfig.filter(({ field_key }) => {
+          if (PROFILE_TABLE_FIELDS.includes(field_key)) {
+            return !!(userProfile?.[field_key as keyof typeof userProfile]);
+          }
+          const value = merged?.[field_key as keyof UserFinancialProfile] ?? null;
+          if (value === null || value === undefined || value === '') return false;
+          if (typeof value === 'number' && value === 0) return ZERO_IS_VALID_FIELDS.includes(field_key);
+          return true;
+        }).length;
+        input.is_complete = filledCount >= requiredFieldsConfig.length;
+      }
+
       // Check if profile exists
       const { data: existing } = await supabase
         .from('user_financial_profiles')
@@ -210,24 +225,20 @@ export const useUserFinancialProfile = () => {
         .maybeSingle();
 
       if (existing) {
-        // Update
         const { data, error } = await supabase
           .from('user_financial_profiles')
           .update(input)
           .eq('user_id', user.id)
           .select()
           .single();
-        
         if (error) throw error;
         return data;
       } else {
-        // Insert
         const { data, error } = await supabase
           .from('user_financial_profiles')
           .insert({ ...input, user_id: user.id })
           .select()
           .single();
-        
         if (error) throw error;
         return data;
       }
