@@ -288,7 +288,7 @@ const App = () => (
               path="/employee/horizon"
               element={
                 <PartnershipRoute featureType="company">
-                  <Horizon />
+                  <BetaGate moduleKey="horizon"><Horizon /></BetaGate>
                 </PartnershipRoute>
               }
             />
@@ -312,7 +312,7 @@ const App = () => (
               path="/employee/budget"
               element={
                 <ProtectedRoute>
-                  <BudgetPage />
+                  <BetaGate moduleKey="zenith"><BudgetPage /></BetaGate>
                 </ProtectedRoute>
               }
             />
@@ -320,7 +320,7 @@ const App = () => (
               path="/employee/atlas"
               element={
                 <PartnershipRoute featureType="company">
-                  <AtlasPage />
+                  <BetaGate moduleKey="atlas"><AtlasPage /></BetaGate>
                 </PartnershipRoute>
               }
             />
