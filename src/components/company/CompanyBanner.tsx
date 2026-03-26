@@ -95,12 +95,11 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
           {/* Titre */}
           <h1 style={{
             margin: 0,
-            fontSize: 'clamp(28px, 3.8vw, 44px)',
+            fontSize: 'clamp(24px, 2.8vw, 36px)',
             fontWeight: 800,
             lineHeight: 1.15,
             display: 'inline-block',
             width: '100%',
-            maxWidth: '600px',
             background: 'linear-gradient(90deg, #4f7cf7 0%, #8b5cf6 40%, #d946a8 70%, #f97316 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
