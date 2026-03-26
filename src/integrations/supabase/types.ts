@@ -168,63 +168,6 @@ export type Database = {
           },
         ]
       }
-      appointment_preparation: {
-        Row: {
-          created_at: string
-          id: string
-          intention_note: string | null
-          objectives: string[] | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          intention_note?: string | null
-          objectives?: string[] | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          intention_note?: string | null
-          objectives?: string[] | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      appointment_preparation_documents: {
-        Row: {
-          created_at: string
-          file_name: string
-          file_path: string
-          file_size: number | null
-          file_type: string | null
-          id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          file_name: string
-          file_path: string
-          file_size?: number | null
-          file_type?: string | null
-          id?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          file_name?: string
-          file_path?: string
-          file_size?: number | null
-          file_type?: string | null
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       appointments: {
         Row: {
           created_at: string
