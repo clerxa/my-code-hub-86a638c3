@@ -38,7 +38,7 @@ import { EmployeeSidebar } from "@/components/employee/EmployeeSidebar";
 import { MobileEmployeeNav } from "@/components/employee/MobileEmployeeNav";
 import { StatsDashboard } from "@/components/employee/StatsDashboard";
 
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+
 import { PersonalInfoSection } from "@/components/employee/PersonalInfoSection";
 import { MyAppointmentsBlock } from "@/components/employee/MyAppointmentsBlock";
 
