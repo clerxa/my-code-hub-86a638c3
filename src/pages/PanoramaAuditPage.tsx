@@ -253,6 +253,7 @@ export default function PanoramaAuditPage() {
       charges_loisirs: (financialProfile as any).charges_loisirs ?? 0,
       charges_shopping: (financialProfile as any).charges_shopping ?? 0,
       charges_variables_autres: (financialProfile as any).charges_variables_autres ?? 0,
+      buffer_depenses_imprevues_pct: (financialProfile as any).buffer_depenses_imprevues_pct ?? 0,
       statut_residence: financialProfile.statut_residence,
       epargne_actuelle: financialProfile.epargne_actuelle,
       epargne_livrets: financialProfile.epargne_livrets,
