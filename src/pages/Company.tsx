@@ -24,7 +24,7 @@ import { useBlockLayoutConfig } from "@/hooks/useBlockLayoutConfig";
 import { UpcomingWebinars } from "@/components/UpcomingWebinars";
 import { useAuth } from "@/components/AuthProvider";
 import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
-import { useResponsiveBanner } from "@/hooks/useResponsiveBanner";
+
 import { setBookingReferrer } from "@/hooks/useBookingReferrer";
 
 import { InviteColleagueBlock } from "@/components/company/InviteColleagueBlock";
