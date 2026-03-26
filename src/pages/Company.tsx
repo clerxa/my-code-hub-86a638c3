@@ -47,6 +47,7 @@ interface Parcours {
 }
 interface CompanyWithPartnership extends CompanyType {
   cover_url?: string;
+  banner_url?: string | null;
 }
 const Company = () => {
   const {
