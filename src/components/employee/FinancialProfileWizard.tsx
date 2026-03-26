@@ -159,6 +159,7 @@ export function FinancialProfileWizard({
     formData.pensions_alimentaires,
     formData.credits_consommation,
     formData.charges_autres,
+    (formData as any).charges_impot_mensuel,
     formData.charges_courses_alimentaires,
     formData.charges_loisirs,
     formData.charges_shopping,
