@@ -1060,7 +1060,7 @@ export default function PanoramaAuditPage() {
           </Tabs>
 
           {/* Tab-level navigation: Précédent / Suivant / Terminer */}
-          <div className="flex justify-between items-center pt-6 pb-24">
+          <div className="flex justify-between items-center pt-6 pb-8">
             <Button
               variant="outline"
               onClick={() => {
@@ -1082,9 +1082,7 @@ export default function PanoramaAuditPage() {
                 onClick={() => {
                   const currentIndex = tabs.findIndex(t => t.id === activeTab);
                   if (currentIndex < tabs.length - 1) {
-                    if (hasChanges) {
-                      handleSave();
-                    }
+                    handleSave();
                     handleTabChange(tabs[currentIndex + 1].id);
                   }
                 }}
@@ -1096,9 +1094,7 @@ export default function PanoramaAuditPage() {
             ) : (
               <Button
                 onClick={() => {
-                  if (hasChanges) {
-                    handleSave();
-                  }
+                  handleSave();
                   toast.success("Profil enregistré avec succès !");
                   navigate("/panorama");
                 }}
@@ -1108,26 +1104,6 @@ export default function PanoramaAuditPage() {
                 <Check className="h-4 w-4" />
               </Button>
             )}
-          </div>
-        </div>
-      </div>
-
-      {/* Floating save bar */}
-      <div
-        className={cn(
-          "fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-4 transition-all duration-300 z-50",
-          hasChanges ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
-        )}
-      >
-        <div className="container mx-auto max-w-4xl flex items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">Vous avez des modifications non enregistrées</p>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
-              <X className="h-4 w-4 mr-2" /> Annuler
-            </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
-              <Save className="h-4 w-4 mr-2" /> {isSaving ? "Enregistrement..." : "Enregistrer"}
-            </Button>
           </div>
         </div>
       </div>

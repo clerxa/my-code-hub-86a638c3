@@ -1078,24 +1078,24 @@ export function FinancialProfileWizard({
         </CardContent>
       </Card>
 
-      {/* Navigation */}
-      <div className="flex justify-between items-center pt-4 pb-20">
-        <Button
-          variant="outline"
-          onClick={handlePrevious}
-          disabled={currentStep === 0}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Précédent
-        </Button>
+      {/* Internal sub-step navigation (only when multiple steps and not on first) */}
+      {STEPS.length > 1 && (
+        <div className="flex justify-between items-center pt-4">
+          {currentStep > 0 ? (
+            <Button variant="outline" onClick={handlePrevious}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Précédent
+            </Button>
+          ) : <div />}
 
-        {currentStep < STEPS.length - 1 ? (
-          <Button onClick={handleNext} disabled={isSaving}>
-            Suivant
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        ) : null}
-      </div>
+          {currentStep < STEPS.length - 1 ? (
+            <Button onClick={handleNext} disabled={isSaving}>
+              Suivant
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          ) : null}
+        </div>
+      )}
 
     </div>
   );
