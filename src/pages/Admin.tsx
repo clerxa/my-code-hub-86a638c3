@@ -32,7 +32,7 @@ import { ReferralBlockTab } from "@/components/admin/ReferralBlockTab";
 import { SimulatorsTab } from "@/components/admin/SimulatorsTab";
 
 import { UserFinancialProfilesTab } from "@/components/admin/UserFinancialProfilesTab";
-import { AdvisorsTab } from "@/components/admin/AdvisorsTab";
+
 import { FinancialProfileSettingsTab } from "@/components/admin/FinancialProfileSettingsTab";
 import { GlobalSettingsTab } from "@/components/admin/GlobalSettingsTab";
 import { BetaLabTab } from "@/components/admin/BetaLabTab";
