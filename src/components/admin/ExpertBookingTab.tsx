@@ -364,7 +364,9 @@ export function ExpertBookingTab() {
           { key: "rdv_expert_url", value: JSON.stringify(rdvExpertUrl) },
           { key: "rdv_senior_url", value: JSON.stringify(rdvSeniorUrl) },
           { key: "rdv_junior_url", value: JSON.stringify(rdvJuniorUrl) },
-          { key: "rdv_all_url", value: JSON.stringify(rdvAllUrl) }
+          { key: "rdv_all_url", value: JSON.stringify(rdvAllUrl) },
+          { key: "rdv_assignment_matrix", value: JSON.stringify(assignmentMatrix) },
+          { key: "rdv_advisor_urls", value: JSON.stringify(advisorUrls) }
         ], {
           onConflict: "key"
         });
@@ -631,44 +633,14 @@ export function ExpertBookingTab() {
             </ol>
           </div>
 
-          {/* New rang×revenue URL fields */}
+          {/* Matrix-based assignment */}
           <div className="border-t pt-6 mt-6">
-            <h4 className="font-medium mb-4">Liens RDV par profil conseiller</h4>
-            <p className="text-sm text-muted-foreground mb-4">
-              Ces liens sont attribués automatiquement selon le rang de l'entreprise et le profil de revenu du salarié.
-            </p>
-            <div className="space-y-4">
-              {[
-                { key: "rdv_expert_url", label: "Lien Expert", state: rdvExpertUrl, setter: setRdvExpertUrl, desc: "Rang 1 (tous) · Rang 2 (revenu &gt;80k) · Rang 3 (revenu &gt;80k)" },
-                { key: "rdv_senior_url", label: "Lien Senior", state: rdvSeniorUrl, setter: setRdvSeniorUrl, desc: "Rang 2 (autres) · Rang 3 (revenu 50-80k) · Rang 4 (revenu &gt;80k)" },
-                { key: "rdv_junior_url", label: "Lien Junior / Intermédiaire", state: rdvJuniorUrl, setter: setRdvJuniorUrl, desc: "Rang 3 (revenu &lt;50k ou NRP)" },
-                { key: "rdv_all_url", label: "Lien Tous conseillers", state: rdvAllUrl, setter: setRdvAllUrl, desc: "Rang 4 (autres)" },
-              ].map(({ key, label, state, setter, desc }) => (
-                <div key={key} className="border rounded-lg p-4 space-y-2">
-                  <Label htmlFor={key}>{label}</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id={key}
-                      value={state}
-                      onChange={(e) => setter(e.target.value)}
-                      placeholder="https://meetings.hubspot.com/..."
-                      className="flex-1"
-                    />
-                    {state && (
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => window.open(state, "_blank")}
-                        title="Tester le lien"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: desc }} />
-                </div>
-              ))}
-            </div>
+            <RdvAssignmentMatrix
+              matrix={assignmentMatrix}
+              onMatrixChange={setAssignmentMatrix}
+              advisorUrls={advisorUrls}
+              onAdvisorUrlsChange={setAdvisorUrls}
+            />
           </div>
         </CardContent>
       </Card>
