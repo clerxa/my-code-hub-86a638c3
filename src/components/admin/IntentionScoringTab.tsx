@@ -79,13 +79,18 @@ export function IntentionScoringTab() {
       const companyMap = Object.fromEntries(companyList.map((c) => [c.id, c.name]));
 
       // Batch fetch all signal sources
-      const [loginsRes, simLogsRes, modulesRes, diagnosticRes, horizonRes, eventsRes] = await Promise.all([
+      const [loginsRes, simLogsRes, modulesRes, diagnosticRes, horizonRes, eventsRes, appointmentsRes, fpRes, riskRes, realEstateRes, prepRes] = await Promise.all([
         supabase.from("daily_logins").select("user_id"),
         supabase.from("simulation_logs").select("user_id, appointment_cta_clicked"),
         supabase.from("module_validations").select("user_id"),
         supabase.from("diagnostic_results").select("user_id, status").eq("status", "completed"),
         supabase.from("horizon_projects").select("user_id"),
         supabase.from("user_events").select("user_id, event_type, event_name"),
+        supabase.from("appointments").select("user_id"),
+        supabase.from("user_financial_profiles").select("user_id, is_complete"),
+        (supabase as any).from("risk_profile").select("user_id"),
+        (supabase as any).from("user_real_estate_properties").select("user_id"),
+        supabase.from("appointment_preparation").select("user_id"),
       ]);
 
       // Build counts per user
@@ -101,6 +106,16 @@ export function IntentionScoringTab() {
       
       const diagnosticUsers = new Set((diagnosticRes.data || []).map((d) => d.user_id));
       const horizonUsers = new Set((horizonRes.data || []).map((h) => h.user_id));
+      const appointmentUsers = new Set((appointmentsRes.data || []).map((a: any) => a.user_id));
+      const fpCompleteUsers = new Set((fpRes.data || []).filter((f: any) => f.is_complete).map((f: any) => f.user_id));
+      const riskUsers = new Set((riskRes.data || []).map((r: any) => r.user_id));
+      const prepUsers = new Set((prepRes.data || []).map((p: any) => p.user_id));
+
+      // Real estate count per user
+      const realEstateCounts: Record<string, number> = {};
+      (realEstateRes.data || []).forEach((r: any) => {
+        realEstateCounts[r.user_id] = (realEstateCounts[r.user_id] || 0) + 1;
+      });
 
       // Event counts per user per event
       const eventCounts: Record<string, Record<string, number>> = {};
@@ -132,6 +147,11 @@ export function IntentionScoringTab() {
           offers_page_view: eventCounts[uid]?.["page_view:offers_page"] || 0,
           rdv_cta_click_no_conversion: eventCounts[uid]?.["cta_click:rdv_cta_no_conversion"] || 0,
           rdv_cta_click_from_simulator: simCtaCounts[uid] || 0,
+          appointment_booked: appointmentUsers.has(uid) ? 1 : 0,
+          financial_profile_complete: fpCompleteUsers.has(uid) ? 1 : 0,
+          risk_profile_completed: riskUsers.has(uid) ? 1 : 0,
+          real_estate_added: realEstateCounts[uid] || 0,
+          appointment_preparation_done: prepUsers.has(uid) ? 1 : 0,
         };
 
         const signals: ScoreSignal[] = [];
