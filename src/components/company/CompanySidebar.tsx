@@ -50,7 +50,7 @@ export const CompanySidebar = ({
     } else if (itemId === "contacts" && companyId) {
       navigate(`/company/${companyId}/contacts`);
     } else if (itemId === "webinars") {
-      navigate("/employee", { state: { section: "webinars" } });
+      navigate("/employee?section=webinars");
     } else {
       onSectionChange(itemId);
     }

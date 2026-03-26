@@ -54,7 +54,7 @@ export const MobileCompanyNav = ({
         if (companyId) navigate(`/company/${companyId}/contacts`);
         break;
       case "webinars":
-        navigate("/employee", { state: { section: "webinars" } });
+        navigate("/employee?section=webinars");
         break;
       default:
         onSectionChange(itemId);
