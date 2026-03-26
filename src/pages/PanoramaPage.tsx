@@ -522,7 +522,7 @@ export default function PanoramaPage() {
                   {impotMensuel != null && impotMensuel > 0 && (
                     <div className="rounded-md bg-blue-500/5 border border-blue-500/10 px-3 py-2">
                       <p className="text-[10px] text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                        Impôts <span className="text-[8px] bg-blue-500/10 px-1 rounded">ATLAS</span>
+                        Impôts <span className="text-[8px] bg-blue-500/10 px-1 rounded">estimé</span>
                       </p>
                       <p className="text-sm font-semibold">{formatEuros(impotMensuel)}</p>
                     </div>
@@ -724,8 +724,8 @@ export default function PanoramaPage() {
             <p className="text-xl font-bold">
               {tmi != null ? `TMI ${tmi}%` : "Non renseigné"}
             </p>
-            {tauxMoyenAtlas != null && (
-              <p className="text-xs text-muted-foreground">Taux moyen {tauxMoyenAtlas}%</p>
+            {tauxMoyenEstime != null && (
+              <p className="text-xs text-muted-foreground">Taux moyen {tauxMoyenEstime}%</p>
             )}
             {impotMensuel != null && impotMensuel > 0 && (
               <p className="text-xs text-muted-foreground">{formatEuros(impotMensuel)}/mois</p>
