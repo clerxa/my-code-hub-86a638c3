@@ -6750,6 +6750,55 @@ export type Database = {
         }
         Relationships: []
       }
+      webinar_reminder_logs: {
+        Row: {
+          company_id: string
+          contact_id: string
+          id: string
+          reminder_type: string
+          sent_at: string
+          session_id: string
+        }
+        Insert: {
+          company_id: string
+          contact_id: string
+          id?: string
+          reminder_type: string
+          sent_at?: string
+          session_id: string
+        }
+        Update: {
+          company_id?: string
+          contact_id?: string
+          id?: string
+          reminder_type?: string
+          sent_at?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webinar_reminder_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webinar_reminder_logs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "company_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webinar_reminder_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "webinar_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webinar_sessions: {
         Row: {
           created_at: string
