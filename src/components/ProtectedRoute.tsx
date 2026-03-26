@@ -27,9 +27,10 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireCompanyContact 
       return;
     }
 
-    if (!requireAdmin && !requireCompanyContact) {
+    if (!requireAdmin && !requireCompanyContact && !requireAdvisor) {
       setIsAdmin(true);
       setIsCompanyContact(true);
+      setIsAdvisor(true);
       setLoading(false);
       return;
     }
