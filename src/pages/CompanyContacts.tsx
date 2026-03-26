@@ -473,8 +473,8 @@ const CompanyContacts = () => {
                       <Crown className="h-5 w-5 text-secondary" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-semibold">Support MyFinCare</h2>
-                      <p className="text-sm text-muted-foreground">Notre équipe d'experts est là pour vous aider</p>
+                       <h2 className="text-xl font-semibold">Support MyFinCare</h2>
+                      <p className="text-sm text-muted-foreground">Une question sur le programme FinCare ou l'application MyFinCare ?</p>
                     </div>
                   </div>
 
@@ -501,7 +501,7 @@ const CompanyContacts = () => {
                         <div className="flex-1 text-center md:text-left">
                           <h3 className="text-2xl font-bold mb-2">Équipe MyFinCare</h3>
                           <p className="text-muted-foreground mb-4 max-w-md">
-                            Une question sur vos finances personnelles, l'utilisation de la plateforme ou une demande
+                            Une question sur le programme FinCare, l'utilisation de l'application MyFinCare ou une demande
                             spécifique ? Notre équipe vous répond sous 24h.
                           </p>
 

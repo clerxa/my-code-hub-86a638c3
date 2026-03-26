@@ -123,25 +123,19 @@ const handler = async (req: Request): Promise<Response> => {
     const MAX_MESSAGE_LENGTH = 5000;
     const MAX_COMPANY_LENGTH = 255;
 
-    // Fetch email configuration
+    // Fetch email configuration from CMS email-config
     const { data: emailConfigData, error: configError } = await supabase
       .from("settings")
       .select("metadata")
-      .eq("key", "partnership_email_config")
-      .single();
+      .eq("key", "email_admin_config")
+      .maybeSingle();
 
     if (configError) {
       console.error("Error fetching email config:", configError);
-      return new Response(
-        JSON.stringify({ error: "Email configuration not found" }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
     }
 
-    const emailConfig = emailConfigData.metadata as any;
+    const emailConfig = emailConfigData?.metadata as any || {};
+    const adminEmails = emailConfig.admin_emails || ["xavier.clermont@fincare.fr"];
     let recipientEmail: string;
     let emailSubject: string;
     let emailHtml: string;
@@ -183,7 +177,7 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      recipientEmail = emailConfig.partnership_requests_email;
+      recipientEmail = adminEmails[0];
       emailSubject = "Nouvelle demande de partenariat - FinCare";
       
       // Sanitize all user-provided data before including in HTML
@@ -235,7 +229,7 @@ const handler = async (req: Request): Promise<Response> => {
         if (companyData) companyName = companyData.name;
       }
 
-      recipientEmail = "xavier.clermont@perlib.fr";
+      recipientEmail = adminEmails[0];
       emailSubject = "Nouvelle proposition de thème webinar - FinCare";
 
       emailHtml = `
@@ -307,7 +301,7 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      recipientEmail = emailConfig.contact_requests_email;
+      recipientEmail = adminEmails[0];
       emailSubject = "Nouvelle demande de démo B2B - FinCare";
       
       // Sanitize all user-provided data before including in HTML

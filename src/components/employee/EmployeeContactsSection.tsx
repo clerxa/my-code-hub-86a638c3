@@ -284,7 +284,7 @@ export const EmployeeContactsSection = ({ companyId, companyName, primaryColor }
           </div>
           <div>
             <h3 className="text-lg font-semibold">Support MyFinCare</h3>
-            <p className="text-sm text-muted-foreground">Notre équipe d'experts est là pour vous aider</p>
+            <p className="text-sm text-muted-foreground">Une question sur le programme FinCare ou l'application MyFinCare ?</p>
           </div>
         </div>
 
@@ -306,7 +306,7 @@ export const EmployeeContactsSection = ({ companyId, companyName, primaryColor }
               <div className="flex-1 text-center md:text-left">
                 <h4 className="text-xl font-bold mb-2">Besoin d'aide ?</h4>
                 <p className="text-muted-foreground mb-4">
-                  Notre équipe d'experts financiers est disponible pour répondre à toutes vos questions
+                  Une question sur le programme FinCare ou l'utilisation de l'application MyFinCare ? Notre équipe est là pour vous.
                 </p>
                 <Button
                   variant="outline"
