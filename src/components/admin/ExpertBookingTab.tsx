@@ -266,7 +266,6 @@ export function ExpertBookingTab() {
         if (setting.key === "rdv_advisor_urls" && setting.value) {
           try { setAdvisorUrls(prev => ({ ...prev, ...JSON.parse(setting.value) })); } catch { /* keep default */ }
         }
-        }
       });
 
       // Fetch landing page settings
