@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { z } from "zod";
 import { UserPlus, Building2, GraduationCap, Mail, AlertCircle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const ONBOARDING_SESSION_KEY = 'fincare_onboarding_session_id';
@@ -56,6 +57,8 @@ const Signup = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [allowPersonalEmails, setAllowPersonalEmails] = useState(false);
   const [requirePartnerDomain, setRequirePartnerDomain] = useState(false);
+  const [cguAccepted, setCguAccepted] = useState(false);
+  const [marketingAccepted, setMarketingAccepted] = useState(false);
 
   // Fetch beta settings
   useEffect(() => {
@@ -130,6 +133,11 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!cguAccepted) {
+      toast.error("Veuillez accepter les CGU pour continuer.");
+      return;
+    }
 
     // Vérification côté client des emails personnels
     if (!allowPersonalEmails && isPersonalEmail(email.trim()) && !isWhitelistedEmail(email.trim())) {
@@ -220,6 +228,13 @@ const Signup = () => {
           description: loginError.message
         });
         return;
+      }
+      // Save marketing consent
+      if (responseData.user?.id) {
+        await supabase
+          .from("profiles")
+          .update({ marketing_consent: marketingAccepted } as any)
+          .eq("id", responseData.user.id);
       }
 
       toast.success("Compte créé avec succès !");
@@ -345,7 +360,64 @@ const Signup = () => {
                 />
               </div>
 
-              <Button type="submit" className="w-full" variant="hero" disabled={loading}>
+              {/* Consentements RGPD */}
+              <div className="space-y-3 pt-1">
+                {/* CGU obligatoire */}
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <Checkbox
+                    checked={cguAccepted}
+                    onCheckedChange={(checked) => setCguAccepted(checked as boolean)}
+                    className="mt-0.5 shrink-0"
+                  />
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    J'accepte les{" "}
+                    <a
+                      href="/cgu"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline underline-offset-2 hover:text-foreground"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Conditions Générales d'Utilisation
+                    </a>{" "}
+                    et la{" "}
+                    <a
+                      href="/confidentialite"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline underline-offset-2 hover:text-foreground"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Politique de Confidentialité
+                    </a>{" "}
+                    de MyFinCare par Perlib.
+                  </span>
+                </label>
+
+                {/* Marketing optionnel */}
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <Checkbox
+                    checked={marketingAccepted}
+                    onCheckedChange={(checked) => setMarketingAccepted(checked as boolean)}
+                    className="mt-0.5 shrink-0"
+                  />
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    J'accepte de recevoir par email des informations et offres
+                    relatives aux services MyFinCare et Perlib.{" "}
+                    <span className="italic">Désinscription possible à tout moment.</span>
+                  </span>
+                </label>
+
+                {/* Mentions légales */}
+                <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
+                  MyFinCare est un service proposé par Perlib, Conseiller en
+                  Gestion de Patrimoine Indépendant, enregistré auprès de l'AMF
+                  et de l'ACPR. Vos données sont traitées conformément au RGPD
+                  et ne sont jamais revendues à des tiers.
+                </p>
+              </div>
+
+              <Button type="submit" className="w-full" variant="hero" disabled={loading || !cguAccepted}>
                 {loading ? "Création en cours..." : "Créer mon compte"}
               </Button>
 

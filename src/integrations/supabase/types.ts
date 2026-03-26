@@ -4774,6 +4774,7 @@ export type Database = {
           last_login: string | null
           last_name: string | null
           marital_status: string | null
+          marketing_consent: boolean | null
           net_taxable_income: number | null
           objectives: string[] | null
           onboarding_completed: boolean | null
@@ -4819,6 +4820,7 @@ export type Database = {
           last_login?: string | null
           last_name?: string | null
           marital_status?: string | null
+          marketing_consent?: boolean | null
           net_taxable_income?: number | null
           objectives?: string[] | null
           onboarding_completed?: boolean | null
@@ -4864,6 +4866,7 @@ export type Database = {
           last_login?: string | null
           last_name?: string | null
           marital_status?: string | null
+          marketing_consent?: boolean | null
           net_taxable_income?: number | null
           objectives?: string[] | null
           onboarding_completed?: boolean | null
