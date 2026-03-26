@@ -43,6 +43,7 @@ export const Header = () => {
   const [company, setCompany] = useState<Company | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCompanyContact, setIsCompanyContact] = useState(false);
+  const [isAdvisor, setIsAdvisor] = useState(false);
   const [contactCompanyId, setContactCompanyId] = useState<string | null>(null);
   const [showPartnershipDialog, setShowPartnershipDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
@@ -119,6 +120,9 @@ export const Header = () => {
     const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
     if (!error && data?.role === "admin") {
       setIsAdmin(true);
+    }
+    if (!error && (data?.role === "conseiller" || data?.role === "admin")) {
+      setIsAdvisor(true);
     }
     // Also check if user has contact_entreprise role in user_roles
     if (!error && data?.role === "contact_entreprise") {
