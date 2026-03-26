@@ -8,55 +8,144 @@ interface CompanyBannerProps {
 export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerProps) {
   return (
     <div
-      className="w-full overflow-hidden relative rounded-2xl"
+      className="w-full overflow-hidden relative"
       style={{
-        background: "linear-gradient(135deg, #7B6FE8 0%, #A78BFA 30%, #C084FC 55%, #E879A5 75%, #F59E0B 100%)",
-        padding: "2px",
+        backgroundColor: "#0f0f14",
+        borderRadius: 16,
       }}
     >
+      {/* Glow 1 — top-right */}
       <div
-        className="w-full relative flex items-center justify-center px-4 sm:px-8 md:px-12 py-6 sm:py-8 md:py-10 rounded-2xl"
-        style={{ backgroundColor: "#101218" }}
-      >
-        {/* Company color overlay */}
-        {(primaryColor || secondaryColor) && (
+        className="absolute pointer-events-none"
+        style={{
+          top: -80,
+          right: -80,
+          width: 420,
+          height: 420,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(120,80,220,0.18) 0%, transparent 70%)",
+        }}
+      />
+      {/* Glow 2 — bottom-center */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          bottom: -60,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 300,
+          height: 300,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(200,80,180,0.08) 0%, transparent 70%)",
+        }}
+      />
+
+      {/* Company color overlay */}
+      {(primaryColor || secondaryColor) && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            borderRadius: 16,
+            opacity: 0.15,
+            background: `linear-gradient(to right, ${primaryColor || "transparent"}, transparent, ${secondaryColor || "transparent"})`,
+          }}
+        />
+      )}
+
+      {/* Content */}
+      <div className="relative flex flex-col sm:flex-row items-center sm:items-end w-full">
+        {/* Mascotte */}
+        <div className="flex items-end justify-center shrink-0 pt-6 sm:pt-0 sm:pl-8 md:pl-10">
+          <div className="relative">
+            <img
+              src={mascotte}
+              alt="FinCare mascotte"
+              className="w-[110px] sm:w-[200px] h-auto object-contain relative z-10"
+            />
+            {/* Purple shadow under mascotte */}
+            <div
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 z-0"
+              style={{
+                width: "80%",
+                height: 18,
+                borderRadius: "50%",
+                background: "radial-gradient(ellipse, rgba(120,80,220,0.45) 0%, transparent 70%)",
+                filter: "blur(8px)",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Vertical separator — hidden on mobile */}
+        <div className="hidden sm:flex self-stretch items-center mx-6 md:mx-8">
           <div
-            className="absolute inset-0 opacity-20 rounded-2xl pointer-events-none"
             style={{
-              background: `linear-gradient(to right, ${primaryColor || "transparent"}, transparent, ${secondaryColor || "transparent"})`,
+              width: 1,
+              height: "60%",
+              background: "linear-gradient(to bottom, transparent, rgba(120,80,220,0.3), transparent)",
             }}
           />
-        )}
+        </div>
 
-        <div className="relative flex flex-col sm:flex-row items-center gap-4 sm:gap-8 md:gap-12 max-w-5xl w-full">
-          {/* Mascot */}
-          <img
-            src={mascotte}
-            alt="FinCare mascotte"
-            className="h-40 sm:h-48 md:h-56 lg:h-64 w-auto object-contain shrink-0 drop-shadow-lg"
-          />
-
-          {/* Text content */}
-          <div className="flex flex-col gap-2 sm:gap-3 text-center sm:text-left">
-            <h2
-              className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold leading-tight"
+        {/* Text content */}
+        <div className="flex flex-col gap-3 py-6 sm:py-8 px-5 sm:px-0 sm:pr-8 text-center sm:text-left">
+          {/* Badge */}
+          <div className="flex sm:justify-start justify-center">
+            <span
+              className="inline-flex items-center gap-1.5 uppercase"
               style={{
-                background: "linear-gradient(135deg, #7B6FE8 0%, #A78BFA 30%, #C084FC 55%, #E879A5 75%, #F59E0B 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
+                fontSize: 11,
+                letterSpacing: "0.06em",
+                fontWeight: 500,
+                color: "rgba(196,168,248,0.9)",
+                background: "rgba(120,80,220,0.15)",
+                border: "1px solid rgba(120,80,220,0.3)",
+                borderRadius: 20,
+                padding: "4px 12px",
               }}
             >
-              MyFinCare, l'application
-              <br />
-              qui redonne aux salariés
-              <br />
-              le pouvoir sur leurs finances.
-            </h2>
-            <p className="text-white/80 text-xs sm:text-sm md:text-base">
-              Une application développée par Perlib
-            </p>
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  backgroundColor: "rgba(140,100,240,0.9)",
+                  display: "inline-block",
+                }}
+              />
+              PAR PERLIB
+            </span>
           </div>
+
+          {/* Titre principal */}
+          <h2
+            style={{
+              fontWeight: 800,
+              fontSize: "clamp(22px, 3.5vw, 36px)",
+              lineHeight: 1.18,
+              background: "linear-gradient(135deg, #e8e0ff 0%, #c4a8f8 35%, #f0a0d0 70%, #ffd0a0 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            MyFinCare, l'application
+            <br />
+            qui redonne aux salariés
+            <br />
+            le pouvoir sur leurs finances.
+          </h2>
+
+          {/* Texte secondaire */}
+          <p
+            style={{
+              fontSize: 13,
+              color: "rgba(255,255,255,0.45)",
+              fontWeight: 400,
+            }}
+          >
+            Une application développée par Perlib
+          </p>
         </div>
       </div>
     </div>
