@@ -76,6 +76,7 @@ export function FinancialProfileWizard({
   };
   const [currentStep, setCurrentStep] = useState(getStepIndex(initialStepId));
   const [showWhyInfo, setShowWhyInfo] = useState(false);
+  const [bufferPercent, setBufferPercent] = useState(0);
   
 
   // React to external step navigation requests
