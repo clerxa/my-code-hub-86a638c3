@@ -5,11 +5,12 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
+import { useIntentionScore } from "@/hooks/useIntentionScore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Search, User, Briefcase, TrendingUp, PiggyBank, Home, Shield, AlertCircle, CheckCircle2, ArrowLeft, Building2 } from "lucide-react";
+import { Search, User, Briefcase, TrendingUp, PiggyBank, Home, Shield, AlertCircle, CheckCircle2, ArrowLeft, Building2, Flame, Thermometer, Snowflake, Target } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
