@@ -106,7 +106,7 @@ export function CompanyBanner({ primaryColor, secondaryColor }: CompanyBannerPro
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
           }}>
-            MyFinCare, l'application qui redonne<br />aux salariés le pouvoir sur leurs finances.
+            MyFinCare,<br />l'application qui redonne aux salariés<br />le pouvoir sur leurs finances.
           </h1>
 
         </div>
