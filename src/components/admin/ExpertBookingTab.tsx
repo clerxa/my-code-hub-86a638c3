@@ -591,181 +591,43 @@ export function ExpertBookingTab() {
             </ol>
           </div>
 
-          {/* URLs and embeds by rank */}
+          {/* New rang×revenue URL fields */}
           <div className="border-t pt-6 mt-6">
-            <h4 className="font-medium mb-4">Configuration par rang d'entreprise</h4>
+            <h4 className="font-medium mb-4">Liens RDV par profil conseiller</h4>
             <p className="text-sm text-muted-foreground mb-4">
-              Ces configurations seront utilisées en priorité selon le rang de l'entreprise. Le code embed est prioritaire sur l'URL.
+              Ces liens sont attribués automatiquement selon le rang de l'entreprise et le profil de revenu du salarié.
             </p>
-            <div className="space-y-6">
-              {/* Rang 1 */}
-              <div className="border rounded-lg p-4 space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded font-medium">Rang 1</span>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="expertBookingEmbedRang1" className="flex items-center gap-2">
-                    <Code className="h-4 w-4" />
-                    Code embed (prioritaire)
-                  </Label>
-                  <Textarea
-                    id="expertBookingEmbedRang1"
-                    value={expertBookingEmbedRang1}
-                    onChange={(e) => setExpertBookingEmbedRang1(e.target.value)}
-                    placeholder='<div class="meetings-iframe-container" data-src="https://meetings.hubspot.com/..."></div>'
-                    className="min-h-[80px] font-mono text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="expertBookingUrlRang1">URL de prise de RDV</Label>
+            <div className="space-y-4">
+              {[
+                { key: "rdv_expert_url", label: "Lien Expert", state: rdvExpertUrl, setter: setRdvExpertUrl, desc: "Rang 1 (tous) · Rang 2 (revenu &gt;80k) · Rang 3 (revenu &gt;80k)" },
+                { key: "rdv_senior_url", label: "Lien Senior", state: rdvSeniorUrl, setter: setRdvSeniorUrl, desc: "Rang 2 (autres) · Rang 3 (revenu 50-80k) · Rang 4 (revenu &gt;80k)" },
+                { key: "rdv_junior_url", label: "Lien Junior / Intermédiaire", state: rdvJuniorUrl, setter: setRdvJuniorUrl, desc: "Rang 3 (revenu &lt;50k ou NRP)" },
+                { key: "rdv_all_url", label: "Lien Tous conseillers", state: rdvAllUrl, setter: setRdvAllUrl, desc: "Rang 4 (autres)" },
+              ].map(({ key, label, state, setter, desc }) => (
+                <div key={key} className="border rounded-lg p-4 space-y-2">
+                  <Label htmlFor={key}>{label}</Label>
                   <div className="flex gap-2">
                     <Input
-                      id="expertBookingUrlRang1"
-                      value={expertBookingUrlRang1}
-                      onChange={(e) => setExpertBookingUrlRang1(e.target.value)}
-                      placeholder="https://calendly.com/rang1/..."
+                      id={key}
+                      value={state}
+                      onChange={(e) => setter(e.target.value)}
+                      placeholder="https://meetings.hubspot.com/..."
                       className="flex-1"
                     />
-                    {expertBookingUrlRang1 && (
+                    {state && (
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => window.open(expertBookingUrlRang1, "_blank")}
+                        onClick={() => window.open(state, "_blank")}
                         title="Tester le lien"
                       >
                         <ExternalLink className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
+                  <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: desc }} />
                 </div>
-              </div>
-
-              {/* Rang 2 */}
-              <div className="border rounded-lg p-4 space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="bg-secondary text-secondary-foreground text-xs px-2 py-0.5 rounded font-medium">Rang 2</span>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="expertBookingEmbedRang2" className="flex items-center gap-2">
-                    <Code className="h-4 w-4" />
-                    Code embed (prioritaire)
-                  </Label>
-                  <Textarea
-                    id="expertBookingEmbedRang2"
-                    value={expertBookingEmbedRang2}
-                    onChange={(e) => setExpertBookingEmbedRang2(e.target.value)}
-                    placeholder='<div class="meetings-iframe-container" data-src="https://meetings.hubspot.com/..."></div>'
-                    className="min-h-[80px] font-mono text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="expertBookingUrlRang2">URL de prise de RDV</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="expertBookingUrlRang2"
-                      value={expertBookingUrlRang2}
-                      onChange={(e) => setExpertBookingUrlRang2(e.target.value)}
-                      placeholder="https://calendly.com/rang2/..."
-                      className="flex-1"
-                    />
-                    {expertBookingUrlRang2 && (
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => window.open(expertBookingUrlRang2, "_blank")}
-                        title="Tester le lien"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Rang 3 */}
-              <div className="border rounded-lg p-4 space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="bg-muted text-muted-foreground text-xs px-2 py-0.5 rounded font-medium">Rang 3</span>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="expertBookingEmbedRang3" className="flex items-center gap-2">
-                    <Code className="h-4 w-4" />
-                    Code embed (prioritaire)
-                  </Label>
-                  <Textarea
-                    id="expertBookingEmbedRang3"
-                    value={expertBookingEmbedRang3}
-                    onChange={(e) => setExpertBookingEmbedRang3(e.target.value)}
-                    placeholder='<div class="meetings-iframe-container" data-src="https://meetings.hubspot.com/..."></div>'
-                    className="min-h-[80px] font-mono text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="expertBookingUrlRang3">URL de prise de RDV</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="expertBookingUrlRang3"
-                      value={expertBookingUrlRang3}
-                      onChange={(e) => setExpertBookingUrlRang3(e.target.value)}
-                      placeholder="https://calendly.com/rang3/..."
-                      className="flex-1"
-                    />
-                    {expertBookingUrlRang3 && (
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => window.open(expertBookingUrlRang3, "_blank")}
-                        title="Tester le lien"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Rang 4 - Sans partenariat */}
-              <div className="border rounded-lg p-4 space-y-4 border-orange-200 bg-orange-50/50">
-                <div className="flex items-center gap-2">
-                  <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded font-medium">Rang 4</span>
-                  <span className="text-xs text-muted-foreground">Entreprises sans partenariat</span>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="expertBookingEmbedRang4" className="flex items-center gap-2">
-                    <Code className="h-4 w-4" />
-                    Code embed (prioritaire)
-                  </Label>
-                  <Textarea
-                    id="expertBookingEmbedRang4"
-                    value={expertBookingEmbedRang4}
-                    onChange={(e) => setExpertBookingEmbedRang4(e.target.value)}
-                    placeholder='<div class="meetings-iframe-container" data-src="https://meetings.hubspot.com/..."></div>'
-                    className="min-h-[80px] font-mono text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="expertBookingUrlRang4">URL de prise de RDV</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="expertBookingUrlRang4"
-                      value={expertBookingUrlRang4}
-                      onChange={(e) => setExpertBookingUrlRang4(e.target.value)}
-                      placeholder="https://calendly.com/rang4/..."
-                      className="flex-1"
-                    />
-                    {expertBookingUrlRang4 && (
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => window.open(expertBookingUrlRang4, "_blank")}
-                        title="Tester le lien"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </CardContent>
