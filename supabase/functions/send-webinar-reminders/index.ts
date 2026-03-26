@@ -195,6 +195,23 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+    // Check if reminders are enabled in settings
+    const { data: settingsData } = await supabase
+      .from("settings")
+      .select("metadata")
+      .eq("key", "webinar_reminder_config")
+      .maybeSingle();
+
+    const reminderConfig = (settingsData?.metadata as any) || { enabled: true, thresholds: { "M-1": true, "S-2": true, "S-1": true, "J-1": true } };
+
+    if (!reminderConfig.enabled) {
+      console.log("Webinar reminders are disabled in settings");
+      return new Response(JSON.stringify({ success: true, message: "Reminders disabled", totalSent: 0 }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Get all upcoming webinars that have been selected by companies
     const { data: selections, error: selError } = await supabase
       .from("company_webinar_selections")
