@@ -35,6 +35,8 @@ interface FinancialProfileWizardProps {
   requiredFieldKeys?: string[];
   initialStepId?: string | null;
   chargesOnly?: boolean;
+  onStepBoundaryPrevious?: () => void;
+  onStepBoundaryNext?: () => void;
 }
 
 interface WizardStep {
@@ -66,6 +68,8 @@ export function FinancialProfileWizard({
   requiredFieldKeys = [],
   initialStepId = null,
   chargesOnly = false,
+  onStepBoundaryPrevious,
+  onStepBoundaryNext,
 }: FinancialProfileWizardProps) {
   const STEPS = chargesOnly ? CHARGES_STEPS : REVENUE_STEPS;
   
@@ -216,19 +220,19 @@ export function FinancialProfileWizard({
     
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
-      
+      return;
     }
+
+    onStepBoundaryNext?.();
   };
 
   const handlePrevious = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+      return;
     }
-  };
 
-  const handleFinish = () => {
-    onSave();
-    toast.success("Profil financier enregistré avec succès !");
+    onStepBoundaryPrevious?.();
   };
 
   const renderStepIndicator = () => (
@@ -1081,14 +1085,12 @@ export function FinancialProfileWizard({
       {/* Internal sub-step navigation (only when multiple steps and not on first) */}
       {STEPS.length > 1 && (
         <div className="flex justify-between items-center pt-4">
-          {currentStep > 0 ? (
-            <Button variant="outline" onClick={handlePrevious}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Précédent
-            </Button>
-          ) : <div />}
+          <Button variant="outline" onClick={handlePrevious}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Précédent
+          </Button>
 
-          {currentStep < STEPS.length - 1 ? (
+          {currentStep < STEPS.length - 1 || onStepBoundaryNext ? (
             <Button onClick={handleNext} disabled={isSaving}>
               Suivant
               <ArrowRight className="h-4 w-4 ml-2" />
