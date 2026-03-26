@@ -3,14 +3,14 @@ import mascotte from "@/assets/mascotte-fincare.png";
 export function CompanyBanner() {
   return (
     <div
-      className="w-full overflow-hidden relative"
+      className="w-full overflow-hidden relative rounded-2xl"
       style={{
         background: "linear-gradient(135deg, #7B6FE8 0%, #A78BFA 30%, #C084FC 55%, #E879A5 75%, #F59E0B 100%)",
         padding: "2px",
       }}
     >
       <div
-        className="w-full flex items-center justify-center px-4 sm:px-8 md:px-12 py-6 sm:py-8 md:py-10"
+        className="w-full flex items-center justify-center px-4 sm:px-8 md:px-12 py-6 sm:py-8 md:py-10 rounded-2xl"
         style={{ backgroundColor: "#101218" }}
       >
         <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 md:gap-12 max-w-5xl w-full">
