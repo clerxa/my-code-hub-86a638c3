@@ -101,6 +101,12 @@ export function ExpertBookingTab() {
   const [expertBookingUrlRang4, setExpertBookingUrlRang4] = useState("");
   const [expertBookingEmbedRang4, setExpertBookingEmbedRang4] = useState("");
   
+  // New rang×revenue URL fields
+  const [rdvExpertUrl, setRdvExpertUrl] = useState("");
+  const [rdvSeniorUrl, setRdvSeniorUrl] = useState("");
+  const [rdvJuniorUrl, setRdvJuniorUrl] = useState("");
+  const [rdvAllUrl, setRdvAllUrl] = useState("");
+  
   // Landing page settings
   const [landingSettings, setLandingSettings] = useState<LandingSettings>({
     id: "",
