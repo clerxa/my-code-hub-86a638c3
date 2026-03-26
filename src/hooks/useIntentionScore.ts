@@ -56,7 +56,6 @@ export function useIntentionScore(userId: string | null): IntentionScoreResult {
           supabase.from("user_financial_profiles").select("is_complete").eq("user_id", uid).maybeSingle(),
           (supabase as any).from("risk_profile").select("id").eq("user_id", uid).limit(1),
           (supabase as any).from("user_real_estate_properties").select("id").eq("user_id", uid),
-          supabase.from("appointment_preparation").select("id").eq("user_id", uid).limit(1),
         ]);
 
       const configs = configRes.data || [];
@@ -92,7 +91,6 @@ export function useIntentionScore(userId: string | null): IntentionScoreResult {
       rawCounts["financial_profile_complete"] = fpRes.data?.is_complete ? 1 : 0;
       rawCounts["risk_profile_completed"] = (riskRes.data?.length || 0) > 0 ? 1 : 0;
       rawCounts["real_estate_added"] = realEstateRes.data?.length || 0;
-      rawCounts["appointment_preparation_done"] = (prepRes.data?.length || 0) > 0 ? 1 : 0;
 
       // Calculate scores
       const signals: ScoreSignal[] = [];

@@ -76,17 +76,6 @@ export function FinancialDashboard({
       // Fetch objectives data
       let objectives: string[] = [];
       let intentionNote = "";
-      if (user) {
-        const { data } = await supabase
-          .from('appointment_preparation')
-          .select('objectives, intention_note')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        if (data) {
-          objectives = data.objectives || [];
-          intentionNote = data.intention_note || "";
-        }
-      }
 
       // Get user name
       let userName = "";

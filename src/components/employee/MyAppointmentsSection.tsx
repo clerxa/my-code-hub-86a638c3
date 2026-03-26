@@ -128,8 +128,6 @@ export function MyAppointmentsSection() {
 
   return (
     <div className="space-y-6">
-      {/* Appointment Preparation Section - only show if user has appointments */}
-      {hasAppointments && <AppointmentPreparationSection />}
 
       {/* Booking CTA Section */}
       {hasBookingOption && (
