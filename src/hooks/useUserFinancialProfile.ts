@@ -265,7 +265,35 @@ export const useUserFinancialProfile = () => {
   };
 
   // Fields where 0 is a valid intentional answer (not "unfilled")
-  const ZERO_IS_VALID_FIELDS = ['nb_enfants'];
+  // All monetary fields where someone can legitimately have 0
+  const ZERO_IS_VALID_FIELDS = [
+    'nb_enfants',
+    'charges_fixes_mensuelles',
+    'epargne_livrets',
+    'capacite_epargne_mensuelle',
+    'epargne_actuelle',
+    'patrimoine_per',
+    'patrimoine_assurance_vie',
+    'patrimoine_scpi',
+    'patrimoine_pea',
+    'patrimoine_crypto',
+    'patrimoine_private_equity',
+    'patrimoine_autres',
+    'patrimoine_immo_valeur',
+    'patrimoine_immo_credit_restant',
+    'loyer_actuel',
+    'credits_immobilier',
+    'credits_consommation',
+    'credits_auto',
+    'pensions_alimentaires',
+    'revenus_locatifs',
+    'revenus_dividendes',
+    'revenus_ventes_actions',
+    'revenus_capital_autres',
+    'apport_disponible',
+    'valeur_pee',
+    'valeur_perco',
+  ];
 
   const isFieldFilled = (fieldKey: string, p: UserFinancialProfile | null) => {
     const value = getFieldValue(fieldKey, p);
