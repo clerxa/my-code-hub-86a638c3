@@ -162,6 +162,22 @@ export default function PanoramaAuditPage() {
   }, [company, originalCompany]);
 
   const hasChanges = hasProfileChanges || hasFinancialChanges || hasCompanyChanges;
+  const activeTabIndex = tabs.findIndex((tab) => tab.id === activeTab);
+  const isWizardTab = activeTab === "financial" || activeTab === "charges";
+
+  const goToPreviousTab = () => {
+    if (activeTabIndex > 0) {
+      handleTabChange(tabs[activeTabIndex - 1].id);
+    } else {
+      navigate("/panorama");
+    }
+  };
+
+  const goToNextTab = () => {
+    if (activeTabIndex < tabs.length - 1) {
+      handleTabChange(tabs[activeTabIndex + 1].id);
+    }
+  };
 
   const handleTabChange = (value: string, fieldKey?: string) => {
     setActiveTab(value);
@@ -913,6 +929,8 @@ export default function PanoramaAuditPage() {
                 
                 requiredFieldKeys={requiredFieldKeys}
                 initialStepId={wizardInitialStep}
+                onStepBoundaryPrevious={goToPreviousTab}
+                onStepBoundaryNext={goToNextTab}
               />
             </TabsContent>
 
@@ -934,6 +952,8 @@ export default function PanoramaAuditPage() {
                 requiredFieldKeys={requiredFieldKeys}
                 initialStepId="charges"
                 chargesOnly
+                onStepBoundaryPrevious={goToPreviousTab}
+                onStepBoundaryNext={goToNextTab}
               />
             </TabsContent>
 
@@ -1059,52 +1079,43 @@ export default function PanoramaAuditPage() {
             </TabsContent>
           </Tabs>
 
-          {/* Tab-level navigation: Précédent / Suivant / Terminer */}
-          <div className="flex justify-between items-center pt-6 pb-8">
-            <Button
-              variant="outline"
-              onClick={() => {
-                const currentIndex = tabs.findIndex(t => t.id === activeTab);
-                if (currentIndex > 0) {
-                  handleTabChange(tabs[currentIndex - 1].id);
-                } else {
-                  navigate("/panorama");
-                }
-              }}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {tabs.findIndex(t => t.id === activeTab) === 0 ? "Retour" : "Précédent"}
-            </Button>
+          {!isWizardTab && (
+            <div className="flex justify-between items-center pt-6 pb-8">
+              <Button
+                variant="outline"
+                onClick={goToPreviousTab}
+                className="gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                {activeTabIndex === 0 ? "Retour" : "Précédent"}
+              </Button>
 
-            {activeTab !== tabs[tabs.length - 1].id ? (
-              <Button
-                onClick={() => {
-                  const currentIndex = tabs.findIndex(t => t.id === activeTab);
-                  if (currentIndex < tabs.length - 1) {
+              {activeTab !== tabs[tabs.length - 1].id ? (
+                <Button
+                  onClick={() => {
                     handleSave();
-                    handleTabChange(tabs[currentIndex + 1].id);
-                  }
-                }}
-                className="gap-2"
-              >
-                Suivant
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button
-                onClick={() => {
-                  handleSave();
-                  toast.success("Profil enregistré avec succès !");
-                  navigate("/panorama");
-                }}
-                className="gap-2"
-              >
-                Terminer
-                <Check className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
+                    goToNextTab();
+                  }}
+                  className="gap-2"
+                >
+                  Suivant
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => {
+                    handleSave();
+                    toast.success("Profil enregistré avec succès !");
+                    navigate("/panorama");
+                  }}
+                  className="gap-2"
+                >
+                  Terminer
+                  <Check className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </EmployeeLayout>
