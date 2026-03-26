@@ -1055,7 +1055,7 @@ export function FinancialProfileWizard({
                   <span className="font-medium">Total toutes charges</span>
                 </div>
                 <span className="text-xl font-bold text-primary">
-                  {(calculateTotalCharges() + bufferAmount).toLocaleString('fr-FR')} €
+                  {calculateTotalCharges().toLocaleString('fr-FR')} €
                 </span>
               </div>
             </div>
