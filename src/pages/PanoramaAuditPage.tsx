@@ -1109,6 +1109,7 @@ export default function PanoramaAuditPage() {
               </Button>
             )}
           </div>
+        </div>
       </div>
 
       {/* Floating save bar */}
