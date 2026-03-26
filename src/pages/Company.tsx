@@ -813,14 +813,16 @@ const Company = () => {
         <Header />
         
         {/* Cover Image and Company Info Section */}
-        <div className="relative">
+        <div>
           {/* Unified responsive banner */}
-          <CompanyBanner primaryColor={company.primary_color} secondaryColor={company.secondary_color} />
+          <div style={{ marginBottom: 24 }}>
+            <CompanyBanner primaryColor={company.primary_color} secondaryColor={company.secondary_color} />
+          </div>
           
-          {/* Company Info Overlay */}
-          <div className="container mx-auto px-4" style={{ position: "relative", zIndex: 1 }}>
+          {/* Company Info */}
+          <div className="container mx-auto px-4" style={{ position: "relative", zIndex: 0 }}>
             <div className="max-w-6xl mx-auto">
-              <div className="relative -mt-16 pb-4 sm:pb-6">
+              <div className="pb-4 sm:pb-6">
                 {/* Mobile: Stack vertically | Desktop: Side by side */}
                 <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-6">
                   {/* Back button and Logo row */}
