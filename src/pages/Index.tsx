@@ -158,7 +158,7 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-3">
             <Link to="/login">
-              <Button variant="ghost" size="sm">Espace client</Button>
+              <Button variant="ghost" size="sm">Espace membre</Button>
             </Link>
             <Button size="sm" onClick={() => navigate("/partenariat")} className="btn-hero-gradient">
               Demander une démo
@@ -436,7 +436,7 @@ const Index = () => {
               <p className="font-semibold mb-3 text-sm">Entreprises & CSE</p>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link to="/partenariat" className="hover:text-foreground transition-colors">Demander une démo</Link></li>
-                <li><Link to="/login" className="hover:text-foreground transition-colors">Espace client</Link></li>
+                <li><Link to="/login" className="hover:text-foreground transition-colors">Espace membre</Link></li>
                 <li><Link to="/rdv-expert" className="hover:text-foreground transition-colors">Nos experts</Link></li>
               </ul>
             </div>
