@@ -263,8 +263,8 @@ export function ExpertBookingTab() {
         if (setting.key === "rdv_assignment_matrix" && setting.value) {
           try { setAssignmentMatrix(JSON.parse(setting.value)); } catch { /* keep default */ }
         }
-        if (setting.key === "rdv_advisor_urls" && setting.value) {
-          try { setAdvisorUrls(prev => ({ ...prev, ...JSON.parse(setting.value) })); } catch { /* keep default */ }
+        if (setting.key === "rdv_category_urls" && setting.value) {
+          try { setCategoryUrls(prev => ({ ...prev, ...JSON.parse(setting.value) })); } catch { /* keep default */ }
         }
       });
 
@@ -366,7 +366,7 @@ export function ExpertBookingTab() {
           { key: "rdv_junior_url", value: JSON.stringify(rdvJuniorUrl) },
           { key: "rdv_all_url", value: JSON.stringify(rdvAllUrl) },
           { key: "rdv_assignment_matrix", value: JSON.stringify(assignmentMatrix) },
-          { key: "rdv_advisor_urls", value: JSON.stringify(advisorUrls) }
+          { key: "rdv_category_urls", value: JSON.stringify(categoryUrls) }
         ], {
           onConflict: "key"
         });
