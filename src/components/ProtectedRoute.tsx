@@ -7,6 +7,7 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
   requireCompanyContact?: boolean;
+  requireAdvisor?: boolean;
 }
 
 const ProtectedRoute = ({ children, requireAdmin = false, requireCompanyContact = false }: ProtectedRouteProps) => {
