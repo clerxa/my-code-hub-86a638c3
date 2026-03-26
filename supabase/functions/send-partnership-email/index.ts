@@ -43,7 +43,8 @@ const isWithinLength = (text: string | null | undefined, maxLength: number): boo
   return text.length <= maxLength;
 };
 
-async function sendEmail(to: string, subject: string, html: string) {
+async function sendEmail(to: string | string[], subject: string, html: string, senderDomain = "notifications.fincare.fr", senderName = "FinCare") {
+  const recipients = Array.isArray(to) ? to : [to];
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -51,8 +52,8 @@ async function sendEmail(to: string, subject: string, html: string) {
       "Authorization": `Bearer ${RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: "FinCare <noreply@notifications.fincare.fr>",
-      to: [to],
+      from: `${senderName} <noreply@${senderDomain}>`,
+      to: recipients,
       subject,
       html,
     }),
@@ -372,10 +373,15 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    const senderDomain = emailConfig.sender_domain || "notifications.fincare.fr";
+    const senderName = emailConfig.sender_name || "FinCare";
+
     const emailResponse = await sendEmail(
-      recipientEmail,
+      adminEmails,
       emailSubject,
-      emailHtml
+      emailHtml,
+      senderDomain,
+      senderName
     );
 
     console.log("Email sent successfully:", emailResponse);
