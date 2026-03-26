@@ -80,7 +80,10 @@ export function FinancialProfileWizard({
   };
   const [currentStep, setCurrentStep] = useState(getStepIndex(initialStepId));
   const [showWhyInfo, setShowWhyInfo] = useState(false);
-  const [bufferPercent, setBufferPercent] = useState(0);
+  const bufferPercent = (formData as any).buffer_depenses_imprevues_pct || 0;
+  const setBufferPercent = (val: number) => {
+    updateField('buffer_depenses_imprevues_pct' as any, val);
+  };
   
 
   // React to external step navigation requests
