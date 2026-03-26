@@ -224,7 +224,8 @@ export const HubSpotMeetingWidget = ({
     if (embedAnalysis.type === 'hubspot') {
       const dataSrc = extractHubSpotDataSrc(embedCode);
       if (dataSrc) {
-        const finalSrc = utmCampaign ? appendUtmParams(dataSrc, utmCampaign) : dataSrc;
+        let finalSrc = utmCampaign ? appendUtmParams(dataSrc, utmCampaign) : dataSrc;
+        finalSrc = appendPrefillParams(finalSrc, prefillData);
         embedContent = (
           <div 
             className="meetings-iframe-container" 
