@@ -3,10 +3,8 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Calendar, ExternalLink, ArrowRight, MapPin, Video, Building } from "lucide-react";
 import { TaxDeclarationFormData, TaxPermanenceConfig, TYPE_RDV_OPTIONS } from "@/types/tax-declaration";
 import { useNavigate } from "react-router-dom";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { useAuth } from "@/components/AuthProvider";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
 interface TaxDeclarationConfirmationProps {
   formData: TaxDeclarationFormData;

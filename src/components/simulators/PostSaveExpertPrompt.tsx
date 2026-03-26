@@ -3,9 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Sparkles, X, TrendingUp, Shield, Target, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthProvider";
-import { useExpertBookingUrl } from "@/hooks/useExpertBookingUrl";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useRdvLink } from "@/hooks/useRdvLink";
 import { useNavigate } from "react-router-dom";
 
 interface PostSaveExpertPromptProps {
