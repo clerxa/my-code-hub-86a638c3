@@ -69,7 +69,7 @@ export function MyAppointmentsBlock() {
     const { data, error } = await supabase
       .from("hubspot_appointments")
       .select("id, meeting_title, meeting_start_time, meeting_end_time, meeting_link, host_name, booking_source, created_at")
-      .eq("user_id", user!.id)
+      .or(`user_id.eq.${user!.id},user_email.eq.${user!.email}`)
       .order("meeting_start_time", { ascending: true });
 
     if (!error && data) {
