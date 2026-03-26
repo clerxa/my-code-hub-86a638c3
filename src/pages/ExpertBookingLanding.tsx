@@ -55,6 +55,7 @@ export default function ExpertBookingLanding() {
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<LandingSettings | null>(null);
   const [companyId, setCompanyId] = useState<string | null>(null);
+  const [prefillData, setPrefillData] = useState<{ firstName?: string; lastName?: string; email?: string; company?: string; phone?: string }>({});
   const { user } = useAuth();
   const { embedCode, fallbackUrl, isLoading: bookingLoading } = useExpertBookingUrl(companyId);
   
@@ -75,18 +76,35 @@ export default function ExpertBookingLanding() {
 
   useEffect(() => {
     fetchSettings();
-    fetchCompanyId();
+    fetchUserData();
   }, [user]);
 
-  const fetchCompanyId = async () => {
+  const fetchUserData = async () => {
     if (!user) return;
-    const { data } = await supabase
+    const { data: profile } = await supabase
       .from("profiles")
-      .select("company_id")
+      .select("company_id, first_name, last_name, email, phone_number")
       .eq("id", user.id)
-      .single();
-    if (data?.company_id) {
-      setCompanyId(data.company_id);
+      .maybeSingle();
+    if (profile) {
+      if (profile.company_id) setCompanyId(profile.company_id);
+      // Fetch company name for prefill
+      let companyName: string | undefined;
+      if (profile.company_id) {
+        const { data: company } = await supabase
+          .from("companies")
+          .select("name")
+          .eq("id", profile.company_id)
+          .maybeSingle();
+        companyName = company?.name || undefined;
+      }
+      setPrefillData({
+        firstName: profile.first_name || undefined,
+        lastName: profile.last_name || undefined,
+        email: profile.email || user.email || undefined,
+        company: companyName,
+        phone: profile.phone_number || undefined,
+      });
     }
   };
 
@@ -191,6 +209,7 @@ export default function ExpertBookingLanding() {
                   utmCampaign={utmCampaign}
                   dialogTitle={contextMessage.dialog_title}
                   dialogDescription={contextMessage.dialog_description}
+                  prefillData={prefillData}
                 />
               </div>
               {settings?.cta_secondary_text && (
@@ -340,6 +359,7 @@ export default function ExpertBookingLanding() {
             utmCampaign={utmCampaign}
             dialogTitle={contextMessage.dialog_title}
             dialogDescription={contextMessage.dialog_description}
+            prefillData={prefillData}
           />
           {settings?.footer_text && (
             <p className="mt-6 text-sm text-muted-foreground">

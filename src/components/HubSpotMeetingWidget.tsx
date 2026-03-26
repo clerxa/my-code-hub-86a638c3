@@ -22,6 +22,14 @@ const ALLOWED_EMBED_DOMAINS = [
   'tidycal.com',
 ];
 
+interface PrefillData {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  company?: string;
+  phone?: string;
+}
+
 interface HubSpotMeetingWidgetProps {
   embedCode?: string;
   fallbackUrl?: string;
@@ -34,6 +42,8 @@ interface HubSpotMeetingWidgetProps {
   dialogTitle?: string;
   /** Custom dialog description (shown below title) */
   dialogDescription?: string | null;
+  /** Prefill data for the booking form */
+  prefillData?: PrefillData;
 }
 
 /**
@@ -48,6 +58,20 @@ const isAllowedDomain = (urlString: string): boolean => {
   } catch {
     return false;
   }
+};
+
+/**
+ * Append prefill query params for HubSpot meeting embeds
+ */
+const appendPrefillParams = (url: string, prefill?: PrefillData): string => {
+  if (!prefill) return url;
+  const u = new URL(url);
+  if (prefill.firstName) u.searchParams.set("firstName", prefill.firstName);
+  if (prefill.lastName) u.searchParams.set("lastName", prefill.lastName);
+  if (prefill.email) u.searchParams.set("email", prefill.email);
+  if (prefill.company) u.searchParams.set("company", prefill.company);
+  if (prefill.phone) u.searchParams.set("phone", prefill.phone);
+  return u.toString();
 };
 
 /**
@@ -113,6 +137,7 @@ export const HubSpotMeetingWidget = ({
   utmCampaign,
   dialogTitle,
   dialogDescription,
+  prefillData,
 }: HubSpotMeetingWidgetProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
@@ -199,7 +224,8 @@ export const HubSpotMeetingWidget = ({
     if (embedAnalysis.type === 'hubspot') {
       const dataSrc = extractHubSpotDataSrc(embedCode);
       if (dataSrc) {
-        const finalSrc = utmCampaign ? appendUtmParams(dataSrc, utmCampaign) : dataSrc;
+        let finalSrc = utmCampaign ? appendUtmParams(dataSrc, utmCampaign) : dataSrc;
+        finalSrc = appendPrefillParams(finalSrc, prefillData);
         embedContent = (
           <div 
             className="meetings-iframe-container" 
