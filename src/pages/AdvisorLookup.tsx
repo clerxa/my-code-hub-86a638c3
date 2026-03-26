@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 import { Search, User, Briefcase, TrendingUp, PiggyBank, Home, Shield, AlertCircle, CheckCircle2, ArrowLeft, Building2, Flame, Thermometer, Snowflake, Target } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
