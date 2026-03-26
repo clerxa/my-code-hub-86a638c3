@@ -39,7 +39,7 @@ export const CompanySidebar = ({
   const contactOnlyItems = ["company-dashboard"];
   
   // Items that should be hidden on company pages (already in dashboard or removed features)
-  const hiddenItems = ["communication-kit", "help"];
+  const hiddenItems = ["communication-kit", "help", "advisors"];
   
   // Items that should be hidden when points/ranking is disabled
   const rankingItems = ["leaderboard"];
