@@ -224,6 +224,61 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ rate, isBusinessDay }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // --- BATCH FX rates via Frankfurter: 1 API call for a date range ---
+    if (action === 'fx_rates_batch') {
+      const { dates } = params as { dates: string[] };
+      if (!dates?.length) {
+        return new Response(JSON.stringify({ results: {} }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      try {
+        const sortedDates = [...dates].sort();
+        const minDate = sortedDates[0];
+        const maxDate = sortedDates[sortedDates.length - 1];
+        
+        // Frankfurter supports date ranges: /minDate..maxDate
+        const url = `https://api.frankfurter.app/${minDate}..${maxDate}?from=USD&to=EUR`;
+        console.log('[fx_rates_batch] Fetching:', url);
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        // data.rates is { "YYYY-MM-DD": { EUR: number } }
+        const rateMap = new Map<string, number>();
+        if (data.rates) {
+          for (const [d, r] of Object.entries(data.rates)) {
+            rateMap.set(d, (r as any).EUR);
+          }
+        }
+        // Also check if single-date response (start_date === end_date)
+        if (data.date && data.rates?.EUR) {
+          rateMap.set(data.date, data.rates.EUR);
+        }
+        
+        const results: Record<string, { rate: number | null; isBusinessDay: boolean; error?: string }> = {};
+        for (const d of dates) {
+          if (rateMap.has(d)) {
+            results[d] = { rate: rateMap.get(d)!, isBusinessDay: true };
+          } else {
+            // Find closest previous date
+            const sorted = Array.from(rateMap.keys()).sort().reverse();
+            const closest = sorted.find(k => k <= d);
+            if (closest) {
+              results[d] = { rate: rateMap.get(closest)!, isBusinessDay: false };
+            } else {
+              results[d] = { rate: null, isBusinessDay: true, error: 'No rate available' };
+            }
+          }
+        }
+        
+        console.log(`[fx_rates_batch] Got rates for ${rateMap.size} dates, mapped to ${dates.length} requested dates`);
+        return new Response(JSON.stringify({ results }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      } catch (e) {
+        console.log('[fx_rates_batch] Error:', e.message);
+        const errResults: Record<string, any> = {};
+        for (const d of dates) errResults[d] = { rate: null, isBusinessDay: true, error: e.message };
+        return new Response(JSON.stringify({ results: errResults }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    }
+
     return new Response(JSON.stringify({ error: 'Unknown action' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (err) {
     return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
