@@ -57,6 +57,8 @@ const Signup = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [allowPersonalEmails, setAllowPersonalEmails] = useState(false);
   const [requirePartnerDomain, setRequirePartnerDomain] = useState(false);
+  const [cguAccepted, setCguAccepted] = useState(false);
+  const [marketingAccepted, setMarketingAccepted] = useState(false);
 
   // Fetch beta settings
   useEffect(() => {
@@ -131,6 +133,11 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!cguAccepted) {
+      toast.error("Veuillez accepter les CGU pour continuer.");
+      return;
+    }
 
     // Vérification côté client des emails personnels
     if (!allowPersonalEmails && isPersonalEmail(email.trim()) && !isWhitelistedEmail(email.trim())) {
