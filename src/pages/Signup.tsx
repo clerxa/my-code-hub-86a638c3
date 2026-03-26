@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { z } from "zod";
 import { UserPlus, Building2, GraduationCap, Mail, AlertCircle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const ONBOARDING_SESSION_KEY = 'fincare_onboarding_session_id';
