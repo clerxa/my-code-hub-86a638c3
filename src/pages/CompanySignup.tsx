@@ -221,6 +221,13 @@ const CompanySignup = () => {
 
       toast.success("Compte créé avec succès !");
 
+      // Send verification email right after signup
+      try {
+        await supabase.functions.invoke("send-verification-email");
+      } catch (e) {
+        console.error("Failed to send verification email at signup:", e);
+      }
+
       const hasPartnership = company.partnership_type && 
         company.partnership_type.toLowerCase() !== "aucun";
 
