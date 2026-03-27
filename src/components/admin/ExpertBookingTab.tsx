@@ -9,6 +9,7 @@ import { ImageUpload } from "./ImageUpload";
 import { Loader2, Save, Calendar, ExternalLink, Code, Image, Plus, Trash2, Eye, Link2, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ExpertBookingLandingPreview } from "./ExpertBookingLandingPreview";
