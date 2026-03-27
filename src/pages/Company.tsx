@@ -711,7 +711,7 @@ const Company = () => {
                 <p className="text-muted-foreground mb-4">
                   Prenez rendez-vous avec nos experts pour un accompagnement personnalisé
                 </p>
-                <HubSpotMeetingWidget redirectToLanding triggerText="Prendre rendez-vous" primaryColor={company.primary_color} utmCampaign="page_entreprise" />
+                <HubSpotMeetingWidget triggerText="Prendre rendez-vous" primaryColor={company.primary_color} utmCampaign="page_entreprise" />
               </CardContent>
             </Card>
           </DraggableSection> : null;

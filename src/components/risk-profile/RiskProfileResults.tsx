@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Shield, TrendingUp, AlertCircle, Target, Info, Calendar } from "lucide-react";
+import { Shield, TrendingUp, AlertCircle, Target, Info } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,6 @@ import { Separator } from "@/components/ui/separator";
 import { RiskProfile } from "@/types/risk-profile";
 import { supabase } from "@/integrations/supabase/client";
 import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
-import { useRdvLink } from "@/hooks/useRdvLink";
-import { appendUtmParams } from "@/hooks/useBookingReferrer";
 
 interface RiskProfileResultsProps {
   profile: RiskProfile;
@@ -103,10 +101,6 @@ export const RiskProfileResults = ({ profile, onRetake }: RiskProfileResultsProp
   const [profileDetails, setProfileDetails] = useState(defaultProfileDetails);
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [primaryColor, setPrimaryColor] = useState<string | null>(null);
-  
-  // Use the new rang×revenue hook for expert booking
-  const { rdvUrl: expertBookingFallback } = useRdvLink();
-  const expertBookingEmbed: string | null = null;
 
   useEffect(() => {
     loadCustomTexts();
@@ -268,22 +262,11 @@ export const RiskProfileResults = ({ profile, onRetake }: RiskProfileResultsProp
           Refaire le questionnaire
         </Button>
         
-        {expertBookingEmbed ? (
-          <HubSpotMeetingWidget
-            embedCode={expertBookingEmbed}
-            fallbackUrl={expertBookingFallback || undefined}
-            primaryColor={primaryColor || undefined}
-            triggerText="Prendre RDV avec un expert"
-            utmCampaign="profil_risque"
-          />
-        ) : expertBookingFallback ? (
-          <Button asChild>
-            <a href={appendUtmParams(expertBookingFallback, 'profil_risque')} target="_blank" rel="noopener noreferrer">
-              <Calendar className="h-4 w-4 mr-2" />
-              Prendre RDV avec un expert
-            </a>
-          </Button>
-        ) : null}
+        <HubSpotMeetingWidget
+          primaryColor={primaryColor || undefined}
+          triggerText="Prendre RDV avec un expert"
+          utmCampaign="profil_risque"
+        />
       </div>
     </div>
   );

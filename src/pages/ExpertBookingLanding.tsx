@@ -6,9 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Target, TrendingUp, Shield, Star, CheckCircle, ArrowRight, Quote, Clock, Users, Award, Zap, Heart, Lightbulb, Gift, Trophy, ThumbsUp, MessageCircle, Calendar, Briefcase, Rocket, Smile, Eye, ArrowLeft, Euro, Home, Calculator, Compass, BookOpen, Landmark, PiggyBank, Scale, FileText, HandCoins, Building, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRdvLink } from "@/hooks/useRdvLink";
-import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
 import { useAuth } from "@/components/AuthProvider";
-import { useBookingReferrer, getStoredUtmCampaignFull } from "@/hooks/useBookingReferrer";
+import { useBookingReferrer, getStoredUtmCampaignFull, appendUtmParams } from "@/hooks/useBookingReferrer";
 import { useEventTracking } from "@/hooks/useEventTracking";
 import { useBookingContextMessage } from "@/hooks/useBookingContextMessage";
 
@@ -58,7 +57,6 @@ export default function ExpertBookingLanding() {
   const [prefillData, setPrefillData] = useState<{ firstName?: string; lastName?: string; email?: string; company?: string; phone?: string }>({});
   const { user } = useAuth();
   const { rdvUrl, isLoading: bookingLoading } = useRdvLink();
-  const embedCode: string | null = null; // Embeds replaced by URL-only system
   const fallbackUrl = rdvUrl;
   
   // Track referrer when user arrives on this page
@@ -76,6 +74,20 @@ export default function ExpertBookingLanding() {
   // Get UTM campaign from the referrer
   const utmCampaign = getStoredUtmCampaignFull();
 
+  // Build the final booking URL with UTM + prefill params
+  const buildBookingUrl = (): string => {
+    if (!fallbackUrl) return '#';
+    let url = appendUtmParams(fallbackUrl, utmCampaign);
+    try {
+      const u = new URL(url);
+      if (prefillData.firstName) u.searchParams.set("firstName", prefillData.firstName);
+      if (prefillData.lastName) u.searchParams.set("lastName", prefillData.lastName);
+      if (prefillData.email) u.searchParams.set("email", prefillData.email);
+      if (prefillData.company) u.searchParams.set("company", prefillData.company);
+      if (prefillData.phone) u.searchParams.set("phone", prefillData.phone);
+      return u.toString();
+    } catch { return url; }
+  };
   useEffect(() => {
     fetchSettings();
     fetchUserData();
@@ -184,6 +196,13 @@ export default function ExpertBookingLanding() {
         <div className="container max-w-6xl mx-auto px-4 py-16 md:py-24 relative">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
+              {/* Contextual message from booking_context_messages */}
+              {contextMessage.dialog_description && (
+                <div className="rounded-lg bg-primary/10 border border-primary/20 p-4">
+                  <p className="text-sm font-medium text-primary">{contextMessage.dialog_title}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{contextMessage.dialog_description}</p>
+                </div>
+              )}
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight hero-gradient">
                 {settings?.hero_title}
               </h1>
@@ -204,15 +223,12 @@ export default function ExpertBookingLanding() {
                 </div>
               )}
               <div className="flex flex-col sm:flex-row gap-4">
-                <HubSpotMeetingWidget 
-                  embedCode={embedCode || undefined} 
-                  fallbackUrl={fallbackUrl || undefined}
-                  triggerText={settings?.cta_text || "Réserver mon créneau"}
-                  utmCampaign={utmCampaign}
-                  dialogTitle={contextMessage.dialog_title}
-                  dialogDescription={contextMessage.dialog_description}
-                  prefillData={prefillData}
-                />
+                <Button asChild size="lg">
+                  <a href={buildBookingUrl()} target="_blank" rel="noopener noreferrer">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    {settings?.cta_text || "Réserver mon créneau"}
+                  </a>
+                </Button>
               </div>
               {settings?.cta_secondary_text && (
                 <p className="text-sm text-muted-foreground">
@@ -354,15 +370,12 @@ export default function ExpertBookingLanding() {
           <p className="text-xl text-muted-foreground mb-8">
             Réservez votre créneau dès maintenant et bénéficiez d'un accompagnement personnalisé.
           </p>
-          <HubSpotMeetingWidget 
-            embedCode={embedCode || undefined} 
-            fallbackUrl={fallbackUrl || undefined}
-            triggerText={settings?.cta_text || "Réserver mon créneau"}
-            utmCampaign={utmCampaign}
-            dialogTitle={contextMessage.dialog_title}
-            dialogDescription={contextMessage.dialog_description}
-            prefillData={prefillData}
-          />
+          <Button asChild size="lg">
+            <a href={buildBookingUrl()} target="_blank" rel="noopener noreferrer">
+              <Calendar className="h-4 w-4 mr-2" />
+              {settings?.cta_text || "Réserver mon créneau"}
+            </a>
+          </Button>
           {settings?.footer_text && (
             <p className="mt-6 text-sm text-muted-foreground">
               {settings.footer_text}

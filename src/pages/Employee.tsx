@@ -653,7 +653,6 @@ export default function Employee() {
                   </div>
                   <div className="shrink-0">
                     <HubSpotMeetingWidget 
-                      redirectToLanding
                       primaryColor={company?.primary_color} 
                       triggerText="Réserver un créneau"
                       utmCampaign="dashboard_employe"
