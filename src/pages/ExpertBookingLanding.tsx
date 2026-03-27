@@ -74,6 +74,20 @@ export default function ExpertBookingLanding() {
   // Get UTM campaign from the referrer
   const utmCampaign = getStoredUtmCampaignFull();
 
+  // Build the final booking URL with UTM + prefill params
+  const buildBookingUrl = (): string => {
+    if (!fallbackUrl) return '#';
+    let url = appendUtmParams(fallbackUrl, utmCampaign);
+    try {
+      const u = new URL(url);
+      if (prefillData.firstName) u.searchParams.set("firstName", prefillData.firstName);
+      if (prefillData.lastName) u.searchParams.set("lastName", prefillData.lastName);
+      if (prefillData.email) u.searchParams.set("email", prefillData.email);
+      if (prefillData.company) u.searchParams.set("company", prefillData.company);
+      if (prefillData.phone) u.searchParams.set("phone", prefillData.phone);
+      return u.toString();
+    } catch { return url; }
+  };
   useEffect(() => {
     fetchSettings();
     fetchUserData();
