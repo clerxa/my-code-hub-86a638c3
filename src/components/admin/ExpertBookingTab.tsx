@@ -6,33 +6,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "./ImageUpload";
-import { Loader2, Save, Calendar, ExternalLink, Code, Image, Plus, Trash2, Eye, Search, CheckCircle, Clock, Link2, MessageSquare } from "lucide-react";
+import { Loader2, Save, Calendar, ExternalLink, Code, Image, Plus, Trash2, Eye, Link2, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Json } from "@/integrations/supabase/types";
+
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ExpertBookingLandingPreview } from "./ExpertBookingLandingPreview";
 import { IconSelector } from "./IconSelector";
 import { ImageGalleryUploader } from "./ImageGalleryUploader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookingContextMessagesEditor } from "./BookingContextMessagesEditor";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { RdvAssignmentMatrix, DEFAULT_MATRIX, type MatrixConfig, type CategoryUrls, type AdvisorCategoryKey } from "./RdvAssignmentMatrix";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface GalleryImage {
   id: string;
@@ -66,22 +50,6 @@ interface LandingSettings {
   gallery_images: GalleryImage[];
 }
 
-interface HubspotAppointment {
-  id: string;
-  hubspot_meeting_id: string | null;
-  hubspot_contact_id: string | null;
-  user_id: string | null;
-  user_email: string;
-  user_name: string | null;
-  meeting_title: string | null;
-  meeting_start_time: string | null;
-  meeting_end_time: string | null;
-  meeting_link: string | null;
-  booking_source: string | null;
-  company_id: string | null;
-  raw_payload: Json | null;
-  created_at: string;
-}
 
 export function ExpertBookingTab() {
   const [activeTab, setActiveTab] = useState("config");
@@ -138,17 +106,8 @@ export function ExpertBookingTab() {
     gallery_images: []
   });
 
-  // HubSpot appointments state
-  const [hubspotAppointments, setHubspotAppointments] = useState<HubspotAppointment[]>([]);
-  const [hubspotLoading, setHubspotLoading] = useState(true);
-  const [hubspotSearchTerm, setHubspotSearchTerm] = useState("");
-  const [selectedPayload, setSelectedPayload] = useState<Json | null>(null);
-  const [isPayloadDialogOpen, setIsPayloadDialogOpen] = useState(false);
-  const [appointmentToDelete, setAppointmentToDelete] = useState<HubspotAppointment | null>(null);
-
   useEffect(() => {
     fetchSettings();
-    fetchHubspotAppointments();
   }, []);
 
   const fetchSettings = async () => {
@@ -407,86 +366,6 @@ export function ExpertBookingTab() {
       setSaving(false);
     }
   };
-
-  // ===== HUBSPOT APPOINTMENTS FUNCTIONS =====
-  const fetchHubspotAppointments = async () => {
-    setHubspotLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("hubspot_appointments")
-        .select("*")
-        .like("booking_source", "expert_booking%")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setHubspotAppointments((data || []) as unknown as HubspotAppointment[]);
-    } catch (error) {
-      console.error("Error fetching HubSpot appointments:", error);
-      toast.error("Erreur lors du chargement des RDV HubSpot");
-    } finally {
-      setHubspotLoading(false);
-    }
-  };
-
-  const deleteAppointment = async (appointment: HubspotAppointment) => {
-    try {
-      const { error } = await supabase
-        .from("hubspot_appointments")
-        .delete()
-        .eq("id", appointment.id);
-
-      if (error) throw error;
-
-      setHubspotAppointments(prev => prev.filter(a => a.id !== appointment.id));
-      toast.success("RDV supprimé avec succès");
-      setAppointmentToDelete(null);
-    } catch (error) {
-      console.error("Error deleting appointment:", error);
-      toast.error("Erreur lors de la suppression du RDV");
-    }
-  };
-
-  const viewPayload = (payload: Json | null) => {
-    setSelectedPayload(payload);
-    setIsPayloadDialogOpen(true);
-  };
-
-  const getBookingSourceLabel = (source: string | null): string => {
-    if (!source) return "Inconnu";
-    if (source === "expert_booking") return "Défaut";
-    if (source === "expert_booking_rang_1") return "Rang 1";
-    if (source === "expert_booking_rang_2") return "Rang 2";
-    if (source === "expert_booking_rang_3") return "Rang 3";
-    if (source === "expert_booking_rang_4") return "Rang 4";
-    return source;
-  };
-
-  const getBookingLinkUsed = (source: string | null): string => {
-    if (!source) return "-";
-    if (source === "expert_booking_rang_1") {
-      return expertBookingEmbedRang1 ? "Embed Rang 1" : (expertBookingUrlRang1 || "URL Rang 1");
-    }
-    if (source === "expert_booking_rang_2") {
-      return expertBookingEmbedRang2 ? "Embed Rang 2" : (expertBookingUrlRang2 || "URL Rang 2");
-    }
-    if (source === "expert_booking_rang_3") {
-      return expertBookingEmbedRang3 ? "Embed Rang 3" : (expertBookingUrlRang3 || "URL Rang 3");
-    }
-    if (source === "expert_booking_rang_4") {
-      return expertBookingEmbedRang4 ? "Embed Rang 4" : (expertBookingUrlRang4 || "URL Rang 4");
-    }
-    return defaultExpertBookingEmbed ? "Embed Défaut" : (defaultExpertBookingUrl || "URL Défaut");
-  };
-
-  const filteredHubspotAppointments = hubspotAppointments.filter(apt => {
-    const searchLower = hubspotSearchTerm.toLowerCase();
-    return (
-      apt.user_email?.toLowerCase().includes(searchLower) ||
-      apt.user_name?.toLowerCase().includes(searchLower) ||
-      apt.meeting_title?.toLowerCase().includes(searchLower) ||
-      apt.booking_source?.toLowerCase().includes(searchLower)
-    );
-  });
 
   const addBenefit = () => {
     setLandingSettings(prev => ({
