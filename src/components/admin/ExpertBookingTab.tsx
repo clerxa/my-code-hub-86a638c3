@@ -6,33 +6,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "./ImageUpload";
-import { Loader2, Save, Calendar, ExternalLink, Code, Image, Plus, Trash2, Eye, Search, CheckCircle, Clock, Link2, MessageSquare } from "lucide-react";
+import { Loader2, Save, Calendar, ExternalLink, Code, Image, Plus, Trash2, Eye, Link2, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Json } from "@/integrations/supabase/types";
+
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ExpertBookingLandingPreview } from "./ExpertBookingLandingPreview";
 import { IconSelector } from "./IconSelector";
 import { ImageGalleryUploader } from "./ImageGalleryUploader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookingContextMessagesEditor } from "./BookingContextMessagesEditor";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { RdvAssignmentMatrix, DEFAULT_MATRIX, type MatrixConfig, type CategoryUrls, type AdvisorCategoryKey } from "./RdvAssignmentMatrix";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 interface GalleryImage {
   id: string;
@@ -66,22 +51,6 @@ interface LandingSettings {
   gallery_images: GalleryImage[];
 }
 
-interface HubspotAppointment {
-  id: string;
-  hubspot_meeting_id: string | null;
-  hubspot_contact_id: string | null;
-  user_id: string | null;
-  user_email: string;
-  user_name: string | null;
-  meeting_title: string | null;
-  meeting_start_time: string | null;
-  meeting_end_time: string | null;
-  meeting_link: string | null;
-  booking_source: string | null;
-  company_id: string | null;
-  raw_payload: Json | null;
-  created_at: string;
-}
 
 export function ExpertBookingTab() {
   const [activeTab, setActiveTab] = useState("config");
@@ -138,17 +107,8 @@ export function ExpertBookingTab() {
     gallery_images: []
   });
 
-  // HubSpot appointments state
-  const [hubspotAppointments, setHubspotAppointments] = useState<HubspotAppointment[]>([]);
-  const [hubspotLoading, setHubspotLoading] = useState(true);
-  const [hubspotSearchTerm, setHubspotSearchTerm] = useState("");
-  const [selectedPayload, setSelectedPayload] = useState<Json | null>(null);
-  const [isPayloadDialogOpen, setIsPayloadDialogOpen] = useState(false);
-  const [appointmentToDelete, setAppointmentToDelete] = useState<HubspotAppointment | null>(null);
-
   useEffect(() => {
     fetchSettings();
-    fetchHubspotAppointments();
   }, []);
 
   const fetchSettings = async () => {
@@ -408,86 +368,6 @@ export function ExpertBookingTab() {
     }
   };
 
-  // ===== HUBSPOT APPOINTMENTS FUNCTIONS =====
-  const fetchHubspotAppointments = async () => {
-    setHubspotLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("hubspot_appointments")
-        .select("*")
-        .like("booking_source", "expert_booking%")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setHubspotAppointments((data || []) as unknown as HubspotAppointment[]);
-    } catch (error) {
-      console.error("Error fetching HubSpot appointments:", error);
-      toast.error("Erreur lors du chargement des RDV HubSpot");
-    } finally {
-      setHubspotLoading(false);
-    }
-  };
-
-  const deleteAppointment = async (appointment: HubspotAppointment) => {
-    try {
-      const { error } = await supabase
-        .from("hubspot_appointments")
-        .delete()
-        .eq("id", appointment.id);
-
-      if (error) throw error;
-
-      setHubspotAppointments(prev => prev.filter(a => a.id !== appointment.id));
-      toast.success("RDV supprimé avec succès");
-      setAppointmentToDelete(null);
-    } catch (error) {
-      console.error("Error deleting appointment:", error);
-      toast.error("Erreur lors de la suppression du RDV");
-    }
-  };
-
-  const viewPayload = (payload: Json | null) => {
-    setSelectedPayload(payload);
-    setIsPayloadDialogOpen(true);
-  };
-
-  const getBookingSourceLabel = (source: string | null): string => {
-    if (!source) return "Inconnu";
-    if (source === "expert_booking") return "Défaut";
-    if (source === "expert_booking_rang_1") return "Rang 1";
-    if (source === "expert_booking_rang_2") return "Rang 2";
-    if (source === "expert_booking_rang_3") return "Rang 3";
-    if (source === "expert_booking_rang_4") return "Rang 4";
-    return source;
-  };
-
-  const getBookingLinkUsed = (source: string | null): string => {
-    if (!source) return "-";
-    if (source === "expert_booking_rang_1") {
-      return expertBookingEmbedRang1 ? "Embed Rang 1" : (expertBookingUrlRang1 || "URL Rang 1");
-    }
-    if (source === "expert_booking_rang_2") {
-      return expertBookingEmbedRang2 ? "Embed Rang 2" : (expertBookingUrlRang2 || "URL Rang 2");
-    }
-    if (source === "expert_booking_rang_3") {
-      return expertBookingEmbedRang3 ? "Embed Rang 3" : (expertBookingUrlRang3 || "URL Rang 3");
-    }
-    if (source === "expert_booking_rang_4") {
-      return expertBookingEmbedRang4 ? "Embed Rang 4" : (expertBookingUrlRang4 || "URL Rang 4");
-    }
-    return defaultExpertBookingEmbed ? "Embed Défaut" : (defaultExpertBookingUrl || "URL Défaut");
-  };
-
-  const filteredHubspotAppointments = hubspotAppointments.filter(apt => {
-    const searchLower = hubspotSearchTerm.toLowerCase();
-    return (
-      apt.user_email?.toLowerCase().includes(searchLower) ||
-      apt.user_name?.toLowerCase().includes(searchLower) ||
-      apt.meeting_title?.toLowerCase().includes(searchLower) ||
-      apt.booking_source?.toLowerCase().includes(searchLower)
-    );
-  });
-
   const addBenefit = () => {
     setLandingSettings(prev => ({
       ...prev,
@@ -558,10 +438,6 @@ export function ExpertBookingTab() {
           <TabsTrigger value="landing" className="flex items-center gap-2">
             <Image className="h-4 w-4" />
             Page d'atterrissage
-          </TabsTrigger>
-          <TabsTrigger value="appointments" className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4" />
-            RDV Confirmés ({hubspotAppointments.length})
           </TabsTrigger>
           <TabsTrigger value="context-messages" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
@@ -947,202 +823,11 @@ export function ExpertBookingTab() {
       </div>
         </TabsContent>
 
-        {/* HubSpot Appointments Tab */}
-        <TabsContent value="appointments" className="space-y-6">
-          {/* Search */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher par email, nom, titre, source..."
-                value={hubspotSearchTerm}
-                onChange={(e) => setHubspotSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Button variant="outline" onClick={fetchHubspotAppointments} disabled={hubspotLoading}>
-              <Loader2 className={`h-4 w-4 mr-2 ${hubspotLoading ? "animate-spin" : ""}`} />
-              Actualiser
-            </Button>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Calendar className="h-5 w-5 mx-auto mb-2 text-primary" />
-                <div className="text-2xl font-bold">{hubspotAppointments.length}</div>
-                <div className="text-xs text-muted-foreground">Total RDV confirmés</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <CheckCircle className="h-5 w-5 mx-auto mb-2 text-green-500" />
-                <div className="text-2xl font-bold">
-                  {hubspotAppointments.filter(a => a.meeting_start_time && new Date(a.meeting_start_time) > new Date()).length}
-                </div>
-                <div className="text-xs text-muted-foreground">RDV à venir</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Clock className="h-5 w-5 mx-auto mb-2 text-gray-500" />
-                <div className="text-2xl font-bold">
-                  {hubspotAppointments.filter(a => a.meeting_start_time && new Date(a.meeting_start_time) <= new Date()).length}
-                </div>
-                <div className="text-xs text-muted-foreground">RDV passés</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Link2 className="h-5 w-5 mx-auto mb-2 text-blue-500" />
-                <div className="text-2xl font-bold">
-                  {new Set(hubspotAppointments.map(a => a.booking_source)).size}
-                </div>
-                <div className="text-xs text-muted-foreground">Sources différentes</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Table */}
-          {hubspotLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Chargement...</div>
-          ) : filteredHubspotAppointments.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Aucun rendez-vous trouvé
-            </div>
-          ) : (
-            <div className="border rounded-lg overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Titre réunion</TableHead>
-                    <TableHead>Source / Rang</TableHead>
-                    <TableHead>Lien utilisé</TableHead>
-                    <TableHead>Date RDV</TableHead>
-                    <TableHead>Webhook</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredHubspotAppointments.map((apt) => (
-                    <TableRow key={apt.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{apt.user_name || '-'}</div>
-                          <div className="text-sm text-muted-foreground">{apt.user_email}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{apt.meeting_title || '-'}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">
-                          {getBookingSourceLabel(apt.booking_source)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {getBookingLinkUsed(apt.booking_source)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {apt.meeting_start_time ? (
-                          <div>
-                            <div>{format(new Date(apt.meeting_start_time), "dd/MM/yyyy", { locale: fr })}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {format(new Date(apt.meeting_start_time), "HH:mm", { locale: fr })}
-                            </div>
-                          </div>
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        {apt.raw_payload ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => viewPayload(apt.raw_payload)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Voir
-                          </Button>
-                        ) : (
-                          <Badge variant="outline" className="text-xs text-muted-foreground">
-                            Aucune donnée
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          {apt.meeting_link && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              asChild
-                            >
-                              <a href={apt.meeting_link} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="h-4 w-4" />
-                              </a>
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setAppointmentToDelete(apt)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </TabsContent>
-
         <TabsContent value="context-messages" className="space-y-6">
           <BookingContextMessagesEditor />
         </TabsContent>
       </Tabs>
 
-      {/* HubSpot Payload Dialog */}
-      <Dialog open={isPayloadDialogOpen} onOpenChange={setIsPayloadDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>Réponse Webhook HubSpot</DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="max-h-[70vh]">
-            <pre className="bg-muted p-4 rounded-lg text-xs overflow-x-auto">
-              {JSON.stringify(selectedPayload, null, 2)}
-            </pre>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Appointment Confirmation */}
-      <AlertDialog open={!!appointmentToDelete} onOpenChange={() => setAppointmentToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer ce rendez-vous ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action est irréversible. Le rendez-vous de{" "}
-              <strong>{appointmentToDelete?.user_name || appointmentToDelete?.user_email}</strong>{" "}
-              sera définitivement supprimé.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => appointmentToDelete && deleteAppointment(appointmentToDelete)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
