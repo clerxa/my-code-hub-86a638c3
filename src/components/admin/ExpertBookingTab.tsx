@@ -552,8 +552,12 @@ export function ExpertBookingTab() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="config" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Configuration
+            <Link2 className="h-4 w-4" />
+            Liens de RDV
+          </TabsTrigger>
+          <TabsTrigger value="landing" className="flex items-center gap-2">
+            <Image className="h-4 w-4" />
+            Page d'atterrissage
           </TabsTrigger>
           <TabsTrigger value="appointments" className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
