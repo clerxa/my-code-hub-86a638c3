@@ -46,9 +46,6 @@ const MESSAGES = [
 
 export function PostSaveExpertPrompt({ open, onClose, simulationType }: PostSaveExpertPromptProps) {
   const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const { rdvUrl: bookingUrl } = useRdvLink();
 
   // Pick a random message on each open, seeded by timestamp to rotate
   const message = useMemo(() => {
@@ -59,11 +56,8 @@ export function PostSaveExpertPrompt({ open, onClose, simulationType }: PostSave
   const CurrentIcon = message.icon;
 
   const handleBooking = () => {
-    if (bookingUrl) {
-      window.open(bookingUrl, "_blank");
-    } else {
-      navigate("/expert-booking");
-    }
+    setBookingReferrer(window.location.pathname);
+    navigate("/expert-booking");
     onClose();
   };
 
