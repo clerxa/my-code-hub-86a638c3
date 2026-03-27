@@ -291,6 +291,10 @@ const App = () => (
               element={<Navigate to="/employee/onboarding-flow" replace />}
             />
             <Route
+              path="/verify-email"
+              element={<VerifyEmailPage />}
+            />
+            <Route
               path="/employee/diagnostic"
               element={
                 <ProtectedRoute>
