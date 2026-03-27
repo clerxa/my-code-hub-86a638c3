@@ -913,7 +913,7 @@ export function ExpertBookingTab() {
         </CardContent>
       </Card>
 
-      {/* Save Button */}
+      {/* Save Button for landing tab */}
       <div className="flex justify-end gap-3">
         <Sheet>
           <SheetTrigger asChild>
@@ -940,7 +940,7 @@ export function ExpertBookingTab() {
           ) : (
             <>
               <Save className="h-4 w-4 mr-2" />
-              Enregistrer tous les paramètres
+              Enregistrer
             </>
           )}
         </Button>
