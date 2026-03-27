@@ -84,6 +84,7 @@ import RiskProfile from "./pages/RiskProfile";
 import ExpertBookingLanding from "./pages/ExpertBookingLanding";
 import MesRendezVous from "./pages/MesRendezVous";
 import OnboardingFlow from "./pages/OnboardingFlow";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 import AdvisorLookup from "./pages/AdvisorLookup";
 import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
@@ -288,6 +289,10 @@ const App = () => (
             <Route
               path="/employee/first-login"
               element={<Navigate to="/employee/onboarding-flow" replace />}
+            />
+            <Route
+              path="/verify-email"
+              element={<VerifyEmailPage />}
             />
             <Route
               path="/employee/diagnostic"

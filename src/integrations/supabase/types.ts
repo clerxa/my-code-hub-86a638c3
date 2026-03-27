@@ -4590,6 +4590,9 @@ export type Database = {
           current_session_start: string | null
           deleted_at: string | null
           email: string
+          email_verification_sent_at: string | null
+          email_verification_token: string | null
+          email_verified: boolean | null
           employee_onboarding_completed: boolean | null
           first_login_onboarding_completed: boolean | null
           first_name: string | null
@@ -4636,6 +4639,9 @@ export type Database = {
           current_session_start?: string | null
           deleted_at?: string | null
           email: string
+          email_verification_sent_at?: string | null
+          email_verification_token?: string | null
+          email_verified?: boolean | null
           employee_onboarding_completed?: boolean | null
           first_login_onboarding_completed?: boolean | null
           first_name?: string | null
@@ -4682,6 +4688,9 @@ export type Database = {
           current_session_start?: string | null
           deleted_at?: string | null
           email?: string
+          email_verification_sent_at?: string | null
+          email_verification_token?: string | null
+          email_verified?: boolean | null
           employee_onboarding_completed?: boolean | null
           first_login_onboarding_completed?: boolean | null
           first_name?: string | null
