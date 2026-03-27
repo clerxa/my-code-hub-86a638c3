@@ -8,7 +8,6 @@ import { Separator } from "@/components/ui/separator";
 import { RiskProfile } from "@/types/risk-profile";
 import { supabase } from "@/integrations/supabase/client";
 import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
-import { useRdvLink } from "@/hooks/useRdvLink";
 
 interface RiskProfileResultsProps {
   profile: RiskProfile;
@@ -102,9 +101,6 @@ export const RiskProfileResults = ({ profile, onRetake }: RiskProfileResultsProp
   const [profileDetails, setProfileDetails] = useState(defaultProfileDetails);
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [primaryColor, setPrimaryColor] = useState<string | null>(null);
-  
-  // Use the new rang×revenue hook for expert booking
-  const { rdvUrl: expertBookingFallback } = useRdvLink();
 
   useEffect(() => {
     loadCustomTexts();
