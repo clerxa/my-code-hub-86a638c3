@@ -746,6 +746,10 @@ export type Database = {
       }
       companies: {
         Row: {
+          access_atlas: boolean
+          access_horizon: boolean
+          access_vega: boolean
+          access_zenith: boolean
           banner_url: string | null
           canal_communication_autre: string | null
           company_description: string | null
@@ -786,6 +790,10 @@ export type Database = {
           work_mode: string | null
         }
         Insert: {
+          access_atlas?: boolean
+          access_horizon?: boolean
+          access_vega?: boolean
+          access_zenith?: boolean
           banner_url?: string | null
           canal_communication_autre?: string | null
           company_description?: string | null
@@ -826,6 +834,10 @@ export type Database = {
           work_mode?: string | null
         }
         Update: {
+          access_atlas?: boolean
+          access_horizon?: boolean
+          access_vega?: boolean
+          access_zenith?: boolean
           banner_url?: string | null
           canal_communication_autre?: string | null
           company_description?: string | null
