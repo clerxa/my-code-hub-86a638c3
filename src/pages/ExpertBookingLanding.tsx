@@ -204,15 +204,12 @@ export default function ExpertBookingLanding() {
                 </div>
               )}
               <div className="flex flex-col sm:flex-row gap-4">
-                <HubSpotMeetingWidget 
-                  embedCode={embedCode || undefined} 
-                  fallbackUrl={fallbackUrl || undefined}
-                  triggerText={settings?.cta_text || "Réserver mon créneau"}
-                  utmCampaign={utmCampaign}
-                  dialogTitle={contextMessage.dialog_title}
-                  dialogDescription={contextMessage.dialog_description}
-                  prefillData={prefillData}
-                />
+                <Button asChild size="lg">
+                  <a href={appendUtmParams(fallbackUrl || '#', utmCampaign)} target="_blank" rel="noopener noreferrer">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    {settings?.cta_text || "Réserver mon créneau"}
+                  </a>
+                </Button>
               </div>
               {settings?.cta_secondary_text && (
                 <p className="text-sm text-muted-foreground">
@@ -354,15 +351,12 @@ export default function ExpertBookingLanding() {
           <p className="text-xl text-muted-foreground mb-8">
             Réservez votre créneau dès maintenant et bénéficiez d'un accompagnement personnalisé.
           </p>
-          <HubSpotMeetingWidget 
-            embedCode={embedCode || undefined} 
-            fallbackUrl={fallbackUrl || undefined}
-            triggerText={settings?.cta_text || "Réserver mon créneau"}
-            utmCampaign={utmCampaign}
-            dialogTitle={contextMessage.dialog_title}
-            dialogDescription={contextMessage.dialog_description}
-            prefillData={prefillData}
-          />
+          <Button asChild size="lg">
+            <a href={appendUtmParams(fallbackUrl || '#', utmCampaign)} target="_blank" rel="noopener noreferrer">
+              <Calendar className="h-4 w-4 mr-2" />
+              {settings?.cta_text || "Réserver mon créneau"}
+            </a>
+          </Button>
           {settings?.footer_text && (
             <p className="mt-6 text-sm text-muted-foreground">
               {settings.footer_text}
