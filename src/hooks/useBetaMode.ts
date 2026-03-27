@@ -8,7 +8,7 @@ interface BetaConfig {
 }
 
 export function useBetaMode() {
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["beta-mode"],
     queryFn: async (): Promise<BetaConfig> => {
       // Fetch global beta settings
