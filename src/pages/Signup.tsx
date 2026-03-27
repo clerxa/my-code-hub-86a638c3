@@ -131,6 +131,23 @@ const Signup = () => {
     }
   };
 
+  const sendVerificationEmailAfterSignup = async (accessToken?: string | null) => {
+    try {
+      const { error } = await supabase.functions.invoke(
+        "send-verification-email",
+        accessToken
+          ? { headers: { Authorization: `Bearer ${accessToken}` } }
+          : undefined
+      );
+
+      if (error) {
+        console.error("Failed to send verification email at signup:", error);
+      }
+    } catch (error) {
+      console.error("Failed to send verification email at signup:", error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -218,7 +235,7 @@ const Signup = () => {
       }
 
       // Sign in the user
-      const { error: loginError } = await supabase.auth.signInWithPassword({
+      const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
@@ -236,6 +253,8 @@ const Signup = () => {
           .update({ marketing_consent: marketingAccepted } as any)
           .eq("id", responseData.user.id);
       }
+
+      await sendVerificationEmailAfterSignup(loginData.session?.access_token);
 
       toast.success("Compte créé avec succès !");
       
