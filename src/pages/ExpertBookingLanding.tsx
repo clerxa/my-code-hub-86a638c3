@@ -266,11 +266,11 @@ export default function ExpertBookingLanding() {
 
               {/* Trust badges inline */}
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}
-                className="flex flex-wrap items-center gap-4 text-sm text-slate-400"
+                className="flex flex-wrap items-center gap-5 text-sm text-slate-400"
               >
                 <span className="flex items-center gap-1.5"><Lock className="h-4 w-4" /> 100% confidentiel</span>
-                <span className="flex items-center gap-1.5"><BadgeCheck className="h-4 w-4" /> Experts certifiés</span>
-                <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" /> 30 min offertes</span>
+                <span className="flex items-center gap-1.5 text-base font-semibold text-slate-500"><BadgeCheck className="h-5 w-5 text-primary" /> Experts certifiés & récompensés</span>
+                <span className="flex items-center gap-1.5"><Gift className="h-4 w-4" /> Gratuit et sans engagement</span>
               </motion.div>
 
               <motion.div
@@ -372,7 +372,7 @@ export default function ExpertBookingLanding() {
               </p>
             </RevealOnScroll>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-8 [&>*:last-child:nth-child(3n+1)]:md:col-start-2">
               {settings.benefits.map((benefit, index) => {
                 const IconComponent = iconMap[benefit.icon] || CheckCircle;
                 return (
@@ -520,8 +520,8 @@ export default function ExpertBookingLanding() {
             </Button>
             <div className="flex flex-wrap justify-center gap-6 mt-8 text-sm text-slate-400">
               <span className="flex items-center gap-1.5"><Lock className="h-4 w-4" /> Confidentiel</span>
-              <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" /> 30 min</span>
-              <span className="flex items-center gap-1.5"><BadgeCheck className="h-4 w-4" /> Sans engagement</span>
+              <span className="flex items-center gap-1.5"><BadgeCheck className="h-4 w-4" /> Certifiés & récompensés</span>
+              <span className="flex items-center gap-1.5"><Gift className="h-4 w-4" /> Sans engagement</span>
             </div>
           </RevealOnScroll>
         </div>
