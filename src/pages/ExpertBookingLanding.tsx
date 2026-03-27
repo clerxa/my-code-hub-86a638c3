@@ -224,7 +224,7 @@ export default function ExpertBookingLanding() {
               )}
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild size="lg">
-                  <a href={appendUtmParams(fallbackUrl || '#', utmCampaign)} target="_blank" rel="noopener noreferrer">
+                  <a href={buildBookingUrl()} target="_blank" rel="noopener noreferrer">
                     <Calendar className="h-4 w-4 mr-2" />
                     {settings?.cta_text || "Réserver mon créneau"}
                   </a>
@@ -371,7 +371,7 @@ export default function ExpertBookingLanding() {
             Réservez votre créneau dès maintenant et bénéficiez d'un accompagnement personnalisé.
           </p>
           <Button asChild size="lg">
-            <a href={appendUtmParams(fallbackUrl || '#', utmCampaign)} target="_blank" rel="noopener noreferrer">
+            <a href={buildBookingUrl()} target="_blank" rel="noopener noreferrer">
               <Calendar className="h-4 w-4 mr-2" />
               {settings?.cta_text || "Réserver mon créneau"}
             </a>
