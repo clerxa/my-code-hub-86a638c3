@@ -275,6 +275,7 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
                 <TableHead className="text-center"><SortButton field="employeeCount">Inscrits</SortButton></TableHead>
                 <TableHead className="text-center"><SortButton field="avgProgress">Progression</SortButton></TableHead>
                 <TableHead className="text-center">Aide Fiscale</TableHead>
+                <TableHead className="text-center">Modules</TableHead>
                 <TableHead>Inscription</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -301,6 +302,24 @@ export const CompaniesTab = ({ companies, modules, onRefresh }: CompaniesTabProp
                         else { toast.success(checked ? "Aide fiscale activée" : "Aide fiscale désactivée"); onRefresh(); }
                       }}
                     />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      {[
+                        { key: "access_vega", label: "V", color: "bg-violet-500" },
+                        { key: "access_atlas", label: "A", color: "bg-blue-500" },
+                        { key: "access_horizon", label: "H", color: "bg-amber-500" },
+                        { key: "access_zenith", label: "Z", color: "bg-emerald-500" },
+                      ].map(({ key, label, color }) => (
+                        <span
+                          key={key}
+                          className={`inline-flex items-center justify-center w-6 h-6 rounded text-[10px] font-bold text-white transition-opacity ${color} ${(company as any)[key] ? "opacity-100" : "opacity-20"}`}
+                          title={`${label} ${(company as any)[key] ? "activé" : "désactivé"}`}
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </div>
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     {(company as any).signup_slug ? <SignupLinkCopy slug={(company as any).signup_slug} /> : <span className="text-xs text-muted-foreground">—</span>}
