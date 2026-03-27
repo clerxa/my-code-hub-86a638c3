@@ -78,6 +78,10 @@ export const AdminCompanyEditPage = () => {
     tax_declaration_help_enabled: false,
     tax_permanence_config: null as TaxPermanenceConfig | null,
     max_tax_declarations: 100,
+    access_vega: false,
+    access_atlas: false,
+    access_horizon: false,
+    access_zenith: false,
   });
 
   useEffect(() => {
@@ -145,6 +149,10 @@ export const AdminCompanyEditPage = () => {
         tax_declaration_help_enabled: company.tax_declaration_help_enabled || false,
         tax_permanence_config: company.tax_permanence_config || null,
         max_tax_declarations: company.max_tax_declarations || 100,
+        access_vega: company.access_vega || false,
+        access_atlas: company.access_atlas || false,
+        access_horizon: company.access_horizon || false,
+        access_zenith: company.access_zenith || false,
       });
     } catch (error) {
       console.error("Error loading company:", error);
@@ -180,6 +188,10 @@ export const AdminCompanyEditPage = () => {
           tax_declaration_help_enabled: formData.tax_declaration_help_enabled,
           tax_permanence_config: formData.tax_permanence_config,
           max_tax_declarations: formData.max_tax_declarations,
+          access_vega: formData.access_vega,
+          access_atlas: formData.access_atlas,
+          access_horizon: formData.access_horizon,
+          access_zenith: formData.access_zenith,
         })
         .eq("id", companyId);
 
@@ -543,6 +555,35 @@ export const AdminCompanyEditPage = () => {
               }}>
               Ajouter le contact
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Accès modules */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Accès modules</CardTitle>
+          <CardDescription>Activez les modules premium pour cette entreprise</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { key: "access_vega" as const, label: "VEGA", desc: "Actionnariat salarié", color: "text-violet-500" },
+              { key: "access_atlas" as const, label: "ATLAS", desc: "Patrimoine & fiscalité", color: "text-blue-500" },
+              { key: "access_horizon" as const, label: "HORIZON", desc: "Retraite", color: "text-amber-500" },
+              { key: "access_zenith" as const, label: "ZÉNITH", desc: "Budget", color: "text-emerald-500" },
+            ].map(({ key, label, desc, color }) => (
+              <div key={key} className="flex items-center justify-between p-3 rounded-lg border">
+                <div>
+                  <p className={`font-semibold text-sm ${color}`}>{label}</p>
+                  <p className="text-xs text-muted-foreground">{desc}</p>
+                </div>
+                <Switch
+                  checked={formData[key]}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, [key]: checked }))}
+                />
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
