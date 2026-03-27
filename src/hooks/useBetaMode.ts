@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/AuthProvider";
 
 interface BetaConfig {
   enabled: boolean;
@@ -8,8 +9,10 @@ interface BetaConfig {
 }
 
 export function useBetaMode() {
+  const { user } = useAuth();
+
   const { data, isLoading } = useQuery({
-    queryKey: ["beta-mode"],
+    queryKey: ["beta-mode", user?.id ?? "anon"],
     queryFn: async (): Promise<BetaConfig> => {
       // Fetch global beta settings
       const { data: settings, error } = await supabase
@@ -39,12 +42,11 @@ export function useBetaMode() {
 
       // Fetch company-level access for current user
       let companyAccess: Record<string, boolean> = {};
-      const { data: session } = await supabase.auth.getSession();
-      if (session?.session?.user?.id) {
+      if (user?.id) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("company_id")
-          .eq("id", session.session.user.id)
+          .eq("id", user.id)
           .single();
 
         if (profile?.company_id) {
@@ -56,10 +58,10 @@ export function useBetaMode() {
 
           if (company) {
             companyAccess = {
-              vega: company.access_vega || false,
-              atlas: company.access_atlas || false,
-              horizon: company.access_horizon || false,
-              zenith: company.access_zenith || false,
+              vega: company.access_vega === true,
+              atlas: company.access_atlas === true,
+              horizon: company.access_horizon === true,
+              zenith: company.access_zenith === true,
             };
           }
         }
