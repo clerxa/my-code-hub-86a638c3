@@ -211,8 +211,8 @@ export default function VerifyEmailPage() {
               <div>
                 <h1 className="text-2xl font-bold text-foreground">Vérifiez votre email</h1>
                 <p className="text-muted-foreground mt-2">
-                  Un email de confirmation a été envoyé à votre adresse. 
-                  Cliquez sur le lien qu'il contient pour activer votre compte.
+                  Un email de confirmation vous a été envoyé lors de votre inscription. 
+                  Cliquez sur le lien qu'il contient pour activer votre compte et accéder à votre espace.
                 </p>
               </div>
               <div className="bg-muted/50 rounded-lg p-4">

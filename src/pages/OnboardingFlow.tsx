@@ -49,12 +49,7 @@ export default function OnboardingFlow() {
     await supabase.from("profiles").update(updates).eq("id", user!.id);
 
     if (nextStep > STEPS.length) {
-      // Send verification email then redirect to verify page
-      try {
-        await supabase.functions.invoke("send-verification-email");
-      } catch (e) {
-        console.error("Failed to send verification email:", e);
-      }
+      // Redirect to verify-email page (email was already sent at signup)
       navigate("/verify-email");
     } else {
       setCurrentStep(nextStep);
