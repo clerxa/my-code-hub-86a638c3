@@ -176,14 +176,14 @@ export default function ExpertBookingLanding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-white">
       <PageMeta title="Rendez-vous expert financier" description="Prenez rendez-vous avec un expert certifié MyFinCare pour un accompagnement financier personnalisé et confidentiel." path="/rdv-expert" />
       {/* Back Button */}
       <div className="container max-w-6xl mx-auto px-4 pt-6">
         <Button
           variant="ghost"
           onClick={() => navigate("/employee")}
-          className="gap-2"
+          className="gap-2 text-slate-600 hover:text-slate-900"
         >
           <ArrowLeft className="h-4 w-4" />
           Retour à mon espace
@@ -192,7 +192,7 @@ export default function ExpertBookingLanding() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50/50 to-white" />
         <div className="container max-w-6xl mx-auto px-4 py-16 md:py-24 relative">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
