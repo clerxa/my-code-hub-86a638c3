@@ -57,7 +57,6 @@ export default function ExpertBookingLanding() {
   const [prefillData, setPrefillData] = useState<{ firstName?: string; lastName?: string; email?: string; company?: string; phone?: string }>({});
   const { user } = useAuth();
   const { rdvUrl, isLoading: bookingLoading } = useRdvLink();
-  const embedCode: string | null = null; // Embeds replaced by URL-only system
   const fallbackUrl = rdvUrl;
   
   // Track referrer when user arrives on this page
