@@ -284,8 +284,7 @@ export default function ExpertBookingLanding() {
               Nos expertises
             </h2>
             <p className="text-center text-slate-500 mb-12 max-w-2xl mx-auto">
-              Des domaines de compétence variés pour répondre à tous vos besoins financ
-
+              Des domaines de compétence variés pour répondre à tous vos besoins financiers
             </p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {settings.expertises.map((expertise, index) => {
