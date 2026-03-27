@@ -8,7 +8,7 @@ import { DiagnosticConfig } from "@/data/diagnostic-config";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthProvider";
-import { useRdvLink } from "@/hooks/useRdvLink";
+
 import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -53,11 +53,6 @@ export function DiagnosticResults({ config, sectionScores, scorePercent, totalSc
       .then(({ data }) => setCompanyId(data?.company_id || null));
   }, [user]);
 
-  // Get expert booking URL respecting rang×revenue logic
-  const { rdvUrl: bookingUrl } = useRdvLink();
-  const embedCode: string | null = null;
-  const fallbackUrl = bookingUrl;
-
   const result = useMemo(() => {
     return config.results.find((r) => scorePercent >= r.min && scorePercent <= r.max) || config.results[0];
   }, [config.results, scorePercent]);
@@ -92,7 +87,7 @@ export function DiagnosticResults({ config, sectionScores, scorePercent, totalSc
           <p className="text-muted-foreground text-sm max-w-md mx-auto">{result.description}</p>
           {result.ctaText && result.ctaUrl && (() => {
             const isBookingRoute = result.ctaUrl === "/employee/rdv" || result.ctaUrl === "/expert-booking";
-            if (isBookingRoute && (embedCode || fallbackUrl)) {
+            if (isBookingRoute) {
               return (
                 <div className="mt-2">
                   <HubSpotMeetingWidget
