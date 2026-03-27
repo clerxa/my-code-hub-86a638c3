@@ -71,8 +71,8 @@ export default function ExpertBookingLanding() {
     trackPageView("expert_booking_page");
   }, [trackPageView]);
   
-  // Get UTM campaign from the referrer
-  const utmCampaign = getStoredUtmCampaignFull();
+  // Get UTM campaign from the referrer — read once and memoize to survive re-renders
+  const [utmCampaign] = useState(() => getStoredUtmCampaignFull());
 
   // Build the final booking URL with UTM + prefill params
   const buildBookingUrl = (): string => {
