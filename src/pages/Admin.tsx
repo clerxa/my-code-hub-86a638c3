@@ -10,7 +10,7 @@ import { ModuleEditorPage } from "@/components/admin/ModuleEditorPage";
 import { UsersAndEmployeesTab } from "@/components/admin/UsersAndEmployeesTab";
 import { CompaniesTab } from "@/components/admin/CompaniesTab";
 import { AdminCompanyEditPage } from "@/components/admin/AdminCompanyEditPage";
-import { CompanyRankingTab } from "@/components/admin/CompanyRankingTab";
+
 import { CommunicationKitTab } from "@/components/admin/CommunicationKitTab";
 import { CommunicationTemplatesEditor } from "@/components/admin/CommunicationTemplatesEditor";
 import { VisualResourcesTab } from "@/components/admin/VisualResourcesTab";
@@ -109,7 +109,7 @@ const Admin = () => {
     "landing-pages": "Landing Pages",
     "expert-booking": "RDV Expert",
     companies: "Companies",
-    "company-ranking": "Configuration des rangs",
+    
     parcours: "Parcours",
     modules: "Modules",
     formations: "Formations",
@@ -365,7 +365,7 @@ const Admin = () => {
                 {/* Companies */}
                 <Route path="companies" element={<CompaniesTab companies={companies} modules={modules} onRefresh={fetchData} />} />
                 <Route path="companies/:companyId" element={<AdminCompanyEditPage />} />
-                <Route path="company-ranking" element={<CompanyRankingTab />} />
+                
                 <Route path="users" element={<UsersAndEmployeesTab profiles={profiles} companies={companies} onRefresh={fetchData} />} />
                 
                 

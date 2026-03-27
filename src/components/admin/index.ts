@@ -18,7 +18,7 @@ export { ExpertBookingLandingPreview } from './ExpertBookingLandingPreview';
 
 // Companies
 export { CompaniesTab } from './CompaniesTab';
-export { CompanyRankingTab } from './CompanyRankingTab';
+
 export { UsersAndEmployeesTab } from './UsersAndEmployeesTab';
 export { EmployeesImportTab } from './EmployeesImportTab';
 
