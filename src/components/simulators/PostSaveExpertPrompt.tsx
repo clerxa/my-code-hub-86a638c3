@@ -1,10 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Sparkles, X, TrendingUp, Shield, Target, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/components/AuthProvider";
-import { useRdvLink } from "@/hooks/useRdvLink";
 import { useNavigate } from "react-router-dom";
+import { setBookingReferrer } from "@/hooks/useBookingReferrer";
 
 interface PostSaveExpertPromptProps {
   open: boolean;
@@ -47,9 +46,6 @@ const MESSAGES = [
 
 export function PostSaveExpertPrompt({ open, onClose, simulationType }: PostSaveExpertPromptProps) {
   const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const { rdvUrl: bookingUrl } = useRdvLink();
 
   // Pick a random message on each open, seeded by timestamp to rotate
   const message = useMemo(() => {
@@ -60,11 +56,8 @@ export function PostSaveExpertPrompt({ open, onClose, simulationType }: PostSave
   const CurrentIcon = message.icon;
 
   const handleBooking = () => {
-    if (bookingUrl) {
-      window.open(bookingUrl, "_blank");
-    } else {
-      navigate("/expert-booking");
-    }
+    setBookingReferrer(window.location.pathname);
+    navigate("/expert-booking");
     onClose();
   };
 
