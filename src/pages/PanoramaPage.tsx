@@ -74,11 +74,15 @@ export default function PanoramaPage() {
     const checkOnboardingFlow = async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("onboarding_completed")
+        .select("onboarding_completed, email_verified")
         .eq("id", user.id)
         .single();
       if (!(data as any)?.onboarding_completed) {
         navigate("/employee/onboarding-flow", { replace: true });
+        return;
+      }
+      if (!(data as any)?.email_verified) {
+        navigate("/verify-email", { replace: true });
         return;
       }
       setCheckingOnboarding(false);

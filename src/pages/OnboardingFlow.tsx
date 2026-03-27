@@ -49,7 +49,13 @@ export default function OnboardingFlow() {
     await supabase.from("profiles").update(updates).eq("id", user!.id);
 
     if (nextStep > STEPS.length) {
-      navigate("/panorama/audit?welcome=true");
+      // Send verification email then redirect to verify page
+      try {
+        await supabase.functions.invoke("send-verification-email");
+      } catch (e) {
+        console.error("Failed to send verification email:", e);
+      }
+      navigate("/verify-email");
     } else {
       setCurrentStep(nextStep);
       window.scrollTo({ top: 0, behavior: "smooth" });
