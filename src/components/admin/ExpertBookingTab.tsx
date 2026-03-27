@@ -552,8 +552,12 @@ export function ExpertBookingTab() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="config" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Configuration
+            <Link2 className="h-4 w-4" />
+            Liens de RDV
+          </TabsTrigger>
+          <TabsTrigger value="landing" className="flex items-center gap-2">
+            <Image className="h-4 w-4" />
+            Page d'atterrissage
           </TabsTrigger>
           <TabsTrigger value="appointments" className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
@@ -645,7 +649,25 @@ export function ExpertBookingTab() {
         </CardContent>
       </Card>
 
-      {/* Landing Page Section */}
+      {/* Save Button for config tab */}
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={saving} size="lg">
+          {saving ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Enregistrement...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Enregistrer
+            </>
+          )}
+        </Button>
+      </div>
+        </TabsContent>
+
+        <TabsContent value="landing" className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -891,7 +913,7 @@ export function ExpertBookingTab() {
         </CardContent>
       </Card>
 
-      {/* Save Button */}
+      {/* Save Button for landing tab */}
       <div className="flex justify-end gap-3">
         <Sheet>
           <SheetTrigger asChild>
@@ -918,7 +940,7 @@ export function ExpertBookingTab() {
           ) : (
             <>
               <Save className="h-4 w-4 mr-2" />
-              Enregistrer tous les paramètres
+              Enregistrer
             </>
           )}
         </Button>
