@@ -176,14 +176,14 @@ export default function ExpertBookingLanding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-white">
       <PageMeta title="Rendez-vous expert financier" description="Prenez rendez-vous avec un expert certifié MyFinCare pour un accompagnement financier personnalisé et confidentiel." path="/rdv-expert" />
       {/* Back Button */}
       <div className="container max-w-6xl mx-auto px-4 pt-6">
         <Button
           variant="ghost"
           onClick={() => navigate("/employee")}
-          className="gap-2"
+          className="gap-2 text-slate-600 hover:text-slate-900"
         >
           <ArrowLeft className="h-4 w-4" />
           Retour à mon espace
@@ -192,21 +192,21 @@ export default function ExpertBookingLanding() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50/50 to-white" />
         <div className="container max-w-6xl mx-auto px-4 py-16 md:py-24 relative">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               {/* Contextual message from booking_context_messages */}
               {contextMessage.dialog_description && (
-                <div className="rounded-lg bg-primary/10 border border-primary/20 p-4">
-                  <p className="text-sm font-medium text-primary">{contextMessage.dialog_title}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{contextMessage.dialog_description}</p>
+                <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
+                  <p className="text-sm font-medium text-blue-700">{contextMessage.dialog_title}</p>
+                  <p className="text-sm text-slate-600 mt-1">{contextMessage.dialog_description}</p>
                 </div>
               )}
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight hero-gradient">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
                 {settings?.hero_title}
               </h1>
-              <p className="text-xl text-muted-foreground">
+              <p className="text-xl text-slate-500">
                 {settings?.hero_subtitle}
               </p>
               {settings?.gallery_images && settings.gallery_images.length > 0 && (
@@ -231,7 +231,7 @@ export default function ExpertBookingLanding() {
                 </Button>
               </div>
               {settings?.cta_secondary_text && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-400">
                   {settings.cta_secondary_text}
                 </p>
               )}
@@ -251,22 +251,22 @@ export default function ExpertBookingLanding() {
 
       {/* Benefits Section */}
       {settings?.benefits && settings.benefits.length > 0 && (
-        <section className="py-16 md:py-24">
+        <section className="py-16 md:py-24 bg-slate-50/80">
           <div className="container max-w-6xl mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">
+            <h2 className="text-3xl font-bold text-center mb-12 text-slate-900">
               Pourquoi prendre rendez-vous ?
             </h2>
             <div className="grid md:grid-cols-3 gap-8">
               {settings.benefits.map((benefit, index) => {
                 const IconComponent = iconMap[benefit.icon] || CheckCircle;
                 return (
-                  <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                  <Card key={index} className="border border-slate-100 shadow-md hover:shadow-lg transition-shadow bg-white">
                     <CardContent className="p-6 text-center space-y-4">
-                      <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                        <IconComponent className="h-8 w-8 text-primary" />
+                      <div className="mx-auto w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
+                        <IconComponent className="h-8 w-8 text-blue-600" />
                       </div>
-                      <h3 className="text-xl font-semibold">{benefit.title}</h3>
-                      <p className="text-muted-foreground">{benefit.description}</p>
+                      <h3 className="text-xl font-semibold text-slate-900">{benefit.title}</h3>
+                      <p className="text-slate-500">{benefit.description}</p>
                     </CardContent>
                   </Card>
                 );
@@ -278,24 +278,24 @@ export default function ExpertBookingLanding() {
 
       {/* Expertises Section */}
       {settings?.expertises && settings.expertises.length > 0 && (
-        <section className="py-16 md:py-24 bg-muted/30">
+        <section className="py-16 md:py-24 bg-white">
           <div className="container max-w-6xl mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-4">
+            <h2 className="text-3xl font-bold text-center mb-4 text-slate-900">
               Nos expertises
             </h2>
-            <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+            <p className="text-center text-slate-500 mb-12 max-w-2xl mx-auto">
               Des domaines de compétence variés pour répondre à tous vos besoins financiers
             </p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {settings.expertises.map((expertise, index) => {
                 const IconComponent = iconMap[expertise.icon] || CheckCircle;
                 return (
-                  <div key={index} className="group flex flex-col items-center text-center p-6 rounded-xl bg-background border border-border/50 shadow-sm hover:shadow-md hover:border-primary/30 transition-all">
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                      <IconComponent className="h-6 w-6 text-primary" />
+                  <div key={index} className="group flex flex-col items-center text-center p-6 rounded-xl bg-slate-50 border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all">
+                    <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
+                      <IconComponent className="h-6 w-6 text-blue-600" />
                     </div>
-                    <h3 className="font-semibold mb-2">{expertise.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{expertise.description}</p>
+                    <h3 className="font-semibold mb-2 text-slate-900">{expertise.title}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">{expertise.description}</p>
                   </div>
                 );
               })}
@@ -306,24 +306,24 @@ export default function ExpertBookingLanding() {
 
       {/* Testimonial Section */}
       {settings?.testimonial_enabled && settings.testimonial_text && (
-        <section className="py-16 bg-muted/50">
+        <section className="py-16 bg-blue-50/50">
           <div className="container max-w-4xl mx-auto px-4">
-            <Card className="border-0 shadow-lg">
+            <Card className="border border-blue-100 shadow-md bg-white">
               <CardContent className="p-8 md:p-12">
-                <Quote className="h-12 w-12 text-primary/30 mb-6" />
-                <blockquote className="text-xl md:text-2xl text-foreground mb-6 leading-relaxed">
+                <Quote className="h-12 w-12 text-blue-200 mb-6" />
+                <blockquote className="text-xl md:text-2xl text-slate-700 mb-6 leading-relaxed">
                   "{settings.testimonial_text}"
                 </blockquote>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                    <span className="text-lg font-semibold text-primary">
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span className="text-lg font-semibold text-blue-600">
                       {settings.testimonial_author?.charAt(0) || "?"}
                     </span>
                   </div>
                   <div>
-                    <p className="font-semibold">{settings.testimonial_author}</p>
+                    <p className="font-semibold text-slate-900">{settings.testimonial_author}</p>
                     {settings.testimonial_role && (
-                      <p className="text-sm text-muted-foreground">{settings.testimonial_role}</p>
+                      <p className="text-sm text-slate-500">{settings.testimonial_role}</p>
                     )}
                   </div>
                 </div>
@@ -335,13 +335,13 @@ export default function ExpertBookingLanding() {
 
       {/* Gallery Section */}
       {settings?.gallery_images && settings.gallery_images.length > 0 && (
-        <section className="py-16 bg-muted/50 dark:bg-muted/40 rounded-xl mx-4">
+        <section className="py-16 bg-slate-50 rounded-xl mx-4">
           <div className="container max-w-6xl mx-auto px-4">
             {settings.gallery_title && (
-              <h2 className="text-3xl font-bold text-center mb-4">{settings.gallery_title}</h2>
+              <h2 className="text-3xl font-bold text-center mb-4 text-slate-900">{settings.gallery_title}</h2>
             )}
             {settings.gallery_subtitle && (
-              <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">{settings.gallery_subtitle}</p>
+              <p className="text-center text-slate-500 mb-12 max-w-2xl mx-auto">{settings.gallery_subtitle}</p>
             )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {settings.gallery_images.map((image) => (
@@ -354,7 +354,7 @@ export default function ExpertBookingLanding() {
                     />
                   </div>
                   {image.caption && (
-                    <p className="text-sm text-center text-muted-foreground">{image.caption}</p>
+                    <p className="text-sm text-center text-slate-500">{image.caption}</p>
                   )}
                 </div>
               ))}
@@ -364,10 +364,10 @@ export default function ExpertBookingLanding() {
       )}
 
       {/* CTA Section */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-white">
         <div className="container max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Prêt à démarrer ?</h2>
-          <p className="text-xl text-muted-foreground mb-8">
+          <h2 className="text-3xl font-bold mb-6 text-slate-900">Prêt à démarrer ?</h2>
+          <p className="text-xl text-slate-500 mb-8">
             Réservez votre créneau dès maintenant et bénéficiez d'un accompagnement personnalisé.
           </p>
           <Button asChild size="lg">
@@ -377,7 +377,7 @@ export default function ExpertBookingLanding() {
             </a>
           </Button>
           {settings?.footer_text && (
-            <p className="mt-6 text-sm text-muted-foreground">
+            <p className="mt-6 text-sm text-slate-400">
               {settings.footer_text}
             </p>
           )}
