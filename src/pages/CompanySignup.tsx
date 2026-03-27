@@ -209,7 +209,7 @@ const CompanySignup = () => {
       }
 
       // Sign in
-      const { error: loginError } = await supabase.auth.signInWithPassword({
+      const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
@@ -223,7 +223,12 @@ const CompanySignup = () => {
 
       // Send verification email right after signup
       try {
-        await supabase.functions.invoke("send-verification-email");
+        await supabase.functions.invoke(
+          "send-verification-email",
+          loginData.session?.access_token
+            ? { headers: { Authorization: `Bearer ${loginData.session.access_token}` } }
+            : undefined
+        );
       } catch (e) {
         console.error("Failed to send verification email at signup:", e);
       }

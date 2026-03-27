@@ -321,9 +321,32 @@ export function DynamicOnboardingRenderer({ flowId = 'tax-onboarding' }: Dynamic
     navigateToDestination();
   };
 
+  const sendVerificationEmailForEmployeeOnboarding = async () => {
+    if (!user || flowId !== 'employee-onboarding' || isPreviewMode) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      await supabase.functions.invoke(
+        "send-verification-email",
+        session?.access_token
+          ? { headers: { Authorization: `Bearer ${session.access_token}` } }
+          : undefined
+      );
+    } catch (error) {
+      console.error('Failed to send verification email at onboarding completion:', error);
+    }
+  };
+
   // Helper function to navigate to the final destination
   const navigateToDestination = async () => {
     let internalUrl = currentScreen?.metadata?.redirectInternalUrl || '/login';
+
+    const isInvitationFlow = !!searchParams.get('invitation') || !!sessionStorage.getItem(INVITATION_TOKEN_KEY);
+
+    if (flowId === 'employee-onboarding' && user && !isPreviewMode && !isInvitationFlow) {
+      await sendVerificationEmailForEmployeeOnboarding();
+      internalUrl = '/verify-email';
+    }
     
     // If there are invitation params stored, append them to the signup URL
     const invitationToken = sessionStorage.getItem(INVITATION_TOKEN_KEY);
