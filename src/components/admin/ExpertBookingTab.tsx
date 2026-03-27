@@ -649,7 +649,25 @@ export function ExpertBookingTab() {
         </CardContent>
       </Card>
 
-      {/* Landing Page Section */}
+      {/* Save Button for config tab */}
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={saving} size="lg">
+          {saving ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Enregistrement...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Enregistrer
+            </>
+          )}
+        </Button>
+      </div>
+        </TabsContent>
+
+        <TabsContent value="landing" className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
