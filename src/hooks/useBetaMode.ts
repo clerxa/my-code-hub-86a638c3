@@ -82,5 +82,6 @@ export function useBetaMode() {
     isBetaMode: data?.enabled ?? false,
     lockedModules: data?.locked_modules ?? [],
     isModuleLocked,
+    isLoading,
   };
 }
