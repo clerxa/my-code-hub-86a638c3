@@ -122,6 +122,26 @@ export default function Employee() {
       navigate("/login");
       return;
     }
+    // Check email verification before loading profile
+    const checkEmailVerified = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("email_verified, onboarding_completed")
+        .eq("id", user.id)
+        .single();
+      if (!(data as any)?.onboarding_completed) {
+        navigate("/employee/onboarding-flow", { replace: true });
+        return;
+      }
+      if (!(data as any)?.email_verified) {
+        navigate("/verify-email", { replace: true });
+        return;
+      }
+    };
+    if (!viewingUserId) {
+      checkEmailVerified();
+    }
     fetchProfile();
   }, [user, viewingUserId, navigate]);
   const fetchProfile = async () => {
