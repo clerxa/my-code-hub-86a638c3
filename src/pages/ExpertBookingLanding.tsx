@@ -6,9 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Target, TrendingUp, Shield, Star, CheckCircle, ArrowRight, Quote, Clock, Users, Award, Zap, Heart, Lightbulb, Gift, Trophy, ThumbsUp, MessageCircle, Calendar, Briefcase, Rocket, Smile, Eye, ArrowLeft, Euro, Home, Calculator, Compass, BookOpen, Landmark, PiggyBank, Scale, FileText, HandCoins, Building, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRdvLink } from "@/hooks/useRdvLink";
-import { HubSpotMeetingWidget } from "@/components/HubSpotMeetingWidget";
 import { useAuth } from "@/components/AuthProvider";
-import { useBookingReferrer, getStoredUtmCampaignFull } from "@/hooks/useBookingReferrer";
+import { useBookingReferrer, getStoredUtmCampaignFull, appendUtmParams } from "@/hooks/useBookingReferrer";
 import { useEventTracking } from "@/hooks/useEventTracking";
 import { useBookingContextMessage } from "@/hooks/useBookingContextMessage";
 
