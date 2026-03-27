@@ -182,6 +182,13 @@ export default function ExpertBookingLanding() {
         <div className="container max-w-6xl mx-auto px-4 py-16 md:py-24 relative">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
+              {/* Contextual message from booking_context_messages */}
+              {contextMessage.dialog_description && (
+                <div className="rounded-lg bg-primary/10 border border-primary/20 p-4">
+                  <p className="text-sm font-medium text-primary">{contextMessage.dialog_title}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{contextMessage.dialog_description}</p>
+                </div>
+              )}
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight hero-gradient">
                 {settings?.hero_title}
               </h1>
