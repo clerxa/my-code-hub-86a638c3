@@ -268,22 +268,11 @@ export const RiskProfileResults = ({ profile, onRetake }: RiskProfileResultsProp
           Refaire le questionnaire
         </Button>
         
-        {expertBookingEmbed ? (
-          <HubSpotMeetingWidget
-            embedCode={expertBookingEmbed}
-            fallbackUrl={expertBookingFallback || undefined}
-            primaryColor={primaryColor || undefined}
-            triggerText="Prendre RDV avec un expert"
-            utmCampaign="profil_risque"
-          />
-        ) : expertBookingFallback ? (
-          <Button asChild>
-            <a href={appendUtmParams(expertBookingFallback, 'profil_risque')} target="_blank" rel="noopener noreferrer">
-              <Calendar className="h-4 w-4 mr-2" />
-              Prendre RDV avec un expert
-            </a>
-          </Button>
-        ) : null}
+        <HubSpotMeetingWidget
+          primaryColor={primaryColor || undefined}
+          triggerText="Prendre RDV avec un expert"
+          utmCampaign="profil_risque"
+        />
       </div>
     </div>
   );

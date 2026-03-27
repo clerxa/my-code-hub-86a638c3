@@ -96,8 +96,6 @@ export function DiagnosticResults({ config, sectionScores, scorePercent, totalSc
               return (
                 <div className="mt-2">
                   <HubSpotMeetingWidget
-                    embedCode={embedCode || undefined}
-                    fallbackUrl={fallbackUrl || undefined}
                     triggerText={result.ctaText}
                     utmCampaign="diagnostic"
                   />
