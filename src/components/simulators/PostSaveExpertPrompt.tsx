@@ -1,10 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Sparkles, X, TrendingUp, Shield, Target, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/components/AuthProvider";
-import { useRdvLink } from "@/hooks/useRdvLink";
 import { useNavigate } from "react-router-dom";
+import { setBookingReferrer } from "@/hooks/useBookingReferrer";
 
 interface PostSaveExpertPromptProps {
   open: boolean;
