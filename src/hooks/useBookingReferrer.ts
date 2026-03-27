@@ -12,6 +12,17 @@ const PATH_LABELS: Record<string, string> = {
   "/forum": "Forum",
   "/expert-booking": "Accès direct",
   "/rdv-expert": "Accès direct",
+  "/simulateur-per": "Simulateur PER",
+  "/simulateur-epargne-precaution": "Simulateur Épargne de précaution",
+  "/simulateur-capacite-emprunt": "Simulateur Capacité d'emprunt",
+  "/simulateur-pret-immobilier": "Simulateur Prêt immobilier",
+  "/simulateur-impots": "Simulateur Impôts",
+  "/simulateur-interets-composes": "Simulateur Intérêts composés",
+  "/simulateur-lmnp": "Simulateur LMNP",
+  "/simulateur-pvi": "Simulateur PVI",
+  "/simulateur-gestion-pilotee": "Simulateur Gestion pilotée",
+  "/mes-plans-espp": "Simulateur ESPP",
+  "/optimisation-fiscale": "Optimisation fiscale",
 };
 
 // Mapping of paths to UTM campaign values (short, URL-safe)
@@ -24,6 +35,17 @@ const PATH_UTM_CAMPAIGNS: Record<string, string> = {
   "/forum": "forum",
   "/expert-booking": "acces_direct",
   "/rdv-expert": "acces_direct",
+  "/simulateur-per": "simulateur_per",
+  "/simulateur-epargne-precaution": "simulateur_epargne_precaution",
+  "/simulateur-capacite-emprunt": "simulateur_capacite_emprunt",
+  "/simulateur-pret-immobilier": "simulateur_pret_immobilier",
+  "/simulateur-impots": "simulateur_impots",
+  "/simulateur-interets-composes": "simulateur_interets_composes",
+  "/simulateur-lmnp": "simulateur_lmnp",
+  "/simulateur-pvi": "simulateur_pvi",
+  "/simulateur-gestion-pilotee": "simulateur_gestion_pilotee",
+  "/mes-plans-espp": "simulateur_espp",
+  "/optimisation-fiscale": "optimisation_fiscale",
 };
 
 // Match module paths like /modules/123
