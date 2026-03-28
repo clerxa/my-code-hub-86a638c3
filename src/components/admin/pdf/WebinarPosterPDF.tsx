@@ -6,6 +6,7 @@ import {
   Image,
   StyleSheet,
 } from "@react-pdf/renderer";
+import { htmlToPdfElements } from "./htmlToPdfElements";
 
 const c = {
   purple: "#6B3FA0",
