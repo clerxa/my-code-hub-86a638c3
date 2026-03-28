@@ -61,6 +61,13 @@ export const WebinarPosterPreview = ({
     }
   }, [initialInvitationText]);
 
+  // Sync description from props
+  useEffect(() => {
+    if (cleanDescription) {
+      setDescriptionText(cleanDescription);
+    }
+  }, [cleanDescription]);
+
   // Clean title and description from HTML
   const cleanTitle = stripHtmlTags(webinarTitle);
   const cleanDescription = stripHtmlTags(webinarDescription);
