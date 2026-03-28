@@ -349,7 +349,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
       const article = getPartnershipArticle(partnershipType);
       return `${article} ${partnershipType} de ${companyName}`;
     }
-    return `L'équipe ${companyName || "FinCare"}`;
+    return `L'équipe ${companyName || "Perlib"}`;
   };
 
   // Calculate days until webinar from today
@@ -610,7 +610,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
           </div>
 
           {/* Échéances - hidden for affiche type */}
-          {communicationType !== "affiche" && (
+          {communicationType !== "affiche" && communicationType !== "intranet" && communicationType !== "qrcode" && (
             <>
               <div className="space-y-2">
                 <Label>Échéances de communication *</Label>
