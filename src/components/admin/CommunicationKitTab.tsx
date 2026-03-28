@@ -502,6 +502,9 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
   };
 
   const getDeadlineLabel = (deadline: string) => {
+    if (deadline === "article") {
+      return "Article Intranet";
+    }
     if (deadline === "today") {
       const session = getSelectedSession();
       if (session?.session_date) {
