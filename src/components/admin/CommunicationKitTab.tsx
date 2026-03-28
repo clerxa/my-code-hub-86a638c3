@@ -442,18 +442,21 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
 
     const newContent: Record<string, string> = {};
     
+    // For intranet, use a single "article" key instead of deadlines
+    const effectiveDeadlines = communicationType === "intranet" ? ["article"] : selectedDeadlines;
+
     // Check for custom templates in database first
     const { data: customTemplates } = await supabase
       .from("communication_templates")
       .select("*")
       .eq("communication_type", communicationType)
-      .in("deadline", selectedDeadlines)
+      .in("deadline", effectiveDeadlines)
       .eq("is_active", true);
 
     // Import du template generator
     const { getTemplate, processTemplate } = await import("@/lib/communicationTemplates");
     
-    selectedDeadlines.forEach((deadline) => {
+    effectiveDeadlines.forEach((deadline) => {
       // Check if there's a custom template for this deadline
       const customTemplate = customTemplates?.find(t => t.deadline === deadline);
       
