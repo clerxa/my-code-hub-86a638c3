@@ -52,6 +52,10 @@ export const WebinarPosterPreview = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
+  // Clean title and description from HTML
+  const cleanTitle = stripHtmlTags(webinarTitle);
+  const cleanDescription = stripHtmlTags(webinarDescription);
+
   // Sync invitation text from props
   useEffect(() => {
     if (initialInvitationText) {
@@ -67,10 +71,6 @@ export const WebinarPosterPreview = ({
       setDescriptionText(cleanDescription);
     }
   }, [cleanDescription]);
-
-  // Clean title and description from HTML
-  const cleanTitle = stripHtmlTags(webinarTitle);
-  const cleanDescription = stripHtmlTags(webinarDescription);
 
   // Parse date
   const parsedDate = webinarDate ? new Date(webinarDate) : null;
