@@ -723,6 +723,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
               registrationUrl={getSelectedSession()?.registration_url || ""}
               bookingUrl={getBookingUrlForCompany(companies.find(c => c.id === effectiveCompanyId))}
               companyName={customFields.companyName}
+              invitationText={generateSignature()}
             />
           )}
 
