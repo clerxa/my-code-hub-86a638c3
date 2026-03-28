@@ -219,7 +219,7 @@ export const CommunicationTemplatesEditor = () => {
 
           {/* Type selection */}
           <Tabs value={selectedType} onValueChange={setSelectedType}>
-            <TabsList className="grid grid-cols-4 w-full">
+            <TabsList className="grid grid-cols-2 w-full">
               {communicationTypes.map(type => {
                 const Icon = type.icon;
                 return (
@@ -233,21 +233,24 @@ export const CommunicationTemplatesEditor = () => {
 
             {communicationTypes.map(type => (
               <TabsContent key={type.value} value={type.value} className="space-y-4 mt-4">
-                {/* Deadline selection */}
-                <div className="space-y-2">
-                  <Label>Échéance</Label>
-                  <Select value={selectedDeadline} onValueChange={setSelectedDeadline}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une échéance" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {deadlines.map(d => (
-                        <SelectItem key={d.value} value={d.value}>
-                          {d.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                {/* Deadline selection - only for email */}
+                {!isArticleType && (
+                  <div className="space-y-2">
+                    <Label>Échéance</Label>
+                    <Select value={selectedDeadline} onValueChange={setSelectedDeadline}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une échéance" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {deadlines.map(d => (
+                          <SelectItem key={d.value} value={d.value}>
+                            {d.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 </div>
 
                 {/* Editor and Preview */}
