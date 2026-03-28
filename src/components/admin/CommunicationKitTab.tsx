@@ -608,41 +608,45 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
             </div>
           </div>
 
-          {/* Échéances */}
-          <div className="space-y-2">
-            <Label>Échéances de communication *</Label>
-            <div className="space-y-2">
-              {deadlines.map((deadline) => (
-                <div key={deadline.value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={deadline.value}
-                    checked={selectedDeadlines.includes(deadline.value)}
-                    onCheckedChange={() => handleDeadlineToggle(deadline.value)}
-                  />
-                  <Label htmlFor={deadline.value} className="cursor-pointer">
-                    {deadline.label}
-                  </Label>
+          {/* Échéances - hidden for affiche type */}
+          {communicationType !== "affiche" && (
+            <>
+              <div className="space-y-2">
+                <Label>Échéances de communication *</Label>
+                <div className="space-y-2">
+                  {deadlines.map((deadline) => (
+                    <div key={deadline.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={deadline.value}
+                        checked={selectedDeadlines.includes(deadline.value)}
+                        onCheckedChange={() => handleDeadlineToggle(deadline.value)}
+                      />
+                      <Label htmlFor={deadline.value} className="cursor-pointer">
+                        {deadline.label}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* Info sur la date du jour si sélectionnée */}
-          {selectedDeadlines.includes("today") && selectedSession && (
-            <div className="bg-muted p-3 rounded-md flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">
-                {(() => {
-                  const session = getSelectedSession();
-                  if (session?.session_date) {
-                    const daysInfo = calculateDaysUntilWebinar(session.session_date);
-                    const today = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-                    return `Aujourd'hui (${today}) = ${daysInfo.label} avant le webinar`;
-                  }
-                  return "Sélectionnez une session pour voir l'échéance calculée";
-                })()}
-              </span>
-            </div>
+              {/* Info sur la date du jour si sélectionnée */}
+              {selectedDeadlines.includes("today") && selectedSession && (
+                <div className="bg-muted p-3 rounded-md flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">
+                    {(() => {
+                      const session = getSelectedSession();
+                      if (session?.session_date) {
+                        const daysInfo = calculateDaysUntilWebinar(session.session_date);
+                        const today = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+                        return `Aujourd'hui (${today}) = ${daysInfo.label} avant le webinar`;
+                      }
+                      return "Sélectionnez une session pour voir l'échéance calculée";
+                    })()}
+                  </span>
+                </div>
+              )}
+            </>
           )}
 
           {/* Champs personnalisables */}
@@ -710,16 +714,30 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
             </div>
           </div>
 
-          {/* Bouton de génération */}
-          <Button
-            onClick={generateContent}
-            disabled={!selectedModule || !selectedSession || !effectiveCompanyId || selectedDeadlines.length === 0}
-            className="w-full"
-            size="lg"
-          >
-            <Wand2 className="mr-2 h-4 w-4" />
-            Générer les communications
-          </Button>
+          {/* Poster preview for affiche type */}
+          {communicationType === "affiche" && selectedModule && selectedSession && effectiveCompanyId && (
+            <WebinarPosterPreview
+              webinarTitle={modules.find(m => m.id.toString() === selectedModule)?.title || ""}
+              webinarDate={getSelectedSession()?.session_date || ""}
+              webinarDescription={modules.find(m => m.id.toString() === selectedModule)?.description || ""}
+              registrationUrl={getSelectedSession()?.registration_url || ""}
+              bookingUrl={getBookingUrlForCompany(companies.find(c => c.id === effectiveCompanyId))}
+              companyName={customFields.companyName}
+            />
+          )}
+
+          {/* Bouton de génération - hidden for affiche type */}
+          {communicationType !== "affiche" && (
+            <Button
+              onClick={generateContent}
+              disabled={!selectedModule || !selectedSession || !effectiveCompanyId || selectedDeadlines.length === 0}
+              className="w-full"
+              size="lg"
+            >
+              <Wand2 className="mr-2 h-4 w-4" />
+              Générer les communications
+            </Button>
+          )}
         </CardContent>
       </Card>
 
