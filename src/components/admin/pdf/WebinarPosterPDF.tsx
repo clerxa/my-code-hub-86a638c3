@@ -314,7 +314,9 @@ export const WebinarPosterPDF = ({
               <Text style={styles.sectionLabel}>DESCRIPTION</Text>
             </View>
             <View style={styles.sectionLine} />
-            <Text style={styles.desc}>{description}</Text>
+            <View style={{ paddingLeft: 14 }}>
+              {htmlToPdfElements(description, styles.desc)}
+            </View>
           </View>
 
           {/* Programme */}
