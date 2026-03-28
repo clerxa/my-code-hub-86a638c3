@@ -8,15 +8,17 @@ import {
 } from "@react-pdf/renderer";
 
 const colors = {
-  primary: "#6B3FA0",       // Purple from the reference
+  primary: "#6B3FA0",
+  primaryDark: "#4A2D6F",
   primaryLight: "#8B6BBF",
-  secondary: "#E8B931",     // Gold/yellow accent
+  secondary: "#E8B931",
   secondaryLight: "#F5D76E",
   bg: "#FFFFFF",
   textDark: "#1a1a2e",
-  textMuted: "#555555",
+  textMuted: "#666666",
   sectionBg: "#F8F5FC",
   accent: "#3B7DD8",
+  cardBorder: "#E8E0F0",
 };
 
 const styles = StyleSheet.create({
@@ -27,165 +29,243 @@ const styles = StyleSheet.create({
     position: "relative",
     padding: 0,
   },
-  // Top banner
-  topBanner: {
-    backgroundColor: colors.primary,
-    paddingTop: 32,
-    paddingBottom: 28,
-    paddingHorizontal: 40,
+  // Header area
+  headerArea: {
     position: "relative",
+    paddingTop: 36,
+    paddingBottom: 24,
+    paddingHorizontal: 40,
+    backgroundColor: colors.primary,
   },
-  topBannerLabel: {
-    fontSize: 11,
+  headerDecorCircle1: {
+    position: "absolute",
+    top: -30,
+    right: -20,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: colors.primaryLight,
+    opacity: 0.2,
+  },
+  headerDecorCircle2: {
+    position: "absolute",
+    bottom: -15,
+    left: 30,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.secondary,
+    opacity: 0.15,
+  },
+  headerLabel: {
+    fontSize: 10,
+    color: colors.secondary,
+    fontFamily: "Helvetica-Bold",
+    letterSpacing: 4,
+    marginBottom: 10,
+  },
+  headerTitle: {
+    fontSize: 24,
     color: "#FFFFFF",
     fontFamily: "Helvetica-Bold",
-    letterSpacing: 3,
-    textTransform: "uppercase" as any,
-    opacity: 0.85,
-    marginBottom: 8,
+    lineHeight: 1.25,
+    maxLines: 3,
   },
-  topBannerTitle: {
-    fontSize: 28,
-    color: "#FFFFFF",
-    fontFamily: "Helvetica-Bold",
-    lineHeight: 1.2,
+  // Invitation text
+  invitationBar: {
+    backgroundColor: colors.sectionBg,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.cardBorder,
+  },
+  invitationText: {
+    fontSize: 10,
+    color: colors.primary,
+    fontFamily: "Helvetica-Oblique",
+    textAlign: "center",
   },
   // Accent stripe
   accentStripe: {
-    height: 5,
+    height: 4,
+    flexDirection: "row",
+  },
+  accentStripePart1: {
+    flex: 3,
     backgroundColor: colors.secondary,
   },
-  // Content area
+  accentStripePart2: {
+    flex: 1,
+    backgroundColor: colors.primaryLight,
+  },
+  // Content
   contentArea: {
     paddingHorizontal: 40,
-    paddingTop: 24,
+    paddingTop: 22,
     flex: 1,
   },
-  // Date/time section
-  dateSection: {
+  // Date card
+  dateCard: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
-    backgroundColor: colors.sectionBg,
-    borderRadius: 8,
+    marginBottom: 18,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
     padding: 14,
-    borderLeftWidth: 4,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+    borderLeftWidth: 5,
     borderLeftColor: colors.secondary,
   },
-  dateIcon: {
-    fontSize: 22,
-    marginRight: 12,
+  dateIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: colors.secondary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
   },
-  dateText: {
-    fontSize: 16,
+  dateIconText: {
+    fontSize: 18,
     fontFamily: "Helvetica-Bold",
-    color: colors.primary,
+    color: colors.primaryDark,
+  },
+  dateMainText: {
+    fontSize: 14,
+    fontFamily: "Helvetica-Bold",
+    color: colors.textDark,
   },
   dateSubText: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.textMuted,
     marginTop: 2,
   },
-  // Theme section
-  themeSection: {
-    marginBottom: 20,
+  // Section styles
+  sectionContainer: {
+    marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontFamily: "Helvetica-Bold",
-    color: colors.primary,
-    textTransform: "uppercase" as any,
-    letterSpacing: 1.5,
-    marginBottom: 8,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.secondary,
-    paddingBottom: 4,
-  },
-  themeDescription: {
-    fontSize: 11,
-    color: colors.textDark,
-    lineHeight: 1.6,
-  },
-  // Program section
-  programSection: {
-    marginBottom: 24,
-  },
-  programItem: {
+  sectionHeader: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 6,
-    paddingLeft: 4,
+    alignItems: "center",
+    marginBottom: 8,
   },
-  programBullet: {
+  sectionDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: colors.secondary,
+    marginRight: 8,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontFamily: "Helvetica-Bold",
+    color: colors.primary,
+    letterSpacing: 1,
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: colors.cardBorder,
+    marginBottom: 8,
+  },
+  themeDescription: {
+    fontSize: 10,
+    color: colors.textDark,
+    lineHeight: 1.6,
+    paddingLeft: 16,
+  },
+  // Program items
+  programItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 5,
+    paddingLeft: 16,
+  },
+  programNumber: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 10,
-    marginTop: 3,
+    marginTop: 1,
+  },
+  programNumberText: {
+    fontSize: 8,
+    color: "#FFFFFF",
+    fontFamily: "Helvetica-Bold",
   },
   programText: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.textDark,
     lineHeight: 1.5,
     flex: 1,
   },
-  // QR codes section
+  // QR section
   qrSection: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 8,
-    marginBottom: 16,
-    gap: 20,
+    justifyContent: "center",
+    gap: 24,
+    marginTop: 10,
+    marginBottom: 12,
   },
-  qrBlock: {
+  qrCard: {
     alignItems: "center",
-    flex: 1,
-    backgroundColor: colors.sectionBg,
-    borderRadius: 10,
-    padding: 16,
+    width: 180,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
   },
   qrImage: {
-    width: 110,
-    height: 110,
+    width: 100,
+    height: 100,
     marginBottom: 8,
   },
   qrLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: "Helvetica-Bold",
     color: colors.primary,
     textAlign: "center",
-    marginBottom: 3,
+    marginBottom: 2,
   },
   qrSubLabel: {
-    fontSize: 8,
+    fontSize: 7,
     color: colors.textMuted,
     textAlign: "center",
   },
+  qrAccent: {
+    width: 30,
+    height: 3,
+    borderRadius: 2,
+    marginBottom: 8,
+  },
   // Footer
   footer: {
-    backgroundColor: colors.primary,
-    paddingVertical: 14,
+    backgroundColor: colors.primaryDark,
+    paddingVertical: 12,
     paddingHorizontal: 40,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   footerText: {
-    fontSize: 9,
+    fontSize: 8,
     color: "#FFFFFF",
     opacity: 0.9,
   },
   footerLogo: {
-    width: 60,
-    height: 20,
+    width: 55,
+    height: 18,
     objectFit: "contain" as any,
   },
-  // Powered by
   poweredBy: {
-    fontSize: 8,
+    fontSize: 7,
     color: "#FFFFFF",
-    opacity: 0.7,
+    opacity: 0.6,
+    marginTop: 2,
   },
 });
 
@@ -199,6 +279,7 @@ interface WebinarPosterPDFProps {
   bookingQrCode: string;
   companyName: string;
   logoDataUrl?: string;
+  invitationText?: string;
 }
 
 export const WebinarPosterPDF = ({
@@ -211,77 +292,111 @@ export const WebinarPosterPDF = ({
   bookingQrCode,
   companyName,
   logoDataUrl,
-}: WebinarPosterPDFProps) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      {/* Top Banner */}
-      <View style={styles.topBanner}>
-        <Text style={styles.topBannerLabel}>WEBINAR</Text>
-        <Text style={styles.topBannerTitle}>{title}</Text>
-      </View>
+  invitationText,
+}: WebinarPosterPDFProps) => {
+  // Extract day number for the date icon
+  const dayMatch = date.match(/(\d{1,2})/);
+  const dayNumber = dayMatch ? dayMatch[1] : "?";
 
-      {/* Accent stripe */}
-      <View style={styles.accentStripe} />
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.headerArea}>
+          <View style={styles.headerDecorCircle1} />
+          <View style={styles.headerDecorCircle2} />
+          <Text style={styles.headerLabel}>WEBINAR</Text>
+          <Text style={styles.headerTitle}>{title}</Text>
+        </View>
 
-      {/* Content */}
-      <View style={styles.contentArea}>
-        {/* Date & Time */}
-        <View style={styles.dateSection}>
-          <View>
-            <Text style={styles.dateText}>{date}</Text>
-            <Text style={styles.dateSubText}>{time}</Text>
+        {/* Accent stripe */}
+        <View style={styles.accentStripe}>
+          <View style={styles.accentStripePart1} />
+          <View style={styles.accentStripePart2} />
+        </View>
+
+        {/* Invitation text */}
+        {invitationText && (
+          <View style={styles.invitationBar}>
+            <Text style={styles.invitationText}>{invitationText}</Text>
           </View>
-        </View>
+        )}
 
-        {/* Theme */}
-        <View style={styles.themeSection}>
-          <Text style={styles.sectionTitle}>Thème</Text>
-          <Text style={styles.themeDescription}>{description}</Text>
-        </View>
+        {/* Content */}
+        <View style={styles.contentArea}>
+          {/* Date card */}
+          <View style={styles.dateCard}>
+            <View style={styles.dateIconBox}>
+              <Text style={styles.dateIconText}>{dayNumber}</Text>
+            </View>
+            <View>
+              <Text style={styles.dateMainText}>{date}</Text>
+              {time ? <Text style={styles.dateSubText}>{time}</Text> : null}
+            </View>
+          </View>
 
-        {/* Programme */}
-        {program.length > 0 && (
-          <View style={styles.programSection}>
-            <Text style={styles.sectionTitle}>Au programme</Text>
-            {program.map((item, index) => (
-              <View key={index} style={styles.programItem}>
-                <View style={styles.programBullet} />
-                <Text style={styles.programText}>{item}</Text>
+          {/* Theme */}
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionDot} />
+              <Text style={styles.sectionTitle}>THÈME</Text>
+            </View>
+            <View style={styles.sectionDivider} />
+            <Text style={styles.themeDescription}>{description}</Text>
+          </View>
+
+          {/* Programme */}
+          {program.length > 0 && (
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionDot} />
+                <Text style={styles.sectionTitle}>AU PROGRAMME</Text>
               </View>
-            ))}
-          </View>
-        )}
+              <View style={styles.sectionDivider} />
+              {program.map((item, index) => (
+                <View key={index} style={styles.programItem}>
+                  <View style={styles.programNumber}>
+                    <Text style={styles.programNumberText}>{index + 1}</Text>
+                  </View>
+                  <Text style={styles.programText}>{item}</Text>
+                </View>
+              ))}
+            </View>
+          )}
 
-        {/* QR Codes */}
-        <View style={styles.qrSection}>
-          <View style={styles.qrBlock}>
-            {registrationQrCode && (
-              <Image style={styles.qrImage} src={registrationQrCode} />
-            )}
-            <Text style={styles.qrLabel}>S'inscrire au webinar</Text>
-            <Text style={styles.qrSubLabel}>Scannez pour vous inscrire</Text>
-          </View>
+          {/* QR Codes */}
+          <View style={styles.qrSection}>
+            <View style={styles.qrCard}>
+              <View style={[styles.qrAccent, { backgroundColor: colors.primary }]} />
+              {registrationQrCode && (
+                <Image style={styles.qrImage} src={registrationQrCode} />
+              )}
+              <Text style={styles.qrLabel}>S'inscrire au webinar</Text>
+              <Text style={styles.qrSubLabel}>Scannez pour vous inscrire</Text>
+            </View>
 
-          <View style={styles.qrBlock}>
-            {bookingQrCode && (
-              <Image style={styles.qrImage} src={bookingQrCode} />
-            )}
-            <Text style={styles.qrLabel}>Prendre rendez-vous</Text>
-            <Text style={styles.qrSubLabel}>Avec un conseiller FinCare</Text>
+            <View style={styles.qrCard}>
+              <View style={[styles.qrAccent, { backgroundColor: colors.accent }]} />
+              {bookingQrCode && (
+                <Image style={styles.qrImage} src={bookingQrCode} />
+              )}
+              <Text style={styles.qrLabel}>Prendre rendez-vous</Text>
+              <Text style={styles.qrSubLabel}>Avec un conseiller FinCare</Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <View>
-          <Text style={styles.footerText}>{companyName}</Text>
-          <Text style={styles.poweredBy}>Propulsé par FinCare</Text>
+        {/* Footer */}
+        <View style={styles.footer}>
+          <View>
+            <Text style={styles.footerText}>{companyName}</Text>
+            <Text style={styles.poweredBy}>Propulsé par FinCare</Text>
+          </View>
+          {logoDataUrl && (
+            <Image style={styles.footerLogo} src={logoDataUrl} />
+          )}
         </View>
-        {logoDataUrl && (
-          <Image style={styles.footerLogo} src={logoDataUrl} />
-        )}
-      </View>
-    </Page>
-  </Document>
-);
+      </Page>
+    </Document>
+  );
+};

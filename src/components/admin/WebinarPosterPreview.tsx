@@ -4,11 +4,20 @@ import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Download, Eye, Loader2, FileImage } from "lucide-react";
 import { WebinarPosterPDF } from "./pdf/WebinarPosterPDF";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import myfincareLogoSrc from "@/assets/logo.png";
+
+/** Strip all HTML tags and decode entities */
+const stripHtmlTags = (html: string): string => {
+  if (!html) return "";
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return (tmp.textContent || tmp.innerText || "").trim();
+};
 
 interface WebinarPosterPreviewProps {
   webinarTitle: string;
@@ -17,6 +26,7 @@ interface WebinarPosterPreviewProps {
   registrationUrl: string;
   bookingUrl: string;
   companyName: string;
+  invitationText?: string;
 }
 
 export const WebinarPosterPreview = ({
@@ -26,13 +36,28 @@ export const WebinarPosterPreview = ({
   registrationUrl,
   bookingUrl,
   companyName,
+  invitationText: initialInvitationText,
 }: WebinarPosterPreviewProps) => {
   const [programText, setProgramText] = useState<string>("");
+  const [invitationText, setInvitationText] = useState<string>("");
   const [generating, setGenerating] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
-  // Parse date into formatted date and time
+  // Sync invitation text from props
+  useEffect(() => {
+    if (initialInvitationText) {
+      setInvitationText(
+        `${initialInvitationText} vous invite au prochain webinar dans le cadre du programme FinCare`
+      );
+    }
+  }, [initialInvitationText]);
+
+  // Clean title and description from HTML
+  const cleanTitle = stripHtmlTags(webinarTitle);
+  const cleanDescription = stripHtmlTags(webinarDescription);
+
+  // Parse date
   const parsedDate = webinarDate ? new Date(webinarDate) : null;
   const formattedDate = parsedDate
     ? parsedDate.toLocaleDateString("fr-FR", {
@@ -49,7 +74,6 @@ export const WebinarPosterPreview = ({
       })
     : "";
 
-  // Cleanup blob URL on unmount
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -59,7 +83,6 @@ export const WebinarPosterPreview = ({
   const generatePoster = async (download: boolean = false) => {
     setGenerating(true);
     try {
-      // Generate QR codes
       const [registrationQr, bookingQr] = await Promise.all([
         registrationUrl
           ? QRCode.toDataURL(registrationUrl, { width: 300, margin: 2, color: { dark: "#6B3FA0" } })
@@ -69,7 +92,6 @@ export const WebinarPosterPreview = ({
           : QRCode.toDataURL("https://myfincare.fr", { width: 300, margin: 2, color: { dark: "#3B7DD8" } }),
       ]);
 
-      // Convert logo to data URL
       const logoDataUrl = await imageToDataUrl(myfincareLogoSrc);
 
       const programItems = programText
@@ -79,15 +101,16 @@ export const WebinarPosterPreview = ({
 
       const blob = await pdf(
         <WebinarPosterPDF
-          title={webinarTitle}
+          title={cleanTitle}
           date={formattedDate}
           time={formattedTime}
-          description={webinarDescription}
+          description={cleanDescription}
           program={programItems}
           registrationQrCode={registrationQr}
           bookingQrCode={bookingQr}
           companyName={companyName}
           logoDataUrl={logoDataUrl}
+          invitationText={invitationText}
         />
       ).toBlob();
 
@@ -95,7 +118,7 @@ export const WebinarPosterPreview = ({
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `affiche-webinar-${webinarTitle.slice(0, 30).replace(/\s/g, "-")}.pdf`;
+        a.download = `affiche-webinar-${cleanTitle.slice(0, 30).replace(/\s/g, "-")}.pdf`;
         a.click();
         URL.revokeObjectURL(url);
       } else {
@@ -121,11 +144,11 @@ export const WebinarPosterPreview = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Summary of what will be on the poster */}
+          {/* Summary */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
             <div>
               <span className="font-medium text-muted-foreground">Webinar :</span>{" "}
-              <span className="font-semibold">{webinarTitle}</span>
+              <span className="font-semibold">{cleanTitle}</span>
             </div>
             <div>
               <span className="font-medium text-muted-foreground">Date :</span>{" "}
@@ -135,6 +158,17 @@ export const WebinarPosterPreview = ({
               <span className="font-medium text-muted-foreground">Entreprise :</span>{" "}
               <span className="font-semibold">{companyName}</span>
             </div>
+          </div>
+
+          {/* Editable invitation text */}
+          <div className="space-y-2">
+            <Label>Texte d'invitation</Label>
+            <Input
+              value={invitationText}
+              onChange={(e) => setInvitationText(e.target.value)}
+              placeholder="Ex: Le CSE de Perlib vous invite au prochain webinar..."
+              className="text-sm"
+            />
           </div>
 
           {/* Editable program */}
@@ -149,13 +183,13 @@ export const WebinarPosterPreview = ({
             />
           </div>
 
-          {/* QR code URLs info */}
+          {/* QR code URLs */}
           <div className="text-xs text-muted-foreground space-y-1">
             <p>🔗 <strong>QR inscription :</strong> {registrationUrl || "Non configuré"}</p>
             <p>🔗 <strong>QR rendez-vous :</strong> {bookingUrl || "Non configuré"}</p>
           </div>
 
-          {/* Action buttons */}
+          {/* Actions */}
           <div className="flex gap-3">
             <Button
               onClick={() => generatePoster(false)}
@@ -218,7 +252,6 @@ export const WebinarPosterPreview = ({
   );
 };
 
-// Helper to convert image import to data URL
 async function imageToDataUrl(src: string): Promise<string> {
   try {
     const response = await fetch(src);
