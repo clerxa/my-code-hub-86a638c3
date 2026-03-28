@@ -728,16 +728,33 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
             />
           )}
 
-          {/* Bouton de génération - hidden for affiche type */}
-          {communicationType !== "affiche" && (
+          {/* QR Code section */}
+          {communicationType === "qrcode" && selectedModule && selectedSession && effectiveCompanyId && (
+            <QRCodeSection
+              registrationUrl={getSelectedSession()?.registration_url || ""}
+              bookingUrl={getBookingUrlForCompany(companies.find(c => c.id === effectiveCompanyId))}
+              webinarTitle={modules.find(m => m.id.toString() === selectedModule)?.title || ""}
+            />
+          )}
+
+          {/* Blog image generation for intranet */}
+          {communicationType === "intranet" && selectedModule && selectedSession && (
+            <BlogImageGenerator
+              webinarTitle={modules.find(m => m.id.toString() === selectedModule)?.title || ""}
+              webinarDate={getSelectedSession()?.session_date || ""}
+            />
+          )}
+
+          {/* Bouton de génération - hidden for affiche and qrcode types */}
+          {communicationType !== "affiche" && communicationType !== "qrcode" && (
             <Button
               onClick={generateContent}
-              disabled={!selectedModule || !selectedSession || !effectiveCompanyId || selectedDeadlines.length === 0}
+              disabled={!selectedModule || !selectedSession || !effectiveCompanyId || (communicationType !== "intranet" && selectedDeadlines.length === 0)}
               className="w-full"
               size="lg"
             >
               <Wand2 className="mr-2 h-4 w-4" />
-              Générer les communications
+              {communicationType === "intranet" ? "Générer l'article intranet" : "Générer les communications"}
             </Button>
           )}
         </CardContent>
