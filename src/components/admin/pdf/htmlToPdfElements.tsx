@@ -1,17 +1,13 @@
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
+import type { Style } from "@react-pdf/types";
 import React from "react";
-
-/**
- * Parses simple HTML (bold, italic, paragraphs, line breaks, lists)
- * into @react-pdf/renderer elements.
- */
 
 const s = StyleSheet.create({
   paragraph: { marginBottom: 4 },
   bold: { fontFamily: "Helvetica-Bold" },
   italic: { fontFamily: "Helvetica-Oblique" },
   boldItalic: { fontFamily: "Helvetica-BoldOblique" },
-  listItem: { flexDirection: "row" as const, marginBottom: 2, paddingLeft: 6 },
+  listItem: { flexDirection: "row", marginBottom: 2, paddingLeft: 6 },
   bullet: { width: 10, fontSize: 9 },
 });
 
@@ -20,20 +16,14 @@ interface TextStyle {
   italic?: boolean;
 }
 
-function getFontStyle(style: TextStyle): object {
-  if (style.bold && style.italic) return s.boldItalic;
-  if (style.bold) return s.bold;
-  if (style.italic) return s.italic;
-  return {};
+function getFontStyle(style: TextStyle): Style {
+  if (style.bold && style.italic) return s.boldItalic as Style;
+  if (style.bold) return s.bold as Style;
+  if (style.italic) return s.italic as Style;
+  return {} as Style;
 }
 
-/**
- * Walk a DOM tree and produce an array of react-pdf <Text> inline children.
- */
-function walkInline(
-  node: ChildNode,
-  style: TextStyle
-): React.ReactNode[] {
+function walkInline(node: ChildNode, style: TextStyle): React.ReactNode[] {
   const results: React.ReactNode[] = [];
 
   if (node.nodeType === Node.TEXT_NODE) {
@@ -69,13 +59,9 @@ function walkInline(
   return results;
 }
 
-/**
- * Convert an HTML string to react-pdf elements for use
- * inside a <View> block in a PDF document.
- */
 export function htmlToPdfElements(
   html: string,
-  baseStyle: object
+  baseStyle: Style
 ): React.ReactNode[] {
   if (!html) return [];
 
@@ -101,15 +87,14 @@ export function htmlToPdfElements(
     const el = node as Element;
     const tag = el.tagName.toLowerCase();
 
-    // Lists
     if (tag === "ul" || tag === "ol") {
       const items = Array.from(el.querySelectorAll("li"));
       items.forEach((li, i) => {
         const bullet = tag === "ol" ? `${i + 1}. ` : "•  ";
         elements.push(
-          <View key={Math.random()} style={s.listItem}>
-            <Text style={[baseStyle, s.bullet]}>{bullet}</Text>
-            <Text style={[baseStyle, { flex: 1 }]}>
+          <View key={Math.random()} style={s.listItem as Style}>
+            <Text style={[baseStyle, s.bullet as Style]}>{bullet}</Text>
+            <Text style={[baseStyle, { flex: 1 } as Style]}>
               {walkInline(li, {})}
             </Text>
           </View>
@@ -118,10 +103,9 @@ export function htmlToPdfElements(
       continue;
     }
 
-    // Paragraphs, headings, divs → block with inline children
     const inlineChildren = walkInline(el, {});
     elements.push(
-      <Text key={Math.random()} style={[baseStyle, s.paragraph]}>
+      <Text key={Math.random()} style={[baseStyle, s.paragraph as Style]}>
         {inlineChildren}
       </Text>
     );
