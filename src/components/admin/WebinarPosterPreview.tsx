@@ -135,7 +135,7 @@ export const WebinarPosterPreview = ({
           title={cleanTitle}
           date={formattedDate}
           time={formattedTime}
-          description={cleanDescription}
+          description={descriptionText || cleanDescription}
           program={programItems}
           registrationQrCode={registrationQr}
           bookingQrCode={bookingQr}
@@ -200,6 +200,18 @@ export const WebinarPosterPreview = ({
               value={invitationText}
               onChange={(e) => setInvitationText(e.target.value)}
               placeholder="Ex: Le CSE de Perlib vous invite au prochain webinar..."
+              className="text-sm"
+            />
+          </div>
+
+          {/* Editable description */}
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <Textarea
+              value={descriptionText}
+              onChange={(e) => setDescriptionText(e.target.value)}
+              placeholder="Description du webinar..."
+              rows={3}
               className="text-sm"
             />
           </div>
