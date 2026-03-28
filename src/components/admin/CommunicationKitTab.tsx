@@ -43,8 +43,8 @@ interface CompanyContact {
 
 const communicationTypes = [
   { value: "email", label: "Email", icon: Mail },
-  { value: "message", label: "Message", icon: MessageSquare },
   { value: "intranet", label: "Article Intranet", icon: FileText },
+  { value: "qrcode", label: "QR Code", icon: QrCode },
   { value: "affiche", label: "Affiche PDF", icon: FileImage },
 ];
 
