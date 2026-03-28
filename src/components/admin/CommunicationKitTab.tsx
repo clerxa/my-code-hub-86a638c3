@@ -372,7 +372,9 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
   };
 
   const generateContent = async () => {
-    if (!selectedModule || !effectiveCompanyId || selectedDeadlines.length === 0) {
+    // For intranet, we don't need deadlines
+    const needsDeadlines = communicationType !== "intranet";
+    if (!selectedModule || !effectiveCompanyId || (needsDeadlines && selectedDeadlines.length === 0)) {
       toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
