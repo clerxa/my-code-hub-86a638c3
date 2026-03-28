@@ -250,7 +250,7 @@ export const CommunicationTemplatesEditor = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                )
+                )}
 
                 {/* Editor and Preview */}
                 <div className={`grid gap-4 ${showPreview ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
