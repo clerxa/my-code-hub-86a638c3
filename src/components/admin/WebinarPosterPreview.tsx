@@ -4,6 +4,7 @@ import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Download, Eye, Loader2, FileImage } from "lucide-react";
@@ -65,12 +66,12 @@ export const WebinarPosterPreview = ({
     }
   }, [initialInvitationText]);
 
-  // Sync description from props
+  // Sync description from props (keep HTML for rich editing)
   useEffect(() => {
-    if (cleanDescription) {
-      setDescriptionText(cleanDescription);
+    if (webinarDescription) {
+      setDescriptionText(webinarDescription);
     }
-  }, [cleanDescription]);
+  }, [webinarDescription]);
 
   // Parse date
   const parsedDate = webinarDate ? new Date(webinarDate) : null;
@@ -204,15 +205,14 @@ export const WebinarPosterPreview = ({
             />
           </div>
 
-          {/* Editable description */}
+          {/* Editable description (rich text) */}
           <div className="space-y-2">
             <Label>Description</Label>
-            <Textarea
+            <RichTextEditor
               value={descriptionText}
-              onChange={(e) => setDescriptionText(e.target.value)}
+              onChange={setDescriptionText}
               placeholder="Description du webinar..."
-              rows={3}
-              className="text-sm"
+              className="text-sm [&_.ProseMirror]:min-h-[80px]"
             />
           </div>
 
