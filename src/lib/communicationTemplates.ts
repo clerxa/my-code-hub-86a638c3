@@ -30,7 +30,7 @@ Nous avons le plaisir de vous annoncer un webinar exclusif organisé par \${comp
 📹 Pour vous inscrire :
 \${webinar_registration_url}
 
-🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
+🎯 Vous souhaitez rencontrer un conseiller Perlib ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
 \${signupCta}
 \${contactName ? \`Pour toute question, contactez \${contactName}.\` : ""}
 
@@ -63,7 +63,7 @@ Nous sommes ravis de vous annoncer un webinar exclusif organisé par \${companyN
 📹 Pour vous inscrire :
 \${webinar_registration_url}
 
-🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
+🎯 Vous souhaitez rencontrer un conseiller Perlib ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
 \${signupCta}
 \${contactName ? \`Pour toute question, contactez \${contactName}.\` : ""}
 
@@ -97,7 +97,7 @@ Les places se remplissent rapidement. Ne manquez pas cette opportunité d'enrich
 📹 Pour vous inscrire :
 \${webinar_registration_url}
 
-🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
+🎯 Vous souhaitez rencontrer un conseiller Perlib ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
 \${signupCta}
 \${contactName ? \`Questions ? Contactez \${contactName}.\` : ""}
 
@@ -133,7 +133,7 @@ Ne laissez pas passer cette occasion unique de booster vos compétences financi�
 📹 Pour vous inscrire :
 \${webinar_registration_url}
 
-🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
+🎯 Vous souhaitez rencontrer un conseiller Perlib ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
 \${signupCta}
 \${contactName ? \`Questions de dernière minute ? \${contactName} est là pour vous.\` : ""}
 
@@ -166,7 +166,7 @@ Vous hésitez encore ? Voici pourquoi vous ne devez pas manquer cet événement 
 📹 Pour vous inscrire :
 \${webinar_registration_url}
 
-🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
+🎯 Vous souhaitez rencontrer un conseiller Perlib ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
 \${signupCta}
 \${contactName ? \`Dernier délai pour vos questions : \${contactName}\` : ""}
 
@@ -195,7 +195,7 @@ Vous êtes inscrit(e) ? Parfait ! Voici le lien de connexion :
 
 💡 Astuce : Installez l'application si vous participez depuis votre mobile pour une meilleure expérience.
 
-🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
+🎯 Vous souhaitez rencontrer un conseiller Perlib ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
 \${signupCta}
 \${contactName ? \`Problème technique ? Contactez rapidement \${contactName}.\` : ""}
 
@@ -220,7 +220,7 @@ Nous vous rappelons le prochain webinar organisé par \${companyName} :
 👉 Pour vous inscrire :
 \${webinar_registration_url}
 
-🎯 Vous souhaitez rencontrer un conseiller dès maintenant ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
+🎯 Vous souhaitez rencontrer un conseiller Perlib ? Prenez rendez-vous directement en cliquant ici : \${bookingUrl}
 \${signupCta}
 \${contactName ? \`Contact : \${contactName}\` : ""}
 
