@@ -228,64 +228,30 @@ Nous vous rappelons le prochain webinar organisé par \${companyName} :
   },
 
   intranet: {
-    "j-30": `# 📅 Webinar exclusif : \${moduleTitle}
-
-## Un mois pour vous organiser !
-
-Nous sommes ravis de vous annoncer un webinar exclusif prévu dans un mois pour tous les collaborateurs \${companyName}.
-
-### 📍 Les informations pratiques
-
-**Date et horaire :** \${webinarDate}
-**Durée :** 1 heure
-**Format :** Webinar interactif en ligne
-**Places :** Limitées
-
-### 🎯 Au programme
-
-\${moduleDescription}
-
-### ✨ Pourquoi participer ?
-
-\${partnershipType ? \`Dans le cadre de notre partenariat \${partnershipType}, nous vous offrons un accès privilégié à cette formation de qualité.\` : ""}
-
-Ce webinar vous permettra de :
-- 📚 Développer vos compétences en finance personnelle
-- 💡 Obtenir des conseils pratiques d'experts
-- 🎤 Poser vos questions en direct
-- 🎯 Progresser dans votre parcours de formation
-- 🏆 Gagner des points et débloquer des badges
-
-### 👉 Comment s'inscrire ?
-
-📹 Pour vous inscrire :
-\${webinar_registration_url}
-
-### 🎯 Besoin d'un accompagnement personnalisé ?
-
-Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-\${signupCta}
-\${contactName ? \`### 📞 Contact\\n\\nPour toute question, contactez \${contactName}.\` : ""}
-
----
-\${signature}`,
-
-    "j-14": `# 📅 Webinar exclusif : \${moduleTitle}
+    "article": `# 📅 Webinar exclusif : \${moduleTitle}
 
 ## Une opportunité unique de formation pour tous les collaborateurs \${companyName}
 
-Nous sommes ravis de vous annoncer l'organisation d'un webinar exclusif sur le thème de l'éducation financière.
+Nous sommes ravis de vous annoncer l'organisation d'un webinar exclusif sur le thème de l'éducation financière, en partenariat avec **Perlib**.
 
-### 📍 Les informations pratiques
+---
 
-**Date et horaire :** \${webinarDate}
-**Durée :** 1 heure
-**Format :** Webinar interactif en ligne
-**Places :** Limitées
+### 📍 Informations pratiques
+
+| | |
+|---|---|
+| **📅 Date et horaire** | \${webinarDate} |
+| **⏱️ Durée** | 1 heure |
+| **📹 Format** | Webinar interactif en ligne |
+| **👥 Places** | Limitées |
+
+---
 
 ### 🎯 Au programme
 
 \${moduleDescription}
+
+---
 
 ### ✨ Pourquoi participer ?
 
@@ -293,372 +259,32 @@ Nous sommes ravis de vous annoncer l'organisation d'un webinar exclusif sur le t
 
 Ce webinar vous permettra de :
 - 📚 Développer vos compétences en finance personnelle
-- 💡 Obtenir des conseils pratiques d'experts
-- 🎤 Poser vos questions en direct
+- 💡 Obtenir des conseils pratiques d'experts certifiés
+- 🎤 Poser vos questions en direct lors de la session de Q&A
 - 🎯 Progresser dans votre parcours de formation
 - 🏆 Gagner des points et débloquer des badges
 
+---
+
 ### 👉 Comment s'inscrire ?
 
-📹 Pour vous inscrire :
-\${webinar_registration_url}
+**L'inscription est simple et gratuite :**
+
+📹 [Cliquez ici pour vous inscrire au webinar](\${webinar_registration_url})
+
+---
 
 ### 🎯 Besoin d'un accompagnement personnalisé ?
 
-Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
+Vous avez des questions spécifiques ? Nos conseillers Perlib sont à votre disposition pour un rendez-vous individuel gratuit.
+
+👉 [Prenez rendez-vous avec un conseiller Perlib](\${bookingUrl})
+
 \${signupCta}
+
 \${contactName ? \`### 📞 Contact\\n\\nPour toute question, contactez \${contactName}.\` : ""}
 
 ---
-\${signature}`,
-
-    "j-7": `# ⏰ Plus qu'une semaine - Webinar \${moduleTitle}
-
-## Le compte à rebours est lancé !
-
-Le webinar \${moduleTitle} aura lieu dans exactement **une semaine** !
-
-### 📅 Date : \${webinarDate}
-
-### 🎯 Rappel du programme
-
-\${moduleDescription}
-
-### ✅ Pourquoi c'est le moment de s'inscrire
-
-Les places se remplissent rapidement ! Voici ce que vous allez gagner en participant :
-
-- 💰 Des connaissances précieuses pour mieux gérer vos finances
-- 🎓 Une formation de qualité dispensée par des experts
-- 🤝 Des échanges enrichissants avec les autres participants
-- 🏆 Des points bonus dans votre parcours formation
-
-### 📊 État des inscriptions
-
-⚡ **Places restantes limitées**
-
-### 👉 Action requise
-
-📹 Pour vous inscrire :
-\${webinar_registration_url}
-
-### 🎯 Besoin d'un accompagnement personnalisé ?
-
-Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-\${signupCta}
-\${contactName ? \`### 📞 Questions ?\\n\\nContactez \${contactName} pour plus d'informations.\` : ""}
-
----
-\${signature}`,
-
-    "j-3": `# 🚨 J-3 - Dernières places pour \${moduleTitle}
-
-## Plus que 3 jours !
-
-⏰ **Date : \${webinarDate}**
-
-### 🔥 Alerte places limitées
-
-Les inscriptions touchent à leur fin ! Ne manquez pas cette opportunité unique.
-
-### 🎯 Ce qui vous attend
-
-\${moduleDescription}
-
-### ⚡ Dernière ligne droite
-
-**Pourquoi vous devez vous inscrire maintenant :**
-
-1. 📉 Les places se remplissent rapidement
-2. 🎓 Formation de qualité avec nos experts
-3. 💡 Conseils pratiques immédiatement applicables
-4. 🏆 Points bonus pour votre progression
-5. 🎤 Session de Q&A en direct
-
-### 👉 Agissez maintenant !
-
-📹 Pour vous inscrire :
-\${webinar_registration_url}
-
-### 🎯 Besoin d'un accompagnement personnalisé ?
-
-Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-\${signupCta}
-\${contactName ? \`### 📞 Dernières questions ?\\n\\n\${contactName} est à votre disposition.\` : ""}
-
----
-\${signature}`,
-
-    "j-1": `# ⚡ DEMAIN - Webinar \${moduleTitle}
-
-## C'est demain !
-
-🔥 **Le grand jour arrive : \${webinarDate}**
-
-### 🎯 Programme de demain
-
-\${moduleDescription}
-
-### 🚨 Dernière chance
-
-⏰ **Les inscriptions ferment ce soir !**
-
-C'est votre dernière opportunité de rejoindre cette session exclusive.
-
-### ✨ Ce que vous allez gagner
-
-- 📚 Des compétences financières essentielles
-- 💡 Des conseils d'experts applicables immédiatement
-- 🎤 Vos questions répondues en direct
-- 🏆 Des points pour votre progression
-- 📜 Une attestation de participation
-
-### 👉 Action immédiate requise
-
-📹 Pour vous inscrire :
-\${webinar_registration_url}
-
-### ✅ Déjà inscrit(e) ?
-
-Préparez-vous pour demain :
-- Notez l'horaire dans votre agenda
-- Préparez vos questions
-- Assurez votre connexion internet
-
-### 🎯 Besoin d'un accompagnement personnalisé ?
-
-Vous souhaitez rencontrer un conseiller dès maintenant ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-\${signupCta}
-\${contactName ? \`### 📞 Urgence ?\\n\\nContactez \${contactName} avant ce soir.\` : ""}
-
----
-\${signature}`,
-
-    "jour-j": `# 🔴 AUJOURD'HUI - \${moduleTitle}
-
-## C'est maintenant !
-
-⏰ **\${webinarDate}**
-
-### 🎯 Programme d'aujourd'hui
-
-\${moduleDescription}
-
-### 🔗 Informations de connexion
-
-**Pour les inscrits :**
-
-👉 Lien de connexion : \${webinar_registration_url}
-
-1. Connectez-vous 5 minutes avant le début
-2. Vérifiez votre matériel (micro, webcam)
-3. Préparez vos questions
-4. Ayez de quoi prendre des notes
-
-### 📱 Conseils techniques
-
-- Privilégiez une connexion stable
-- Fermez les applications inutiles
-- Utilisez un casque pour une meilleure qualité audio
-- Sur mobile, installez l'application dédiée
-
-### ⚠️ En cas de problème technique
-
-\${contactName ? \`Contactez immédiatement \${contactName}\` : "Consultez la FAQ ou contactez le support technique"}
-
-### 🎯 Besoin d'un accompagnement personnalisé ?
-
-Vous souhaitez rencontrer un conseiller ? [Prenez rendez-vous directement en cliquant ici](\${bookingUrl})
-\${signupCta}
----
-\${signature}`,
-
-    "today": `# 📅 Webinar : \${moduleTitle}
-
-## Rappel - \${daysUntilWebinar}
-
-### 📍 Informations
-
-**Date :** \${webinarDate}
-**Échéance :** \${daysUntilWebinar}
-
-### 🎯 Programme
-
-\${moduleDescription}
-
-### 👉 Inscription
-
-📹 \${webinar_registration_url}
-
-### 🎯 Besoin d'un accompagnement personnalisé ?
-
-[Prenez rendez-vous avec un conseiller](\${bookingUrl})
-\${signupCta}
-\${contactName ? \`### 📞 Contact\\n\\n\${contactName}\` : ""}
-
----
-\${signature}`,
-  },
-
-  message: {
-    "j-30": `📅 **Webinar exclusif : \${moduleTitle}**
-
-🗓️ *Dans 1 mois : \${webinarDate}*
-
-🎯 **\${moduleDescription}**
-
-✨ Au programme :
-• Développement de compétences financières
-• Q&A en direct avec des experts
-• Points bonus dans votre parcours
-
-\${partnershipType ? \`🤝 Partenariat \${partnershipType}\` : ""}
-
-⚠️ Places limitées !
-
-👉 *Inscrivez-vous maintenant !*
-📹 \${webinar_registration_url}
-
-🎯 Besoin d'un conseiller ? Prenez rendez-vous ici : \${bookingUrl}
-\${signupCta}
-\${contactName ? \`💬 Questions ? → \${contactName}\` : ""}
-
-\${signature}`,
-
-    "j-14": `📅 **Webinar exclusif : \${moduleTitle}**
-
-🎯 **\${moduleDescription}**
-
-📍 *\${webinarDate}*
-⏱️ Durée : 1h
-
-✨ Au programme :
-• Développement de compétences financières
-• Q&A en direct avec des experts
-• Points bonus dans votre parcours
-• Conseils pratiques immédiatement applicables
-
-\${partnershipType ? \`🤝 Partenariat \${partnershipType}\` : ""}
-
-⚠️ Places limitées !
-
-👉 *Inscrivez-vous maintenant !*
-📹 \${webinar_registration_url}
-
-🎯 Besoin d'un conseiller ? Prenez rendez-vous ici : \${bookingUrl}
-\${signupCta}
-\${contactName ? \`💬 Questions ? → \${contactName}\` : ""}
-
-\${signature}`,
-
-    "j-7": `⏰ **Plus qu'une semaine !**
-
-📅 Webinar : *\${moduleTitle}*
-🗓️ \${webinarDate}
-
-🎯 \${moduleDescription}
-
-🔥 Les places partent vite !
-
-✅ Pourquoi participer :
-• Formation d'experts
-• Échanges en direct
-• Progression dans votre parcours
-• Conseils personnalisés
-
-👉 *Réservez votre place maintenant !*
-📹 \${webinar_registration_url}
-
-🎯 Besoin d'un conseiller ? Prenez rendez-vous ici : \${bookingUrl}
-\${signupCta}
-\${contactName ? \`💬 \${contactName}\` : ""}
-
-\${signature}`,
-
-    "j-3": `🚨 **J-3 - Dernières places !**
-
-⏰ *\${moduleTitle}*
-📅 \${webinarDate}
-
-🎯 \${moduleDescription}
-
-🔥 **Attention : Places limitées !**
-
-✨ Ne manquez pas :
-• Expertise de qualité
-• Session interactive
-• Points bonus
-• Conseils pratiques
-
-⚡ *Inscrivez-vous MAINTENANT !*
-📹 \${webinar_registration_url}
-
-🎯 Besoin d'un conseiller ? Prenez rendez-vous ici : \${bookingUrl}
-\${signupCta}
-\${contactName ? \`💬 \${contactName}\` : ""}
-
-\${signature}`,
-
-    "j-1": `⚡ **DEMAIN !**
-
-🔥 Webinar : *\${moduleTitle}*
-📅 \${webinarDate}
-
-🎯 \${moduleDescription}
-
-🚨 **Dernière chance de s'inscrire !**
-
-✅ 1h pour transformer votre rapport à l'argent
-💡 Conseils pratiques applicables immédiatement
-🏆 Points bonus
-
-⏰ *Inscriptions closes ce soir !*
-📹 \${webinar_registration_url}
-
-🎯 Besoin d'un conseiller ? Prenez rendez-vous ici : \${bookingUrl}
-\${signupCta}
-👉 Réservez maintenant !
-
-\${contactName ? \`💬 \${contactName}\` : ""}
-
-\${signature}`,
-
-    "jour-j": `🔴 **C'EST AUJOURD'HUI !**
-
-🎯 *\${moduleTitle}*
-⏰ \${webinarDate}
-
-\${moduleDescription}
-
-🔗 **Inscrit(e) ? Connectez-vous maintenant !**
-👉 \${webinar_registration_url}
-
-⚠️ Important :
-• Connexion 5 min avant
-• Préparez vos questions
-
-💡 Astuce : Installez l'app sur mobile
-
-🎯 Besoin d'un conseiller ? Prenez rendez-vous ici : \${bookingUrl}
-\${signupCta}
-\${contactName ? \`💬 Problème ? → \${contactName}\` : ""}
-
-👉 *À tout de suite !*
-
-\${signature}`,
-
-    "today": `📅 **Webinar : \${moduleTitle}**
-
-🗓️ *\${daysUntilWebinar}* - \${webinarDate}
-
-🎯 \${moduleDescription}
-
-📹 \${webinar_registration_url}
-
-🎯 Prenez rendez-vous avec un conseiller : \${bookingUrl}
-\${signupCta}
-\${contactName ? \`💬 \${contactName}\` : ""}
-
 \${signature}`,
   },
 };
