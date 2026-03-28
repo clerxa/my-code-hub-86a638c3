@@ -310,7 +310,7 @@ export const WebinarPosterPDF = ({
           <View style={styles.section}>
             <View style={styles.sectionHead}>
               <View style={styles.sectionDot} />
-              <Text style={styles.sectionLabel}>THÈME</Text>
+              <Text style={styles.sectionLabel}>DESCRIPTION</Text>
             </View>
             <View style={styles.sectionLine} />
             <Text style={styles.desc}>{description}</Text>

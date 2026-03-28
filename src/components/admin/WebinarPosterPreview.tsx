@@ -46,10 +46,15 @@ export const WebinarPosterPreview = ({
   invitationText: initialInvitationText,
 }: WebinarPosterPreviewProps) => {
   const [programText, setProgramText] = useState<string>("");
+  const [descriptionText, setDescriptionText] = useState<string>("");
   const [invitationText, setInvitationText] = useState<string>("");
   const [generating, setGenerating] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+
+  // Clean title and description from HTML
+  const cleanTitle = stripHtmlTags(webinarTitle);
+  const cleanDescription = stripHtmlTags(webinarDescription);
 
   // Sync invitation text from props
   useEffect(() => {
@@ -60,9 +65,12 @@ export const WebinarPosterPreview = ({
     }
   }, [initialInvitationText]);
 
-  // Clean title and description from HTML
-  const cleanTitle = stripHtmlTags(webinarTitle);
-  const cleanDescription = stripHtmlTags(webinarDescription);
+  // Sync description from props
+  useEffect(() => {
+    if (cleanDescription) {
+      setDescriptionText(cleanDescription);
+    }
+  }, [cleanDescription]);
 
   // Parse date
   const parsedDate = webinarDate ? new Date(webinarDate) : null;
@@ -127,7 +135,7 @@ export const WebinarPosterPreview = ({
           title={cleanTitle}
           date={formattedDate}
           time={formattedTime}
-          description={cleanDescription}
+          description={descriptionText || cleanDescription}
           program={programItems}
           registrationQrCode={registrationQr}
           bookingQrCode={bookingQr}
@@ -192,6 +200,18 @@ export const WebinarPosterPreview = ({
               value={invitationText}
               onChange={(e) => setInvitationText(e.target.value)}
               placeholder="Ex: Le CSE de Perlib vous invite au prochain webinar..."
+              className="text-sm"
+            />
+          </div>
+
+          {/* Editable description */}
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <Textarea
+              value={descriptionText}
+              onChange={(e) => setDescriptionText(e.target.value)}
+              placeholder="Description du webinar..."
+              rows={3}
               className="text-sm"
             />
           </div>
