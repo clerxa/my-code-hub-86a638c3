@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Copy, Mail, MessageSquare, FileText, Wand2, Calendar, FileImage } from "lucide-react";
+import { Copy, Mail, FileText, Wand2, Calendar, FileImage, QrCode, Download, Loader2 } from "lucide-react";
+import QRCodeLib from "qrcode";
 import { WebinarPosterPreview } from "./WebinarPosterPreview";
 
 interface Module {
