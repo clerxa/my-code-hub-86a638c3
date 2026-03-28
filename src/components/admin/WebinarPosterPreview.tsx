@@ -8,7 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Download, Eye, Loader2, FileImage } from "lucide-react";
 import { WebinarPosterPDF } from "./pdf/WebinarPosterPDF";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { PDFViewer } from "@/components/modules/slides/PDFViewer";
 import myfincareLogoSrc from "@/assets/logo.png";
 
 /** Strip all HTML tags and decode entities */
@@ -85,11 +92,27 @@ export const WebinarPosterPreview = ({
     try {
       const [registrationQr, bookingQr] = await Promise.all([
         registrationUrl
-          ? QRCode.toDataURL(registrationUrl, { width: 300, margin: 2, color: { dark: "#6B3FA0" } })
-          : QRCode.toDataURL("https://myfincare.fr", { width: 300, margin: 2, color: { dark: "#6B3FA0" } }),
+          ? QRCode.toDataURL(registrationUrl, {
+              width: 300,
+              margin: 2,
+              color: { dark: "#6B3FA0" },
+            })
+          : QRCode.toDataURL("https://myfincare.fr", {
+              width: 300,
+              margin: 2,
+              color: { dark: "#6B3FA0" },
+            }),
         bookingUrl
-          ? QRCode.toDataURL(bookingUrl, { width: 300, margin: 2, color: { dark: "#3B7DD8" } })
-          : QRCode.toDataURL("https://myfincare.fr", { width: 300, margin: 2, color: { dark: "#3B7DD8" } }),
+          ? QRCode.toDataURL(bookingUrl, {
+              width: 300,
+              margin: 2,
+              color: { dark: "#3B7DD8" },
+            })
+          : QRCode.toDataURL("https://myfincare.fr", {
+              width: 300,
+              margin: 2,
+              color: { dark: "#3B7DD8" },
+            }),
       ]);
 
       const logoDataUrl = await imageToDataUrl(myfincareLogoSrc);
@@ -145,14 +168,16 @@ export const WebinarPosterPreview = ({
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
             <div>
               <span className="font-medium text-muted-foreground">Webinar :</span>{" "}
               <span className="font-semibold">{cleanTitle}</span>
             </div>
             <div>
               <span className="font-medium text-muted-foreground">Date :</span>{" "}
-              <span className="font-semibold">{formattedDate} {formattedTime && `à ${formattedTime}`}</span>
+              <span className="font-semibold">
+                {formattedDate} {formattedTime && `à ${formattedTime}`}
+              </span>
             </div>
             <div>
               <span className="font-medium text-muted-foreground">Entreprise :</span>{" "}
@@ -184,9 +209,13 @@ export const WebinarPosterPreview = ({
           </div>
 
           {/* QR code URLs */}
-          <div className="text-xs text-muted-foreground space-y-1">
-            <p>🔗 <strong>QR inscription :</strong> {registrationUrl || "Non configuré"}</p>
-            <p>🔗 <strong>QR rendez-vous :</strong> {bookingUrl || "Non configuré"}</p>
+          <div className="space-y-1 text-xs text-muted-foreground">
+            <p>
+              🔗 <strong>QR inscription :</strong> {registrationUrl || "Non configuré"}
+            </p>
+            <p>
+              🔗 <strong>QR rendez-vous :</strong> {bookingUrl || "Non configuré"}
+            </p>
           </div>
 
           {/* Actions */}
@@ -198,9 +227,9 @@ export const WebinarPosterPreview = ({
               className="flex-1"
             >
               {generating ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <Eye className="h-4 w-4 mr-2" />
+                <Eye className="mr-2 h-4 w-4" />
               )}
               Aperçu
             </Button>
@@ -210,9 +239,9 @@ export const WebinarPosterPreview = ({
               className="flex-1"
             >
               {generating ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <Download className="h-4 w-4 mr-2" />
+                <Download className="mr-2 h-4 w-4" />
               )}
               Télécharger PDF
             </Button>
@@ -222,28 +251,26 @@ export const WebinarPosterPreview = ({
 
       {/* Preview Dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-4xl max-h-[95vh] p-0">
+        <DialogContent className="max-h-[95vh] max-w-5xl p-0">
           <DialogHeader className="p-4 pb-0">
             <DialogTitle className="flex items-center justify-between">
               <span>Aperçu de l'affiche</span>
-              <Button
-                size="sm"
-                onClick={() => generatePoster(true)}
-                disabled={generating}
-              >
-                <Download className="h-4 w-4 mr-2" />
+              <Button size="sm" onClick={() => generatePoster(true)} disabled={generating}>
+                <Download className="mr-2 h-4 w-4" />
                 Télécharger
               </Button>
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Prévisualisation du PDF de l'affiche webinar avant téléchargement.
+            </DialogDescription>
           </DialogHeader>
-          <div className="p-4 pt-2 overflow-auto max-h-[85vh]">
-            {previewUrl && (
-              <iframe
-                src={previewUrl}
-                className="w-full border rounded-lg"
-                style={{ height: "80vh" }}
-                title="Aperçu affiche webinar"
-              />
+          <div className="max-h-[85vh] overflow-auto p-4 pt-2">
+            {previewUrl ? (
+              <PDFViewer pdfUrl={previewUrl} hideNavigation />
+            ) : (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                Génération de l'aperçu en cours...
+              </div>
             )}
           </div>
         </DialogContent>
