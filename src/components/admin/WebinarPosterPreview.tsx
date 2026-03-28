@@ -46,6 +46,7 @@ export const WebinarPosterPreview = ({
   invitationText: initialInvitationText,
 }: WebinarPosterPreviewProps) => {
   const [programText, setProgramText] = useState<string>("");
+  const [descriptionText, setDescriptionText] = useState<string>("");
   const [invitationText, setInvitationText] = useState<string>("");
   const [generating, setGenerating] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
