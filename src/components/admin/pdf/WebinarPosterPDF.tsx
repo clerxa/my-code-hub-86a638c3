@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   sectionLine: { height: 1, backgroundColor: c.border, marginBottom: 6 },
-  desc: { fontSize: 9.5, color: c.dark, lineHeight: 1.6, paddingLeft: 14 },
+  desc: { fontSize: 9.5, color: c.dark, lineHeight: 1.6 },
   // Program
   progItem: {
     flexDirection: "row",
