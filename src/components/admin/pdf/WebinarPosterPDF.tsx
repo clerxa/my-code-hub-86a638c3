@@ -6,6 +6,7 @@ import {
   Image,
   StyleSheet,
 } from "@react-pdf/renderer";
+import { htmlToPdfElements } from "./htmlToPdfElements";
 
 const c = {
   purple: "#6B3FA0",
@@ -152,7 +153,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   sectionLine: { height: 1, backgroundColor: c.border, marginBottom: 6 },
-  desc: { fontSize: 9.5, color: c.dark, lineHeight: 1.6, paddingLeft: 14 },
+  desc: { fontSize: 9.5, color: c.dark, lineHeight: 1.6 },
   // Program
   progItem: {
     flexDirection: "row",
@@ -313,7 +314,9 @@ export const WebinarPosterPDF = ({
               <Text style={styles.sectionLabel}>DESCRIPTION</Text>
             </View>
             <View style={styles.sectionLine} />
-            <Text style={styles.desc}>{description}</Text>
+            <View style={{ paddingLeft: 14 }}>
+              {htmlToPdfElements(description, styles.desc)}
+            </View>
           </View>
 
           {/* Programme */}
