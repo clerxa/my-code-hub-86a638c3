@@ -61,7 +61,7 @@ export const WebinarPosterPreview = ({
   useEffect(() => {
     if (initialInvitationText) {
       setInvitationText(
-        `${initialInvitationText} vous invite au prochain webinar dans le cadre du programme FinCare`
+        `${initialInvitationText} vous invite au prochain webinar dans le cadre du programme Perlib`
       );
     }
   }, [initialInvitationText]);

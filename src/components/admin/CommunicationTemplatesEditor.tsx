@@ -7,12 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Save, RefreshCw, Info, Mail, MessageSquare, FileText, Eye, EyeOff } from "lucide-react";
+import { Save, RefreshCw, Info, Mail, FileText, Eye, EyeOff } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const communicationTypes = [
   { value: "email", label: "Email", icon: Mail },
-  { value: "message", label: "Message", icon: MessageSquare },
   { value: "intranet", label: "Article Intranet", icon: FileText },
 ];
 
@@ -69,6 +68,7 @@ export const CommunicationTemplatesEditor = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [selectedType, setSelectedType] = useState("email");
   const [selectedDeadline, setSelectedDeadline] = useState("j-14");
+  const isArticleType = selectedType === "intranet";
   const [currentContent, setCurrentContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,8 +81,9 @@ export const CommunicationTemplatesEditor = () => {
 
   useEffect(() => {
     // Update current content when type or deadline changes
+    const effectiveDeadline = isArticleType ? "article" : selectedDeadline;
     const template = templates.find(
-      t => t.communication_type === selectedType && t.deadline === selectedDeadline
+      t => t.communication_type === selectedType && t.deadline === effectiveDeadline
     );
     if (template) {
       setCurrentContent(template.template_content);
@@ -90,7 +91,7 @@ export const CommunicationTemplatesEditor = () => {
       // Load default template
       loadDefaultTemplate();
     }
-  }, [selectedType, selectedDeadline, templates]);
+  }, [selectedType, selectedDeadline, templates, isArticleType]);
 
   // Generate preview when content changes
   useEffect(() => {
@@ -120,7 +121,8 @@ export const CommunicationTemplatesEditor = () => {
   const loadDefaultTemplate = async () => {
     try {
       const { getDefaultTemplate } = await import("@/lib/communicationTemplates");
-      const defaultContent = getDefaultTemplate(selectedType, selectedDeadline);
+      const effectiveDeadline = isArticleType ? "article" : selectedDeadline;
+      const defaultContent = getDefaultTemplate(selectedType, effectiveDeadline);
       setCurrentContent(defaultContent);
     } catch {
       setCurrentContent("");
@@ -141,8 +143,9 @@ export const CommunicationTemplatesEditor = () => {
   const saveTemplate = async () => {
     setIsSaving(true);
     try {
+      const effectiveDeadline = isArticleType ? "article" : selectedDeadline;
       const existingTemplate = templates.find(
-        t => t.communication_type === selectedType && t.deadline === selectedDeadline
+        t => t.communication_type === selectedType && t.deadline === effectiveDeadline
       );
 
       if (existingTemplate?.id) {
@@ -162,7 +165,7 @@ export const CommunicationTemplatesEditor = () => {
           .from("communication_templates")
           .insert({
             communication_type: selectedType,
-            deadline: selectedDeadline,
+            deadline: effectiveDeadline,
             template_content: currentContent,
             is_active: true,
           });
@@ -216,7 +219,7 @@ export const CommunicationTemplatesEditor = () => {
 
           {/* Type selection */}
           <Tabs value={selectedType} onValueChange={setSelectedType}>
-            <TabsList className="grid grid-cols-4 w-full">
+            <TabsList className="grid grid-cols-2 w-full">
               {communicationTypes.map(type => {
                 const Icon = type.icon;
                 return (
@@ -230,22 +233,24 @@ export const CommunicationTemplatesEditor = () => {
 
             {communicationTypes.map(type => (
               <TabsContent key={type.value} value={type.value} className="space-y-4 mt-4">
-                {/* Deadline selection */}
-                <div className="space-y-2">
-                  <Label>Échéance</Label>
-                  <Select value={selectedDeadline} onValueChange={setSelectedDeadline}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une échéance" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {deadlines.map(d => (
-                        <SelectItem key={d.value} value={d.value}>
-                          {d.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Deadline selection - only for email */}
+                {!isArticleType && (
+                  <div className="space-y-2">
+                    <Label>Échéance</Label>
+                    <Select value={selectedDeadline} onValueChange={setSelectedDeadline}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une échéance" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {deadlines.map(d => (
+                          <SelectItem key={d.value} value={d.value}>
+                            {d.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 {/* Editor and Preview */}
                 <div className={`grid gap-4 ${showPreview ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>

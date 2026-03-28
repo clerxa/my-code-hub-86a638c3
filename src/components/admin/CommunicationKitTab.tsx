@@ -7,8 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Copy, Mail, MessageSquare, FileText, Wand2, Calendar, FileImage } from "lucide-react";
+import { Copy, Mail, FileText, Wand2, Calendar, FileImage, QrCode } from "lucide-react";
 import { WebinarPosterPreview } from "./WebinarPosterPreview";
+import { QRCodeSection } from "./QRCodeSection";
+import { BlogImageGenerator } from "./BlogImageGenerator";
 
 interface Module {
   id: number;
@@ -42,8 +44,8 @@ interface CompanyContact {
 
 const communicationTypes = [
   { value: "email", label: "Email", icon: Mail },
-  { value: "message", label: "Message", icon: MessageSquare },
   { value: "intranet", label: "Article Intranet", icon: FileText },
+  { value: "qrcode", label: "QR Code", icon: QrCode },
   { value: "affiche", label: "Affiche PDF", icon: FileImage },
 ];
 
@@ -348,7 +350,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
       const article = getPartnershipArticle(partnershipType);
       return `${article} ${partnershipType} de ${companyName}`;
     }
-    return `L'équipe ${companyName || "FinCare"}`;
+    return `L'équipe ${companyName || "Perlib"}`;
   };
 
   // Calculate days until webinar from today
@@ -369,7 +371,9 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
   };
 
   const generateContent = async () => {
-    if (!selectedModule || !effectiveCompanyId || selectedDeadlines.length === 0) {
+    // For intranet, we don't need deadlines
+    const needsDeadlines = communicationType !== "intranet";
+    if (!selectedModule || !effectiveCompanyId || (needsDeadlines && selectedDeadlines.length === 0)) {
       toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
@@ -437,18 +441,21 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
 
     const newContent: Record<string, string> = {};
     
+    // For intranet, use a single "article" key instead of deadlines
+    const effectiveDeadlines = communicationType === "intranet" ? ["article"] : selectedDeadlines;
+
     // Check for custom templates in database first
     const { data: customTemplates } = await supabase
       .from("communication_templates")
       .select("*")
       .eq("communication_type", communicationType)
-      .in("deadline", selectedDeadlines)
+      .in("deadline", effectiveDeadlines)
       .eq("is_active", true);
 
     // Import du template generator
     const { getTemplate, processTemplate } = await import("@/lib/communicationTemplates");
     
-    selectedDeadlines.forEach((deadline) => {
+    effectiveDeadlines.forEach((deadline) => {
       // Check if there's a custom template for this deadline
       const customTemplate = customTemplates?.find(t => t.deadline === deadline);
       
@@ -494,6 +501,9 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
   };
 
   const getDeadlineLabel = (deadline: string) => {
+    if (deadline === "article") {
+      return "Article Intranet";
+    }
     if (deadline === "today") {
       const session = getSelectedSession();
       if (session?.session_date) {
@@ -609,7 +619,7 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
           </div>
 
           {/* Échéances - hidden for affiche type */}
-          {communicationType !== "affiche" && (
+          {communicationType !== "affiche" && communicationType !== "intranet" && communicationType !== "qrcode" && (
             <>
               <div className="space-y-2">
                 <Label>Échéances de communication *</Label>
@@ -727,16 +737,33 @@ export const CommunicationKitTab = ({ preselectedModuleId, preselectedCompanyId,
             />
           )}
 
-          {/* Bouton de génération - hidden for affiche type */}
-          {communicationType !== "affiche" && (
+          {/* QR Code section */}
+          {communicationType === "qrcode" && selectedModule && selectedSession && effectiveCompanyId && (
+            <QRCodeSection
+              registrationUrl={getSelectedSession()?.registration_url || ""}
+              bookingUrl={getBookingUrlForCompany(companies.find(c => c.id === effectiveCompanyId))}
+              webinarTitle={modules.find(m => m.id.toString() === selectedModule)?.title || ""}
+            />
+          )}
+
+          {/* Blog image generation for intranet */}
+          {communicationType === "intranet" && selectedModule && selectedSession && (
+            <BlogImageGenerator
+              webinarTitle={modules.find(m => m.id.toString() === selectedModule)?.title || ""}
+              webinarDate={getSelectedSession()?.session_date || ""}
+            />
+          )}
+
+          {/* Bouton de génération - hidden for affiche and qrcode types */}
+          {communicationType !== "affiche" && communicationType !== "qrcode" && (
             <Button
               onClick={generateContent}
-              disabled={!selectedModule || !selectedSession || !effectiveCompanyId || selectedDeadlines.length === 0}
+              disabled={!selectedModule || !selectedSession || !effectiveCompanyId || (communicationType !== "intranet" && selectedDeadlines.length === 0)}
               className="w-full"
               size="lg"
             >
               <Wand2 className="mr-2 h-4 w-4" />
-              Générer les communications
+              {communicationType === "intranet" ? "Générer l'article intranet" : "Générer les communications"}
             </Button>
           )}
         </CardContent>
