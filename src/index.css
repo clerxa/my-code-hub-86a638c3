@@ -528,13 +528,13 @@ button.border,
 
 /* TipTap / ProseMirror editor styles */
 .ProseMirror ul {
-  list-style-type: disc;
-  padding-left: 1.25rem;
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
   margin: 0.25rem 0;
 }
 .ProseMirror ol {
-  list-style-type: decimal;
-  padding-left: 1.25rem;
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
   margin: 0.25rem 0;
 }
 .ProseMirror li {
