@@ -598,53 +598,85 @@ export const ModuleEditorPage = () => {
               <CardHeader>
                 <CardTitle>Configuration du webinaire</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Catégorie du webinaire</Label>
-                  <Select value={formData.webinar_category} onValueChange={value => setFormData({ ...formData, webinar_category: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="parcours_fincare">📋 Parcours FinCare (obligatoire)</SelectItem>
-                      <SelectItem value="a_la_demande">📦 À la demande (catalogue)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    {formData.webinar_category === "parcours_fincare" 
-                      ? "Ce webinaire sera pré-chargé automatiquement dans le dashboard de toutes les entreprises."
-                      : "Ce webinaire apparaîtra dans le catalogue pour que les entreprises puissent le sélectionner."}
-                  </p>
-                </div>
-              </CardContent>
-              <CardContent>
-                <ImageUpload
-                  label="Visuel du webinar"
-                  value={formData.webinar_image_url || ""}
-                  onChange={(url) => setFormData({ ...formData, webinar_image_url: url })}
-                  bucketName="landing-images"
+              <CardContent className="space-y-6">
+                {/* Catalog picker */}
+                <WebinarCatalogPicker
+                  selectedCatalogId={formData.catalog_id}
+                  onSelectCatalog={(item) => {
+                    setFormData({
+                      ...formData,
+                      catalog_id: item.id,
+                      webinar_source: "catalog",
+                      title: item.name,
+                      description: item.description,
+                      estimated_time: item.duration_minutes,
+                      webinar_category: item.category,
+                    });
+                  }}
+                  onSelectNew={() => {
+                    setFormData({
+                      ...formData,
+                      catalog_id: null,
+                      webinar_source: "new",
+                    });
+                  }}
                 />
 
-                <Tabs defaultValue="sessions" className="w-full mt-4">
+                {/* Category (editable for hors catalogue) */}
+                {formData.webinar_source === "new" && (
+                  <div className="space-y-2">
+                    <Label>Catégorie du webinaire</Label>
+                    <Select value={formData.webinar_category} onValueChange={value => setFormData({ ...formData, webinar_category: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="parcours_fincare">📋 Parcours FinCare</SelectItem>
+                        <SelectItem value="a_la_demande">📦 À la demande</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {formData.webinar_source === "catalog" && formData.catalog_id && (
+                  <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                    ✅ Webinar sélectionné depuis le catalogue. Le titre, la description, la durée et la catégorie sont pré-remplis.
+                  </p>
+                )}
+
+                {/* Auto-generated visual */}
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Visuel du webinar</Label>
+                  <p className="text-xs text-muted-foreground">Visuel généré automatiquement à partir du titre.</p>
+                  <WebinarVisualGenerator
+                    webinarTitle={formData.title}
+                    onVisualGenerated={(dataUrl) => {
+                      setFormData(prev => ({ ...prev, webinar_image_url: dataUrl }));
+                    }}
+                  />
+                </div>
+
+                <Tabs defaultValue="sessions" className="w-full">
                   <TabsList className="grid w-full grid-cols-2 mb-4">
                     <TabsTrigger value="sessions">📅 Sessions</TabsTrigger>
                     <TabsTrigger value="attribution">🏢 Attribution</TabsTrigger>
                   </TabsList>
 
-                  {/* Onglet Sessions */}
                   <TabsContent value="sessions" className="mt-0 space-y-4">
                     <div className="text-sm text-muted-foreground mb-2">
                       Ajoutez les dates et les liens d'inscription Livestorm pour chaque session de ce webinaire.
                     </div>
-                    <WebinarSessionsManager moduleId={isEditing && moduleId ? parseInt(moduleId) : null} />
+                    <WebinarSessionsManager 
+                      moduleId={isEditing && moduleId ? parseInt(moduleId) : null}
+                      webinarCategory={formData.webinar_category}
+                    />
                   </TabsContent>
 
-                  {/* Onglet Attribution */}
                   <TabsContent value="attribution" className="mt-0 space-y-4">
                     <div className="text-sm text-muted-foreground mb-2">
-                      <strong>Générique :</strong> ne sélectionnez aucune entreprise → le webinaire sera visible par toutes.
-                      <br />
-                      <strong>Spécifique :</strong> cochez les entreprises concernées.
+                      {formData.webinar_category === "parcours_fincare" 
+                        ? "⚡ Ce webinaire Parcours FinCare sera automatiquement attribué à toutes les entreprises lors de l'ajout d'une session."
+                        : "Cochez les entreprises concernées par ce webinaire."}
                     </div>
                     <WebinarCompanyAssignment 
                       moduleId={isEditing && moduleId ? parseInt(moduleId) : null}
