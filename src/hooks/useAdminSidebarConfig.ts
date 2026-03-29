@@ -46,12 +46,13 @@ const defaultAdminCategories: AdminCategory[] = [
   { id: "general", name: "General", order: 0 },
   { id: "companies", name: "Companies", order: 1 },
   { id: "content", name: "Content", order: 2 },
-  { id: "gamification", name: "Gamification", order: 3 },
-  { id: "community", name: "Communauté", order: 4 },
-  { id: "simulators-data", name: "Simulateurs & Données", order: 5 },
-  { id: "engagement", name: "Engagement", order: 6 },
-  { id: "appearance", name: "Apparence", order: 7 },
-  { id: "technical", name: "Technique", order: 8 },
+  { id: "objects", name: "Objets", order: 3 },
+  { id: "gamification", name: "Gamification", order: 4 },
+  { id: "community", name: "Communauté", order: 5 },
+  { id: "simulators-data", name: "Simulateurs & Données", order: 6 },
+  { id: "engagement", name: "Engagement", order: 7 },
+  { id: "appearance", name: "Apparence", order: 8 },
+  { id: "technical", name: "Technique", order: 9 },
 ];
 
 // Default menu items
