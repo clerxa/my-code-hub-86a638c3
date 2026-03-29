@@ -275,7 +275,8 @@ export const ModuleEditorPage = () => {
         key_takeaways: formData.key_takeaways.length > 0 ? formData.key_takeaways : null,
         theme: formData.themes.length > 0 ? formData.themes : null,
         is_optional: formData.is_optional,
-        webinar_category: formData.type === "webinar" ? formData.webinar_category : null
+        webinar_category: formData.type === "webinar" ? formData.webinar_category : null,
+        catalog_id: formData.type === "webinar" ? formData.catalog_id : null,
       };
 
       if (isEditing && moduleId) {
