@@ -227,7 +227,9 @@ export const ModuleEditorPage = () => {
             is_optional: module.is_optional || false,
             webinar_category: (module as any).webinar_category || "a_la_demande",
             assigned_companies: [],
-            slides_data: contentData.slides_data || { slides: [], transition: 'fade' }
+            slides_data: contentData.slides_data || { slides: [], transition: 'fade' },
+            catalog_id: (module as any).catalog_id || null,
+            webinar_source: (module as any).catalog_id ? "catalog" : "new",
           });
         }
       }
