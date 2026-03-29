@@ -3240,6 +3240,7 @@ export type Database = {
       modules: {
         Row: {
           appointment_calendar_url: string | null
+          catalog_id: string | null
           content_data: Json | null
           content_type: string | null
           content_url: string | null
@@ -3269,6 +3270,7 @@ export type Database = {
         }
         Insert: {
           appointment_calendar_url?: string | null
+          catalog_id?: string | null
           content_data?: Json | null
           content_type?: string | null
           content_url?: string | null
@@ -3298,6 +3300,7 @@ export type Database = {
         }
         Update: {
           appointment_calendar_url?: string | null
+          catalog_id?: string | null
           content_data?: Json | null
           content_type?: string | null
           content_url?: string | null
@@ -3325,7 +3328,15 @@ export type Database = {
           webinar_image_url?: string | null
           webinar_registration_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "modules_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "webinar_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       non_partner_welcome_settings: {
         Row: {
@@ -6502,6 +6513,42 @@ export type Database = {
           score_a_battre?: number
           theme?: string
           theme_data?: Json
+        }
+        Relationships: []
+      }
+      webinar_catalog: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          visual_url: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          visual_url?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          visual_url?: string | null
         }
         Relationships: []
       }
