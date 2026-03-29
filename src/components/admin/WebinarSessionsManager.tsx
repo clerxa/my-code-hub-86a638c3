@@ -19,6 +19,7 @@ interface WebinarSession {
 
 interface WebinarSessionsManagerProps {
   moduleId: number | null;
+  webinarCategory?: string;
 }
 
 // Convert ISO to datetime-local
@@ -37,7 +38,7 @@ const toISO = (dtLocal: string): string | null => {
   return new Date(dtLocal).toISOString();
 };
 
-export function WebinarSessionsManager({ moduleId }: WebinarSessionsManagerProps) {
+export function WebinarSessionsManager({ moduleId, webinarCategory }: WebinarSessionsManagerProps) {
   const [sessions, setSessions] = useState<WebinarSession[]>([]);
   const [loading, setLoading] = useState(false);
 
