@@ -46,12 +46,13 @@ const defaultAdminCategories: AdminCategory[] = [
   { id: "general", name: "General", order: 0 },
   { id: "companies", name: "Companies", order: 1 },
   { id: "content", name: "Content", order: 2 },
-  { id: "gamification", name: "Gamification", order: 3 },
-  { id: "community", name: "Communauté", order: 4 },
-  { id: "simulators-data", name: "Simulateurs & Données", order: 5 },
-  { id: "engagement", name: "Engagement", order: 6 },
-  { id: "appearance", name: "Apparence", order: 7 },
-  { id: "technical", name: "Technique", order: 8 },
+  { id: "objects", name: "Objets", order: 3 },
+  { id: "gamification", name: "Gamification", order: 4 },
+  { id: "community", name: "Communauté", order: 5 },
+  { id: "simulators-data", name: "Simulateurs & Données", order: 6 },
+  { id: "engagement", name: "Engagement", order: 7 },
+  { id: "appearance", name: "Apparence", order: 8 },
+  { id: "technical", name: "Technique", order: 9 },
 ];
 
 // Default menu items
@@ -101,6 +102,10 @@ const defaultAdminItems: AdminMenuItem[] = [
   { id: "product-objective-matrix", label: "Matrice Objectifs × Produits", url: "/admin/product-objective-matrix", icon: "Grid3x3", order: 4, visible: true, categoryId: "content" },
   { id: "diagnostic-cms", label: "Diagnostic CMS", url: "/admin/diagnostic-cms", icon: "Target", order: 5, visible: true, categoryId: "content" },
   
+  
+  // Objets
+  { id: "webinar-catalog", label: "Catalogue Webinars", url: "/admin/webinar-catalog", icon: "Video", order: 0, visible: true, categoryId: "objects" },
+
   // Gamification
   { id: "features", label: "Features de partenariat", url: "/admin/features", icon: "Sparkles", order: 0, visible: true, categoryId: "gamification" },
   { id: "celebration", label: "Célébration Parcours", url: "/admin/celebration", icon: "PartyPopper", order: 1, visible: true, categoryId: "gamification" },
