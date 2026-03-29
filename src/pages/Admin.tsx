@@ -58,6 +58,7 @@ import { WorkflowHubTab } from "@/components/admin/workflow-hub";
 import { FinancialProductsTab } from "@/components/admin/FinancialProductsTab";
 import { ProductObjectiveMatrixTab } from "@/components/admin/ProductObjectiveMatrixTab";
 import { CommunityManagementTab } from "@/components/admin/CommunityManagementTab";
+import { WebinarCatalogTab } from "@/components/admin/WebinarCatalogTab";
 import { EmailConfigTab } from "@/components/admin/EmailConfigTab";
 import { WebinarReminderConfig } from "@/components/admin/WebinarReminderConfig";
 import { NotFoundConfigTab } from "@/components/admin/NotFoundConfigTab";
@@ -376,6 +377,10 @@ const Admin = () => {
                 <Route path="formations" element={<FormationsTab onRefresh={fetchData} />} />
                 <Route path="financial-products" element={<FinancialProductsTab />} />
                 <Route path="product-objective-matrix" element={<ProductObjectiveMatrixTab />} />
+                
+                
+                {/* Objets */}
+                <Route path="webinar-catalog" element={<WebinarCatalogTab />} />
                 
                 {/* Gamification */}
                 <Route path="features" element={<FeaturesTab onRefresh={fetchData} />} />
