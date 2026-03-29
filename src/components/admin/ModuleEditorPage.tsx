@@ -460,34 +460,7 @@ export const ModuleEditorPage = () => {
             </CardContent>
           </Card>
 
-          {/* Themes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Thèmes ({formData.themes.length} sélectionné{formData.themes.length > 1 ? 's' : ''})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                {availableThemes.map(theme => (
-                  <div key={theme} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`theme-${theme}`}
-                      checked={formData.themes.includes(theme)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setFormData({ ...formData, themes: [...formData.themes, theme] });
-                        } else {
-                          setFormData({ ...formData, themes: formData.themes.filter(t => t !== theme) });
-                        }
-                      }}
-                    />
-                    <Label htmlFor={`theme-${theme}`} className="text-sm cursor-pointer">
-                      {theme}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Themes section removed - webinar catalog replaces theme selection */}
 
           {/* Type-specific content */}
           {formData.type === "guide" && (
