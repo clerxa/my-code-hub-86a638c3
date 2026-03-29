@@ -146,6 +146,26 @@ export function WebinarSessionsManager({ moduleId, webinarCategory }: WebinarSes
         )
       );
       toast.success("Session ajoutée");
+
+      // Auto-assign to all companies for parcours_fincare
+      if (webinarCategory === "parcours_fincare" && data.id) {
+        const { data: companies } = await supabase
+          .from("companies")
+          .select("id");
+        if (companies && companies.length > 0) {
+          const selections = companies.map((c) => ({
+            company_id: c.id,
+            module_id: moduleId,
+            session_id: data.id,
+          }));
+          const { error: assignError } = await supabase
+            .from("company_webinar_selections")
+            .upsert(selections, { onConflict: "company_id,module_id" });
+          if (!assignError) {
+            toast.success(`Session attribuée automatiquement à ${companies.length} entreprise(s)`);
+          }
+        }
+      }
     }
   };
 
