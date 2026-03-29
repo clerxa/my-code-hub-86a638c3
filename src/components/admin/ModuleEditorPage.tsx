@@ -20,6 +20,8 @@ import { FormationContentEditor } from "./FormationContentEditor";
 import { ImageUpload } from "./ImageUpload";
 import { WebinarCompanyAssignment } from "./WebinarCompanyAssignment";
 import { WebinarSessionsManager } from "./WebinarSessionsManager";
+import { WebinarCatalogPicker } from "./WebinarCatalogPicker";
+import { WebinarVisualGenerator } from "./WebinarVisualGenerator";
 import { ModulePreviewDialog } from "./ModulePreviewDialog";
 import { SlidesData, SLIDE_TEMPLATES, applyTemplate } from "@/types/slides";
 
@@ -138,7 +140,9 @@ export const ModuleEditorPage = () => {
     is_optional: false,
     webinar_category: "a_la_demande" as string,
     assigned_companies: [] as string[],
-    slides_data: { slides: [], transition: 'fade' } as SlidesData
+    slides_data: { slides: [], transition: 'fade' } as SlidesData,
+    catalog_id: null as string | null,
+    webinar_source: "new" as "catalog" | "new",
   });
 
   // Fetch module data if editing
