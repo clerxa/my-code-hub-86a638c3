@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Eye, Calculator } from "lucide-react";
@@ -17,7 +17,7 @@ import { SlideEditor } from "./slides/SlideEditor";
 import { SlideTemplateSelector } from "./slides/SlideTemplateSelector";
 import { QuizEditor } from "./QuizEditor";
 import { FormationContentEditor } from "./FormationContentEditor";
-import { ImageUpload } from "./ImageUpload";
+
 import { WebinarCompanyAssignment } from "./WebinarCompanyAssignment";
 import { WebinarSessionsManager } from "./WebinarSessionsManager";
 import { WebinarCatalogPicker } from "./WebinarCatalogPicker";
