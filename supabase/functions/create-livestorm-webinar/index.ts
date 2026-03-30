@@ -5,28 +5,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface CreateWebinarPayload {
-  title: string
-  description: string
-  webinar_date: string
-  duration: number
-  theme: string[]
-  points_registration: number
-  points_participation: number
-  parcours_id: string
-  company_ids: string[]
-  webinar_image_url?: string
-  pedagogical_objectives?: string[]
-  difficulty_level?: number
-  estimated_time?: number
-  // Optional: allow resolving the Livestorm owner via email if owner_id isn't configured yet
-  owner_email?: string
-}
+const LIVESTORM_API = 'https://api.livestorm.co/v1'
 
 const LIVESTORM_JSONAPI_HEADERS = {
   Accept: 'application/vnd.api+json',
   'Content-Type': 'application/vnd.api+json',
-  'User-Agent': 'Lovable Cloud (FinCare)',
 } as const
 
 const truncate = (value: string, max = 800) => (value.length > max ? `${value.slice(0, max)}…` : value)
@@ -35,8 +18,6 @@ const isHtml = (body: string) => /<html[\s>]/i.test(body) || /<head[\s>]/i.test(
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const normalizeLivestormUserId = (value: string) => {
   const trimmed = value.trim()
-  // Livestorm user ids are commonly formatted as `usr_<uuid>`.
-  // When admins paste only the UUID, Livestorm may respond with a generic HTML 500.
   if (UUID_RE.test(trimmed)) return `usr_${trimmed}`
   return trimmed
 }
@@ -44,20 +25,16 @@ const normalizeLivestormUserId = (value: string) => {
 const buildLivestormAuthCandidates = (token: string) => {
   const t = token.trim()
   if (!t) return []
-
   if (/^Bearer\s+/i.test(t)) {
     const raw = t.replace(/^Bearer\s+/i, '').trim()
     return raw ? [raw, t] : [t]
   }
-
   return [t, `Bearer ${t}`]
 }
 
-async function fetchLivestormText(url: string, init: RequestInit, token: string) {
+async function fetchLivestorm(url: string, init: RequestInit, token: string) {
   const candidates = buildLivestormAuthCandidates(token)
-  if (candidates.length === 0) {
-    throw new Error('LIVESTORM_API_TOKEN not configured')
-  }
+  if (candidates.length === 0) throw new Error('LIVESTORM_API_KEY not configured')
 
   let lastRes: Response | null = null
   let lastText = ''
@@ -65,98 +42,88 @@ async function fetchLivestormText(url: string, init: RequestInit, token: string)
   for (const authValue of candidates) {
     const res = await fetch(url, {
       ...init,
-      headers: {
-        ...(init.headers || {}),
-        Authorization: authValue,
-      },
+      headers: { ...(init.headers || {}), Authorization: authValue },
     })
-
     const text = await res.text()
-
-    if (res.ok) {
-      return { res, text }
-    }
-
+    if (res.ok) return { res, text }
     lastRes = res
     lastText = text
   }
-
   return { res: lastRes!, text: lastText }
 }
 
-async function fetchLivestormOwnerIdByEmail(email: string, token: string): Promise<string> {
-  const emailNormalized = email.trim().toLowerCase()
+async function resolveOwnerId(token: string, supabase: any): Promise<string> {
+  // Try settings table first
+  const { data: ownerSetting } = await supabase
+    .from('settings')
+    .select('value')
+    .eq('key', 'livestorm_owner_id')
+    .maybeSingle()
 
-  const tryRequest = async (url: string) => {
-    return await fetchLivestormText(
-      url,
-      {
-        method: 'GET',
-        headers: {
-          ...LIVESTORM_JSONAPI_HEADERS,
-        },
-      },
+  if (ownerSetting?.value) {
+    return normalizeLivestormUserId(ownerSetting.value as string)
+  }
+
+  // Resolve from email in settings
+  const { data: emailSetting } = await supabase
+    .from('settings')
+    .select('value')
+    .eq('key', 'livestorm_owner_email')
+    .maybeSingle()
+
+  if (emailSetting?.value) {
+    const email = (emailSetting.value as string).trim().toLowerCase()
+    const { res, text } = await fetchLivestorm(
+      `${LIVESTORM_API}/users`,
+      { method: 'GET', headers: { ...LIVESTORM_JSONAPI_HEADERS } },
       token
     )
-  }
-
-  // 1) Try server-side filtering
-  try {
-    const url = `https://api.livestorm.co/v1/users?filter[email]=${encodeURIComponent(email)}`
-    const { res, text } = await tryRequest(url)
-
     if (res.ok) {
       const json = JSON.parse(text)
-      const list: any[] = Array.isArray(json?.data) ? json.data : []
-      const first = list[0]
-      const ownerId = first?.id
-      if (ownerId) return ownerId
-      throw new Error("Aucun utilisateur Livestorm trouvé avec cet email")
-    }
-
-    // If Livestorm returns HTML 500 here, we'll fallback to unfiltered /users
-    console.warn('Livestorm filtered /users failed, will fallback.', {
-      status: res.status,
-      contentType: res.headers.get('content-type') || 'unknown',
-      preview: truncate(text),
-    })
-  } catch (e) {
-    console.warn('Livestorm filtered /users lookup threw, will fallback.', e)
-  }
-
-  // 2) Fallback: fetch /users and match locally
-  const url2 = `https://api.livestorm.co/v1/users`
-  const { res: res2, text: text2 } = await tryRequest(url2)
-
-  if (!res2.ok) {
-    const contentType = res2.headers.get('content-type') || 'unknown'
-    const preview = truncate(text2)
-    console.error('Livestorm /users error:', { status: res2.status, contentType, preview })
-
-    if (isHtml(text2)) {
-      throw new Error(
-        `Livestorm API error: ${res2.status} (HTML). Vérifiez le token (scopes admin:read) ou réessayez plus tard.`
+      const match = (json?.data || []).find(
+        (u: any) => (u?.attributes?.email || '').toLowerCase() === email
       )
+      if (match?.id) {
+        const normalized = normalizeLivestormUserId(match.id)
+        await supabase.from('settings').upsert(
+          { key: 'livestorm_owner_id', value: normalized, metadata: { email, resolved_at: new Date().toISOString() } },
+          { onConflict: 'key' }
+        )
+        return normalized
+      }
     }
-    throw new Error(`Livestorm API error: ${res2.status} - ${preview}`)
   }
 
-  let json2: any
-  try {
-    json2 = JSON.parse(text2)
-  } catch {
-    throw new Error('Réponse Livestorm invalide (JSON attendu)')
+  // Fallback: get first team member via /people
+  const { res, text } = await fetchLivestorm(
+    `${LIVESTORM_API}/people?filter[role]=team_member&page[size]=1`,
+    { method: 'GET', headers: { ...LIVESTORM_JSONAPI_HEADERS } },
+    token
+  )
+  if (res.ok) {
+    const json = JSON.parse(text)
+    if (json.data?.length > 0) return json.data[0].id
   }
 
-  const list2: any[] = Array.isArray(json2?.data) ? json2.data : []
-  const match = list2.find((u) => (u?.attributes?.email || '').toLowerCase() === emailNormalized)
-  const ownerId2 = match?.id
+  throw new Error("Owner Livestorm non trouvé. Configurez livestorm_owner_id ou livestorm_owner_email dans les settings.")
+}
 
-  if (!ownerId2) {
-    throw new Error("Aucun utilisateur Livestorm trouvé avec cet email")
-  }
+// ==========================================
+// MODE 1: Create event from existing module
+// Payload: { module_id, sessions: [{ id?, session_date }] }
+// ==========================================
+// MODE 2: Legacy full creation (backward compat)
+// ==========================================
 
-  return ownerId2
+interface SessionInput {
+  id?: string          // local webinar_sessions.id if exists
+  session_date: string // ISO datetime
+}
+
+interface CreateFromModulePayload {
+  module_id: number
+  sessions: SessionInput[]
+  owner_id?: string
 }
 
 Deno.serve(async (req) => {
@@ -167,285 +134,218 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const livestormToken = (Deno.env.get('LIVESTORM_API_TOKEN') ?? '').trim()
+    const livestormToken = (Deno.env.get('LIVESTORM_API_KEY') ?? Deno.env.get('LIVESTORM_API_TOKEN') ?? '').trim()
 
     if (!livestormToken) {
-      throw new Error('LIVESTORM_API_TOKEN not configured')
+      throw new Error('LIVESTORM_API_KEY not configured')
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
-    const payload: CreateWebinarPayload = await req.json()
+    const payload = await req.json()
 
-    console.log('Creating Livestorm webinar:', payload.title)
+    // Determine mode based on payload
+    const moduleId = payload.module_id
+    if (!moduleId) throw new Error('module_id is required')
 
-    // Fetch owner_id from settings table (or resolve it from email)
-    const { data: ownerIdSetting } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('key', 'livestorm_owner_id')
-      .maybeSingle()
+    const sessions: SessionInput[] = payload.sessions || []
 
-    let ownerId: string | null = (ownerIdSetting?.value as string | null) ?? null
+    // Fetch the module
+    const { data: module, error: moduleErr } = await supabase
+      .from('modules')
+      .select('*')
+      .eq('id', moduleId)
+      .single()
 
-    if (!ownerId) {
-      const ownerEmailFromPayload = (payload?.owner_email || '').trim() || null
-
-      const { data: ownerEmailSetting } = await supabase
-        .from('settings')
-        .select('value')
-        .eq('key', 'livestorm_owner_email')
-        .maybeSingle()
-
-      const ownerEmail: string | null =
-        ownerEmailFromPayload || ((ownerEmailSetting?.value as string | null) ?? null)
-
-      if (ownerEmail) {
-        console.log('Resolving Livestorm owner_id from email:', ownerEmail)
-        ownerId = await fetchLivestormOwnerIdByEmail(ownerEmail, livestormToken)
-
-        // Cache it for next time
-        await supabase
-          .from('settings')
-          .upsert(
-            {
-              key: 'livestorm_owner_id',
-              value: ownerId,
-              metadata: { email: ownerEmail, resolved_from: 'email', saved_at: new Date().toISOString() },
-            },
-            { onConflict: 'key' }
-          )
-      }
+    if (moduleErr || !module) {
+      throw new Error(`Module ${moduleId} not found`)
     }
 
-    if (!ownerId) {
-      throw new Error(
-        "Owner Livestorm non configuré. Renseignez l'Owner ID (ou l'email) dans le back-office, puis réessayez."
-      )
+    // Check if already linked to Livestorm
+    if (module.livestorm_event_id) {
+      throw new Error(`Ce module est déjà lié à un événement Livestorm (${module.livestorm_event_id}). Supprimez d'abord le lien existant.`)
     }
 
-    const rawOwnerId = ownerId
-    ownerId = normalizeLivestormUserId(ownerId)
+    console.log(`Creating Livestorm event for module "${module.title}" (ID: ${moduleId})`)
 
-    if (ownerId !== rawOwnerId) {
-      console.log('Normalized Livestorm owner_id:', { from: rawOwnerId, to: ownerId })
-      // Persist the normalized value so future runs are consistent.
-      await supabase
-        .from('settings')
-        .upsert(
-          {
-            key: 'livestorm_owner_id',
-            value: ownerId,
-            metadata: { normalized: true, from: rawOwnerId, saved_at: new Date().toISOString() },
-          },
-          { onConflict: 'key' }
-        )
-    }
+    // Resolve owner
+    const ownerId = payload.owner_id
+      ? normalizeLivestormUserId(payload.owner_id)
+      : await resolveOwnerId(livestormToken, supabase)
 
     console.log('Using Livestorm owner_id:', ownerId)
 
-    // 1. Create event in Livestorm
-    const livestormResponse = await fetch('https://api.livestorm.co/v1/events', {
-      method: 'POST',
-      headers: {
-        Authorization: livestormToken,
-        ...LIVESTORM_JSONAPI_HEADERS,
-      },
-      body: JSON.stringify({
-        data: {
-          type: 'events',
-          attributes: {
-            title: payload.title,
-            slug: payload.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-            owner_id: ownerId,
-            fields: [
-              {
-                id: 'first_name',
-                required: true,
-              },
-              {
-                id: 'last_name',
-                required: true,
-              },
-              {
-                id: 'email',
-                required: true,
-              },
-            ],
-          },
+    // Build slug
+    const slug = module.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .substring(0, 60)
+
+    const estimatedDuration = module.estimated_time || 60
+
+    // Create event in Livestorm
+    const eventPayload = {
+      data: {
+        type: 'events',
+        attributes: {
+          title: module.title,
+          slug: `${slug}-${Date.now()}`,
+          owner_id: ownerId,
+          status: 'published',
+          estimated_duration: estimatedDuration,
+          description: module.description || '',
+          light_registration_page_enabled: true,
+          chat_enabled: true,
+          questions_enabled: true,
+          fields: [
+            { id: 'first_name', required: true },
+            { id: 'last_name', required: true },
+            { id: 'email', required: true },
+          ],
         },
-      }),
-    })
-
-    if (!livestormResponse.ok) {
-      const text = await livestormResponse.text()
-      const contentType = livestormResponse.headers.get('content-type') || 'unknown'
-      const preview = truncate(text)
-
-      console.error('Livestorm API error:', {
-        status: livestormResponse.status,
-        contentType,
-        preview,
-      })
-
-      if (isHtml(text)) {
-        throw new Error(
-          `Livestorm API error: ${livestormResponse.status} (HTML). Vérifiez le token (scopes) ou réessayez plus tard.`
-        )
-      }
-
-      throw new Error(`Livestorm API error: ${livestormResponse.status} - ${preview}`)
+      },
     }
 
-    const livestormData = await livestormResponse.json()
-    console.log('Livestorm event created:', livestormData)
+    console.log('Livestorm event payload:', JSON.stringify(eventPayload))
 
-    const eventId = livestormData.data.id
-    const eventSlug = livestormData.data.attributes?.slug || payload.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-    
-    // Create session for the event
-    const sessionResponse = await fetch('https://api.livestorm.co/v1/sessions', {
-      method: 'POST',
-      headers: {
-        Authorization: livestormToken,
-        ...LIVESTORM_JSONAPI_HEADERS,
-      },
-      body: JSON.stringify({
+    const { res: eventRes, text: eventText } = await fetchLivestorm(
+      `${LIVESTORM_API}/events`,
+      { method: 'POST', headers: { ...LIVESTORM_JSONAPI_HEADERS }, body: JSON.stringify(eventPayload) },
+      livestormToken
+    )
+
+    if (!eventRes.ok) {
+      const preview = truncate(eventText)
+      console.error('Livestorm event creation failed:', { status: eventRes.status, preview })
+      if (isHtml(eventText)) {
+        throw new Error(`Livestorm API error: ${eventRes.status} (HTML). Vérifiez le token ou réessayez.`)
+      }
+      throw new Error(`Livestorm API error: ${eventRes.status} - ${preview}`)
+    }
+
+    const eventData = JSON.parse(eventText)
+    const livestormEventId = eventData.data.id
+    const registrationLink = eventData.data.attributes?.registration_link || null
+
+    console.log(`Event created: ${livestormEventId}, registration: ${registrationLink}`)
+
+    // Create sessions
+    const createdSessions: Array<{
+      livestorm_session_id: string
+      session_date: string
+      registration_url: string
+      local_session_id?: string
+    }> = []
+
+    // If no sessions provided, use the module's webinar_date
+    const sessionsToCreate = sessions.length > 0
+      ? sessions
+      : module.webinar_date
+        ? [{ session_date: module.webinar_date }]
+        : []
+
+    for (const session of sessionsToCreate) {
+      const d = new Date(session.session_date)
+      if (isNaN(d.getTime())) {
+        console.warn('Invalid session date, skipping:', session.session_date)
+        continue
+      }
+
+      const sessionPayload = {
         data: {
           type: 'sessions',
           attributes: {
-            estimated_started_at: payload.webinar_date,
-          },
-          relationships: {
-            event: {
-              data: {
-                type: 'events',
-                id: eventId,
-              },
+            timezone: 'Europe/Paris',
+            estimated_duration_in_minutes: estimatedDuration,
+            date: {
+              year: d.getUTCFullYear(),
+              month: d.getUTCMonth() + 1,
+              day: d.getUTCDate(),
+              hour: d.getUTCHours(),
+              minute: d.getUTCMinutes(),
             },
           },
         },
-      }),
-    })
+      }
 
-    if (!sessionResponse.ok) {
-      const text = await sessionResponse.text()
-      const preview = truncate(text)
-      console.error('Livestorm session API error:', sessionResponse.status, preview)
-      // Continue even if session creation fails
+      console.log(`Creating session for ${session.session_date}`)
+
+      const { res: sessionRes, text: sessionText } = await fetchLivestorm(
+        `${LIVESTORM_API}/events/${livestormEventId}/sessions`,
+        { method: 'POST', headers: { ...LIVESTORM_JSONAPI_HEADERS }, body: JSON.stringify(sessionPayload) },
+        livestormToken
+      )
+
+      if (!sessionRes.ok) {
+        console.error(`Session creation failed:`, { status: sessionRes.status, preview: truncate(sessionText) })
+        continue
+      }
+
+      const sessionData = JSON.parse(sessionText)
+      const lsSessionId = sessionData.data.id
+      const sessionRegUrl =
+        sessionData.data.attributes?.room_link ||
+        sessionData.data.attributes?.registration_link ||
+        registrationLink
+
+      createdSessions.push({
+        livestorm_session_id: lsSessionId,
+        session_date: session.session_date,
+        registration_url: sessionRegUrl || registrationLink || '',
+        local_session_id: session.id,
+      })
     }
 
-    const sessionData = sessionResponse.ok ? await sessionResponse.json() : null
-    const sessionId = sessionData?.data?.id
+    // Update module with Livestorm info
+    const embedCode = `<iframe src="${registrationLink}" width="100%" height="480" frameborder="0" allowfullscreen></iframe>`
 
-    const registrationUrl = sessionId 
-      ? `https://app.livestorm.co/${eventSlug}/${sessionId}`
-      : `https://app.livestorm.co/${eventSlug}`
-
-    // Create embed code
-    const embedCode = `<iframe src="${registrationUrl}" width="100%" height="480" frameborder="0" allowfullscreen></iframe>`
-
-    // 2. Get next order_num for modules
-    const { data: lastModule } = await supabase
+    const { error: updateErr } = await supabase
       .from('modules')
-      .select('order_num')
-      .order('order_num', { ascending: false })
-      .limit(1)
-      .single()
-
-    const nextOrderNum = (lastModule?.order_num || 0) + 1
-
-    // 3. Create module in FinCare database
-    const { data: newModule, error: moduleError } = await supabase
-      .from('modules')
-      .insert({
-        type: 'webinar',
-        title: payload.title,
-        description: payload.description,
-        webinar_date: payload.webinar_date,
-        duration: `${payload.duration} min`,
-        estimated_time: payload.estimated_time || payload.duration,
-        webinar_registration_url: registrationUrl,
-        webinar_image_url: payload.webinar_image_url,
+      .update({
+        livestorm_event_id: livestormEventId,
+        webinar_registration_url: registrationLink,
         embed_code: embedCode,
-        theme: payload.theme,
-        pedagogical_objectives: payload.pedagogical_objectives || [],
-        difficulty_level: payload.difficulty_level || 1,
-        points_registration: payload.points_registration,
-        points_participation: payload.points_participation,
-        points: payload.points_registration + payload.points_participation,
-        order_num: nextOrderNum,
       })
-      .select()
-      .single()
+      .eq('id', moduleId)
 
-    if (moduleError) {
-      console.error('Error creating module:', moduleError)
-      throw new Error(`Failed to create module: ${moduleError.message}`)
+    if (updateErr) {
+      console.error('Module update error:', updateErr)
     }
 
-    console.log('Module created:', newModule.id)
-
-    // 4. Add module to parcours
-    const { data: existingModules } = await supabase
-      .from('parcours_modules')
-      .select('order_num')
-      .eq('parcours_id', payload.parcours_id)
-      .order('order_num', { ascending: false })
-      .limit(1)
-      .single()
-
-    const nextParcoursOrder = (existingModules?.order_num || 0) + 1
-
-    const { error: parcoursModuleError } = await supabase
-      .from('parcours_modules')
-      .insert({
-        parcours_id: payload.parcours_id,
-        module_id: newModule.id,
-        order_num: nextParcoursOrder,
-      })
-
-    if (parcoursModuleError) {
-      console.error('Error adding module to parcours:', parcoursModuleError)
-      throw new Error(`Failed to add module to parcours: ${parcoursModuleError.message}`)
-    }
-
-    // 5. Ensure parcours is assigned to companies
-    for (const companyId of payload.company_ids) {
-      // Check if assignment exists
-      const { data: existingAssignment } = await supabase
-        .from('parcours_companies')
-        .select('id')
-        .eq('parcours_id', payload.parcours_id)
-        .eq('company_id', companyId)
-        .single()
-
-      if (!existingAssignment) {
+    // Update/create local webinar_sessions with Livestorm IDs
+    for (const cs of createdSessions) {
+      if (cs.local_session_id) {
         await supabase
-          .from('parcours_companies')
-          .insert({
-            parcours_id: payload.parcours_id,
-            company_id: companyId,
+          .from('webinar_sessions')
+          .update({
+            livestorm_session_id: cs.livestorm_session_id,
+            registration_url: cs.registration_url,
           })
+          .eq('id', cs.local_session_id)
+      } else {
+        await supabase.from('webinar_sessions').insert({
+          module_id: moduleId,
+          session_date: cs.session_date,
+          livestorm_session_id: cs.livestorm_session_id,
+          registration_url: cs.registration_url,
+        })
       }
     }
 
-    console.log('Webinar creation complete')
+    console.log(`Done: ${createdSessions.length}/${sessionsToCreate.length} sessions created`)
 
     return new Response(
       JSON.stringify({
         success: true,
-        module: newModule,
-        livestorm_event_id: eventId,
-        registration_url: registrationUrl,
+        livestorm_event_id: livestormEventId,
+        registration_link: registrationLink,
+        sessions_created: createdSessions.length,
+        sessions_total: sessionsToCreate.length,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
-
   } catch (error: any) {
     console.error('Error in create-livestorm-webinar:', error)
-
-    // Return 200 so the admin UI can handle/display the error without crashing
-    // (supabase.functions.invoke throws on non-2xx).
     return new Response(
       JSON.stringify({
         success: false,
