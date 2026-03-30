@@ -22,6 +22,7 @@ import { WebinarCompanyAssignment } from "./WebinarCompanyAssignment";
 import { WebinarSessionsManager } from "./WebinarSessionsManager";
 import { WebinarCatalogPicker } from "./WebinarCatalogPicker";
 import { WebinarVisualGenerator } from "./WebinarVisualGenerator";
+import { LivestormPublishButton } from "./LivestormPublishButton";
 import { ModulePreviewDialog } from "./ModulePreviewDialog";
 import { SlidesData, SLIDE_TEMPLATES, applyTemplate } from "@/types/slides";
 
@@ -143,6 +144,7 @@ export const ModuleEditorPage = () => {
     slides_data: { slides: [], transition: 'fade' } as SlidesData,
     catalog_id: null as string | null,
     webinar_source: "new" as "catalog" | "new",
+    livestorm_event_id: null as string | null,
   });
 
   // Fetch module data if editing
