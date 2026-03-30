@@ -660,6 +660,25 @@ export const ModuleEditorPage = () => {
                   />
                 </div>
 
+                {/* Livestorm publish */}
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Publication Livestorm</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Enregistrez le module, ajoutez des sessions, puis créez l'événement dans Livestorm en un clic.
+                  </p>
+                  <LivestormPublishButton
+                    moduleId={isEditing && moduleId ? parseInt(moduleId) : null}
+                    moduleTitle={formData.title}
+                    livestormEventId={formData.livestorm_event_id}
+                    onPublished={(result) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        livestorm_event_id: result.livestorm_event_id,
+                      }));
+                    }}
+                  />
+                </div>
+
                 <Tabs defaultValue="sessions" className="w-full">
                   <TabsList className="grid w-full grid-cols-2 mb-4">
                     <TabsTrigger value="sessions">📅 Sessions</TabsTrigger>
