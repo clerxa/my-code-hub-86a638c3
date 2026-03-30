@@ -232,6 +232,7 @@ export const ModuleEditorPage = () => {
             slides_data: contentData.slides_data || { slides: [], transition: 'fade' },
             catalog_id: (module as any).catalog_id || null,
             webinar_source: (module as any).catalog_id ? "catalog" : "new",
+            livestorm_event_id: (module as any).livestorm_event_id || null,
           });
         }
       }
