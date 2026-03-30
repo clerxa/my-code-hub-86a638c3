@@ -86,3 +86,6 @@ verify_jwt = false
 
 [functions.reset-user-data]
 verify_jwt = false
+
+[functions.create-livestorm-webinar]
+verify_jwt = false
