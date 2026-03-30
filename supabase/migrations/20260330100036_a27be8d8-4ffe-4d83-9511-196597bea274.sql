@@ -1,0 +1,2 @@
+ALTER TABLE public.modules ADD COLUMN IF NOT EXISTS livestorm_event_id TEXT;
+CREATE INDEX IF NOT EXISTS idx_modules_livestorm_event_id ON public.modules(livestorm_event_id) WHERE livestorm_event_id IS NOT NULL;
