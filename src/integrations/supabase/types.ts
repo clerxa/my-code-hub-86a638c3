@@ -3253,6 +3253,7 @@ export type Database = {
           id: number
           is_optional: boolean | null
           key_takeaways: string[] | null
+          livestorm_event_id: string | null
           livestorm_session_id: string | null
           order_num: number
           pedagogical_objectives: string[] | null
@@ -3283,6 +3284,7 @@ export type Database = {
           id?: number
           is_optional?: boolean | null
           key_takeaways?: string[] | null
+          livestorm_event_id?: string | null
           livestorm_session_id?: string | null
           order_num: number
           pedagogical_objectives?: string[] | null
@@ -3313,6 +3315,7 @@ export type Database = {
           id?: number
           is_optional?: boolean | null
           key_takeaways?: string[] | null
+          livestorm_event_id?: string | null
           livestorm_session_id?: string | null
           order_num?: number
           pedagogical_objectives?: string[] | null

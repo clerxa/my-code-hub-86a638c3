@@ -22,6 +22,7 @@ import { WebinarCompanyAssignment } from "./WebinarCompanyAssignment";
 import { WebinarSessionsManager } from "./WebinarSessionsManager";
 import { WebinarCatalogPicker } from "./WebinarCatalogPicker";
 import { WebinarVisualGenerator } from "./WebinarVisualGenerator";
+import { LivestormPublishButton } from "./LivestormPublishButton";
 import { ModulePreviewDialog } from "./ModulePreviewDialog";
 import { SlidesData, SLIDE_TEMPLATES, applyTemplate } from "@/types/slides";
 
@@ -143,6 +144,7 @@ export const ModuleEditorPage = () => {
     slides_data: { slides: [], transition: 'fade' } as SlidesData,
     catalog_id: null as string | null,
     webinar_source: "new" as "catalog" | "new",
+    livestorm_event_id: null as string | null,
   });
 
   // Fetch module data if editing
@@ -230,6 +232,7 @@ export const ModuleEditorPage = () => {
             slides_data: contentData.slides_data || { slides: [], transition: 'fade' },
             catalog_id: (module as any).catalog_id || null,
             webinar_source: (module as any).catalog_id ? "catalog" : "new",
+            livestorm_event_id: (module as any).livestorm_event_id || null,
           });
         }
       }
@@ -653,6 +656,25 @@ export const ModuleEditorPage = () => {
                     webinarTitle={formData.title}
                     onVisualGenerated={(dataUrl) => {
                       setFormData(prev => ({ ...prev, webinar_image_url: dataUrl }));
+                    }}
+                  />
+                </div>
+
+                {/* Livestorm publish */}
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Publication Livestorm</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Enregistrez le module, ajoutez des sessions, puis créez l'événement dans Livestorm en un clic.
+                  </p>
+                  <LivestormPublishButton
+                    moduleId={isEditing && moduleId ? parseInt(moduleId) : null}
+                    moduleTitle={formData.title}
+                    livestormEventId={formData.livestorm_event_id}
+                    onPublished={(result) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        livestorm_event_id: result.livestorm_event_id,
+                      }));
                     }}
                   />
                 </div>
